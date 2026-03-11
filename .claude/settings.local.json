@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Desktop_Commander__list_directory",
+      "WebSearch",
+      "mcp__Desktop_Commander__read_multiple_files",
+      "mcp__Desktop_Commander__read_file",
+      "Bash(python3:*)",
+      "Bash(pip3 install openpyxl --quiet)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm install)",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__list_projects",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__list_organizations",
+      "Bash(npm install @supabase/supabase-js react-router-dom zustand)",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__get_cost",
+      "Bash(npm install -D tailwindcss @tailwindcss/vite)",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__confirm_cost",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__create_project",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__get_project_url",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__get_publishable_keys",
+      "Bash(npx tailwindcss --help)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm install --save-dev @types/react @types/react-dom)",
+      "Bash(npx vite build)",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__apply_migration",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__list_tables",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__search_docs",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__execute_sql"
+    ]
+  }
+}
