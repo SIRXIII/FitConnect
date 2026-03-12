@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MapPin, ArrowLeft, Check } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowLeft, Check, CreditCard, AlertCircle } from 'lucide-react';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { supabase } from '@/lib/supabase';
+import { stripePromise, STRIPE_CONFIGURED } from '@/lib/stripe';
 import { useAuthStore } from '@/stores/auth';
 import { formatSpecialty } from '@/types';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
@@ -16,8 +18,94 @@ interface SlotWithTrainer extends AvailabilitySlot {
   };
 }
 
-type BookingStep = 'review' | 'confirm' | 'success';
+type BookingStep = 'review' | 'confirm' | 'payment' | 'success';
 
+// --- Payment Form Component (used inside <Elements>) ---
+const PaymentForm: React.FC<{
+  onSuccess: () => void;
+  onBack: () => void;
+  amount: number;
+}> = ({ onSuccess, onBack, amount }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setProcessing(true);
+    setError(null);
+
+    const { error: submitError } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/client/bookings`,
+      },
+      redirect: 'if_required',
+    });
+
+    if (submitError) {
+      setError(submitError.message || 'Payment failed. Please try again.');
+      setProcessing(false);
+      return;
+    }
+
+    // Payment succeeded without redirect
+    onSuccess();
+    setProcessing(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="border border-ink/10 p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <CreditCard size={14} className="text-accent" />
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+            Payment Details
+          </p>
+        </div>
+        <PaymentElement
+          options={{
+            layout: 'tabs',
+          }}
+        />
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 text-red-500 text-sm border border-red-200 bg-red-50 p-4">
+          <AlertCircle size={16} />
+          {error}
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={processing}
+          className="border border-ink/20 px-8 py-4 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink/5 transition-all duration-300 disabled:opacity-50"
+        >
+          Back
+        </button>
+        <button
+          type="submit"
+          disabled={!stripe || processing}
+          className="flex-1 bg-accent text-white py-4 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent/90 transition-all duration-300 disabled:opacity-50"
+        >
+          {processing ? 'Processing...' : `Pay $${amount}`}
+        </button>
+      </div>
+
+      <p className="text-[10px] text-ink/30 text-center">
+        Your payment is secured by Stripe. You can cancel free of charge up to 24 hours before the session.
+      </p>
+    </form>
+  );
+};
+
+// --- Main BookSession Component ---
 const BookSession: React.FC = () => {
   const { slotId } = useParams<{ slotId: string }>();
   const navigate = useNavigate();
@@ -28,6 +116,8 @@ const BookSession: React.FC = () => {
   const [step, setStep] = useState<BookingStep>('review');
   const [notes, setNotes] = useState('');
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slotId) return;
@@ -52,14 +142,16 @@ const BookSession: React.FC = () => {
     fetchSlot();
   }, [slotId]);
 
+  // Step 1 → 2: Create booking in DB
   const handleBooking = async () => {
     if (!slot || !user || !profile) return;
 
     setSubmitting(true);
+    setPaymentError(null);
 
     const trainerProfile = slot.trainer_profiles;
     const rate = Number(trainerProfile.optimized_rate);
-    const platformFee = Math.round(rate * 0.08 * 100) / 100; // 8%
+    const platformFee = Math.round(rate * 0.08 * 100) / 100;
     const trainerPayout = Math.round((rate - platformFee) * 100) / 100;
 
     const { data, error } = await supabase
@@ -77,15 +169,72 @@ const BookSession: React.FC = () => {
       .select('id')
       .single();
 
-    setSubmitting(false);
-
     if (error) {
-      alert('Booking failed. The session may no longer be available.');
+      setSubmitting(false);
+      setPaymentError('Booking failed. The session may no longer be available.');
       return;
     }
 
     setBookingId(data.id);
+
+    // If Stripe is configured, create a payment intent
+    if (STRIPE_CONFIGURED) {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        const token = session?.session?.access_token;
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify({ booking_id: data.id }),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to create payment');
+        }
+
+        setClientSecret(result.clientSecret);
+        setStep('payment');
+      } catch (err) {
+        // Payment intent failed — booking still created as pending
+        console.error('Payment intent error:', err);
+        setPaymentError(
+          'Payment setup failed. Your booking has been created — you can pay later from My Bookings.'
+        );
+        setStep('success');
+      }
+    } else {
+      // No Stripe configured — skip payment, go to success
+      setStep('success');
+    }
+
+    setSubmitting(false);
+  };
+
+  const handlePaymentSuccess = () => {
     setStep('success');
+  };
+
+  const handlePaymentBack = async () => {
+    // Cancel the booking if going back from payment
+    if (bookingId) {
+      await supabase
+        .from('bookings')
+        .update({ status: 'cancelled', cancellation_reason: 'Client cancelled during payment' })
+        .eq('id', bookingId);
+    }
+    setBookingId(null);
+    setClientSecret(null);
+    setStep('confirm');
   };
 
   if (loading) {
@@ -147,11 +296,23 @@ const BookSession: React.FC = () => {
             <Check size={28} className="text-accent" />
           </div>
           <div className="space-y-3">
-            <h1 className="text-3xl serif font-light italic text-ink">Session Requested</h1>
+            <h1 className="text-3xl serif font-light italic text-ink">
+              {STRIPE_CONFIGURED ? 'Booking Confirmed' : 'Session Requested'}
+            </h1>
             <p className="text-sm text-ink/50">
-              Your booking request has been sent to {trainerName}. You'll be notified once they confirm.
+              {STRIPE_CONFIGURED
+                ? `Your session with ${trainerName} has been booked and payment processed.`
+                : `Your booking request has been sent to ${trainerName}. You'll be notified once they confirm.`}
             </p>
           </div>
+
+          {paymentError && (
+            <div className="flex items-center gap-2 text-amber-600 text-sm border border-amber-200 bg-amber-50 p-4 text-left">
+              <AlertCircle size={16} className="shrink-0" />
+              {paymentError}
+            </div>
+          )}
+
           <div className="border border-ink/10 p-6 text-left space-y-3">
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">Booking Details</p>
             <div className="flex items-center gap-2 text-sm text-ink/70">
@@ -178,6 +339,58 @@ const BookSession: React.FC = () => {
             >
               Browse More
             </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Payment step (Stripe Elements)
+  if (step === 'payment' && clientSecret && stripePromise) {
+    return (
+      <div className="min-h-screen bg-paper pt-28 pb-20 px-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="space-y-10">
+            <div className="space-y-2">
+              <h1 className="text-3xl serif font-light italic text-ink">Book Session</h1>
+              <p className="text-xs uppercase tracking-[0.3em] text-ink/40">Payment</p>
+            </div>
+
+            {/* Compact session summary */}
+            <div className="border border-ink/10 p-6 flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-ink">{trainerName}</p>
+                <p className="text-[10px] text-ink/40">
+                  {startTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {' '}
+                  {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                </p>
+              </div>
+              <p className="text-xl serif font-light text-accent">${total}</p>
+            </div>
+
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: 'flat',
+                  variables: {
+                    colorPrimary: '#C5A059',
+                    colorBackground: '#FDFCFB',
+                    colorText: '#1A1A1A',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    borderRadius: '0px',
+                  },
+                },
+              }}
+            >
+              <PaymentForm
+                onSuccess={handlePaymentSuccess}
+                onBack={handlePaymentBack}
+                amount={total}
+              />
+            </Elements>
           </div>
         </div>
       </div>
@@ -288,6 +501,13 @@ const BookSession: React.FC = () => {
             </div>
           )}
 
+          {paymentError && (
+            <div className="flex items-center gap-2 text-red-500 text-sm border border-red-200 bg-red-50 p-4">
+              <AlertCircle size={16} className="shrink-0" />
+              {paymentError}
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex gap-4">
             {step === 'review' ? (
@@ -310,15 +530,20 @@ const BookSession: React.FC = () => {
                   disabled={submitting}
                   className="flex-1 bg-accent text-white py-4 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent/90 transition-all duration-300 disabled:opacity-50"
                 >
-                  {submitting ? 'Booking...' : 'Confirm Booking'}
+                  {submitting
+                    ? 'Processing...'
+                    : STRIPE_CONFIGURED
+                      ? 'Continue to Payment'
+                      : 'Confirm Booking'}
                 </button>
               </>
             )}
           </div>
 
           <p className="text-[10px] text-ink/30 text-center">
-            Payment will be collected after the trainer confirms your booking.
-            You can cancel free of charge up to 24 hours before the session.
+            {STRIPE_CONFIGURED
+              ? 'Your payment is secured by Stripe. You can cancel free of charge up to 24 hours before the session.'
+              : 'Payment will be collected after the trainer confirms your booking. You can cancel free of charge up to 24 hours before the session.'}
           </p>
         </div>
       </div>

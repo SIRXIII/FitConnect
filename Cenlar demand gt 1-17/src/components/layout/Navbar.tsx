@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Bell } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
   const { user, profile, signOut } = useAuthStore();
+  const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,14 +21,17 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
-    const handleClick = () => setShowUserMenu(false);
-    if (showUserMenu) {
+    const handleClick = () => {
+      setShowUserMenu(false);
+      setShowNotifs(false);
+    };
+    if (showUserMenu || showNotifs) {
       document.addEventListener('click', handleClick);
       return () => document.removeEventListener('click', handleClick);
     }
-  }, [showUserMenu]);
+  }, [showUserMenu, showNotifs]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -51,18 +57,95 @@ const Navbar: React.FC = () => {
             </span>
           </Link>
 
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-12">
-              <a href="/#search" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Trainers</a>
-              <a href="/#how-it-works" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Experience</a>
-              <a href="/#safety" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Safety</a>
+          <div className="hidden md:flex items-center space-x-12">
+            <a href="/#search" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Trainers</a>
+            <a href="/#how-it-works" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Experience</a>
+            <a href="/#safety" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Safety</a>
 
-              {user ? (
+            {user ? (
+              <>
+                {/* Notification bell */}
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowNotifs(!showNotifs);
+                      setShowUserMenu(false);
+                    }}
+                    className="relative p-1.5 hover:text-accent transition-colors"
+                  >
+                    <Bell size={18} strokeWidth={1.5} />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-accent text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {showNotifs && (
+                    <div className="absolute right-0 top-full mt-3 w-80 bg-paper border border-ink/10 shadow-lg max-h-96 overflow-hidden flex flex-col">
+                      <div className="px-4 py-3 border-b border-ink/5 flex items-center justify-between">
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/40">Notifications</p>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); markAllRead(); }}
+                            className="text-[9px] uppercase tracking-wider text-accent hover:text-accent/70 transition-colors"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+                      <div className="overflow-y-auto flex-1">
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center">
+                            <p className="text-xs text-ink/30">No notifications yet</p>
+                          </div>
+                        ) : (
+                          notifications.map((notif) => (
+                            <button
+                              key={notif.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!notif.read) markAsRead(notif.id);
+                                if (notif.link) navigate(notif.link);
+                                setShowNotifs(false);
+                              }}
+                              className={`w-full text-left px-4 py-3 border-b border-ink/5 hover:bg-ink/3 transition-colors ${
+                                !notif.read ? 'bg-accent/3' : ''
+                              }`}
+                            >
+                              <div className="flex items-start gap-2">
+                                {!notif.read && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
+                                )}
+                                <div className={!notif.read ? '' : 'pl-3.5'}>
+                                  <p className="text-xs font-medium text-ink">{notif.title}</p>
+                                  <p className="text-[10px] text-ink/40 mt-0.5">{notif.message}</p>
+                                  <p className="text-[9px] text-ink/20 mt-1">
+                                    {new Date(notif.created_at).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: 'numeric',
+                                      minute: '2-digit',
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* User avatar */}
                 <div className="relative">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowUserMenu(!showUserMenu);
+                      setShowNotifs(false);
                     }}
                     className="flex items-center gap-3 group"
                   >
@@ -95,6 +178,15 @@ const Navbar: React.FC = () => {
                         <LayoutDashboard size={14} strokeWidth={1.5} />
                         Dashboard
                       </button>
+                      {profile?.role === 'trainer' && (
+                        <button
+                          onClick={() => navigate('/trainer/bookings')}
+                          className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/60 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
+                        >
+                          <LayoutDashboard size={14} strokeWidth={1.5} />
+                          Bookings
+                        </button>
+                      )}
                       <button
                         onClick={handleSignOut}
                         className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/60 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
@@ -105,15 +197,15 @@ const Navbar: React.FC = () => {
                     </div>
                   )}
                 </div>
-              ) : (
-                <Link
-                  to="/login"
-                  className="border border-ink/20 px-8 py-2.5 text-[10px] uppercase tracking-[0.2em] hover:bg-ink hover:text-white transition-all duration-300"
-                >
-                  Sign In
-                </Link>
-              )}
-            </div>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="border border-ink/20 px-8 py-2.5 text-[10px] uppercase tracking-[0.2em] hover:bg-ink hover:text-white transition-all duration-300"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
 
           <div className="md:hidden">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock } from 'lucide-react';
 import { useTrainerById } from '@/hooks/useTrainers';
@@ -24,42 +24,84 @@ const TrainerProfile: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
 
-  // Fetch available slots for this trainer
+  const fetchSlots = useCallback(async () => {
+    if (!id) return;
+
+    setLoadingSlots(true);
+    const { data } = await supabase
+      .from('availability_slots')
+      .select('*')
+      .eq('trainer_id', id)
+      .eq('is_booked', false)
+      .gte('start_time', new Date().toISOString())
+      .order('start_time', { ascending: true })
+      .limit(21);
+
+    setAvailableSlots((data as AvailabilitySlot[]) || []);
+    setLoadingSlots(false);
+  }, [id]);
+
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+
+    const { data } = await supabase
+      .from('reviews')
+      .select(`
+        id, rating, comment, created_at,
+        profiles:client_id (full_name, avatar_url)
+      `)
+      .eq('trainer_id', id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    setReviews((data as unknown as Review[]) || []);
+  }, [id]);
+
+  useEffect(() => {
+    fetchSlots();
+    fetchReviews();
+  }, [fetchSlots, fetchReviews]);
+
   useEffect(() => {
     if (!id) return;
 
-    const fetchSlots = async () => {
-      setLoadingSlots(true);
-      const { data } = await supabase
-        .from('availability_slots')
-        .select('*')
-        .eq('trainer_id', id)
-        .eq('is_booked', false)
-        .gte('start_time', new Date().toISOString())
-        .order('start_time', { ascending: true })
-        .limit(21);
+    const slotChannel = supabase
+      .channel(`trainer-profile-slots-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'availability_slots',
+          filter: `trainer_id=eq.${id}`,
+        },
+        () => {
+          fetchSlots();
+        }
+      )
+      .subscribe();
 
-      setAvailableSlots((data as AvailabilitySlot[]) || []);
-      setLoadingSlots(false);
+    const reviewChannel = supabase
+      .channel(`trainer-profile-reviews-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reviews',
+          filter: `trainer_id=eq.${id}`,
+        },
+        () => {
+          fetchReviews();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(slotChannel);
+      supabase.removeChannel(reviewChannel);
     };
-
-    const fetchReviews = async () => {
-      const { data } = await supabase
-        .from('reviews')
-        .select(`
-          id, rating, comment, created_at,
-          profiles:client_id (full_name, avatar_url)
-        `)
-        .eq('trainer_id', id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      setReviews((data as unknown as Review[]) || []);
-    };
-
-    fetchSlots();
-    fetchReviews();
-  }, [id]);
+  }, [id, fetchSlots, fetchReviews]);
 
   // Group available slots by date
   const slotsByDate = useMemo(() => {

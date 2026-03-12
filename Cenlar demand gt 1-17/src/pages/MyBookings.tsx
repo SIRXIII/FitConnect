@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, Star, MapPin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { formatSpecialty } from '@/types';
+import type { Tables } from '@/types/supabase';
 
-interface BookingWithDetails {
-  id: string;
-  status: string;
-  rate_charged: number;
-  notes: string | null;
-  created_at: string;
+type BookingRow = Tables<'bookings'>;
+type ReviewRow = Tables<'reviews'>;
+
+interface BookingWithDetails
+  extends Pick<BookingRow, 'id' | 'status' | 'rate_charged' | 'notes' | 'created_at'> {
   availability_slots: {
     start_time: string;
     end_time: string;
@@ -34,36 +34,173 @@ const STATUS_STYLES: Record<string, string> = {
   no_show: 'bg-red-50 text-red-600 border-red-200',
 };
 
+const ReviewModal: React.FC<{
+  booking: BookingWithDetails;
+  onClose: () => void;
+  onSubmit: (bookingId: string, trainerId: string, rating: number, comment: string) => Promise<void>;
+}> = ({ booking, onClose, onSubmit }) => {
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (rating === 0) return;
+    setSubmitting(true);
+    await onSubmit(booking.id, booking.trainer_profiles.id, rating, comment);
+    setSubmitting(false);
+  };
+
+  const trainerName = booking.trainer_profiles?.profiles?.full_name || 'Trainer';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={onClose}>
+      <div className="bg-paper max-w-md w-full p-8 space-y-6 border border-ink/10" onClick={(e) => e.stopPropagation()}>
+        <div className="space-y-2">
+          <h3 className="text-xl serif font-light italic text-ink">Rate your session</h3>
+          <p className="text-sm text-ink/40">How was your session with {trainerName}?</p>
+        </div>
+
+        {/* Star rating */}
+        <div className="flex gap-2 justify-center py-2">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onMouseEnter={() => setHoveredRating(star)}
+              onMouseLeave={() => setHoveredRating(0)}
+              onClick={() => setRating(star)}
+              className="transition-transform hover:scale-110"
+            >
+              <Star
+                size={32}
+                className={`transition-colors ${
+                  star <= (hoveredRating || rating)
+                    ? 'text-accent fill-accent'
+                    : 'text-ink/15'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+        {rating > 0 && (
+          <p className="text-center text-xs text-ink/40">
+            {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][rating]}
+          </p>
+        )}
+
+        {/* Comment */}
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Share your experience (optional)"
+          rows={3}
+          className="w-full border border-ink/10 bg-transparent p-4 text-sm text-ink placeholder:text-ink/20 focus:outline-none focus:border-accent/40 resize-none"
+        />
+
+        {/* Actions */}
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={rating === 0 || submitting}
+            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] bg-ink text-white hover:bg-ink/80 transition-colors disabled:opacity-30"
+          >
+            {submitting ? 'Submitting...' : 'Submit Review'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MyBookings: React.FC = () => {
   const { user } = useAuthStore();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [reviewBooking, setReviewBooking] = useState<BookingWithDetails | null>(null);
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
+
+  const fetchBookings = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+    const { data } = await supabase
+      .from('bookings')
+      .select(`
+        id, status, rate_charged, notes, created_at,
+        availability_slots!bookings_slot_id_fkey (start_time, end_time),
+        trainer_profiles!bookings_trainer_id_fkey (
+          id, specialty, location,
+          profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
+        )
+      `)
+      .eq('client_id', user.id)
+      .order('created_at', { ascending: false });
+
+    setBookings((data as unknown as BookingWithDetails[]) || []);
+    setLoading(false);
+
+    // Fetch which bookings already have reviews
+    const { data: reviews } = await supabase
+      .from('reviews')
+      .select('booking_id')
+      .eq('client_id', user.id);
+
+      if (reviews) {
+        setReviewedIds(new Set(reviews.map((r: Pick<ReviewRow, 'booking_id'>) => r.booking_id)));
+      }
+  }, [user?.id]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
 
   useEffect(() => {
     if (!user) return;
 
-    const fetchBookings = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from('bookings')
-        .select(`
-          id, status, rate_charged, notes, created_at,
-          availability_slots!bookings_slot_id_fkey (start_time, end_time),
-          trainer_profiles!bookings_trainer_id_fkey (
-            id, specialty, location,
-            profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
-          )
-        `)
-        .eq('client_id', user.id)
-        .order('created_at', { ascending: false });
+    const channel = supabase
+      .channel(`client-bookings-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: `client_id=eq.${user.id}`,
+        },
+        () => {
+          fetchBookings();
+        }
+      )
+      .subscribe();
 
-      setBookings((data as unknown as BookingWithDetails[]) || []);
-      setLoading(false);
+    return () => {
+      supabase.removeChannel(channel);
     };
+  }, [user?.id, fetchBookings]);
 
-    fetchBookings();
-  }, [user]);
+  const handleReviewSubmit = async (bookingId: string, trainerId: string, rating: number, comment: string) => {
+    if (!user) return;
+
+    const { error } = await supabase.from('reviews').insert({
+      booking_id: bookingId,
+      client_id: user.id,
+      trainer_id: trainerId,
+      rating,
+      comment: comment || null,
+    });
+
+    if (!error) {
+      setReviewedIds((prev) => new Set(prev).add(bookingId));
+      setReviewBooking(null);
+    }
+  };
 
   const now = new Date();
   const upcomingBookings = bookings.filter((b) => {
@@ -78,11 +215,13 @@ const MyBookings: React.FC = () => {
   const displayBookings = tab === 'upcoming' ? upcomingBookings : pastBookings;
 
   const handleCancel = async (bookingId: string) => {
+    if (!user) return;
+
     const { error } = await supabase
       .from('bookings')
-      .update({ status: 'cancelled', cancelled_by: user?.id })
+      .update({ status: 'cancelled', cancelled_by: user.id })
       .eq('id', bookingId)
-      .eq('client_id', user?.id);
+      .eq('client_id', user.id);
 
     if (!error) {
       setBookings((prev) =>
@@ -232,11 +371,20 @@ const MyBookings: React.FC = () => {
                         Cancel
                       </button>
                     )}
-                    {booking.status === 'completed' && (
-                      <button className="text-[10px] uppercase tracking-[0.2em] text-accent border border-accent/20 px-4 py-2 hover:bg-accent/5 transition-colors flex items-center gap-1.5">
+                    {booking.status === 'completed' && !reviewedIds.has(booking.id) && (
+                      <button
+                        onClick={() => setReviewBooking(booking)}
+                        className="text-[10px] uppercase tracking-[0.2em] text-accent border border-accent/20 px-4 py-2 hover:bg-accent/5 transition-colors flex items-center gap-1.5"
+                      >
                         <Star size={10} />
                         Leave Review
                       </button>
+                    )}
+                    {booking.status === 'completed' && reviewedIds.has(booking.id) && (
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-green-600 flex items-center gap-1.5 px-4 py-2">
+                        <Star size={10} className="fill-green-600" />
+                        Reviewed
+                      </span>
                     )}
                   </div>
                 </div>
@@ -245,6 +393,15 @@ const MyBookings: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Review Modal */}
+      {reviewBooking && (
+        <ReviewModal
+          booking={reviewBooking}
+          onClose={() => setReviewBooking(null)}
+          onSubmit={handleReviewSubmit}
+        />
+      )}
     </div>
   );
 };

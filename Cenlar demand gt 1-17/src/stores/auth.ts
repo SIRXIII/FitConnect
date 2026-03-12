@@ -1,37 +1,12 @@
 import { create } from 'zustand';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import type { Tables } from '@/types/supabase';
 
 export type UserRole = 'trainer' | 'client';
 
-export interface Profile {
-  id: string;
-  role: UserRole | null;
-  full_name: string;
-  avatar_url: string | null;
-  phone: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface TrainerProfile {
-  id: string;
-  user_id: string;
-  specialty: string;
-  bio: string | null;
-  hourly_rate: number;
-  optimized_rate: number;
-  location: string;
-  latitude: number | null;
-  longitude: number | null;
-  certifications: string[];
-  verified: boolean;
-  rating: number;
-  review_count: number;
-  stripe_account_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type Profile = Tables<'profiles'>;
+export type TrainerProfile = Tables<'trainer_profiles'>;
 
 interface AuthState {
   user: User | null;

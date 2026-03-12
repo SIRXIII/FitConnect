@@ -9,6 +9,7 @@ import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
 import RoleSelect from '@/pages/RoleSelect';
 import TrainerDashboard from '@/pages/TrainerDashboard';
+import TrainerBookings from '@/pages/TrainerBookings';
 import ClientDashboard from '@/pages/ClientDashboard';
 import TrainerProfile from '@/pages/TrainerProfile';
 import BookSession from '@/pages/BookSession';
@@ -40,6 +41,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute requiredRole="trainer">
                 <TrainerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trainer/bookings"
+            element={
+              <ProtectedRoute requiredRole="trainer">
+                <TrainerBookings />
               </ProtectedRoute>
             }
           />

@@ -1,15 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import type { Tables } from '@/types/supabase';
 
-export interface AvailabilitySlot {
-  id: string;
-  trainer_id: string;
-  start_time: string;
-  end_time: string;
-  is_booked: boolean;
-  created_at: string;
-}
+export type AvailabilitySlot = Tables<'availability_slots'>;
 
 export function useAvailability() {
   const { trainerProfile } = useAuthStore();

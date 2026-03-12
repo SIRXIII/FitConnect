@@ -51,7 +51,7 @@ export function useTrainers(options: UseTrainersOptions = {}) {
     if (fetchError) {
       setError(fetchError.message);
     } else {
-      setTrainers((data as TrainerWithProfile[]) || []);
+      setTrainers((data as unknown as TrainerWithProfile[]) || []);
     }
     setLoading(false);
   }, [options.specialty, options.maxRate, options.minRating, options.location]);
