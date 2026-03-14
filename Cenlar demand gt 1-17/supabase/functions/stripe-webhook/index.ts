@@ -130,6 +130,106 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case 'payout.paid': {
+        // payout.paid fires on connected accounts when funds land in the trainer's bank.
+        // The event.account identifies which connected account this belongs to.
+        // NOTE: This event is a Connect event — the webhook endpoint must be configured
+        // in Stripe Dashboard to listen to events on connected accounts.
+        const payout = event.data.object as Stripe.Payout;
+        const connectedAccountId = (event as any).account as string | undefined;
+
+        if (!connectedAccountId) {
+          console.warn('[stripe-webhook] payout.paid missing account field');
+          break;
+        }
+
+        // Find the trainer by stripe_account_id
+        const { data: trainer } = await adminClient
+          .from('trainer_profiles')
+          .select('id, user_id')
+          .eq('stripe_account_id', connectedAccountId)
+          .maybeSingle();
+
+        if (!trainer) {
+          console.warn('[stripe-webhook] payout.paid: no trainer for account', connectedAccountId);
+          break;
+        }
+
+        // IMPORTANT: Stripe payouts bundle multiple transfers. A single payout.paid event
+        // may cover multiple transfers. We cannot directly map payout -> transfer 1:1.
+        // Strategy: Find all 'processing' payout_transactions for this trainer and check
+        // if exactly one exists. If multiple exist (concurrent manual + auto payouts),
+        // log a warning and skip to avoid marking the wrong transaction.
+        const { data: processingTxns } = await adminClient
+          .from('payout_transactions')
+          .select('id, amount, stripe_transfer_id')
+          .eq('trainer_id', trainer.id)
+          .eq('status', 'processing');
+
+        if (!processingTxns || processingTxns.length === 0) {
+          console.log('[stripe-webhook] payout.paid: no processing transactions for trainer', trainer.id);
+          break;
+        }
+
+        if (processingTxns.length > 1) {
+          // GUARD: Multiple concurrent processing payouts for the same trainer.
+          // Cannot safely determine which transfer this payout covers.
+          // Log and skip -- these will need manual resolution or the next payout.paid
+          // event (when only one remains) will resolve them.
+          console.warn(
+            '[stripe-webhook] payout.paid: multiple processing transactions for trainer',
+            trainer.id,
+            'count:', processingTxns.length,
+            'ids:', processingTxns.map((t: { id: string }) => t.id),
+            'Skipping automatic completion -- requires manual resolution.'
+          );
+          break;
+        }
+
+        // Exactly one processing transaction -- safe to mark as completed
+        const payoutTx = processingTxns[0];
+
+        await adminClient
+          .from('payout_transactions')
+          .update({ status: 'completed', updated_at: new Date().toISOString() })
+          .eq('id', payoutTx.id);
+
+        console.log('[stripe-webhook] payout.paid: marked payout_transaction completed', payoutTx.id, 'for trainer', trainer.id);
+
+        // Get trainer's email for completion notification
+        const { data: profile } = await adminClient
+          .from('profiles')
+          .select('email')
+          .eq('id', trainer.user_id)
+          .maybeSingle();
+
+        if (profile?.email) {
+          const resendApiKey = Deno.env.get('RESEND_API_KEY');
+          if (resendApiKey) {
+            const amount = Number(payoutTx.amount).toFixed(2);
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${resendApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: 'FitRush <noreply@resend.dev>',
+                to: [profile.email],
+                subject: 'Your FitRush payout has arrived',
+                html: `<p>Your payout of $${amount} has arrived in your bank account.</p>`,
+              }),
+            }).catch((err: unknown) => console.error('[stripe-webhook] Resend error:', err));
+          } else {
+            console.log('[stripe-webhook] No RESEND_API_KEY — skipping completion email for trainer', trainer.id);
+          }
+        }
+
+        // Suppress unused variable warning for payout (used for type narrowing)
+        void payout;
+        break;
+      }
+
       default:
         break;
     }
