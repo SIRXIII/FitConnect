@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Capacitor iOS — track the native project but not generated/build artifacts
+ios/App/App/public/
+ios/App/Pods/
+ios/DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
