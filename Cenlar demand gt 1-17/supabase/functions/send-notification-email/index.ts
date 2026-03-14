@@ -70,16 +70,33 @@ Deno.serve(async (req) => {
       });
     }
 
-    // TODO(Phase 4+): Integrate email provider (Resend, SendGrid, or Supabase Auth emails).
-    // The email provider was not present in the repository at the time this function was added.
-    // For now, log the notification and return success so callers don't need to be updated
-    // when the provider is wired in.
-    console.log('[send-notification-email] Would send:', {
-      to: body.to,
-      subject: body.subject,
-      bodyLength: body.body.length,
-      requestedBy: user.id,
-    });
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      // Fallback to logging if no API key configured (dev mode)
+      console.log('[send-notification-email] No RESEND_API_KEY, logging:', {
+        to: body.to,
+        subject: body.subject,
+      });
+    } else {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'FitRush <noreply@resend.dev>',
+          to: [body.to],
+          subject: body.subject,
+          html: body.body,
+        }),
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        console.error('[send-notification-email] Resend error:', res.status, errBody);
+        // Still return success to caller — email failure should not block operations
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: 'Notification queued' }),
