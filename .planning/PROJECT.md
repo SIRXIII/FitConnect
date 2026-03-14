@@ -1,4 +1,4 @@
-# FitConnect
+# FitRush
 
 ## What This Is
 
@@ -26,7 +26,24 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 - ✓ Trainer dashboard with stats, Stripe Connect setup — existing
 - ✓ Luxury design system (Cormorant Garamond, Inter, muted gold accent) — existing
 
-### Active
+### Active (v2.0 — Monetization Sprint)
+
+- [ ] Trainer payout dashboard (available balance, pending balance, transaction history)
+- [ ] On-demand payout initiation when balance ≥ $50
+- [ ] Weekly auto-payout every Monday for trainers with balance ≥ $50
+- [ ] Accurate balance calculation (completed bookings - platform fee - Stripe fees)
+- [ ] Payout email notifications (initiated + completed)
+- [ ] Trainer earnings dashboard with time range picker + charts
+- [ ] Admin aggregate analytics (platform revenue, payouts, booking volume, top earners)
+- [ ] CSV export of trainer earnings for tax purposes
+- [ ] Referral code generation (unique per user, shareable link)
+- [ ] Trainer referral: $10 payout credit when referred client books
+- [ ] Client referral: $5 discount when referred trainer's client books
+- [ ] Referral attribution (cookie → signup link → first-booking credit)
+- [ ] Referral leaderboard on landing page (top 10 this month)
+- [ ] Referral notifications (in-app + email)
+
+### Deferred (v1.1 security patch — before major marketing push)
 
 - [ ] Fix payment race condition (booking before payment confirmation)
 - [ ] Fix SQL injection vector in trainer search (ilike)
@@ -40,12 +57,7 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 - [ ] Replace console.log errors with user-facing toast notifications
 - [ ] Add GDPR capabilities (account deletion, data export)
 - [ ] Trainer discount slider (5%–80% range) with real-time rate preview
-- [ ] Discount-based weighted ranking (discount 40%, rating 25%, proximity 20%, availability 15%)
-- [ ] Admin dashboard with user management, analytics, platform settings
-- [ ] In-app messaging between trainers and clients via Supabase Realtime
-- [ ] AI scheduling MVP — classify hours as BOOKED/BLOCKED/BUFFER/IDLE
-- [ ] Multi-dimensional review ratings (punctuality, expertise, communication)
-- [ ] Trainer review responses and review moderation
+- [ ] Discount-based weighted ranking
 
 ### Out of Scope
 
@@ -74,7 +86,7 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 
 **Competitive landscape:**
 - Fyt (primary competitor): dumps full calendar to clients, no idle hour optimization
-- FitConnect differentiator: only show genuinely idle slots, AI-driven scheduling insights
+- FitRush differentiator: only show genuinely idle slots, AI-driven scheduling insights
 
 ## Constraints
 
@@ -95,5 +107,14 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 | AI scheduling MVP = hour classification only | Smart filtering alone differentiates from Fyt without ML | — Pending |
 | Skip external calendar sync | Complex API integration, deliver core value first | — Pending |
 
+## Current Milestone: v2.0 — Monetization Sprint
+
+**Goal:** Transform FitRush from a booking platform into a revenue-generating marketplace.
+
+**Target features:**
+- Trainer payout system (Stripe Connect withdrawals, $50 min, weekly auto + on-demand)
+- Earnings analytics (trainer + admin dashboards, CSV export)
+- Referral program v1 ($10 trainer / $5 client, attribution, leaderboard)
+
 ---
-*Last updated: 2026-03-11 after Milestone 2 initialization*
+*Last updated: 2026-03-14 after v2.0 milestone start*
