@@ -11,7 +11,7 @@
 
 - [ ] **PAYOUT-01**: Trainer sees available balance + pending balance on payout dashboard
 - [x] **PAYOUT-02**: Trainer can initiate on-demand payout when balance ≥ $50
-- [ ] **PAYOUT-03**: Platform auto-initiates weekly payout every Monday for trainers with balance ≥ $50
+- [x] **PAYOUT-03**: Platform auto-initiates weekly payout every Monday for trainers with balance ≥ $50
 - [x] **PAYOUT-04**: Balance calculated as: completed bookings sum − 8% platform fee − Stripe fees (~2.9% + $0.30)
 - [ ] **PAYOUT-05**: Transaction history shows date, amount, status (pending/completed/failed) per transfer
 - [x] **PAYOUT-06**: Trainer receives email when payout is initiated and when it completes
@@ -65,7 +65,7 @@
 |-------------|-------|--------|
 | PAYOUT-01 | Phase 9 | Pending |
 | PAYOUT-02 | Phase 9 | Complete |
-| PAYOUT-03 | Phase 9 | Pending |
+| PAYOUT-03 | Phase 9 | Complete |
 | PAYOUT-04 | Phase 9 | Complete |
 | PAYOUT-05 | Phase 9 | Pending |
 | PAYOUT-06 | Phase 9 | Complete |
