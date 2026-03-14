@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { sanitizeSearchInput } from '@/lib/sanitize';
 import type { TrainerProfile } from '@/stores/auth';
 
 export interface TrainerWithProfile extends TrainerProfile {
@@ -43,7 +44,10 @@ export function useTrainers(options: UseTrainersOptions = {}) {
       query = query.gte('rating', options.minRating);
     }
     if (options.location) {
-      query = query.ilike('location', `%${options.location}%`);
+      const safeLocation = sanitizeSearchInput(options.location);
+      if (safeLocation.length > 0) {
+        query = query.ilike('location', `%${safeLocation}%`);
+      }
     }
 
     const { data, error: fetchError } = await query;

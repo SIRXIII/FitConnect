@@ -190,7 +190,6 @@ const BookSession: React.FC = () => {
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
             },
             body: JSON.stringify({ booking_id: data.id }),
           }
@@ -205,12 +204,13 @@ const BookSession: React.FC = () => {
         setClientSecret(result.clientSecret);
         setStep('payment');
       } catch (err) {
-        // Payment intent failed — booking still created as pending
+        // Payment intent failed — delete the orphaned pending booking immediately
         console.error('Payment intent error:', err);
+        await supabase.from('bookings').delete().eq('id', data.id);
+        setBookingId(null);
         setPaymentError(
-          'Payment setup failed. Your booking has been created — you can pay later from My Bookings.'
+          'Payment setup failed. The session is still available — please try again.'
         );
-        setStep('success');
       }
     } else {
       // No Stripe configured — skip payment, go to success
