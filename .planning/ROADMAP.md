@@ -14,10 +14,17 @@ Phase numbering continues from v1.0 (last phase = 8) → v2.0 starts at Phase 9.
 
 **Requirements:** PAYOUT-01, PAYOUT-02, PAYOUT-03, PAYOUT-04, PAYOUT-05, PAYOUT-06
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Payout backend: DB migration, create-payout Edge Function, Resend email integration
+- [ ] 09-02-PLAN.md — Payouts tab UI: balance display, transaction history, Request Payout modal
+- [ ] 09-03-PLAN.md — Weekly auto-payout (pg_cron) + payout.paid webhook completion email
+
 **Success Criteria:**
 - Trainer sees accurate available balance on payout dashboard (updates after each completed booking)
 - Trainer can request on-demand payout and receives Stripe transfer within 2 business days
-- Weekly auto-payout fires every Monday for trainers with balance ≥ $50
+- Weekly auto-payout fires every Monday for trainers with balance >= $50
 - Transaction history lists all transfers with date, amount, and status
 - Trainer receives email on payout initiation and completion
 
