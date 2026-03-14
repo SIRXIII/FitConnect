@@ -17,6 +17,7 @@ import TrainerProfile from '@/pages/TrainerProfile';
 import BookSession from '@/pages/BookSession';
 import MyBookings from '@/pages/MyBookings';
 import AdminDashboard from '@/pages/AdminDashboard';
+import Messages from '@/pages/Messages';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
@@ -101,6 +102,16 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Messages (requires auth) */}
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <Messages />
               </ProtectedRoute>
             }
           />

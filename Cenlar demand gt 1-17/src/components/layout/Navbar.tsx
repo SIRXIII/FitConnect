@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard, Bell } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Bell, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,7 @@ const Navbar: React.FC = () => {
   const [showNotifs, setShowNotifs] = useState(false);
   const { user, profile, signOut } = useAuthStore();
   const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
+  const { unreadCount: unreadMessages } = useUnreadMessages();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,6 +69,19 @@ const Navbar: React.FC = () => {
 
             {user ? (
               <>
+                {/* Messages icon */}
+                <button
+                  onClick={() => navigate('/messages')}
+                  className="relative p-1.5 hover:text-accent transition-colors"
+                >
+                  <MessageSquare size={18} strokeWidth={1.5} />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-accent text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                      {unreadMessages > 9 ? '9+' : unreadMessages}
+                    </span>
+                  )}
+                </button>
+
                 {/* Notification bell */}
                 <div className="relative">
                   <button

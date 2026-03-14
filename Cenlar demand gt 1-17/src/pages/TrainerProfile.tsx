@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTrainerById } from '@/hooks/useTrainers';
 import { formatSpecialty } from '@/types';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/stores/auth';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 
 interface Review {
@@ -19,10 +21,35 @@ interface Review {
 
 const TrainerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user, profile } = useAuthStore();
   const { trainer, loading } = useTrainerById(id);
   const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
+  const [messagingLoading, setMessagingLoading] = useState(false);
+
+  const handleMessageTrainer = async () => {
+    if (!user || !trainer) return;
+    setMessagingLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .upsert(
+          { trainer_id: trainer.id, client_id: user.id },
+          { onConflict: 'trainer_id,client_id', ignoreDuplicates: false }
+        )
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      navigate(`/messages?conv=${data.id}`);
+    } catch {
+      toast.error('Could not start conversation. Please try again.');
+    } finally {
+      setMessagingLoading(false);
+    }
+  };
 
   const fetchSlots = useCallback(async () => {
     if (!id) return;
@@ -281,6 +308,20 @@ const TrainerProfile: React.FC = () => {
               <div className="space-y-4">
                 <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">About</h2>
                 <p className="text-ink/70 leading-relaxed">{trainer.bio}</p>
+              </div>
+            )}
+
+            {/* Message trainer (clients only, not own profile) */}
+            {user && profile?.role === 'client' && trainer.user_id !== user.id && (
+              <div>
+                <button
+                  onClick={handleMessageTrainer}
+                  disabled={messagingLoading}
+                  className="flex items-center gap-3 border border-ink/20 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300 disabled:opacity-50"
+                >
+                  <MessageSquare size={14} strokeWidth={1.5} />
+                  {messagingLoading ? 'Opening…' : 'Message Trainer'}
+                </button>
               </div>
             )}
 
