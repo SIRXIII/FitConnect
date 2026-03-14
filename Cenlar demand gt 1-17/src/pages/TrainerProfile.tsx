@@ -33,6 +33,7 @@ const TrainerProfile: React.FC = () => {
       .select('*')
       .eq('trainer_id', id)
       .eq('is_booked', false)
+      .is('deleted_at', null)
       .gte('start_time', new Date().toISOString())
       .order('start_time', { ascending: true })
       .limit(21);

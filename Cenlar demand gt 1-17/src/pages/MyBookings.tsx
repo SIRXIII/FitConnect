@@ -228,19 +228,35 @@ const MyBookings: React.FC = () => {
   const handleCancel = async (bookingId: string) => {
     if (!user) return;
 
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: 'cancelled', cancelled_by: user.id })
-      .eq('id', bookingId)
-      .eq('client_id', user.id);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
 
-    if (error) {
-      toast.error('Failed to cancel booking. Please try again.');
-    } else {
-      toast.success('Booking cancelled.');
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-booking`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ booking_id: bookingId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error || 'Failed to cancel booking. Please try again.');
+        return;
+      }
+
+      toast.success(result.refunded ? 'Booking cancelled and refund issued.' : 'Booking cancelled.');
       setBookings((prev) =>
         prev.map((b) => (b.id === bookingId ? { ...b, status: 'cancelled' } : b))
       );
+    } catch {
+      toast.error('Failed to cancel booking. Please try again.');
     }
   };
 

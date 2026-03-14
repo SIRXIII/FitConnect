@@ -119,24 +119,36 @@ const BookSession: React.FC = () => {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [platformFeePct, setPlatformFeePct] = useState(0.08);
 
   useEffect(() => {
     if (!slotId) return;
 
     const fetchSlot = async () => {
-      const { data } = await supabase
-        .from('availability_slots')
-        .select(`
-          *,
-          trainer_profiles!availability_slots_trainer_id_fkey (
+      const [{ data: slotData }, { data: feeSettings }] = await Promise.all([
+        supabase
+          .from('availability_slots')
+          .select(`
             *,
-            profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
-          )
-        `)
-        .eq('id', slotId)
-        .single();
+            trainer_profiles!availability_slots_trainer_id_fkey (
+              *,
+              profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
+            )
+          `)
+          .eq('id', slotId)
+          .single(),
+        supabase
+          .from('platform_settings')
+          .select('value')
+          .eq('key', 'platform_fee_pct')
+          .single(),
+      ]);
 
-      setSlot(data as unknown as SlotWithTrainer | null);
+      setSlot(slotData as unknown as SlotWithTrainer | null);
+      if (feeSettings?.value) {
+        const parsed = parseFloat(feeSettings.value);
+        if (!isNaN(parsed)) setPlatformFeePct(parsed);
+      }
       setLoading(false);
     };
 
@@ -152,7 +164,7 @@ const BookSession: React.FC = () => {
 
     const trainerProfile = slot.trainer_profiles;
     const rate = Number(trainerProfile.optimized_rate);
-    const platformFee = Math.round(rate * 0.08 * 100) / 100;
+    const platformFee = Math.round(rate * platformFeePct * 100) / 100;
     const trainerPayout = Math.round((rate - platformFee) * 100) / 100;
 
     const { data, error } = await supabase
@@ -285,7 +297,7 @@ const BookSession: React.FC = () => {
   const startTime = new Date(slot.start_time);
   const endTime = new Date(slot.end_time);
   const rate = Number(trainerData.optimized_rate);
-  const platformFee = Math.round(rate * 0.08 * 100) / 100;
+  const platformFee = Math.round(rate * platformFeePct * 100) / 100;
   const total = rate;
 
   // Success state
@@ -476,7 +488,7 @@ const BookSession: React.FC = () => {
                 <span className="text-sm">${rate}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-ink/50">Platform Fee (8%)</span>
+                <span className="text-sm text-ink/50">Platform Fee ({Math.round(platformFeePct * 100)}%)</span>
                 <span className="text-sm">${platformFee.toFixed(2)}</span>
               </div>
               <div className="flex items-center justify-between border-t border-ink/10 pt-4">

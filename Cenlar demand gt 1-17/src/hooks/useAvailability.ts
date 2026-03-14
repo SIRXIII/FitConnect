@@ -18,6 +18,7 @@ export function useAvailability() {
       .from('availability_slots')
       .select('*')
       .eq('trainer_id', trainerProfile.id)
+      .is('deleted_at', null)
       .gte('start_time', new Date().toISOString())
       .order('start_time', { ascending: true });
 
@@ -47,7 +48,7 @@ export function useAvailability() {
   const removeSlot = async (slotId: string) => {
     const { error } = await supabase
       .from('availability_slots')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', slotId)
       .eq('is_booked', false);
 
