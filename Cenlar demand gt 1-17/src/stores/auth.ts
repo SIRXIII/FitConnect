@@ -3,7 +3,7 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 
-export type UserRole = 'trainer' | 'client';
+export type UserRole = 'trainer' | 'client' | 'admin';
 
 export type Profile = Tables<'profiles'>;
 export type TrainerProfile = Tables<'trainer_profiles'>;

@@ -12,28 +12,31 @@ export type Database = {
       profiles: {
         Row: {
           id: string;
-          role: 'trainer' | 'client' | null;
+          role: 'trainer' | 'client' | 'admin' | null;
           full_name: string;
           avatar_url: string | null;
           phone: string | null;
+          is_suspended: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
-          role?: 'trainer' | 'client' | null;
+          role?: 'trainer' | 'client' | 'admin' | null;
           full_name?: string;
           avatar_url?: string | null;
           phone?: string | null;
+          is_suspended?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          role?: 'trainer' | 'client' | null;
+          role?: 'trainer' | 'client' | 'admin' | null;
           full_name?: string;
           avatar_url?: string | null;
           phone?: string | null;
+          is_suspended?: boolean;
           created_at?: string;
           updated_at?: string;
         };

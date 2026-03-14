@@ -16,6 +16,7 @@ import ClientDashboard from '@/pages/ClientDashboard';
 import TrainerProfile from '@/pages/TrainerProfile';
 import BookSession from '@/pages/BookSession';
 import MyBookings from '@/pages/MyBookings';
+import AdminDashboard from '@/pages/AdminDashboard';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
@@ -93,6 +94,16 @@ const App: React.FC = () => {
           {/* Public trainer pages */}
           <Route path="/trainers" element={<Landing />} />
           <Route path="/trainers/:id" element={<TrainerProfile />} />
+
+          {/* Admin routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Booking (requires auth) */}
           <Route

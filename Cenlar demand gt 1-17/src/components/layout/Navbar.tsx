@@ -38,7 +38,10 @@ const Navbar: React.FC = () => {
     navigate('/');
   };
 
-  const dashboardPath = profile?.role === 'trainer' ? '/trainer/dashboard' : '/client/dashboard';
+  const dashboardPath =
+    profile?.role === 'trainer' ? '/trainer/dashboard' :
+    profile?.role === 'admin' ? '/admin' :
+    '/client/dashboard';
 
   const initials = profile?.full_name
     ?.split(' ')
