@@ -191,6 +191,14 @@ export type Database = {
           trainer_id: string;
           rating: number;
           comment: string | null;
+          rating_punctuality: number | null;
+          rating_expertise: number | null;
+          rating_communication: number | null;
+          trainer_response: string | null;
+          trainer_response_at: string | null;
+          is_flagged: boolean;
+          flagged_at: string | null;
+          is_hidden: boolean;
           created_at: string;
         };
         Insert: {
@@ -200,6 +208,14 @@ export type Database = {
           trainer_id: string;
           rating: number;
           comment?: string | null;
+          rating_punctuality?: number | null;
+          rating_expertise?: number | null;
+          rating_communication?: number | null;
+          trainer_response?: string | null;
+          trainer_response_at?: string | null;
+          is_flagged?: boolean;
+          flagged_at?: string | null;
+          is_hidden?: boolean;
           created_at?: string;
         };
         Update: {
@@ -209,6 +225,14 @@ export type Database = {
           trainer_id?: string;
           rating?: number;
           comment?: string | null;
+          rating_punctuality?: number | null;
+          rating_expertise?: number | null;
+          rating_communication?: number | null;
+          trainer_response?: string | null;
+          trainer_response_at?: string | null;
+          is_flagged?: boolean;
+          flagged_at?: string | null;
+          is_hidden?: boolean;
           created_at?: string;
         };
         Relationships: [];

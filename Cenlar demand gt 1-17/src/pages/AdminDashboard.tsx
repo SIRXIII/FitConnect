@@ -1,10 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp } from 'lucide-react';
+import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 
 type ProfileRow = Tables<'profiles'>;
+
+interface FlaggedReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  is_flagged: boolean;
+  is_hidden: boolean;
+  created_at: string;
+  client: { full_name: string } | null;
+  trainer: { full_name: string } | null;
+}
 
 interface UserRow {
   id: string;
@@ -28,9 +39,11 @@ const AdminDashboard: React.FC = () => {
   const [platformFee, setPlatformFee] = useState('0.08');
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'settings'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'reviews' | 'settings'>('analytics');
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -90,8 +103,34 @@ const AdminDashboard: React.FC = () => {
     }
   }, [search]);
 
+  const fetchFlaggedReviews = useCallback(async () => {
+    setLoadingReviews(true);
+    try {
+      const { data } = await supabase
+        .from('reviews')
+        .select('id, rating, comment, is_flagged, is_hidden, created_at, client:client_id(full_name), trainer:trainer_id(full_name)')
+        .eq('is_flagged', true)
+        .order('created_at', { ascending: false });
+      setFlaggedReviews((data ?? []) as unknown as FlaggedReview[]);
+    } finally {
+      setLoadingReviews(false);
+    }
+  }, []);
+
   useEffect(() => { fetchStats(); }, [fetchStats]);
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  useEffect(() => { fetchFlaggedReviews(); }, [fetchFlaggedReviews]);
+
+  const handleToggleHideReview = async (review: FlaggedReview) => {
+    const next = !review.is_hidden;
+    const { error } = await supabase
+      .from('reviews')
+      .update({ is_hidden: next })
+      .eq('id', review.id);
+    if (error) { toast.error('Failed to update review'); return; }
+    setFlaggedReviews((prev) => prev.map((r) => r.id === review.id ? { ...r, is_hidden: next } : r));
+    toast.success(next ? 'Review hidden from public' : 'Review restored to public');
+  };
 
   const handleSuspend = async (user: UserRow) => {
     const next = !user.is_suspended;
@@ -147,7 +186,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Tabs */}
         <div className="flex border-b border-ink/10">
-          {(['analytics', 'users', 'settings'] as const).map((tab) => (
+          {(['analytics', 'users', 'reviews', 'settings'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -255,6 +294,73 @@ const AdminDashboard: React.FC = () => {
                 ))
               )}
             </div>
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <Flag size={16} strokeWidth={1.5} className="text-ink/40" />
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">
+                Flagged Reviews ({flaggedReviews.length})
+              </p>
+            </div>
+
+            {loadingReviews ? (
+              <div className="text-center py-16 text-ink/30 text-xs uppercase tracking-widest">Loading…</div>
+            ) : flaggedReviews.length === 0 ? (
+              <div className="text-center py-16 border border-ink/10 space-y-2">
+                <Flag size={24} className="mx-auto text-ink/15" strokeWidth={1} />
+                <p className="text-xs text-ink/30 uppercase tracking-widest">No flagged reviews</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {flaggedReviews.map((review) => (
+                  <div
+                    key={review.id}
+                    className={`border p-6 space-y-3 ${review.is_hidden ? 'border-ink/5 opacity-50' : 'border-red-200'}`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] uppercase tracking-widest text-ink/40">
+                            Client: {review.client?.full_name ?? '—'}
+                          </span>
+                          <span className="text-ink/20">·</span>
+                          <span className="text-[10px] uppercase tracking-widest text-ink/40">
+                            Trainer: {review.trainer?.full_name ?? '—'}
+                          </span>
+                          <span className="text-ink/20">·</span>
+                          <span className="text-[10px] text-ink/30">
+                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                          </span>
+                        </div>
+                        {review.comment && (
+                          <p className="text-sm text-ink/60 leading-relaxed">{review.comment}</p>
+                        )}
+                        <p className="text-[10px] text-ink/25">
+                          {new Date(review.created_at).toLocaleDateString('en-US', {
+                            month: 'long', day: 'numeric', year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleToggleHideReview(review)}
+                        className={`flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-medium shrink-0 transition-colors ${
+                          review.is_hidden
+                            ? 'text-green-600 hover:text-green-700'
+                            : 'text-red-500 hover:text-red-700'
+                        }`}
+                      >
+                        {review.is_hidden ? <Eye size={12} /> : <EyeOff size={12} />}
+                        {review.is_hidden ? 'Restore' : 'Hide'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

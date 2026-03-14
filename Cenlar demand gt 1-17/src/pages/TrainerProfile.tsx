@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare } from 'lucide-react';
+import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTrainerById } from '@/hooks/useTrainers';
 import { formatSpecialty } from '@/types';
@@ -11,8 +11,17 @@ import type { AvailabilitySlot } from '@/hooks/useAvailability';
 
 interface Review {
   id: string;
+  client_id: string;
+  trainer_id: string;
   rating: number;
   comment: string | null;
+  rating_punctuality: number | null;
+  rating_expertise: number | null;
+  rating_communication: number | null;
+  trainer_response: string | null;
+  trainer_response_at: string | null;
+  is_flagged: boolean;
+  is_hidden: boolean;
   created_at: string;
   profiles: {
     full_name: string;
@@ -29,6 +38,9 @@ const TrainerProfile: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
   const [messagingLoading, setMessagingLoading] = useState(false);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState('');
+  const [submittingResponse, setSubmittingResponse] = useState(false);
 
   const handleMessageTrainer = async () => {
     if (!user || !trainer) return;
@@ -49,6 +61,40 @@ const TrainerProfile: React.FC = () => {
       toast.error('Could not start conversation. Please try again.');
     } finally {
       setMessagingLoading(false);
+    }
+  };
+
+  const handleSubmitResponse = async (reviewId: string) => {
+    if (!responseText.trim()) return;
+    setSubmittingResponse(true);
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .update({ trainer_response: responseText.trim(), trainer_response_at: new Date().toISOString() })
+        .eq('id', reviewId);
+      if (error) throw error;
+      toast.success('Response posted.');
+      setRespondingTo(null);
+      setResponseText('');
+      fetchReviews();
+    } catch {
+      toast.error('Could not post response. Please try again.');
+    } finally {
+      setSubmittingResponse(false);
+    }
+  };
+
+  const handleFlagReview = async (reviewId: string) => {
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .update({ is_flagged: true, flagged_at: new Date().toISOString() })
+        .eq('id', reviewId);
+      if (error) throw error;
+      toast.success('Review flagged for moderation.');
+      fetchReviews();
+    } catch {
+      toast.error('Could not flag review. Please try again.');
     }
   };
 
@@ -76,12 +122,16 @@ const TrainerProfile: React.FC = () => {
     const { data } = await supabase
       .from('reviews')
       .select(`
-        id, rating, comment, created_at,
+        id, client_id, trainer_id, rating, comment, created_at,
+        rating_punctuality, rating_expertise, rating_communication,
+        trainer_response, trainer_response_at,
+        is_flagged, is_hidden,
         profiles:client_id (full_name, avatar_url)
       `)
       .eq('trainer_id', id)
+      .eq('is_hidden', false)
       .order('created_at', { ascending: false })
-      .limit(10);
+      .limit(20);
 
     setReviews((data as unknown as Review[]) || []);
   }, [id]);
@@ -400,49 +450,163 @@ const TrainerProfile: React.FC = () => {
               <div className="space-y-6">
                 <h2 className="text-2xl serif font-light italic text-ink">Reviews</h2>
                 <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="border border-ink/10 p-6 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {review.profiles?.avatar_url ? (
-                            <img
-                              src={review.profiles.avatar_url}
-                              alt=""
-                              referrerPolicy="no-referrer"
-                              className="w-8 h-8 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-xs font-medium text-ink/40">
-                              {review.profiles?.full_name?.charAt(0) || '?'}
-                            </div>
+                  {reviews.map((review) => {
+                    const isOwnReview = user?.id === review.client_id;
+                    const isThisTrainer = user?.id === review.trainer_id;
+                    const hasSubRatings =
+                      review.rating_punctuality || review.rating_expertise || review.rating_communication;
+
+                    return (
+                      <div key={review.id} className="border border-ink/10 p-6 space-y-4">
+                        {/* Header: avatar + name + overall stars */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {review.profiles?.avatar_url ? (
+                              <img
+                                src={review.profiles.avatar_url}
+                                alt=""
+                                referrerPolicy="no-referrer"
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-xs font-medium text-ink/40">
+                                {review.profiles?.full_name?.charAt(0) || '?'}
+                              </div>
+                            )}
+                            <span className="text-sm font-medium text-ink/70">
+                              {review.profiles?.full_name || 'Anonymous'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                size={10}
+                                className={i < review.rating ? 'text-accent' : 'text-ink/10'}
+                                fill={i < review.rating ? 'currentColor' : 'none'}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Sub-ratings */}
+                        {hasSubRatings && (
+                          <div className="flex flex-wrap gap-x-4 gap-y-1">
+                            {[
+                              { label: 'Punctuality', val: review.rating_punctuality },
+                              { label: 'Expertise', val: review.rating_expertise },
+                              { label: 'Communication', val: review.rating_communication },
+                            ].map(({ label, val }) =>
+                              val ? (
+                                <div key={label} className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-ink/40 uppercase tracking-wide">{label}</span>
+                                  <div className="flex items-center gap-0.5">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        size={8}
+                                        className={i < val ? 'text-accent/70' : 'text-ink/10'}
+                                        fill={i < val ? 'currentColor' : 'none'}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : null
+                            )}
+                          </div>
+                        )}
+
+                        {/* Comment */}
+                        {review.comment && (
+                          <p className="text-sm text-ink/60 leading-relaxed">{review.comment}</p>
+                        )}
+
+                        {/* Date + flag */}
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] text-ink/20">
+                            {new Date(review.created_at).toLocaleDateString('en-US', {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </p>
+                          {user && !isOwnReview && !isThisTrainer && !review.is_flagged && (
+                            <button
+                              onClick={() => handleFlagReview(review.id)}
+                              className="flex items-center gap-1 text-[10px] text-ink/30 hover:text-red-400 transition-colors"
+                            >
+                              <Flag size={10} />
+                              Flag
+                            </button>
                           )}
-                          <span className="text-sm font-medium text-ink/70">
-                            {review.profiles?.full_name || 'Anonymous'}
-                          </span>
+                          {review.is_flagged && (
+                            <span className="text-[10px] text-amber-500/60 flex items-center gap-1">
+                              <Flag size={10} />
+                              Flagged
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              size={10}
-                              className={i < review.rating ? 'text-accent' : 'text-ink/10'}
-                              fill={i < review.rating ? 'currentColor' : 'none'}
+
+                        {/* Trainer response */}
+                        {review.trainer_response && (
+                          <div className="bg-ink/3 border-l-2 border-accent/30 pl-4 py-3 space-y-1">
+                            <p className="text-[10px] text-ink/40 uppercase tracking-wide">Trainer response</p>
+                            <p className="text-sm text-ink/60 leading-relaxed">{review.trainer_response}</p>
+                            {review.trainer_response_at && (
+                              <p className="text-[10px] text-ink/20">
+                                {new Date(review.trainer_response_at).toLocaleDateString('en-US', {
+                                  month: 'long',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Trainer: respond button */}
+                        {isThisTrainer && !review.trainer_response && respondingTo !== review.id && (
+                          <button
+                            onClick={() => { setRespondingTo(review.id); setResponseText(''); }}
+                            className="flex items-center gap-1.5 text-xs text-ink/40 hover:text-accent transition-colors"
+                          >
+                            <Reply size={12} />
+                            Respond to review
+                          </button>
+                        )}
+
+                        {/* Response form */}
+                        {isThisTrainer && respondingTo === review.id && (
+                          <div className="space-y-2">
+                            <textarea
+                              value={responseText}
+                              onChange={(e) => setResponseText(e.target.value)}
+                              placeholder="Write a professional response..."
+                              maxLength={1000}
+                              rows={3}
+                              className="w-full text-sm border border-ink/20 rounded px-3 py-2 resize-none focus:outline-none focus:border-accent/40 text-ink/80 placeholder:text-ink/25"
                             />
-                          ))}
-                        </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleSubmitResponse(review.id)}
+                                disabled={submittingResponse || !responseText.trim()}
+                                className="text-xs bg-ink text-white px-4 py-1.5 rounded hover:bg-ink/80 disabled:opacity-40 transition-colors"
+                              >
+                                {submittingResponse ? 'Posting…' : 'Post response'}
+                              </button>
+                              <button
+                                onClick={() => setRespondingTo(null)}
+                                className="text-xs text-ink/40 hover:text-ink/70 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                              <span className="text-[10px] text-ink/25 ml-auto">{responseText.length}/1000</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      {review.comment && (
-                        <p className="text-sm text-ink/60 leading-relaxed">{review.comment}</p>
-                      )}
-                      <p className="text-[10px] text-ink/20">
-                        {new Date(review.created_at).toLocaleDateString('en-US', {
-                          month: 'long',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
