@@ -6,6 +6,12 @@ import { useTrainers, type TrainerWithProfile } from '@/hooks/useTrainers';
 import TrainerCard from './TrainerCard';
 
 function dbTrainerToCardData(t: TrainerWithProfile): Trainer {
+  const discountPct = t.discount_percentage ?? 0;
+  const optimizedRate = Number(t.optimized_rate);
+  const discountedRate = discountPct > 0
+    ? Math.round(optimizedRate * (1 - discountPct / 100) * 100) / 100
+    : optimizedRate;
+
   return {
     id: t.id,
     name: t.profiles?.full_name || 'Trainer',
@@ -14,10 +20,12 @@ function dbTrainerToCardData(t: TrainerWithProfile): Trainer {
     rating: Number(t.rating) || 0,
     reviewCount: t.review_count || 0,
     hourlyRate: Number(t.hourly_rate),
-    optimizedRate: Number(t.optimized_rate),
+    optimizedRate,
+    discountPercentage: discountPct,
+    discountedRate,
     imageUrl: t.profiles?.avatar_url || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: t.verified,
-    availableNow: false, // TODO: compute from availability_slots
+    availableNow: false,
   };
 }
 

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useAvailability } from '@/hooks/useAvailability';
 import { supabase } from '@/lib/supabase';
 import AvailabilityManager from '@/components/trainer/AvailabilityManager';
+import DiscountSlider, { computeDiscountedRate } from '@/components/trainer/DiscountSlider';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -162,12 +163,32 @@ const TrainerDashboard: React.FC = () => {
               <p className="text-xs uppercase tracking-[0.2em] text-accent font-medium">Optimized Rate</p>
               <p className="text-2xl serif font-light text-accent">${trainerProfile.optimized_rate}/hr</p>
             </div>
+            {(trainerProfile.discount_percentage ?? 0) > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Session Rate</p>
+                <p className="text-2xl serif font-light text-accent">
+                  ${computeDiscountedRate(Number(trainerProfile.optimized_rate), trainerProfile.discount_percentage ?? 0)}/hr
+                  <span className="text-[11px] text-ink/30 ml-2">({trainerProfile.discount_percentage}% off)</span>
+                </p>
+              </div>
+            )}
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Specialty</p>
               <p className="text-sm text-ink/60">
                 {trainerProfile.specialty.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Discount slider */}
+        {trainerProfile && (
+          <div className="border border-ink/10 p-8">
+            <DiscountSlider
+              currentDiscount={trainerProfile.discount_percentage ?? 0}
+              optimizedRate={Number(trainerProfile.optimized_rate)}
+              onSaved={() => fetchProfile(user!.id)}
+            />
           </div>
         )}
 

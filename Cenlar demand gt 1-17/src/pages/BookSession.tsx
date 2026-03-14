@@ -163,7 +163,11 @@ const BookSession: React.FC = () => {
     setPaymentError(null);
 
     const trainerProfile = slot.trainer_profiles;
-    const rate = Number(trainerProfile.optimized_rate);
+    const baseRate = Number(trainerProfile.optimized_rate);
+    const discountPct = trainerProfile.discount_percentage ?? 0;
+    const rate = discountPct > 0
+      ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
+      : baseRate;
     const platformFee = Math.round(rate * platformFeePct * 100) / 100;
     const trainerPayout = Math.round((rate - platformFee) * 100) / 100;
 
@@ -296,7 +300,11 @@ const BookSession: React.FC = () => {
   const trainerName = trainerData.profiles?.full_name || 'Trainer';
   const startTime = new Date(slot.start_time);
   const endTime = new Date(slot.end_time);
-  const rate = Number(trainerData.optimized_rate);
+  const baseRate = Number(trainerData.optimized_rate);
+  const discountPct = trainerData.discount_percentage ?? 0;
+  const rate = discountPct > 0
+    ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
+    : baseRate;
   const platformFee = Math.round(rate * platformFeePct * 100) / 100;
   const total = rate;
 
@@ -483,9 +491,17 @@ const BookSession: React.FC = () => {
               </div>
             </div>
             <div className="p-6 space-y-4">
+              {discountPct > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-ink/50">Original Rate</span>
+                  <span className="text-sm text-ink/30 line-through">${baseRate}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-ink/50">Optimized Rate</span>
-                <span className="text-sm">${rate}</span>
+                <span className="text-sm text-ink/50">
+                  {discountPct > 0 ? `Session Rate (${discountPct}% off)` : 'Optimized Rate'}
+                </span>
+                <span className="text-sm text-accent">${rate}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-ink/50">Platform Fee ({Math.round(platformFeePct * 100)}%)</span>

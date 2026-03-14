@@ -17,6 +17,35 @@ interface UseTrainersOptions {
   location?: string;
 }
 
+// Weighted-blend ranking: discount 40%, rating 25%, proximity 20%, availability 15%
+export function rankTrainers(
+  trainers: TrainerWithProfile[],
+  slotCounts: Record<string, number>,
+  locationFilter?: string
+): TrainerWithProfile[] {
+  const scored = trainers.map((t) => {
+    const discountScore = (t.discount_percentage ?? 0) / 80;
+    const ratingScore = Number(t.rating) / 5;
+    const proximityScore =
+      locationFilter && locationFilter.length > 0
+        ? t.location.toLowerCase().includes(locationFilter.toLowerCase())
+          ? 1
+          : 0
+        : 0.5; // neutral when no filter active
+    const availabilityScore = Math.min((slotCounts[t.id] ?? 0) / 10, 1);
+
+    const score =
+      0.40 * discountScore +
+      0.25 * ratingScore +
+      0.20 * proximityScore +
+      0.15 * availabilityScore;
+
+    return { trainer: t, score };
+  });
+
+  return scored.sort((a, b) => b.score - a.score).map((s) => s.trainer);
+}
+
 export function useTrainers(options: UseTrainersOptions = {}) {
   const [trainers, setTrainers] = useState<TrainerWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +60,7 @@ export function useTrainers(options: UseTrainersOptions = {}) {
       .select(`
         *,
         profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
-      `)
-      .order('rating', { ascending: false });
+      `);
 
     if (options.specialty) {
       query = query.eq('specialty', options.specialty);
@@ -54,9 +82,32 @@ export function useTrainers(options: UseTrainersOptions = {}) {
 
     if (fetchError) {
       setError(fetchError.message);
-    } else {
-      setTrainers((data as unknown as TrainerWithProfile[]) || []);
+      setLoading(false);
+      return;
     }
+
+    const raw = (data as unknown as TrainerWithProfile[]) || [];
+
+    // Fetch slot counts for weighted availability score
+    let slotCounts: Record<string, number> = {};
+    if (raw.length > 0) {
+      const { data: slots } = await supabase
+        .from('availability_slots')
+        .select('trainer_id')
+        .in('trainer_id', raw.map((t) => t.id))
+        .eq('is_booked', false)
+        .is('deleted_at', null)
+        .gte('start_time', new Date().toISOString());
+
+      if (slots) {
+        slotCounts = slots.reduce((acc, s) => {
+          acc[s.trainer_id] = (acc[s.trainer_id] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+      }
+    }
+
+    setTrainers(rankTrainers(raw, slotCounts, options.location));
     setLoading(false);
   }, [options.specialty, options.maxRate, options.minRating, options.location]);
 

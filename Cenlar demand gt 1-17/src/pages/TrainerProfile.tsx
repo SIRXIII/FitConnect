@@ -250,10 +250,30 @@ const TrainerProfile: React.FC = () => {
                 <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Standard Rate</p>
                 <p className="text-2xl serif font-light">${trainer.hourly_rate}/hr</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-accent font-medium">Optimized Rate</p>
-                <p className="text-2xl serif font-light text-accent">${trainer.optimized_rate}/hr</p>
-              </div>
+              {(trainer.discount_percentage ?? 0) > 0 ? (
+                <>
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-[0.2em] text-ink/30 font-medium line-through">Optimized Rate</p>
+                    <p className="text-2xl serif font-light text-ink/30 line-through">${trainer.optimized_rate}/hr</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs uppercase tracking-[0.2em] text-accent font-medium">Session Rate</p>
+                      <span className="bg-accent text-white text-[8px] uppercase tracking-[0.1em] px-1.5 py-0.5 font-semibold">
+                        {trainer.discount_percentage}% off
+                      </span>
+                    </div>
+                    <p className="text-2xl serif font-light text-accent">
+                      ${Math.round(Number(trainer.optimized_rate) * (1 - (trainer.discount_percentage ?? 0) / 100) * 100) / 100}/hr
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.2em] text-accent font-medium">Optimized Rate</p>
+                  <p className="text-2xl serif font-light text-accent">${trainer.optimized_rate}/hr</p>
+                </div>
+              )}
             </div>
 
             {/* Bio */}

@@ -47,6 +47,7 @@ export type Database = {
           bio: string | null;
           hourly_rate: number;
           optimized_rate: number;
+          discount_percentage: number;
           location: string;
           latitude: number | null;
           longitude: number | null;
@@ -65,6 +66,7 @@ export type Database = {
           bio?: string | null;
           hourly_rate?: number;
           optimized_rate?: number;
+          discount_percentage?: number;
           location?: string;
           latitude?: number | null;
           longitude?: number | null;
@@ -83,6 +85,7 @@ export type Database = {
           bio?: string | null;
           hourly_rate?: number;
           optimized_rate?: number;
+          discount_percentage?: number;
           location?: string;
           latitude?: number | null;
           longitude?: number | null;
@@ -103,6 +106,7 @@ export type Database = {
           start_time: string;
           end_time: string;
           is_booked: boolean;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -112,6 +116,7 @@ export type Database = {
           start_time: string;
           end_time: string;
           is_booked?: boolean;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -121,6 +126,7 @@ export type Database = {
           start_time?: string;
           end_time?: string;
           is_booked?: boolean;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

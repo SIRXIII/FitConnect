@@ -14,6 +14,8 @@ export interface Trainer {
   reviewCount: number;
   hourlyRate: number;
   optimizedRate: number;
+  discountPercentage: number;
+  discountedRate: number;
   imageUrl: string;
   verified: boolean;
   availableNow: boolean;

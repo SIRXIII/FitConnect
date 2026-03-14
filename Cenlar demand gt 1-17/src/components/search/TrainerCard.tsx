@@ -41,11 +41,28 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
             </div>
           </div>
           <div className="text-right space-y-0.5">
-            <div className="text-[9px] uppercase tracking-widest text-ink/30">Optimized Rate</div>
-            <div className="text-accent text-xl serif italic">
-              ${trainer.optimizedRate}
-              <span className="text-[10px] text-ink/30 not-italic">/hr</span>
-            </div>
+            {trainer.discountPercentage > 0 ? (
+              <>
+                <div className="flex items-center justify-end">
+                  <span className="bg-accent text-white text-[8px] uppercase tracking-[0.1em] px-1.5 py-0.5 font-semibold">
+                    {trainer.discountPercentage}% off
+                  </span>
+                </div>
+                <div className="text-accent text-xl serif italic">
+                  ${trainer.discountedRate}
+                  <span className="text-[10px] text-ink/30 not-italic">/hr</span>
+                </div>
+                <div className="text-[10px] text-ink/25 line-through">${trainer.optimizedRate}/hr</div>
+              </>
+            ) : (
+              <>
+                <div className="text-[9px] uppercase tracking-widest text-ink/30">Optimized Rate</div>
+                <div className="text-accent text-xl serif italic">
+                  ${trainer.optimizedRate}
+                  <span className="text-[10px] text-ink/30 not-italic">/hr</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
