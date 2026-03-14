@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-16 mb-24">
           <div className="md:col-span-6 space-y-10">
             <h3 className="text-3xl font-light tracking-[0.3em] uppercase serif">
-              FitConnect
+              FitRush
             </h3>
             <p className="text-paper/40 text-sm font-light leading-relaxed max-w-sm">
               Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="pt-12 border-t border-paper/5 flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-          <p className="text-paper/20 text-[10px] uppercase tracking-[0.2em]">&copy; 2026 FitConnect. All rights reserved.</p>
+          <p className="text-paper/20 text-[10px] uppercase tracking-[0.2em]">&copy; 2026 FitRush. All rights reserved.</p>
           <div className="flex space-x-10 text-[10px] uppercase tracking-[0.2em] text-paper/20">
             <a href="#" className="hover:text-paper transition-colors">Privacy</a>
             <a href="#" className="hover:text-paper transition-colors">Terms</a>

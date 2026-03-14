@@ -58,7 +58,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-light tracking-[0.2em] uppercase serif cursor-pointer">
-              FitConnect
+              FitRush
             </span>
           </Link>
 

@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.fitconnect.app',
-  appName: 'FitConnect',
+  appId: 'com.fitrush.app',
+  appName: 'FitRush',
   webDir: 'dist',
   server: {
     // In production, the app loads from the local dist bundle.

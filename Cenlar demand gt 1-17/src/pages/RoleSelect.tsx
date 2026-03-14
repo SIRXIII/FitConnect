@@ -39,7 +39,7 @@ const RoleSelect: React.FC = () => {
         {/* Header */}
         <div className="space-y-4">
           <h1 className="text-3xl md:text-4xl serif font-light italic text-ink">
-            How will you use FitConnect?
+            How will you use FitRush?
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
             Select your role to get started

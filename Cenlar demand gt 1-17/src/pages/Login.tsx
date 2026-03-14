@@ -32,7 +32,7 @@ const Login: React.FC = () => {
         {/* Brand */}
         <div className="space-y-4">
           <h1 className="text-4xl serif font-light tracking-[0.15em] uppercase">
-            FitConnect
+            FitRush
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
             Elite fitness, optimized
@@ -77,7 +77,7 @@ const Login: React.FC = () => {
 
         {/* Footer */}
         <p className="text-[10px] text-ink/30 leading-relaxed">
-          By continuing, you agree to FitConnect's Terms of Service and Privacy Policy.
+          By continuing, you agree to FitRush's Terms of Service and Privacy Policy.
         </p>
       </div>
     </div>
