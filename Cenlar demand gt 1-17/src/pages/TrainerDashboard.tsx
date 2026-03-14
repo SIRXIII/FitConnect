@@ -6,12 +6,14 @@ import { useAvailability } from '@/hooks/useAvailability';
 import { supabase } from '@/lib/supabase';
 import AvailabilityManager from '@/components/trainer/AvailabilityManager';
 import DiscountSlider, { computeDiscountedRate } from '@/components/trainer/DiscountSlider';
+import PayoutsTab from '@/components/trainer/PayoutsTab';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const TrainerDashboard: React.FC = () => {
   const { profile, trainerProfile, fetchProfile, user } = useAuthStore();
   const { slots, refetch: refetchAvailability } = useAvailability();
+  const [activeTab, setActiveTab] = useState<'overview' | 'payouts'>('overview');
   const [showAvailability, setShowAvailability] = useState(false);
   const [upcomingCount, setUpcomingCount] = useState(0);
   const [stripeLoading, setStripeLoading] = useState(false);
@@ -124,6 +126,25 @@ const TrainerDashboard: React.FC = () => {
             Trainer Dashboard
           </p>
         </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-ink/10">
+          {(['overview', 'payouts'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors ${
+                activeTab === tab
+                  ? 'border-b-2 border-ink text-ink -mb-px'
+                  : 'text-ink/40 hover:text-ink'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'overview' && (<>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -255,6 +276,11 @@ const TrainerDashboard: React.FC = () => {
             </div>
           )}
         </div>
+
+        </>)}
+
+        {activeTab === 'payouts' && <PayoutsTab />}
+
       </div>
     </div>
   );
