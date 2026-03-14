@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, Star, MapPin } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import { reviewSchema } from '@/lib/schemas';
 import { formatSpecialty } from '@/types';
 import type { Tables } from '@/types/supabase';
 
@@ -188,6 +190,12 @@ const MyBookings: React.FC = () => {
   const handleReviewSubmit = async (bookingId: string, trainerId: string, rating: number, comment: string) => {
     if (!user) return;
 
+    const validation = reviewSchema.safeParse({ rating, comment: comment || undefined });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     const { error } = await supabase.from('reviews').insert({
       booking_id: bookingId,
       client_id: user.id,
@@ -196,7 +204,10 @@ const MyBookings: React.FC = () => {
       comment: comment || null,
     });
 
-    if (!error) {
+    if (error) {
+      toast.error('Failed to submit review. Please try again.');
+    } else {
+      toast.success('Review submitted — thank you!');
       setReviewedIds((prev) => new Set(prev).add(bookingId));
       setReviewBooking(null);
     }
@@ -223,7 +234,10 @@ const MyBookings: React.FC = () => {
       .eq('id', bookingId)
       .eq('client_id', user.id);
 
-    if (!error) {
+    if (error) {
+      toast.error('Failed to cancel booking. Please try again.');
+    } else {
+      toast.success('Booking cancelled.');
       setBookings((prev) =>
         prev.map((b) => (b.id === bookingId ? { ...b, status: 'cancelled' } : b))
       );

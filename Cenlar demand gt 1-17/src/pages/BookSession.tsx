@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, ArrowLeft, Check, CreditCard, AlertCircle } from 'lucide-react';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { stripePromise, STRIPE_CONFIGURED } from '@/lib/stripe';
 import { useAuthStore } from '@/stores/auth';
@@ -205,9 +206,9 @@ const BookSession: React.FC = () => {
         setStep('payment');
       } catch (err) {
         // Payment intent failed — delete the orphaned pending booking immediately
-        console.error('Payment intent error:', err);
         await supabase.from('bookings').delete().eq('id', data.id);
         setBookingId(null);
+        toast.error('Payment setup failed. The session is still available — please try again.');
         setPaymentError(
           'Payment setup failed. The session is still available — please try again.'
         );

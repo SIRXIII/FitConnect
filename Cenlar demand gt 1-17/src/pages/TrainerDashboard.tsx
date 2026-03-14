@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
 import { useAvailability } from '@/hooks/useAvailability';
 import { supabase } from '@/lib/supabase';
@@ -100,6 +101,7 @@ const TrainerDashboard: React.FC = () => {
       // Redirect to Stripe onboarding
       window.location.href = data.url;
     } catch (err: any) {
+      toast.error('Payment setup failed. Please try again.');
       setStripeError(err.message);
     } finally {
       setStripeLoading(false);

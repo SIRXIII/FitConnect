@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAvailability, type AvailabilitySlot } from '@/hooks/useAvailability';
 
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 6); // 6am to 7pm
@@ -60,12 +61,12 @@ const AvailabilityManager: React.FC = () => {
     const key = `${dayIndex}-${hour}`;
     const existing = slotsByDayHour[key];
 
-    if (existing) {
-      if (existing.is_booked) return; // Can't remove booked slots
-      await removeSlot(existing.id);
-    } else {
-      setAdding(true);
-      try {
+    try {
+      if (existing) {
+        if (existing.is_booked) return; // Can't remove booked slots
+        await removeSlot(existing.id);
+      } else {
+        setAdding(true);
         const slotDate = new Date(currentWeek);
         slotDate.setDate(slotDate.getDate() + dayIndex);
 
@@ -76,9 +77,11 @@ const AvailabilityManager: React.FC = () => {
         endTime.setHours(hour + 1, 0, 0, 0);
 
         await addSlot(startTime, endTime);
-      } finally {
-        setAdding(false);
       }
+    } catch {
+      toast.error('Failed to update availability. Please try again.');
+    } finally {
+      setAdding(false);
     }
   };
 

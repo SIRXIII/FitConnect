@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Toaster } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
@@ -23,8 +25,25 @@ const App: React.FC = () => {
   }, [initialize]);
 
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <div className="min-h-screen bg-paper selection:bg-accent selection:text-white">
+        <Toaster
+          position="top-right"
+          duration={4000}
+          toastOptions={{
+            style: {
+              background: '#1a1a1a',
+              color: '#fff',
+              fontSize: '13px',
+              fontFamily: 'Inter, sans-serif',
+              letterSpacing: '0.02em',
+              borderRadius: '0',
+              padding: '14px 20px',
+              border: 'none',
+            },
+          }}
+        />
         <Navbar />
         <Routes>
           {/* Public */}
@@ -88,6 +107,7 @@ const App: React.FC = () => {
         <Footer />
       </div>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 };
 

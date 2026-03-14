@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, UserRound, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import type { Tables } from '@/types/supabase';
@@ -147,7 +148,11 @@ const TrainerBookings: React.FC = () => {
       .eq('id', bookingId)
       .eq('trainer_id', trainerProfile.id);
 
-    if (!error) {
+    if (error) {
+      toast.error('Failed to update booking status. Please try again.');
+    } else {
+      const statusLabel = status === 'confirmed' ? 'confirmed' : status === 'completed' ? 'marked complete' : status === 'no_show' ? 'marked as no-show' : 'cancelled';
+      toast.success(`Booking ${statusLabel}.`);
       setBookings((prev) => prev.map((booking) => (booking.id === bookingId ? { ...booking, ...updatePayload } : booking)));
     }
 

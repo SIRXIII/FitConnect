@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dumbbell, User } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuthStore, type UserRole } from '@/stores/auth';
 
 const RoleSelect: React.FC = () => {
@@ -27,7 +28,7 @@ const RoleSelect: React.FC = () => {
         navigate('/trainers', { replace: true });
       }
     } catch (err) {
-      console.error('Failed to set role:', err);
+      toast.error('Failed to set up your account. Please try again.');
       setSubmitting(false);
     }
   };
