@@ -6,6 +6,7 @@ import { useTrainerById } from '@/hooks/useTrainers';
 import { formatSpecialty } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import { classifySlot } from '@/lib/scheduling';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 
 interface Review {
@@ -366,14 +367,24 @@ const TrainerProfile: React.FC = () => {
                             hour12: true,
                           })}`;
 
+                          const slotClass = classifySlot(slot);
+                          const isBuffer = slotClass === 'buffer';
+
                           return (
                             <Link
                               key={slot.id}
                               to={`/book/${slot.id}`}
-                              className="inline-flex items-center gap-2 px-4 py-2.5 border border-accent/20 text-[11px] uppercase tracking-[0.15em] text-ink/70 hover:bg-accent hover:text-white transition-all duration-300"
+                              className={`inline-flex items-center gap-2 px-4 py-2.5 text-[11px] uppercase tracking-[0.15em] hover:bg-accent hover:text-white transition-all duration-300 ${
+                                isBuffer
+                                  ? 'border border-amber-400/40 text-amber-700/70'
+                                  : 'border border-accent/20 text-ink/70'
+                              }`}
                             >
                               <Clock size={12} />
                               {timeStr}
+                              {isBuffer && (
+                                <span className="text-[8px] uppercase tracking-widest text-amber-600/60">Soon</span>
+                              )}
                             </Link>
                           );
                         })}

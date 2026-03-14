@@ -1,4 +1,4 @@
-import { Star, MapPin, Award } from 'lucide-react';
+import { Star, MapPin, Award, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Trainer } from '@/types';
 
@@ -71,9 +71,17 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
             <Award size={12} className="mr-2 text-accent" />
             {trainer.specialty}
           </div>
-          <div className="flex items-center text-accent text-[10px] font-semibold tracking-widest">
-            <Star size={10} fill="currentColor" className="mr-1" />
-            {trainer.rating > 0 ? Number(trainer.rating).toFixed(1) : 'New'}
+          <div className="flex items-center gap-3">
+            {(trainer.idleSlotCount ?? 0) > 0 && (
+              <div className="flex items-center text-amber-600 text-[9px] uppercase tracking-widest font-medium">
+                <Clock size={9} className="mr-1" />
+                {trainer.idleSlotCount} idle
+              </div>
+            )}
+            <div className="flex items-center text-accent text-[10px] font-semibold tracking-widest">
+              <Star size={10} fill="currentColor" className="mr-1" />
+              {trainer.rating > 0 ? Number(trainer.rating).toFixed(1) : 'New'}
+            </div>
           </div>
         </div>
 

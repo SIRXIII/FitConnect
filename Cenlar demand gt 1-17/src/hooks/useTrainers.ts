@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { sanitizeSearchInput } from '@/lib/sanitize';
+import { buildIdleSlotCounts } from '@/lib/scheduling';
 import type { TrainerProfile } from '@/stores/auth';
 
 export interface TrainerWithProfile extends TrainerProfile {
@@ -48,6 +49,7 @@ export function rankTrainers(
 
 export function useTrainers(options: UseTrainersOptions = {}) {
   const [trainers, setTrainers] = useState<TrainerWithProfile[]>([]);
+  const [idleSlotCounts, setIdleSlotCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,25 +90,32 @@ export function useTrainers(options: UseTrainersOptions = {}) {
 
     const raw = (data as unknown as TrainerWithProfile[]) || [];
 
-    // Fetch slot counts for weighted availability score
+    // Fetch slot data for availability ranking and idle classification
     let slotCounts: Record<string, number> = {};
+    let idleCounts: Record<string, number> = {};
     if (raw.length > 0) {
       const { data: slots } = await supabase
         .from('availability_slots')
-        .select('trainer_id')
+        .select('trainer_id, start_time, is_booked, deleted_at')
         .in('trainer_id', raw.map((t) => t.id))
         .eq('is_booked', false)
         .is('deleted_at', null)
         .gte('start_time', new Date().toISOString());
 
       if (slots) {
-        slotCounts = slots.reduce((acc, s) => {
+        type SlotRow = { trainer_id: string; start_time: string; is_booked: boolean; deleted_at: string | null };
+        const typedSlots = slots as SlotRow[];
+
+        slotCounts = typedSlots.reduce((acc, s) => {
           acc[s.trainer_id] = (acc[s.trainer_id] || 0) + 1;
           return acc;
         }, {} as Record<string, number>);
+
+        idleCounts = buildIdleSlotCounts(typedSlots);
       }
     }
 
+    setIdleSlotCounts(idleCounts);
     setTrainers(rankTrainers(raw, slotCounts, options.location));
     setLoading(false);
   }, [options.specialty, options.maxRate, options.minRating, options.location]);
@@ -115,7 +124,7 @@ export function useTrainers(options: UseTrainersOptions = {}) {
     fetchTrainers();
   }, [fetchTrainers]);
 
-  return { trainers, loading, error, refetch: fetchTrainers };
+  return { trainers, loading, error, refetch: fetchTrainers, idleSlotCounts };
 }
 
 export function useTrainerById(trainerId: string | undefined) {

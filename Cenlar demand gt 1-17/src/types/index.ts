@@ -19,6 +19,7 @@ export interface Trainer {
   imageUrl: string;
   verified: boolean;
   availableNow: boolean;
+  idleSlotCount: number;
 }
 
 // DB specialty enum values

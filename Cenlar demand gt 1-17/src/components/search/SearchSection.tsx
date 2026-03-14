@@ -5,7 +5,7 @@ import type { Trainer } from '@/types';
 import { useTrainers, type TrainerWithProfile } from '@/hooks/useTrainers';
 import TrainerCard from './TrainerCard';
 
-function dbTrainerToCardData(t: TrainerWithProfile): Trainer {
+function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer {
   const discountPct = t.discount_percentage ?? 0;
   const optimizedRate = Number(t.optimized_rate);
   const discountedRate = discountPct > 0
@@ -26,6 +26,7 @@ function dbTrainerToCardData(t: TrainerWithProfile): Trainer {
     imageUrl: t.profiles?.avatar_url || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: t.verified,
     availableNow: false,
+    idleSlotCount,
   };
 }
 
@@ -36,7 +37,7 @@ const SearchSection: React.FC = () => {
   const [useMock, setUseMock] = useState(false);
 
   // Query Supabase for trainers with filters
-  const { trainers: dbTrainers, loading, error } = useTrainers({
+  const { trainers: dbTrainers, loading, error, idleSlotCounts } = useTrainers({
     specialty: specialty
       ? DB_SPECIALTIES.find(
           (s) => formatSpecialty(s) === specialty
@@ -76,7 +77,7 @@ const SearchSection: React.FC = () => {
     }
 
     // DB trainers — additional client-side price filtering for premium range
-    let result = dbTrainers.map(dbTrainerToCardData);
+    let result = dbTrainers.map((t) => dbTrainerToCardData(t, idleSlotCounts[t.id] ?? 0));
     if (priceRange === PriceRange.PREMIUM) {
       result = result.filter((t) => t.optimizedRate > 80);
     }

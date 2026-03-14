@@ -15,6 +15,7 @@ export const MOCK_TRAINERS: Trainer[] = [
     imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: true,
     availableNow: true,
+    idleSlotCount: 3,
   },
   {
     id: '2',
@@ -30,6 +31,7 @@ export const MOCK_TRAINERS: Trainer[] = [
     imageUrl: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: true,
     availableNow: false,
+    idleSlotCount: 0,
   },
   {
     id: '3',
@@ -40,11 +42,12 @@ export const MOCK_TRAINERS: Trainer[] = [
     reviewCount: 215,
     hourlyRate: 120,
     optimizedRate: 60,
-    discountPercentage: 0,
-    discountedRate: 60,
+    discountPercentage: 20,
+    discountedRate: 48,
     imageUrl: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: true,
     availableNow: true,
+    idleSlotCount: 5,
   },
   {
     id: '4',
@@ -60,6 +63,7 @@ export const MOCK_TRAINERS: Trainer[] = [
     imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: true,
     availableNow: false,
+    idleSlotCount: 0,
   },
   {
     id: '5',
@@ -70,11 +74,12 @@ export const MOCK_TRAINERS: Trainer[] = [
     reviewCount: 102,
     hourlyRate: 90,
     optimizedRate: 45,
-    discountPercentage: 0,
-    discountedRate: 45,
+    discountPercentage: 15,
+    discountedRate: 38.25,
     imageUrl: 'https://images.unsplash.com/photo-1594882645126-14020914d58d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: true,
     availableNow: true,
+    idleSlotCount: 2,
   },
   {
     id: '6',
@@ -90,6 +95,7 @@ export const MOCK_TRAINERS: Trainer[] = [
     imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     verified: true,
     availableNow: true,
+    idleSlotCount: 0,
   },
 ];
 
