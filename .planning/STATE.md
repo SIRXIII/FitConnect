@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
 status: planning
-stopped_at: Completed 11-02-PLAN.md — process-referral-reward Edge Function
-last_updated: "2026-03-15T04:16:00Z"
+stopped_at: Completed 11-03-PLAN.md — Referral UI + Attribution Flow
+last_updated: "2026-03-15T04:17:00Z"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State — FitRush
@@ -23,7 +23,7 @@ progress:
 ## Current Position
 
 **Phase:** 11 of 11 — Referral Program v1
-**Plan:** 2 of 4 complete
+**Plan:** 3 of 4 complete
 **Status:** In progress
 
 ## Progress
@@ -31,9 +31,9 @@ progress:
 ```
 Phase 9:  Trainer Payout System  [x] Complete (3/3 plans)
 Phase 10: Earnings Analytics     [x] Complete (4/4 plans)
-Phase 11: Referral Program v1    [~] In progress (2/4 plans)
+Phase 11: Referral Program v1    [~] In progress (3/4 plans)
 
-Overall: [████████░░] 78%
+Overall: [█████████░] 82%
 ```
 
 ## Recent Decisions
@@ -60,6 +60,8 @@ Overall: [████████░░] 78%
 | handle_new_user trigger generates referral_code inline | 2026-03-15 | All new signups get code at profile creation regardless of signup path |
 | referral_discount_trainer_id=null — discount applies to any trainer | 2026-03-15 | $5 off next booking with any trainer, not locked to referred trainer |
 | process-referral-reward idempotency via status-guard UPDATE | 2026-03-15 | .update(status='rewarded').eq(status,'pending').select('id') pattern — retry-safe without read-then-write |
+| ReferralWidget placed after existing content in both dashboards | 2026-03-15 | Non-disruptive placement — overview tab end in TrainerDashboard, after quick actions in ClientDashboard |
+| Attribution block single try/catch wraps both referrals.insert and notifications.insert | 2026-03-15 | Either both succeed or both fail silently — role selection never blocked |
 
 ## Pending Todos
 
@@ -72,6 +74,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T04:16:00Z
-Stopped at: Completed 11-02-PLAN.md — process-referral-reward Edge Function
+Last session: 2026-03-15T04:17:00Z
+Stopped at: Completed 11-03-PLAN.md — Referral UI + Attribution Flow
 Resume file: None
