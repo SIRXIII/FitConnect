@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Dumbbell, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore, type UserRole } from '@/stores/auth';
+import { readReferralCode, clearReferralCode } from '@/lib/referral';
+import { supabase } from '@/lib/supabase';
 
 const RoleSelect: React.FC = () => {
-  const { setRole, user, loading } = useAuthStore();
+  const { setRole, user, profile, loading } = useAuthStore();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<UserRole | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -21,6 +23,50 @@ const RoleSelect: React.FC = () => {
     setSubmitting(true);
     try {
       await setRole(selected);
+
+      // Referral attribution — only for new users (profile.role was null before this selection)
+      if (!profile?.role) {
+        const refCode = readReferralCode();
+        if (refCode && user) {
+          try {
+            const { data: referrer } = await supabase
+              .from('profiles')
+              .select('id, full_name')
+              .eq('referral_code', refCode)
+              .maybeSingle();
+
+            if (referrer && referrer.id !== user.id) {
+              await supabase.from('referrals').insert({
+                referrer_id: referrer.id,
+                referred_id: user.id,
+                referred_role: selected, // 'trainer' or 'client'
+                status: 'pending',
+              });
+              clearReferralCode();
+
+              // Attribution-time notification: tell the referrer someone signed up
+              // (REFERRAL-06 requires notification at signup AND at reward time)
+              const { data: newUserProfile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .maybeSingle();
+
+              await supabase.from('notifications').insert({
+                user_id: referrer.id,
+                type: 'referral_new',
+                title: 'New referral',
+                message: `${newUserProfile?.full_name || 'Someone'} signed up with your referral link — earn your reward when they complete their first booking.`,
+                link: selected === 'trainer' ? '/trainer/dashboard' : '/trainers',
+                read: false,
+              });
+            }
+          } catch (err) {
+            // Silent failure — never block role selection for referral errors
+            console.error('[RoleSelect] referral attribution error:', err);
+          }
+        }
+      }
 
       if (selected === 'trainer') {
         navigate('/trainer/dashboard', { replace: true });

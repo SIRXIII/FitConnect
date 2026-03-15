@@ -8,6 +8,7 @@ import AvailabilityManager from '@/components/trainer/AvailabilityManager';
 import DiscountSlider, { computeDiscountedRate } from '@/components/trainer/DiscountSlider';
 import PayoutsTab from '@/components/trainer/PayoutsTab';
 import AnalyticsTab from '@/components/trainer/AnalyticsTab';
+import ReferralWidget from '@/components/shared/ReferralWidget';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -277,6 +278,11 @@ const TrainerDashboard: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Referral Widget */}
+        {profile?.referral_code && (
+          <ReferralWidget referralCode={profile.referral_code} />
+        )}
 
         </>)}
 

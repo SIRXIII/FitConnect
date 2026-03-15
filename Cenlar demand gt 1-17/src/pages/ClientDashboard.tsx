@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Clock, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import ReferralWidget from '@/components/shared/ReferralWidget';
 
 const ClientDashboard: React.FC = () => {
   const { profile, user } = useAuthStore();
@@ -105,6 +106,11 @@ const ClientDashboard: React.FC = () => {
             </p>
           </Link>
         </div>
+
+        {/* Referral Widget */}
+        {profile?.referral_code && (
+          <ReferralWidget referralCode={profile.referral_code} />
+        )}
       </div>
     </div>
   );
