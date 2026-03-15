@@ -23,7 +23,7 @@ decisions:
 metrics:
   duration: "~2 minutes"
   completed_date: "2026-03-14"
-  tasks_completed: 1
+  tasks_completed: 2
   files_created: 1
   files_modified: 1
 ---
@@ -38,9 +38,13 @@ metrics:
 |------|------|--------|-------|
 | 1 | TrainerDashboard tabs + PayoutsTab component | 45e16db | TrainerDashboard.tsx, PayoutsTab.tsx |
 
-## Awaiting Human Verification
+## Tasks Completed (All)
 
-Task 2 is a `checkpoint:human-verify` — awaiting visual/functional approval of the Payouts tab UI.
+| Task | Name | Commit | Files |
+|------|------|--------|-------|
+| 2 | Verify Payouts tab UI | (checkpoint approved) | — |
+
+Human verified and approved the Payouts tab UI on 2026-03-14.
 
 ## What Was Built
 
