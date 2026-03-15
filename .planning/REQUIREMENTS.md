@@ -18,12 +18,12 @@
 
 ### Analytics
 
-- [ ] **ANALYTICS-01**: Trainer sees earnings dashboard with week/month/quarter/year range selector
-- [ ] **ANALYTICS-02**: Trainer sees key metrics: gross earnings, net earnings, bookings count, avg price, discount adoption %
-- [ ] **ANALYTICS-03**: Trainer sees charts: revenue trend line, booking count trend, peak hours heatmap
-- [ ] **ANALYTICS-04**: Admin sees aggregate metrics: total platform revenue, total trainer payouts, booking volume
-- [ ] **ANALYTICS-05**: Admin can segment analytics by trainer (top earners list) and by time period
-- [ ] **ANALYTICS-06**: Trainer can export earnings history as CSV (for tax purposes)
+- [x] **ANALYTICS-01**: Trainer sees earnings dashboard with week/month/quarter/year range selector
+- [x] **ANALYTICS-02**: Trainer sees key metrics: gross earnings, net earnings, bookings count, avg price, discount adoption %
+- [x] **ANALYTICS-03**: Trainer sees charts: revenue trend line, booking count trend, peak hours heatmap
+- [x] **ANALYTICS-04**: Admin sees aggregate metrics: total platform revenue, total trainer payouts, booking volume
+- [x] **ANALYTICS-05**: Admin can segment analytics by trainer (top earners list) and by time period
+- [x] **ANALYTICS-06**: Trainer can export earnings history as CSV (for tax purposes)
 
 ### Referrals
 
@@ -69,12 +69,12 @@
 | PAYOUT-04 | Phase 9 | Complete |
 | PAYOUT-05 | Phase 9 | Complete |
 | PAYOUT-06 | Phase 9 | Complete |
-| ANALYTICS-01 | Phase 10 | Pending |
-| ANALYTICS-02 | Phase 10 | Pending |
-| ANALYTICS-03 | Phase 10 | Pending |
-| ANALYTICS-04 | Phase 10 | Pending |
-| ANALYTICS-05 | Phase 10 | Pending |
-| ANALYTICS-06 | Phase 10 | Pending |
+| ANALYTICS-01 | Phase 10 | Complete |
+| ANALYTICS-02 | Phase 10 | Complete |
+| ANALYTICS-03 | Phase 10 | Complete |
+| ANALYTICS-04 | Phase 10 | Complete |
+| ANALYTICS-05 | Phase 10 | Complete |
+| ANALYTICS-06 | Phase 10 | Complete |
 | REFERRAL-01 | Phase 11 | Pending |
 | REFERRAL-02 | Phase 11 | Pending |
 | REFERRAL-03 | Phase 11 | Pending |

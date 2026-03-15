@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
 status: planning
-stopped_at: Completed 09-02-PLAN.md (checkpoint approved)
-last_updated: "2026-03-15T00:09:58.738Z"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-03-15T02:17:00Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
 ---
 
 # Project State — FitRush
@@ -22,18 +22,18 @@ progress:
 
 ## Current Position
 
-**Phase:** 9 of 11 — Trainer Payout System
-**Plan:** 3 of 3 complete (09-01, 09-02, 09-03 done)
-**Status:** Ready to plan
+**Phase:** 10 of 11 — Earnings Analytics
+**Plan:** 1 of 4 complete (10-01 done)
+**Status:** In progress
 
 ## Progress
 
 ```
-Phase 9:  Trainer Payout System  [*] In progress (3/3 plans)
-Phase 10: Earnings Analytics     [ ] Not started
+Phase 9:  Trainer Payout System  [x] Complete (3/3 plans)
+Phase 10: Earnings Analytics     [*] In progress (1/4 plans)
 Phase 11: Referral Program v1    [ ] Not started
 
-Overall: [██████░░░░] 75%
+Overall: [█████░░░░░] 50%
 ```
 
 ## Recent Decisions
@@ -49,6 +49,8 @@ Overall: [██████░░░░] 75%
 | weekly-payouts service-role auth: token === SUPABASE_SERVICE_ROLE_KEY | 2026-03-14 | System function, no user JWT needed |
 | payout.paid ambiguity guard: skip if multiple processing transactions | 2026-03-14 | Log + defer vs. risk marking wrong transaction |
 | Vault secrets NOT in migration file | 2026-03-14 | Comments document manual setup, secrets read at runtime |
+| discount_adoption_pct uses rate_charged < optimized_rate | 2026-03-15 | Definition B — most reliable schema signal for "discount applied" |
+| p_bucket passed as RPC param, mapped via getBucketParam() | 2026-03-15 | Avoids bucket/range mismatch; TS layer controls granularity |
 
 ## Pending Todos
 
@@ -61,6 +63,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T00:06:38.134Z
-Stopped at: Completed 09-02-PLAN.md (checkpoint approved)
+Last session: 2026-03-15T02:17:00Z
+Stopped at: Completed 10-01-PLAN.md
 Resume file: None
