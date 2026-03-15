@@ -4,12 +4,12 @@ milestone: v2.1
 milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
 status: executing
 stopped_at: Completed 10-03-PLAN.md
-last_updated: "2026-03-15T02:19:37.244Z"
+last_updated: "2026-03-15T02:20:06.204Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State — FitRush
@@ -52,6 +52,8 @@ Overall: [██████░░░░] 63%
 | discount_adoption_pct uses rate_charged < optimized_rate | 2026-03-15 | Definition B — most reliable schema signal for "discount applied" |
 | p_bucket passed as RPC param, mapped via getBucketParam() | 2026-03-15 | Avoids bucket/range mismatch; TS layer controls granularity |
 | Admin analytics tab replaces static cards with time-filtered RPC data | 2026-03-14 | get_admin_analytics RPC drives all four metric cards and top earners table |
+| AnalyticsTab reads trainerProfile from useAuthStore directly | 2026-03-15 | No props pattern, matches PayoutsTab convention |
+| Heatmap intensity: rgba(45,45,45,N) where N = count/maxCount | 2026-03-15 | Opacity-based heat signal, no external color library needed |
 
 ## Pending Todos
 
@@ -64,6 +66,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T02:19:37.242Z
-Stopped at: Completed 10-03-PLAN.md
+Last session: 2026-03-15T02:22:00Z
+Stopped at: Completed 10-02-PLAN.md (and 10-03)
 Resume file: None
