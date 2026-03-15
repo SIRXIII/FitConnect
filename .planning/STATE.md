@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
-status: planning
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-15T02:17:00Z"
+status: executing
+stopped_at: Completed 10-03-PLAN.md
+last_updated: "2026-03-15T02:19:37.244Z"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State — FitRush
@@ -23,17 +23,17 @@ progress:
 ## Current Position
 
 **Phase:** 10 of 11 — Earnings Analytics
-**Plan:** 1 of 4 complete (10-01 done)
+**Plan:** 3 of 4 complete (10-01, 10-03 done)
 **Status:** In progress
 
 ## Progress
 
 ```
 Phase 9:  Trainer Payout System  [x] Complete (3/3 plans)
-Phase 10: Earnings Analytics     [*] In progress (1/4 plans)
+Phase 10: Earnings Analytics     [*] In progress (3/4 plans)
 Phase 11: Referral Program v1    [ ] Not started
 
-Overall: [█████░░░░░] 50%
+Overall: [██████░░░░] 63%
 ```
 
 ## Recent Decisions
@@ -51,6 +51,7 @@ Overall: [█████░░░░░] 50%
 | Vault secrets NOT in migration file | 2026-03-14 | Comments document manual setup, secrets read at runtime |
 | discount_adoption_pct uses rate_charged < optimized_rate | 2026-03-15 | Definition B — most reliable schema signal for "discount applied" |
 | p_bucket passed as RPC param, mapped via getBucketParam() | 2026-03-15 | Avoids bucket/range mismatch; TS layer controls granularity |
+| Admin analytics tab replaces static cards with time-filtered RPC data | 2026-03-14 | get_admin_analytics RPC drives all four metric cards and top earners table |
 
 ## Pending Todos
 
@@ -63,6 +64,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T02:17:00Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-15T02:19:37.242Z
+Stopped at: Completed 10-03-PLAN.md
 Resume file: None
