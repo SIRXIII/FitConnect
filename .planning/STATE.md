@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
 status: planning
-stopped_at: Completed 11-03-PLAN.md — Referral UI + Attribution Flow
-last_updated: "2026-03-15T04:17:00Z"
+stopped_at: Completed 11-04-PLAN.md — Referral Reward Wiring + Leaderboard
+last_updated: "2026-03-14T00:20:00Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State — FitRush
@@ -23,17 +23,17 @@ progress:
 ## Current Position
 
 **Phase:** 11 of 11 — Referral Program v1
-**Plan:** 3 of 4 complete
-**Status:** In progress
+**Plan:** 4 of 4 complete
+**Status:** Complete
 
 ## Progress
 
 ```
 Phase 9:  Trainer Payout System  [x] Complete (3/3 plans)
 Phase 10: Earnings Analytics     [x] Complete (4/4 plans)
-Phase 11: Referral Program v1    [~] In progress (3/4 plans)
+Phase 11: Referral Program v1    [x] Complete (4/4 plans)
 
-Overall: [█████████░] 82%
+Overall: [██████████] 100%
 ```
 
 ## Recent Decisions
@@ -62,6 +62,10 @@ Overall: [█████████░] 82%
 | process-referral-reward idempotency via status-guard UPDATE | 2026-03-15 | .update(status='rewarded').eq(status,'pending').select('id') pattern — retry-safe without read-then-write |
 | ReferralWidget placed after existing content in both dashboards | 2026-03-15 | Non-disruptive placement — overview tab end in TrainerDashboard, after quick actions in ClientDashboard |
 | Attribution block single try/catch wraps both referrals.insert and notifications.insert | 2026-03-15 | Either both succeed or both fail silently — role selection never blocked |
+| Discount consumed at booking insert time even if payment later fails | 2026-03-14 | One-time use discount — acceptable trade-off for simplicity |
+| process-referral-reward call is fire-and-forget in TrainerBookings | 2026-03-14 | UI never blocked by referral processing; .catch prevents unhandled rejections |
+| ReferralLeaderboard returns null when entries empty | 2026-03-14 | No empty section shown on landing before referrals are rewarded in production |
+| Phase 11 referral program complete — human verified end-to-end | 2026-03-14 | All 6 REFERRAL requirements delivered across 4 plans |
 
 ## Pending Todos
 
@@ -74,6 +78,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T04:17:00Z
-Stopped at: Completed 11-03-PLAN.md — Referral UI + Attribution Flow
+Last session: 2026-03-14T00:20:00Z
+Stopped at: Completed 11-04-PLAN.md — Phase 11 Referral Program v1 complete
 Resume file: None

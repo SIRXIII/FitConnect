@@ -63,7 +63,7 @@ Plans:
 
 **Requirements:** REFERRAL-01, REFERRAL-02, REFERRAL-03, REFERRAL-04, REFERRAL-05, REFERRAL-06
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 11-01-PLAN.md — Referral DB migration (referrals table, referral_code, discount columns, leaderboard RPC) + referral.ts utility
