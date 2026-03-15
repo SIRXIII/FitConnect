@@ -6,6 +6,7 @@ import SearchSection from '@/components/search/SearchSection';
 import BestDeals from '@/components/landing/BestDeals';
 import HowItWorks from '@/components/landing/HowItWorks';
 import TrustSafety from '@/components/landing/TrustSafety';
+import ReferralLeaderboard from '@/components/landing/ReferralLeaderboard';
 import { captureReferralCode } from '@/lib/referral';
 
 const Landing: React.FC = () => {
@@ -30,6 +31,7 @@ const Landing: React.FC = () => {
         <BestDeals />
         <HowItWorks />
         <TrustSafety />
+        <ReferralLeaderboard />
       </main>
     </motion.div>
   );
