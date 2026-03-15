@@ -63,6 +63,14 @@ Plans:
 
 **Requirements:** REFERRAL-01, REFERRAL-02, REFERRAL-03, REFERRAL-04, REFERRAL-05, REFERRAL-06
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Referral DB migration (referrals table, referral_code, discount columns, leaderboard RPC) + referral.ts utility
+- [ ] 11-02-PLAN.md — process-referral-reward Edge Function (idempotent reward processing, notifications, email)
+- [ ] 11-03-PLAN.md — ReferralWidget component + Landing cookie capture + RoleSelect attribution + dashboard integrations
+- [ ] 11-04-PLAN.md — BookSession $5 discount + TrainerBookings reward trigger + ReferralLeaderboard + human verification
+
 **Success Criteria:**
 - Every user has a visible referral code and shareable link on their profile
 - New user signing up via referral link is correctly attributed to the referrer
