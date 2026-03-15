@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
-status: completed
-stopped_at: Completed 11-04-PLAN.md — Phase 11 Referral Program v1 complete
-last_updated: "2026-03-15T04:30:16.792Z"
+status: in_progress
+stopped_at: Completed 01-01-PLAN.md — Phase 1 Payment & Security Hardening complete
+last_updated: "2026-03-15T19:47:46Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State — FitRush
@@ -22,16 +22,17 @@ progress:
 
 ## Current Position
 
-**Phase:** 11 of 11 — Referral Program v1
-**Plan:** 4 of 4 complete
-**Status:** Milestone complete
+**Phase:** 01 of 01 — Payment & Security Hardening
+**Plan:** 1 of 1 complete
+**Status:** Phase complete
 
 ## Progress
 
 ```
-Phase 9:  Trainer Payout System  [x] Complete (3/3 plans)
-Phase 10: Earnings Analytics     [x] Complete (4/4 plans)
-Phase 11: Referral Program v1    [x] Complete (4/4 plans)
+Phase 01: Payment & Security Hardening [x] Complete (1/1 plans)
+Phase 9:  Trainer Payout System        [x] Complete (3/3 plans)
+Phase 10: Earnings Analytics           [x] Complete (4/4 plans)
+Phase 11: Referral Program v1          [x] Complete (4/4 plans)
 
 Overall: [██████████] 100%
 ```
@@ -66,6 +67,9 @@ Overall: [██████████] 100%
 | process-referral-reward call is fire-and-forget in TrainerBookings | 2026-03-14 | UI never blocked by referral processing; .catch prevents unhandled rejections |
 | ReferralLeaderboard returns null when entries empty | 2026-03-14 | No empty section shown on landing before referrals are rewarded in production |
 | Phase 11 referral program complete — human verified end-to-end | 2026-03-14 | All 6 REFERRAL requirements delivered across 4 plans |
+| Phase 01 security hardening complete | 2026-03-15 | All 5 REQ-SEC requirements delivered — GEMINI key removed, input sanitized, RLS audited, orphaned booking cleanup, email Edge Function with JWT auth |
+| send-notification-email stubs Resend — email failure is non-blocking | 2026-03-13 | Logs if no RESEND_API_KEY; returns 200 to caller regardless |
+| cleanup_abandoned_bookings cancels (not deletes) stale pending bookings | 2026-03-13 | Preserves audit trail; slot sync triggers fire on status change |
 
 ## Pending Todos
 
@@ -73,11 +77,13 @@ None
 
 ## Blockers / Concerns
 
-- v1.1 security work (Phases 1–4) still deferred — execute before major marketing push
+- Phase 01 security hardening complete — v1.1 security work (Phases 1–4) partially resolved; Phases 2–4 still pending
+- send-notification-email requires RESEND_API_KEY vault secret before email delivery goes live
+- cleanup_abandoned_bookings should be connected to a pg_cron job or stripe-webhook for automated cleanup
 - Stripe Connect accounts (trainer setup from v1.0) must be in place for Phase 9
 
 ## Session Continuity
 
-Last session: 2026-03-14T00:20:00Z
-Stopped at: Completed 11-04-PLAN.md — Phase 11 Referral Program v1 complete
+Last session: 2026-03-15T19:47:46Z
+Stopped at: Completed 01-01-PLAN.md — Phase 1 Payment & Security Hardening complete
 Resume file: None
