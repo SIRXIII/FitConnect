@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
+import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -44,6 +45,20 @@ const AdminDashboard: React.FC = () => {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
+  const [adminRange, setAdminRange] = useState<TimeRange>('month');
+  const [adminTotals, setAdminTotals] = useState<{
+    total_revenue: number;
+    total_platform_fee: number;
+    total_payouts: number;
+    booking_volume: number;
+  } | null>(null);
+  const [topEarners, setTopEarners] = useState<Array<{
+    trainer_name: string;
+    gross: number;
+    net: number;
+    bookings_count: number;
+  }>>([]);
+  const [loadingAdminAnalytics, setLoadingAdminAnalytics] = useState(false);
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -120,6 +135,37 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => { fetchStats(); }, [fetchStats]);
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
   useEffect(() => { fetchFlaggedReviews(); }, [fetchFlaggedReviews]);
+
+  useEffect(() => {
+    const fetchAdminAnalytics = async () => {
+      setLoadingAdminAnalytics(true);
+      const bounds = getDateBounds(adminRange);
+      const { data, error } = await supabase.rpc('get_admin_analytics', {
+        p_start: bounds.start,
+        p_end: bounds.end,
+        p_bucket: getBucketParam(adminRange),
+      });
+      if (error) {
+        toast.error('Failed to load platform analytics');
+        setLoadingAdminAnalytics(false);
+        return;
+      }
+      setAdminTotals({
+        total_revenue: Number(data.totals.total_revenue),
+        total_platform_fee: Number(data.totals.total_platform_fee),
+        total_payouts: Number(data.totals.total_payouts),
+        booking_volume: Number(data.totals.booking_volume),
+      });
+      setTopEarners((data.top_earners ?? []).map((r: { trainer_name: string; gross: string; net: string; bookings_count: string }) => ({
+        trainer_name: r.trainer_name,
+        gross: Number(r.gross),
+        net: Number(r.net),
+        bookings_count: Number(r.bookings_count),
+      })));
+      setLoadingAdminAnalytics(false);
+    };
+    fetchAdminAnalytics();
+  }, [adminRange]);
 
   const handleToggleHideReview = async (review: FlaggedReview) => {
     const next = !review.is_hidden;
@@ -204,28 +250,80 @@ const AdminDashboard: React.FC = () => {
         {/* Analytics Tab */}
         {activeTab === 'analytics' && (
           <div className="space-y-8">
+            {/* Range selector */}
+            <div className="flex border-b border-ink/10">
+              {(['week', 'month', 'quarter', 'year'] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setAdminRange(r)}
+                  className={`px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${
+                    adminRange === r
+                      ? 'border-b-2 border-ink text-ink -mb-px'
+                      : 'text-ink/40 hover:text-ink'
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+
+            {/* Platform aggregate stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <StatCard
-                icon={<BarChart2 size={18} strokeWidth={1.5} />}
-                label="Total Bookings"
-                value={loadingStats ? '—' : stats.totalBookings.toLocaleString()}
-              />
               <StatCard
                 icon={<DollarSign size={18} strokeWidth={1.5} />}
                 label="Total Revenue"
-                value={loadingStats ? '—' : `$${stats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 accent
               />
               <StatCard
-                icon={<Users size={18} strokeWidth={1.5} />}
-                label="Active Users"
-                value={loadingStats ? '—' : stats.activeUsers.toLocaleString()}
+                icon={<TrendingUp size={18} strokeWidth={1.5} />}
+                label="Platform Fee Collected"
+                value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.total_platform_fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               />
               <StatCard
-                icon={<TrendingUp size={18} strokeWidth={1.5} />}
-                label="Avg Discount"
-                value={loadingStats ? '—' : `${stats.avgDiscount}%`}
+                icon={<BarChart2 size={18} strokeWidth={1.5} />}
+                label="Trainer Payouts"
+                value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.total_payouts.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               />
+              <StatCard
+                icon={<Users size={18} strokeWidth={1.5} />}
+                label="Booking Volume"
+                value={loadingAdminAnalytics || !adminTotals ? '—' : adminTotals.booking_volume.toLocaleString()}
+              />
+            </div>
+
+            {/* Top Earners table */}
+            <div className="space-y-3">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Top Earners</p>
+              <div className="border border-ink/10">
+                <div className="grid grid-cols-[2fr_1fr_1fr_80px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Trainer</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Gross</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Net</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Bookings</p>
+                </div>
+                {loadingAdminAnalytics ? (
+                  <div className="px-6 py-8 text-center">
+                    <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : topEarners.length === 0 ? (
+                  <div className="px-6 py-8 text-center">
+                    <p className="text-xs text-ink/30">No completed bookings in this period</p>
+                  </div>
+                ) : (
+                  topEarners.map((row, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-[2fr_1fr_1fr_80px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                    >
+                      <p className="text-sm text-ink">{row.trainer_name}</p>
+                      <p className="text-sm text-ink">${row.gross.toFixed(2)}</p>
+                      <p className="text-sm text-ink font-medium">${row.net.toFixed(2)}</p>
+                      <p className="text-sm text-ink/60">{row.bookings_count}</p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         )}
