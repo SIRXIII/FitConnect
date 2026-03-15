@@ -38,6 +38,14 @@ Plans:
 
 **Requirements:** ANALYTICS-01, ANALYTICS-02, ANALYTICS-03, ANALYTICS-04, ANALYTICS-05, ANALYTICS-06
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Postgres analytics RPC migration + analytics.ts utility library
+- [ ] 10-02-PLAN.md — Trainer AnalyticsTab component + TrainerDashboard tab extension
+- [ ] 10-03-PLAN.md — Admin analytics tab with time filter and top earners table
+- [ ] 10-04-PLAN.md — Final build verification + human verification checkpoint
+
 **Success Criteria:**
 - Trainer dashboard shows earnings by selected time range with revenue trend chart
 - Trainer sees gross vs net earnings, booking count, avg price, and discount adoption %
