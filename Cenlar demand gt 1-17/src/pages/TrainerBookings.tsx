@@ -154,6 +154,25 @@ const TrainerBookings: React.FC = () => {
       const statusLabel = status === 'confirmed' ? 'confirmed' : status === 'completed' ? 'marked complete' : status === 'no_show' ? 'marked as no-show' : 'cancelled';
       toast.success(`Booking ${statusLabel}.`);
       setBookings((prev) => prev.map((booking) => (booking.id === bookingId ? { ...booking, ...updatePayload } : booking)));
+
+      // Trigger referral reward processing (non-blocking — failure does not affect booking UI)
+      if (status === 'completed' && user) {
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        if (token) {
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-referral-reward`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ booking_id: bookingId }),
+            }
+          ).catch((err) => console.error('[TrainerBookings] referral reward error:', err));
+        }
+      }
     }
 
     setUpdatingId(null);

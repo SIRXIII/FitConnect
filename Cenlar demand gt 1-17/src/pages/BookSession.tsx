@@ -120,6 +120,7 @@ const BookSession: React.FC = () => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [platformFeePct, setPlatformFeePct] = useState(0.08);
+  const [referralDiscountPending, setReferralDiscountPending] = useState(false);
 
   useEffect(() => {
     if (!slotId) return;
@@ -155,6 +156,19 @@ const BookSession: React.FC = () => {
     fetchSlot();
   }, [slotId]);
 
+  useEffect(() => {
+    if (!user) return;
+    const checkDiscount = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('referral_discount_pending')
+        .eq('id', user.id)
+        .single();
+      setReferralDiscountPending(data?.referral_discount_pending ?? false);
+    };
+    checkDiscount();
+  }, [user?.id]);
+
   // Step 1 → 2: Create booking in DB
   const handleBooking = async () => {
     if (!slot || !user || !profile) return;
@@ -168,8 +182,24 @@ const BookSession: React.FC = () => {
     const rate = discountPct > 0
       ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
       : baseRate;
-    const platformFee = Math.round(rate * platformFeePct * 100) / 100;
-    const trainerPayout = Math.round((rate - platformFee) * 100) / 100;
+
+    // Check for referral discount
+    let finalRate = rate;
+    let hadReferralDiscount = false;
+
+    const { data: clientProfile } = await supabase
+      .from('profiles')
+      .select('referral_discount_pending')
+      .eq('id', user.id)
+      .single();
+
+    if (clientProfile?.referral_discount_pending) {
+      finalRate = Math.max(0, rate - 5);
+      hadReferralDiscount = true;
+    }
+
+    const platformFee = Math.round(finalRate * platformFeePct * 100) / 100;
+    const trainerPayout = Math.round((finalRate - platformFee) * 100) / 100;
 
     const { data, error } = await supabase
       .from('bookings')
@@ -178,7 +208,7 @@ const BookSession: React.FC = () => {
         trainer_id: trainerProfile.id,
         slot_id: slot.id,
         status: 'pending',
-        rate_charged: rate,
+        rate_charged: finalRate,
         platform_fee: platformFee,
         trainer_payout: trainerPayout,
         notes: notes || null,
@@ -193,6 +223,14 @@ const BookSession: React.FC = () => {
     }
 
     setBookingId(data.id);
+
+    // Clear referral discount flag immediately after booking insert
+    if (hadReferralDiscount) {
+      await supabase
+        .from('profiles')
+        .update({ referral_discount_pending: false, referral_discount_trainer_id: null })
+        .eq('id', user.id);
+    }
 
     // If Stripe is configured, create a payment intent
     if (STRIPE_CONFIGURED) {
@@ -305,8 +343,9 @@ const BookSession: React.FC = () => {
   const rate = discountPct > 0
     ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
     : baseRate;
-  const platformFee = Math.round(rate * platformFeePct * 100) / 100;
-  const total = rate;
+  const displayRate = referralDiscountPending ? Math.max(0, rate - 5) : rate;
+  const platformFee = Math.round(displayRate * platformFeePct * 100) / 100;
+  const total = displayRate;
 
   // Success state
   if (step === 'success') {
@@ -503,6 +542,12 @@ const BookSession: React.FC = () => {
                 </span>
                 <span className="text-sm text-accent">${rate}</span>
               </div>
+              {referralDiscountPending && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-ink/50">Referral Discount</span>
+                  <span className="text-sm text-green-600">-$5.00</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-ink/50">Platform Fee ({Math.round(platformFeePct * 100)}%)</span>
                 <span className="text-sm">${platformFee.toFixed(2)}</span>
