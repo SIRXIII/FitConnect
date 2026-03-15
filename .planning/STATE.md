@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
 status: planning
-stopped_at: Completed 10-04-PLAN.md — Phase 10 Earnings Analytics complete
-last_updated: "2026-03-15T02:41:43.367Z"
+stopped_at: Completed 11-02-PLAN.md — process-referral-reward Edge Function
+last_updated: "2026-03-15T04:16:00Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 11
+  completed_plans: 8
 ---
 
 # Project State — FitRush
@@ -22,18 +22,18 @@ progress:
 
 ## Current Position
 
-**Phase:** 10 of 11 — Earnings Analytics
-**Plan:** 4 of 4 complete — Phase 10 DONE
-**Status:** Ready to plan
+**Phase:** 11 of 11 — Referral Program v1
+**Plan:** 2 of 4 complete
+**Status:** In progress
 
 ## Progress
 
 ```
 Phase 9:  Trainer Payout System  [x] Complete (3/3 plans)
 Phase 10: Earnings Analytics     [x] Complete (4/4 plans)
-Phase 11: Referral Program v1    [ ] Not started
+Phase 11: Referral Program v1    [~] In progress (2/4 plans)
 
-Overall: [████████░░] 73%
+Overall: [████████░░] 78%
 ```
 
 ## Recent Decisions
@@ -55,6 +55,11 @@ Overall: [████████░░] 73%
 | AnalyticsTab reads trainerProfile from useAuthStore directly | 2026-03-15 | No props pattern, matches PayoutsTab convention |
 | Heatmap intensity: rgba(45,45,45,N) where N = count/maxCount | 2026-03-15 | Opacity-based heat signal, no external color library needed |
 | Phase 10 analytics complete — human verified trainer analytics, admin analytics, and CSV export | 2026-03-15 | All six ANALYTICS requirements delivered and verified |
+| SameSite=Lax for referral cookie | 2026-03-15 | Survives OAuth redirect round-trip; Strict breaks cross-origin returns |
+| Leaderboard RPC uses date_trunc('month', now()) | 2026-03-15 | Calendar month window — resets cleanly, not rolling 30 days |
+| handle_new_user trigger generates referral_code inline | 2026-03-15 | All new signups get code at profile creation regardless of signup path |
+| referral_discount_trainer_id=null — discount applies to any trainer | 2026-03-15 | $5 off next booking with any trainer, not locked to referred trainer |
+| process-referral-reward idempotency via status-guard UPDATE | 2026-03-15 | .update(status='rewarded').eq(status,'pending').select('id') pattern — retry-safe without read-then-write |
 
 ## Pending Todos
 
@@ -67,6 +72,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T02:37:46Z
-Stopped at: Completed 10-04-PLAN.md — Phase 10 Earnings Analytics complete
+Last session: 2026-03-15T04:16:00Z
+Stopped at: Completed 11-02-PLAN.md — process-referral-reward Edge Function
 Resume file: None

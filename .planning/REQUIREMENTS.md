@@ -27,12 +27,12 @@
 
 ### Referrals
 
-- [ ] **REFERRAL-01**: Each user has a unique referral code visible on profile with a shareable link
-- [ ] **REFERRAL-02**: Trainer refers client → client books → trainer earns $10 payout credit
-- [ ] **REFERRAL-03**: Client refers trainer → trainer books that client → client gets $5 discount on next booking
-- [ ] **REFERRAL-04**: Referral attribution: link sets cookie → links new user to referrer on signup → credit applied on first booking completion
-- [ ] **REFERRAL-05**: Top 10 referrers leaderboard displayed on landing page, refreshes monthly
-- [ ] **REFERRAL-06**: Referral notifications: "You referred [User] — earn reward when they book" (in-app + email)
+- [x] **REFERRAL-01**: Each user has a unique referral code visible on profile with a shareable link
+- [x] **REFERRAL-02**: Trainer refers client → client books → trainer earns $10 payout credit
+- [x] **REFERRAL-03**: Client refers trainer → trainer books that client → client gets $5 discount on next booking
+- [x] **REFERRAL-04**: Referral attribution: link sets cookie → links new user to referrer on signup → credit applied on first booking completion
+- [x] **REFERRAL-05**: Top 10 referrers leaderboard displayed on landing page, refreshes monthly
+- [x] **REFERRAL-06**: Referral notifications: "You referred [User] — earn reward when they book" (in-app + email)
 
 ---
 
@@ -75,12 +75,12 @@
 | ANALYTICS-04 | Phase 10 | Complete |
 | ANALYTICS-05 | Phase 10 | Complete |
 | ANALYTICS-06 | Phase 10 | Complete |
-| REFERRAL-01 | Phase 11 | Pending |
-| REFERRAL-02 | Phase 11 | Pending |
-| REFERRAL-03 | Phase 11 | Pending |
-| REFERRAL-04 | Phase 11 | Pending |
-| REFERRAL-05 | Phase 11 | Pending |
-| REFERRAL-06 | Phase 11 | Pending |
+| REFERRAL-01 | Phase 11 | Complete |
+| REFERRAL-02 | Phase 11 | Complete |
+| REFERRAL-03 | Phase 11 | Complete |
+| REFERRAL-04 | Phase 11 | Complete |
+| REFERRAL-05 | Phase 11 | Complete |
+| REFERRAL-06 | Phase 11 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 18 total
