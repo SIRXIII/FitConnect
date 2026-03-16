@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
 status: executing
-stopped_at: Completed 13-01-PLAN.md — stripe-billing-webhook Edge Function deployed (ACTIVE v1)
-last_updated: "2026-03-16T21:16:37.681Z"
+stopped_at: Completed 13-02-PLAN.md — create-subscription + manage-subscription Edge Functions deployed (ACTIVE)
+last_updated: "2026-03-16T21:16:54.961Z"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -82,6 +82,9 @@ Overall: [██████░░░░] 60%
 | MRR is point-in-time snapshot — no date-range filter on subscription_stats CTE | 2026-03-16 | Reflects current active/trialing subscribers at call time; correct SaaS behavior |
 | Trialing trainers included in MRR and subscriber counts | 2026-03-16 | Standard SaaS convention — trials represent committed pipeline revenue |
 | Annual subscription prices hardcoded in SQL CASE (Pro $86.40/12, Elite $278.40/12) | 2026-03-16 | Supabase SQL functions cannot access env vars at runtime |
+| create-subscription does not write subscription_tier/status | 2026-03-16 | Webhook is the single writer — writing in Edge Function causes race condition since customer.subscription.created fires within milliseconds |
+| manage-subscription returns 400 for trainers with no stripe_customer_id | 2026-03-16 | Trainer exists but has never subscribed — 400 communicates actionable state ("start a trial first") |
+| APP_URL falls back to https://app.fitrush.io in manage-subscription | 2026-03-16 | Safe default prevents portal return_url from being empty if env var not set |
 
 ## Pending Todos
 
@@ -97,5 +100,5 @@ None
 ## Session Continuity
 
 Last session: 2026-03-16T21:16:37.679Z
-Stopped at: Completed 13-01-PLAN.md — stripe-billing-webhook Edge Function deployed (ACTIVE v1)
-Resume with: `/gsd:execute-phase 13` (Phase 13 Billing Backend next)
+Stopped at: Completed 13-02-PLAN.md — create-subscription + manage-subscription Edge Functions deployed (ACTIVE)
+Resume with: `/gsd:execute-phase 13` (Phase 13 Plan 03 next — if any remaining plans)
