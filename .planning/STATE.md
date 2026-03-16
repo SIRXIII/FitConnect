@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: planning
-stopped_at: Completed 12-02-PLAN.md — Stripe config + 5 Supabase secrets confirmed; Phase 12 complete
-last_updated: "2026-03-16T17:45:02.643Z"
+status: executing
+stopped_at: Completed 13-01-PLAN.md — stripe-billing-webhook Edge Function deployed (ACTIVE v1)
+last_updated: "2026-03-16T21:16:37.681Z"
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State — FitRush
@@ -23,20 +23,20 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 12 of 16 — Subscription Foundation (COMPLETE — 2/2 plans done)
-**Status:** Ready to plan
+**Phase:** 13 of 16 — Billing Backend (IN PROGRESS — 3/3 plans done)
+**Status:** In progress
 
 ## Progress
 
 ```
 v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
-Phase 13: Billing Backend          [ ] Not started
+Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
 Phase 14: Feature Gates + Search   [ ] Not started
 Phase 15: Subscription UI          [ ] Not started
 Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [██░░░░░░░░] 20%
+Overall: [██████░░░░] 60%
 ```
 
 ## Recent Decisions
@@ -79,6 +79,9 @@ Overall: [██░░░░░░░░] 20%
 | Billing webhook registered before Phase 13 deploys | 2026-03-16 | Stripe retries for 72h so events during Phase 12→13 gap are not lost |
 | Dunning terminal action = Cancel (not past_due/unpaid) | 2026-03-16 | Required for customer.subscription.deleted to fire after payment exhaustion; trainers would retain paid features indefinitely otherwise |
 | Separate billing endpoint from Connect stripe-webhook | 2026-03-16 | Each has its own whsec_ signing secret — prevents cross-event contamination |
+| MRR is point-in-time snapshot — no date-range filter on subscription_stats CTE | 2026-03-16 | Reflects current active/trialing subscribers at call time; correct SaaS behavior |
+| Trialing trainers included in MRR and subscriber counts | 2026-03-16 | Standard SaaS convention — trials represent committed pipeline revenue |
+| Annual subscription prices hardcoded in SQL CASE (Pro $86.40/12, Elite $278.40/12) | 2026-03-16 | Supabase SQL functions cannot access env vars at runtime |
 
 ## Pending Todos
 
@@ -93,6 +96,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T17:30:33Z
-Stopped at: Completed 12-02-PLAN.md — Stripe config + 5 Supabase secrets confirmed; Phase 12 complete
+Last session: 2026-03-16T21:16:37.679Z
+Stopped at: Completed 13-01-PLAN.md — stripe-billing-webhook Edge Function deployed (ACTIVE v1)
 Resume with: `/gsd:execute-phase 13` (Phase 13 Billing Backend next)
