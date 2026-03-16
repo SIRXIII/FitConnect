@@ -17,6 +17,10 @@ export type Database = {
           avatar_url: string | null;
           phone: string | null;
           is_suspended: boolean;
+          onboarding_complete: boolean;
+          referral_code: string | null;
+          referral_discount_pending: boolean;
+          referral_discount_trainer_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -27,6 +31,10 @@ export type Database = {
           avatar_url?: string | null;
           phone?: string | null;
           is_suspended?: boolean;
+          onboarding_complete?: boolean;
+          referral_code?: string | null;
+          referral_discount_pending?: boolean;
+          referral_discount_trainer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -37,6 +45,10 @@ export type Database = {
           avatar_url?: string | null;
           phone?: string | null;
           is_suspended?: boolean;
+          onboarding_complete?: boolean;
+          referral_code?: string | null;
+          referral_discount_pending?: boolean;
+          referral_discount_trainer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -59,8 +71,20 @@ export type Database = {
           rating: number;
           review_count: number;
           stripe_account_id: string | null;
+          certification_number: string | null;
+          certification_url: string | null;
           created_at: string;
           updated_at: string;
+          stripe_customer_id: string | null;
+          subscription_tier: 'free' | 'pro' | 'elite';
+          subscription_status: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
+          subscription_id: string | null;
+          subscription_interval: 'month' | 'year' | null;
+          trial_ends_at: string | null;
+          current_period_end: string | null;
+          cancel_at_period_end: boolean;
+          tier_overridden_by: string | null;
+          tier_overridden_at: string | null;
         };
         Insert: {
           id?: string;
@@ -78,8 +102,20 @@ export type Database = {
           rating?: number;
           review_count?: number;
           stripe_account_id?: string | null;
+          certification_number?: string | null;
+          certification_url?: string | null;
           created_at?: string;
           updated_at?: string;
+          stripe_customer_id?: string | null;
+          subscription_tier?: 'free' | 'pro' | 'elite';
+          subscription_status?: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
+          subscription_id?: string | null;
+          subscription_interval?: 'month' | 'year' | null;
+          trial_ends_at?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          tier_overridden_by?: string | null;
+          tier_overridden_at?: string | null;
         };
         Update: {
           id?: string;
@@ -97,8 +133,47 @@ export type Database = {
           rating?: number;
           review_count?: number;
           stripe_account_id?: string | null;
+          certification_number?: string | null;
+          certification_url?: string | null;
           created_at?: string;
           updated_at?: string;
+          stripe_customer_id?: string | null;
+          subscription_tier?: 'free' | 'pro' | 'elite';
+          subscription_status?: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
+          subscription_id?: string | null;
+          subscription_interval?: 'month' | 'year' | null;
+          trial_ends_at?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          tier_overridden_by?: string | null;
+          tier_overridden_at?: string | null;
+        };
+        Relationships: [];
+      };
+      subscription_events: {
+        Row: {
+          id: string;
+          trainer_id: string;
+          stripe_event_id: string;
+          event_type: string;
+          payload: Json | null;
+          processed_at: string;
+        };
+        Insert: {
+          id?: string;
+          trainer_id: string;
+          stripe_event_id: string;
+          event_type: string;
+          payload?: Json | null;
+          processed_at?: string;
+        };
+        Update: {
+          id?: string;
+          trainer_id?: string;
+          stripe_event_id?: string;
+          event_type?: string;
+          payload?: Json | null;
+          processed_at?: string;
         };
         Relationships: [];
       };
