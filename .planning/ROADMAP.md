@@ -54,8 +54,8 @@ See: `.planning/milestones/v2.0-ROADMAP.md`
 **Depends on**: Phase 11 (existing production app)
 **Requirements**: None directly — infrastructure foundation for BILL-01 through ADMN-03
 **Success Criteria** (what must be TRUE):
-  1. Running `\d trainer_profiles` in production shows all 9 new columns (`subscription_tier`, `subscription_status`, `stripe_customer_id`, `subscription_interval`, `trial_ends_at`, `current_period_end`, `cancel_at_period_end`, `tier_override`, `tier_override_by`) with correct types and defaults
-  2. A service-role UPDATE to `subscription_tier` succeeds; an authenticated-role UPDATE to `subscription_tier` is rejected by RLS
+  1. Running `\d trainer_profiles` in production shows all 10 new columns (`subscription_tier`, `subscription_status`, `stripe_customer_id`, `subscription_id`, `subscription_interval`, `trial_ends_at`, `current_period_end`, `cancel_at_period_end`, `tier_overridden_by`, `tier_overridden_at`) with correct types and defaults
+  2. A service-role UPDATE to `subscription_tier` succeeds; an authenticated-role UPDATE to `subscription_tier` is rejected by the `guard_subscription_tier_write` BEFORE UPDATE trigger
   3. `SELECT get_visible_slots('<free_trainer_id>')` returns at most 3 rows; Pro returns at most 10; Elite returns all
   4. The `subscription_events` table exists with a `UNIQUE` constraint on `stripe_event_id`
   5. Stripe Dashboard shows 2 Products (Pro, Elite), 4 Price objects, a configured Customer Portal, and a billing webhook endpoint with its own `whsec_*` secret stored as `STRIPE_BILLING_WEBHOOK_SECRET` in Supabase
