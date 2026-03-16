@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
 status: executing
-stopped_at: Completed 14-03-PLAN.md — analytics tab gated + LockedFeatureBanner + slot visibility hint
-last_updated: "2026-03-16T21:54:29.782Z"
+stopped_at: Completed 14-04-PLAN.md — tier ranking signal + FeaturedTrainers + Landing.tsx update
+last_updated: "2026-03-16T21:54:35.660Z"
 progress:
   total_phases: 5
   completed_phases: 3
@@ -23,7 +23,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 14 of 16 — Feature Gates + Search (IN PROGRESS — 3/4 plans done)
+**Phase:** 14 of 16 — Feature Gates + Search (COMPLETE — 4/4 plans done)
 **Status:** In progress
 
 ## Progress
@@ -32,7 +32,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
-Phase 14: Feature Gates + Search   [~] IN PROGRESS (3/4 plans done — tier hooks + bio trigger + slot RPC wire + dashboard gates)
+Phase 14: Feature Gates + Search   [x] COMPLETE (tier hooks + bio trigger + slot RPC + dashboard gates + tier ranking + FeaturedTrainers)
 Phase 15: Subscription UI          [ ] Not started
 Phase 16: Admin Subscription       [ ] Not started
 
@@ -93,6 +93,8 @@ Overall: [█████████░] 89%
 | LockedFeatureBanner uses FEATURE_NAMES map for human-readable titles | 2026-03-16 | Avoids brittle string manipulation from label field; explicit map per TierFeature |
 | Analytics tab label visible for all tiers (discovery UX) | 2026-03-16 | Only content is gated behind canAnalytics, not the tab button — users discover feature before upgrading |
 | Slot hint uses tier === 'free' direct check (not useCan) | 2026-03-16 | Informational display about data visibility, not access control — useCan not appropriate here |
+| tierScore IIFE in rankTrainers: elite=1.0, pro=0.67, free=0.0 at weight 0.20 | 2026-03-16 | New weights 0.35/0.20/0.15/0.10/0.20 — elite trainers surface above equivalent Free trainers |
+| FeaturedTrainers self-hides via null vs [] distinction | 2026-03-16 | null=loading returns null, []=no elite trainers returns null — no conditional wrapper needed in Landing.tsx |
 
 ## Pending Todos
 
@@ -107,6 +109,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:53:30Z
-Stopped at: Completed 14-03-PLAN.md — analytics tab gated + LockedFeatureBanner + slot visibility hint
-Resume with: `/gsd:execute-phase 14` (Phase 14 Plan 04 next)
+Last session: 2026-03-16T21:54:35.658Z
+Stopped at: Completed 14-04-PLAN.md — tier ranking signal + FeaturedTrainers + Landing.tsx update
+Resume with: `/gsd:execute-phase 15` (Phase 15 — Subscription UI)

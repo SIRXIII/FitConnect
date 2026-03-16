@@ -27,9 +27,9 @@
 
 ### Search & Discovery
 
-- [ ] **SRCH-01**: Pro trainers receive a priority search ranking boost over equivalent Free trainers in trainer search results
-- [ ] **SRCH-02**: Elite trainers appear in a dedicated "Featured Trainers" section on the landing page, displayed above the standard trainer list
-- [ ] **SRCH-03**: The Featured Trainers section is hidden entirely when no Elite trainers exist (no placeholder or fallback to Pro)
+- [x] **SRCH-01**: Pro trainers receive a priority search ranking boost over equivalent Free trainers in trainer search results
+- [x] **SRCH-02**: Elite trainers appear in a dedicated "Featured Trainers" section on the landing page, displayed above the standard trainer list
+- [x] **SRCH-03**: The Featured Trainers section is hidden entirely when no Elite trainers exist (no placeholder or fallback to Pro)
 
 ### Admin
 
@@ -94,9 +94,9 @@ Features that reduce churn or add polish but are not needed for the billing syst
 | TIER-04 | Phase 14 | Complete |
 | TIER-05 | Phase 14 | Complete |
 | TIER-06 | Phase 14 | Complete |
-| SRCH-01 | Phase 14 | Pending |
-| SRCH-02 | Phase 14 | Pending |
-| SRCH-03 | Phase 14 | Pending |
+| SRCH-01 | Phase 14 | Complete |
+| SRCH-02 | Phase 14 | Complete |
+| SRCH-03 | Phase 14 | Complete |
 | ADMN-01 | Phase 16 | Pending |
 | ADMN-02 | Phase 16 | Pending |
 | ADMN-03 | Phase 16 | Pending |
