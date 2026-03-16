@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: in_progress
-stopped_at: Completed 12-02-PLAN.md — Stripe config + Supabase secrets complete; Phase 12 done
-last_updated: "2026-03-16T17:30:33Z"
+status: planning
+stopped_at: Completed 12-02-PLAN.md — Stripe config + 5 Supabase secrets confirmed; Phase 12 complete
+last_updated: "2026-03-16T17:45:02.643Z"
 progress:
   total_phases: 5
   completed_phases: 1
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 ## Current Position
 
 **Phase:** 12 of 16 — Subscription Foundation (COMPLETE — 2/2 plans done)
-**Status:** Phase 12 complete — schema live + Stripe config done; Phase 13 prerequisites satisfied
+**Status:** Ready to plan
 
 ## Progress
 
