@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: executing
+status: planning
 stopped_at: Completed 13-02-PLAN.md — create-subscription + manage-subscription Edge Functions deployed (ACTIVE)
-last_updated: "2026-03-16T21:16:54.961Z"
+last_updated: "2026-03-16T21:21:35.578Z"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 ## Current Position
 
 **Phase:** 13 of 16 — Billing Backend (IN PROGRESS — 3/3 plans done)
-**Status:** In progress
+**Status:** Ready to plan
 
 ## Progress
 
