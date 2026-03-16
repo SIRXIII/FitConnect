@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: defining_requirements
-stopped_at: v2.1 scope confirmed — defining requirements
+status: ready_to_plan
+stopped_at: v2.1 requirements + roadmap complete — ready for /gsd:plan-phase 12
 last_updated: "2026-03-15T00:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -23,19 +23,20 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 01 of 01 — Payment & Security Hardening
-**Plan:** 1 of 1 complete
-**Status:** v2.0 milestone complete
+**Phase:** 12 of 16 — Subscription Foundation (not started)
+**Status:** Roadmap complete — ready to plan Phase 12
 
 ## Progress
 
 ```
-Phase 01: Payment & Security Hardening [x] Complete (1/1 plans)
-Phase 9:  Trainer Payout System        [x] Complete (3/3 plans)
-Phase 10: Earnings Analytics           [x] Complete (4/4 plans)
-Phase 11: Referral Program v1          [x] Complete (4/4 plans)
+v2.1 Phases:
+Phase 12: Subscription Foundation  [ ] Not started
+Phase 13: Billing Backend          [ ] Not started
+Phase 14: Feature Gates + Search   [ ] Not started
+Phase 15: Subscription UI          [ ] Not started
+Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [██████████] 100%
+Overall: [░░░░░░░░░░] 0%
 ```
 
 ## Recent Decisions
@@ -85,6 +86,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T19:47:46Z
-Stopped at: Completed 01-01-PLAN.md — Phase 1 Payment & Security Hardening complete
-Resume file: None
+Last session: 2026-03-15T00:00:00Z
+Stopped at: v2.1 milestone defined — REQUIREMENTS.md (20 req) + ROADMAP.md (Phases 12–16) committed
+Resume with: `/gsd:plan-phase 12`
