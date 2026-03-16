@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: ready_to_plan
-stopped_at: v2.1 requirements + roadmap complete — ready for /gsd:plan-phase 12
-last_updated: "2026-03-15T00:00:00.000Z"
+status: planning
+stopped_at: v2.1 milestone defined — REQUIREMENTS.md (20 req) + ROADMAP.md (Phases 12–16) committed
+last_updated: "2026-03-16T07:33:41.986Z"
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State — FitRush
@@ -23,20 +23,20 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 12 of 16 — Subscription Foundation (not started)
-**Status:** Roadmap complete — ready to plan Phase 12
+**Phase:** 12 of 16 — Subscription Foundation (in progress — 1/2 plans complete)
+**Status:** Plan 12-01 complete — subscription schema live in production
 
 ## Progress
 
 ```
 v2.1 Phases:
-Phase 12: Subscription Foundation  [ ] Not started
+Phase 12: Subscription Foundation  [x] Plan 01 complete (schema migration)
 Phase 13: Billing Backend          [ ] Not started
 Phase 14: Feature Gates + Search   [ ] Not started
 Phase 15: Subscription UI          [ ] Not started
 Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [░░░░░░░░░░] 0%
+Overall: [█████░░░░░] 50%
 ```
 
 ## Recent Decisions
@@ -72,6 +72,10 @@ Overall: [░░░░░░░░░░] 0%
 | Phase 01 security hardening complete | 2026-03-15 | All 5 REQ-SEC requirements delivered — GEMINI key removed, input sanitized, RLS audited, orphaned booking cleanup, email Edge Function with JWT auth |
 | send-notification-email stubs Resend — email failure is non-blocking | 2026-03-13 | Logs if no RESEND_API_KEY; returns 200 to caller regardless |
 | cleanup_abandoned_bookings cancels (not deletes) stale pending bookings | 2026-03-13 | Preserves audit trail; slot sync triggers fire on status change |
+| BEFORE UPDATE trigger guards subscription columns | 2026-03-16 | RLS cannot restrict individual columns; trigger with IS DISTINCT FROM is the only enforceable mechanism |
+| SECURITY DEFINER for get_visible_slots | 2026-03-16 | Anonymous clients need slot visibility; SECURITY INVOKER would be blocked by restrictive anon RLS on availability_slots |
+| tier_overridden_by references profiles(id) ON DELETE SET NULL | 2026-03-16 | Authoritative schema per research file — plan_split_guidance incorrectly specified bool tier_override |
+| subscription_events insert only via service_role RLS | 2026-03-16 | Webhook Edge Functions write events; no direct client insert path needed |
 
 ## Pending Todos
 
@@ -86,6 +90,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-15T00:00:00Z
-Stopped at: v2.1 milestone defined — REQUIREMENTS.md (20 req) + ROADMAP.md (Phases 12–16) committed
-Resume with: `/gsd:plan-phase 12`
+Last session: 2026-03-16T07:32:43Z
+Stopped at: Completed 12-01-PLAN.md — subscription foundation schema applied to production
+Resume with: `/gsd:execute-phase 12` (plan 12-02 next)

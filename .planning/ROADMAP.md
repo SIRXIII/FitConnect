@@ -126,7 +126,7 @@ Plans:
 | 9. Trainer Payout System | v2.0 | 3/3 | ✅ | 2026-03-14 |
 | 10. Earnings Analytics | v2.0 | 4/4 | ✅ | 2026-03-15 |
 | 11. Referral Program v1 | v2.0 | 4/4 | ✅ | 2026-03-15 |
-| 12. Subscription Foundation | v2.1 | 0/2 | 📋 planned | — |
+| 12. Subscription Foundation | 1/2 | In Progress|  | — |
 | 13. Billing Backend | v2.1 | 0/? | 📋 planned | — |
 | 14. Feature Gates + Search | v2.1 | 0/? | 📋 planned | — |
 | 15. Subscription UI | v2.1 | 0/? | 📋 planned | — |
