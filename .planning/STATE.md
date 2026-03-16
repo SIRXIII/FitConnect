@@ -23,7 +23,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 14 of 16 — Feature Gates + Search (IN PROGRESS — 1/? plans done)
+**Phase:** 14 of 16 — Feature Gates + Search (IN PROGRESS — 2/4 plans done)
 **Status:** In progress
 
 ## Progress
@@ -32,11 +32,11 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
-Phase 14: Feature Gates + Search   [~] IN PROGRESS (1 plan done — tier gate foundation)
+Phase 14: Feature Gates + Search   [~] IN PROGRESS (2/4 plans done — tier hooks + bio trigger + slot RPC wire)
 Phase 15: Subscription UI          [ ] Not started
 Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [██████░░░░] 60%
+Overall: [████████░░] 78%
 ```
 
 ## Recent Decisions
@@ -88,6 +88,8 @@ Overall: [██████░░░░] 60%
 | Trial bypass unconditional in useCan | 2026-03-16 | isTrialing=true grants full feature access regardless of tier — standard SaaS trial behavior |
 | vi.mock('@/stores/auth') for hook isolation | 2026-03-16 | Avoids Supabase client initialization in test env; mockReturnValue per test case |
 | Vitest config in vite.config.ts test block | 2026-03-16 | No separate vitest.config.ts — keeps config surface minimal; globals:true + jsdom |
+| Bio trigger fires only on IS DISTINCT FROM OLD.bio | 2026-03-16 | Existing long bios preserved on trainer downgrade — trigger only gates new/changed bio content |
+| supabase cast to any for get_visible_slots RPC | 2026-03-16 | Consistent with project-wide pattern for unregistered RPCs (same as get_referral_leaderboard, get_admin_analytics) |
 
 ## Pending Todos
 
@@ -102,6 +104,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:47:10Z
-Stopped at: Completed 14-01-PLAN.md — TIER_GATES registry + useTier/useCan hooks with 15 vitest tests GREEN
-Resume with: `/gsd:execute-phase 14` (Phase 14 Plan 02 next)
+Last session: 2026-03-16T21:48:15Z
+Stopped at: Completed 14-02-PLAN.md — bio tier limit trigger + get_visible_slots RPC wire in TrainerProfile
+Resume with: `/gsd:execute-phase 14` (Phase 14 Plan 03 next)
