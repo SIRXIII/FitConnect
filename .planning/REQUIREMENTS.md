@@ -18,12 +18,12 @@
 
 ### Tiers
 
-- [ ] **TIER-01**: Free trainer: maximum 3 availability slots are visible to clients in search and booking
-- [ ] **TIER-02**: Pro trainer ($9/mo): maximum 10 availability slots are visible to clients
-- [ ] **TIER-03**: Elite trainer ($29/mo): all availability slots are visible to clients (no limit)
-- [ ] **TIER-04**: Pro and Elite trainers can write an extended custom bio (up to 1000 characters; Free tier is limited to 280)
-- [ ] **TIER-05**: Advanced earnings analytics dashboard (time-range charts, heatmap, CSV export) is gated to Pro and Elite trainers only
-- [ ] **TIER-06**: When a trainer downgrades, their data (slots, bio content) is preserved; only visibility and access revert to the new tier's limits
+- [x] **TIER-01**: Free trainer: maximum 3 availability slots are visible to clients in search and booking
+- [x] **TIER-02**: Pro trainer ($9/mo): maximum 10 availability slots are visible to clients
+- [x] **TIER-03**: Elite trainer ($29/mo): all availability slots are visible to clients (no limit)
+- [x] **TIER-04**: Pro and Elite trainers can write an extended custom bio (up to 1000 characters; Free tier is limited to 280)
+- [x] **TIER-05**: Advanced earnings analytics dashboard (time-range charts, heatmap, CSV export) is gated to Pro and Elite trainers only
+- [x] **TIER-06**: When a trainer downgrades, their data (slots, bio content) is preserved; only visibility and access revert to the new tier's limits
 
 ### Search & Discovery
 
@@ -88,12 +88,12 @@ Features that reduce churn or add polish but are not needed for the billing syst
 | BILL-06 | Phase 13 | Complete |
 | BILL-07 | Phase 13 | Complete |
 | BILL-08 | Phase 13 | Complete |
-| TIER-01 | Phase 14 | Pending |
-| TIER-02 | Phase 14 | Pending |
-| TIER-03 | Phase 14 | Pending |
-| TIER-04 | Phase 14 | Pending |
-| TIER-05 | Phase 14 | Pending |
-| TIER-06 | Phase 14 | Pending |
+| TIER-01 | Phase 14 | Complete |
+| TIER-02 | Phase 14 | Complete |
+| TIER-03 | Phase 14 | Complete |
+| TIER-04 | Phase 14 | Complete |
+| TIER-05 | Phase 14 | Complete |
+| TIER-06 | Phase 14 | Complete |
 | SRCH-01 | Phase 14 | Pending |
 | SRCH-02 | Phase 14 | Pending |
 | SRCH-03 | Phase 14 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
 status: planning
-stopped_at: Completed 13-02-PLAN.md — create-subscription + manage-subscription Edge Functions deployed (ACTIVE)
-last_updated: "2026-03-16T21:21:35.578Z"
+stopped_at: Completed 14-02-PLAN.md — bio tier limit trigger + get_visible_slots RPC wire in TrainerProfile
+last_updated: "2026-03-16T21:48:15.176Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 9
+  completed_plans: 7
 ---
 
 # Project State — FitRush
@@ -23,8 +23,8 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 13 of 16 — Billing Backend (IN PROGRESS — 3/3 plans done)
-**Status:** Ready to plan
+**Phase:** 14 of 16 — Feature Gates + Search (IN PROGRESS — 1/? plans done)
+**Status:** In progress
 
 ## Progress
 
@@ -32,7 +32,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
-Phase 14: Feature Gates + Search   [ ] Not started
+Phase 14: Feature Gates + Search   [~] IN PROGRESS (1 plan done — tier gate foundation)
 Phase 15: Subscription UI          [ ] Not started
 Phase 16: Admin Subscription       [ ] Not started
 
@@ -85,6 +85,9 @@ Overall: [██████░░░░] 60%
 | create-subscription does not write subscription_tier/status | 2026-03-16 | Webhook is the single writer — writing in Edge Function causes race condition since customer.subscription.created fires within milliseconds |
 | manage-subscription returns 400 for trainers with no stripe_customer_id | 2026-03-16 | Trainer exists but has never subscribed — 400 communicates actionable state ("start a trial first") |
 | APP_URL falls back to https://app.fitrush.io in manage-subscription | 2026-03-16 | Safe default prevents portal return_url from being empty if env var not set |
+| Trial bypass unconditional in useCan | 2026-03-16 | isTrialing=true grants full feature access regardless of tier — standard SaaS trial behavior |
+| vi.mock('@/stores/auth') for hook isolation | 2026-03-16 | Avoids Supabase client initialization in test env; mockReturnValue per test case |
+| Vitest config in vite.config.ts test block | 2026-03-16 | No separate vitest.config.ts — keeps config surface minimal; globals:true + jsdom |
 
 ## Pending Todos
 
@@ -99,6 +102,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:16:37.679Z
-Stopped at: Completed 13-02-PLAN.md — create-subscription + manage-subscription Edge Functions deployed (ACTIVE)
-Resume with: `/gsd:execute-phase 13` (Phase 13 Plan 03 next — if any remaining plans)
+Last session: 2026-03-16T21:47:10Z
+Stopped at: Completed 14-01-PLAN.md — TIER_GATES registry + useTier/useCan hooks with 15 vitest tests GREEN
+Resume with: `/gsd:execute-phase 14` (Phase 14 Plan 02 next)
