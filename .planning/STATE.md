@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: between_milestones
-stopped_at: v2.0 Monetization Sprint archived — ready for v2.1 planning
+status: defining_requirements
+stopped_at: v2.1 scope confirmed — defining requirements
 last_updated: "2026-03-15T00:00:00.000Z"
 progress:
   total_phases: 0
@@ -19,8 +19,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 **Core value:** Trainers monetize idle hours, clients get premium training at below-market prices
-**Current focus:** Planning v2.1 — Subscription Tiers
-**Current Focus:** Milestone v2.0 — Monetization Sprint
+**Current focus:** v2.1 — Subscription Tiers
 
 ## Current Position
 

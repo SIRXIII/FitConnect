@@ -121,13 +121,25 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 
 ## Current Milestone: v2.1 — Subscription Tiers
 
-**Goal:** Monetize trainer engagement with Pro and Elite subscription plans.
+**Goal:** Monetize trainer engagement with Pro and Elite tiers, gating features to drive upgrades.
 
-**Target features:**
-- Pro tier ($9/mo): priority search placement + advanced analytics
-- Elite tier ($29/mo): custom branding + featured section placement
-- Stripe Billing: automatic recurring, upgrade/downgrade, invoices
-- Feature gates across free/Pro/Elite tiers
+**Tier structure:**
+
+| | Free | Pro ($9/mo) | Elite ($29/mo) |
+|---|---|---|---|
+| Slots visible to clients | 3 | 10 | Unlimited |
+| Profile | Basic bio | Custom bio | Custom bio + branding/URL |
+| Search rank | Standard | Priority | Featured on landing page |
+| Analytics | Basic stats | Advanced dashboard | Advanced dashboard |
+| Support | — | — | Priority |
+
+**Billing:** Monthly + Annual (20% discount = ~$7.20/mo Pro, ~$23.20/mo Elite)
+**Trial:** 30-day free trial, no card required
+
+**Admin features:**
+- Subscription tier status visible per trainer in user list
+- MRR + subscriber count in admin analytics tab
+- Manual tier override (grant/revoke Pro or Elite)
 
 ---
-*Last updated: 2026-03-15 after v2.0 milestone*
+*Last updated: 2026-03-15 after v2.1 milestone start*
