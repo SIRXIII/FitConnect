@@ -1,36 +1,59 @@
-# Pitfalls Research
+# Domain Pitfalls: Stripe Billing on an Existing Connect Marketplace
 
-**Domain:** Adding Stripe Billing (subscription tiers) to an existing Stripe Connect fitness marketplace
+**Domain:** Adding Stripe Billing (subscription tiers) to a live Stripe Connect Express marketplace
+**Project:** FitRush v2.1 — Free / Pro ($9/mo) / Elite ($29/mo) trainer tiers
 **Researched:** 2026-03-15
-**Confidence:** HIGH — primary sources are Stripe official documentation, supplemented by community verification
+**Confidence:** HIGH — primary sources are current Stripe official documentation; supplemented by verified community patterns
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Billing Customer Object vs. Connect Account — Two Separate Identity Systems
+Mistakes in this section cause security vulnerabilities, billing failures, data corruption, or undetected revenue loss.
+
+---
+
+### Pitfall 1: Billing Customer Object vs. Connect Account — Two Completely Separate Identity Systems
 
 **What goes wrong:**
 
-Developers assume the existing `stripe_account_id` stored in `trainer_profiles` is sufficient for billing. It is not. A Connect Account object (used for payouts and destination charges) is a _merchant_ identity. A Billing Customer object (used for subscriptions) is a _consumer_ identity. They are completely separate objects in Stripe's data model.
+Developers assume the existing `stripe_account_id` (`acct_xxx`) stored on `trainer_profiles` is sufficient for billing. It is not. A Connect Account object is a _merchant_ identity used for receiving payouts. A Billing Customer object (`cus_xxx`) is a _consumer_ identity used for subscription charges. Stripe's API treats them as entirely separate — there is no way to turn one into the other or share them.
 
-In FitRush, `trainer_profiles.stripe_account_id` is the trainer's Express account for receiving payouts. To charge that trainer a subscription fee, the platform must create a **separate** `Customer` object on the platform account representing the trainer. Without this, subscription creation will fail with `No such customer`.
+Passing `acct_xxx` where `cus_xxx` is expected causes `stripe.subscriptions.create()` to throw `No such customer` or create a subscription that can never be charged.
 
 **Why it happens:**
 
-The Stripe dashboard shows both objects but developers conflate "the trainer has a Stripe account" with "the trainer is a Stripe customer of my platform." They are orthogonal concepts. Stripe's own documentation states: _"The Account object allows the connected account to collect payments from its customers, but the platform can't use it to collect recurring payments from the connected account."_
+The Stripe Dashboard shows both objects, so developers conflate "trainer has a Stripe account" with "trainer is a Stripe customer of my platform." They are orthogonal. Stripe's own docs state: _"The Account object allows the connected account to collect payments from its customers, but the platform can't use it to collect recurring payments from the connected account."_
 
-**How to avoid:**
+**Consequences:** Subscription creation silently fails or creates a zombie subscription. Trainers see "Pro" in the UI but invoices are never generated. Or: dev mode works fine (you used `cus_xxx`) but someone hardcodes `stripe_account_id` in a new code path and prod breaks on first upgrade.
 
-Create a `stripe_customer_id` column on `trainer_profiles` (separate from `stripe_account_id`). On first subscription checkout, call `stripe.customers.create()` using the platform's secret key (not a connected account key), store the resulting `cus_*` ID, and reuse it for all future subscription operations. Never pass a `acct_*` ID where a `cus_*` is expected.
+**Prevention:**
 
-**Warning signs:**
+Maintain two separate Stripe IDs per trainer in the DB:
 
-- Stripe returns `No such customer` errors when creating subscriptions
-- Code that passes `stripe_account_id` directly to `stripe.subscriptions.create({ customer: ... })`
-- `trainer_profiles` table has no `stripe_customer_id` column after billing is implemented
+```
+trainer_profiles:
+  stripe_account_id   TEXT  -- acct_xxx  (payouts TO the trainer via Connect)
+  stripe_customer_id  TEXT  -- cus_xxx   (billing FROM the trainer via Billing)
+```
 
-**Phase to address:** Stripe Billing setup phase (database migration + checkout session creation)
+Create the Customer object at first subscription attempt, not at signup:
+
+```typescript
+const customer = await stripe.customers.create({
+  email: trainer.email,
+  metadata: { trainer_id: trainer.id, platform: 'fitrush' },
+  // Never pass stripe_account_id here
+});
+await supabase
+  .from('trainer_profiles')
+  .update({ stripe_customer_id: customer.id })
+  .eq('id', trainer.id);
+```
+
+**Detection:** Add a runtime assert: `assert(stripe_customer_id.startsWith('cus_'))` before any subscription operation. Add a DB check constraint: `CHECK (stripe_customer_id LIKE 'cus_%')`.
+
+**Sources:** [Charge SaaS fees to your connected accounts](https://docs.stripe.com/connect/integrate-billing-connect); [Create subscriptions with Stripe Billing (Connect)](https://docs.stripe.com/connect/subscriptions)
 
 ---
 
@@ -38,55 +61,73 @@ Create a `stripe_customer_id` column on `trainer_profiles` (separate from `strip
 
 **What goes wrong:**
 
-FitRush currently has one webhook endpoint (`stripe-webhook`) using `STRIPE_WEBHOOK_SECRET` to verify signatures. This secret is tied to the Connect webhook endpoint configured in the Stripe dashboard.
+FitRush already has a webhook endpoint (`stripe-webhook`) that processes Connect payout events, verified with `STRIPE_WEBHOOK_SECRET`. Billing subscription events (`customer.subscription.*`, `invoice.*`) originate from the **platform account**, not from connected accounts. These use a different signing secret.
 
-Billing subscription events (`customer.subscription.*`, `invoice.*`) originate from the **platform account**, not from connected accounts. If those events are routed to the same endpoint but verified with the Connect webhook secret, `stripe.webhooks.constructEvent()` will throw a signature mismatch error and all billing events will be silently dropped (the function returns 400).
+If billing events are routed to the same endpoint and verified with the Connect secret, `stripe.webhooks.constructEvent()` will throw `No signatures found matching the expected signature for payload`. Billing events silently return 400 and are never processed. Stripe retries for up to 3 days, all failing.
 
 **Why it happens:**
 
-Developers register one webhook URL in Stripe's dashboard, check a handful of event types, and don't realize that Stripe uses separate signing secrets per endpoint. The Connect endpoint's secret and the platform account's billing endpoint secret are different `whsec_*` values.
+Developers register one webhook URL in the Stripe Dashboard, don't realize Stripe uses per-endpoint signing secrets, and the failure mode is silent (400s logged but not alarmed on).
 
-**How to avoid:**
+**Prevention:**
 
-Create a **second** webhook endpoint in the Stripe dashboard specifically for billing events on the platform account. Store its secret as `STRIPE_BILLING_WEBHOOK_SECRET`. Route billing events to a separate Edge Function (`stripe-billing-webhook`) or add routing logic at the top of the existing handler that inspects `event.account`: if `event.account` is set, it is a Connect event; if it is absent, it is a platform/billing event. Use the corresponding secret for verification.
+Create a second webhook endpoint in the Stripe Dashboard specifically for billing events on the platform account. Store its secret as `STRIPE_BILLING_WEBHOOK_SECRET`. Implement a separate Edge Function `stripe-billing-webhook`. Alternatively, add routing logic at the top of the existing handler:
 
-**Warning signs:**
+```typescript
+// At top of webhook handler — determine which secret to use
+const connectEventAccount = request.headers.get('stripe-connect-account');
+const secret = connectEventAccount
+  ? process.env.STRIPE_WEBHOOK_SECRET!       // Connect event
+  : process.env.STRIPE_BILLING_WEBHOOK_SECRET!; // Platform billing event
 
-- `stripe-webhook` logs showing 400 errors after billing is wired up
-- Subscription status in the database never updating despite confirmed Stripe payments
-- `constructEvent` throwing `No signatures found matching the expected signature for payload`
+const event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+```
 
-**Phase to address:** Webhook routing phase (must be addressed before any billing event handling is written)
+Verify `event.account` presence: Connect events include an `account` field; platform billing events do not.
+
+**Detection:** After wiring billing, check Stripe Dashboard > Developers > Webhooks > your billing endpoint. If 400 responses appear, this is the problem.
 
 ---
 
-### Pitfall 3: Trial End With No Payment Method — Subscription Enters `past_due` Silently
+### Pitfall 3: Webhook Endpoint Applying Global JSON Body Parsing
 
 **What goes wrong:**
 
-FitRush's 30-day trial requires no card upfront. When the trial ends, Stripe generates an invoice and attempts to charge it. With no payment method on the Customer, the charge fails immediately. The subscription transitions to `past_due`. Unless the webhook handler explicitly listens for `invoice.payment_failed` and updates the local `subscription_tier` back to `free`, the trainer's DB record still shows `pro` or `elite`. They retain gated features for free indefinitely.
+Any middleware that parses the raw request body into a JSON object before signature verification breaks `stripe.webhooks.constructEvent()`. Stripe's HMAC-SHA256 signature is computed over the exact raw bytes. Re-serialized JSON (different key ordering, whitespace, Unicode escaping) will never match.
 
-The default behavior (not setting `trial_settings[end_behavior][missing_payment_method]`) is to invoice and fail — not to cancel. The subscription does not self-cancel; it lingers in `past_due` and then `unpaid` as Stripe retries.
+This is the single most common Stripe integration bug. Every framework has its own trap:
 
-**Why it happens:**
+- **Express:** `app.use(express.json())` before the webhook route
+- **Next.js App Router:** `await request.json()` instead of `await request.text()`
+- **Hono:** default body parsing middleware applied globally
 
-Developers test the happy path (card added before trial ends) and never test the no-card path. They also assume Stripe cancels automatically, when in reality cancellation requires explicit configuration or webhook-driven revocation.
+**Consequences:** All webhook events fail verification permanently. `constructEvent` throws. Subscription status changes are never reflected in the DB. Depending on fallback behavior, trainers either get locked out of paid features or retain paid features indefinitely.
 
-**How to avoid:**
+**Prevention:**
 
-Two complementary defenses:
+```typescript
+// Next.js App Router — CORRECT
+export async function POST(request: Request) {
+  const rawBody = await request.text();         // NOT request.json()
+  const sig = request.headers.get('stripe-signature')!;
+  const event = stripe.webhooks.constructEvent(
+    rawBody,
+    sig,
+    process.env.STRIPE_BILLING_WEBHOOK_SECRET!
+  );
+}
 
-1. Set `trial_settings.end_behavior.missing_payment_method = 'cancel'` on subscription creation. This instructs Stripe to cancel (rather than invoice) when the trial ends with no card, firing `customer.subscription.deleted`.
+// Express — CORRECT: raw middleware applied per-route, before global json()
+app.post(
+  '/webhooks/stripe-billing',
+  express.raw({ type: 'application/json' }),
+  billingWebhookHandler
+);
+```
 
-2. In the webhook handler, handle `invoice.payment_failed` and `customer.subscription.updated` (to `past_due`/`unpaid` status): immediately downgrade the trainer's `subscription_tier` to `free` in the database.
+**Detection:** Run `stripe listen --forward-to localhost:3000/webhooks/stripe-billing`. Any 400 with "No signatures found" confirms this problem.
 
-**Warning signs:**
-
-- Trainer has `subscription_tier = 'pro'` in DB but `stripe_subscription_status = 'past_due'`
-- No `invoice.payment_failed` handler in `stripe-billing-webhook`
-- Trial-end webhook events (`customer.subscription.trial_will_end`) not triggering email reminders to add card
-
-**Phase to address:** Subscription creation phase (set `trial_settings` parameter) + webhook handling phase (handle `invoice.payment_failed`)
+**Sources:** [Receive Stripe events in your webhook endpoint](https://docs.stripe.com/webhooks); [Resolve webhook signature verification errors](https://docs.stripe.com/webhooks/signature)
 
 ---
 
@@ -94,262 +135,634 @@ Two complementary defenses:
 
 **What goes wrong:**
 
-The most common implementation pattern is: read `trainer.subscription_tier` from Zustand auth store, render "3 slots" if free, "10 slots" if pro, "unlimited" if elite. This is purely cosmetic. An authenticated user can call the Supabase REST API directly, bypassing the React UI entirely, and retrieve all slots for any trainer — or modify their own `subscription_tier` via the REST API if RLS policies are absent.
+The typical first implementation reads `trainer.subscription_tier` from the Zustand auth store and renders conditionally. This is purely cosmetic. An authenticated trainer can call the Supabase REST API directly, bypassing React entirely — or open devtools, mutate Zustand state, and access gated features without any server objection.
 
-FitRush already has a documented security concern: "Verify and harden RLS policies across all tables." Adding subscription tiers without server-side enforcement compounds this debt.
+FitRush already carries documented debt: "Verify and harden RLS policies across all tables." Subscription tiers without server enforcement compound that debt into an exploitable vulnerability.
 
-**Why it happens:**
+**Prevention:** Every tier-gated operation must be enforced at the database layer. The UI is UX. The DB is security.
 
-Feature gating is built as a UI concern first because it ships quickly. The developer sees the UI working and considers the feature done. The actual enforcement — an RLS policy or Edge Function check that the tier is respected — is treated as a follow-up.
+Slot visibility enforced in SQL — not React:
 
-**How to avoid:**
+```sql
+CREATE POLICY "slot_visibility_by_tier" ON availability_slots
+  FOR SELECT USING (
+    -- The slot belongs to the querying trainer (they see all their own slots)
+    trainer_id = auth.uid()
+    OR
+    -- Clients see slots up to the tier limit
+    slot_index <= (
+      SELECT CASE subscription_tier
+        WHEN 'free'  THEN 3
+        WHEN 'pro'   THEN 20
+        WHEN 'elite' THEN 999
+        ELSE 3
+      END
+      FROM trainer_profiles
+      WHERE id = availability_slots.trainer_id
+    )
+  );
+```
 
-Enforce at the data layer, not the UI layer:
+Analytics endpoints: the `get_trainer_analytics` RPC should check tier inside the function body and return only basic stats for `free` callers — regardless of what the client requests.
 
-- **Slot visibility:** The `availability_slots` RLS SELECT policy for client users should call a Postgres function that checks the trainer's tier and applies the slot limit (3/10/unlimited). The limit is enforced in SQL regardless of how the client queries.
-- **Analytics endpoints:** The RPCs `get_trainer_analytics` and `get_trainer_analytics_trend` should check `subscription_tier` inside the function body and return only basic stats for `free` callers.
-- **Profile customization fields:** `custom_bio_url` and `branding_color` should have a CHECK constraint or trigger that NULLifies them if the trainer's tier is downgraded.
-- **Admin override write path:** Only service-role clients (Edge Functions) should be able to write `subscription_tier`; the column should not be writable via RLS for authenticated users.
+`subscription_tier` column: add an UPDATE policy restricting writes to the service-role client only. Trainers must not be able to PATCH their own tier via the REST API.
 
 **Warning signs:**
-
-- `subscription_tier` is a plain writable column with no RLS restriction on UPDATE
-- Slot count limit is only applied in the React component, not in the Supabase query or RLS policy
-- No test confirming that a free-tier trainer cannot retrieve more than 3 slots via direct API call
-
-**Phase to address:** Database migration phase (RLS policies) — must be done before the billing UI is built, not after
+- `subscription_tier` is a writable column with no UPDATE RLS restriction
+- Slot count limit only exists in a React component
+- No test confirming a free-tier trainer gets at most 3 slots from a direct API call
 
 ---
 
-### Pitfall 5: Webhook Idempotency — `customer.subscription.updated` Fires Multiple Times
+### Pitfall 5: Storing Subscription Tier in Supabase JWT Claims
 
 **What goes wrong:**
 
-Stripe guarantees at-least-once delivery. `customer.subscription.updated` fires for every subscription field change: trial start, trial end, plan change, payment method attachment, cancellation scheduling, and more. If the webhook handler executes a write operation without checking whether it already processed this event or state, it can fire multiple redundant DB updates — or worse, toggle a trainer's tier down and then back up within seconds if events arrive out of order.
+You store `subscription_tier` in the Supabase JWT custom claims so RLS policies can read `auth.jwt() -> 'subscription_tier'`. A trainer downgrades; the webhook updates the DB instantly, but their JWT is valid for another 60 minutes. They retain Pro features for up to an hour post-cancellation.
 
-**Why it happens:**
+For most features, 60-minute staleness is acceptable. For features that cost you money per use (AI coaching calls, premium video slots, priority placement bidding) it is not.
 
-Developers write a handler that checks `event.type === 'customer.subscription.updated'` and immediately writes the new tier. They do not check: has this event ID already been processed? Is this event's `current_period_end` newer than what we already have?
+**Why it happens:** JWTs are stateless. Supabase's default access token TTL is 1 hour. There is no server-side revocation mechanism without additional infrastructure.
 
-**How to avoid:**
+**Prevention — Option A (recommended):** Do not put subscription tier in JWT claims. Query the DB directly in RLS policies via `auth.uid()`:
 
-Two-layer idempotency:
+```sql
+CREATE POLICY "pro_feature_gate" ON premium_trainer_features
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM trainer_profiles
+      WHERE id = auth.uid()
+        AND subscription_tier IN ('pro', 'elite')
+        AND subscription_status = 'active'
+    )
+  );
+```
 
-1. **Event deduplication table:** A `processed_stripe_events` table with a `stripe_event_id` unique column. At the start of each handler, attempt an INSERT. If it conflicts, the event was already processed — return 200 immediately. This is the standard Stripe recommendation.
+This reads the live value on every request. The cost is one extra indexed lookup per policy check — negligible at FitRush's current scale.
 
-2. **State-based guard:** For `customer.subscription.updated`, only write to `subscription_tier` if the incoming event's `current_period_start` timestamp is greater than or equal to the stored `subscription_updated_at`. This prevents out-of-order events from reverting a more recent state.
-
-**Warning signs:**
-
-- No `processed_stripe_events` table in the schema
-- Webhook handler updates DB unconditionally on every `customer.subscription.updated` event
-- No timestamp comparison before writing tier changes
-
-**Phase to address:** Webhook handling phase (before any subscription state writes are implemented)
+**Prevention — Option B (if JWT claims are needed for performance):** Reduce Supabase access token TTL to 5-15 minutes and invalidate the session server-side when the webhook processes a downgrade.
 
 ---
 
-### Pitfall 6: Downgrade Data Integrity — Trainer Retains Features After Tier Drops
+### Pitfall 6: Webhook Endpoint Requires No JWT But Must Have Signature Verification
 
 **What goes wrong:**
 
-When a trainer downgrades from Elite to Free mid-month, three things must happen atomically:
-1. `subscription_tier` is updated to `free`
-2. Slot count visible to clients is restricted to 3 (others become invisible, not deleted)
-3. Custom branding fields (`custom_bio_url`, `branding_color`) are cleared
+Scenario A: You apply Supabase JWT middleware globally. Stripe's POST has no Authorization header. Every webhook returns 401 silently.
 
-If only step 1 is handled in the webhook, steps 2 and 3 are silently skipped. The trainer's branded profile page continues to display Elite-tier elements. Their slots beyond the 3-slot free cap remain bookable by clients. The slot over-limit is a data integrity issue: a client could book a slot the trainer's current tier does not allow to be visible.
+Scenario B: You exclude the webhook route from JWT auth but forget to add signature verification. Any HTTP client can now POST fake events to your endpoint and grant arbitrary trainers Elite status.
 
-**Why it happens:**
+**Prevention:**
 
-Developers implement the webhook handler to only update `subscription_tier`. The downstream consequences (slot visibility, profile field cleanup) are handled by the UI and considered "someone else's problem" when the tier changes.
+The webhook route must be excluded from JWT middleware AND must verify the Stripe signature:
 
-**How to avoid:**
+```typescript
+// No JWT middleware on this route — Stripe doesn't send Bearer tokens
+export async function POST(request: Request) {
+  const rawBody = await request.text();
+  const sig = request.headers.get('stripe-signature');
 
-Implement a Postgres function (called via a DB trigger on `subscription_tier` change or called explicitly from the webhook Edge Function) that:
-- Sets `custom_bio_url = NULL` and `branding_color = NULL` when tier drops below elite
-- Does NOT delete slots — soft-hides them via a `tier_visible` boolean or relies on the RLS slot limit. Deletion causes data loss if the trainer later re-upgrades.
-- Sends an in-app notification to the trainer explaining what changed
+  if (!sig) return new Response('Missing signature', { status: 400 });
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      rawBody,
+      sig,
+      process.env.STRIPE_BILLING_WEBHOOK_SECRET!
+    );
+  } catch {
+    // Log but don't leak error details
+    return new Response('Signature verification failed', { status: 400 });
+  }
+
+  // Inside handler, use SUPABASE_SERVICE_ROLE_KEY — not anon key
+  // Tier writes need to bypass RLS
+}
+```
+
+The signature verification is the authentication. Never skip it.
+
+---
+
+## Moderate Pitfalls
+
+These cause incorrect billing behavior or degraded UX, but are recoverable.
+
+---
+
+### Pitfall 7: Trial End With No Payment Method — Status Behavior Depends on Unset Config
+
+**What goes wrong:**
+
+A trainer signs up, gets a 14-day trial, never enters a card. On day 15, Stripe's behavior is entirely determined by `trial_settings.end_behavior.missing_payment_method`. If you have not set it, the behavior depends on your account's default invoice settings.
+
+**The status machine:**
+
+| Status | Trigger | Terminal? |
+|---|---|---|
+| `trialing` | Subscription created with `trial_end` | No |
+| `incomplete` | First invoice created, not yet paid (23-hour window) | No |
+| `incomplete_expired` | First invoice unpaid for 23 hours | Yes — subscription is dead |
+| `past_due` | Renewal invoice failed; Smart Retries in progress | No |
+| `unpaid` | Retries exhausted; configured outcome = unpaid | No (recoverable) |
+| `canceled` | Manual cancel, retries exhausted, or trial ended with `missing_payment_method=cancel` | Yes |
+| `paused` | Trial ended with `missing_payment_method=pause` | No (resumable) |
+
+**Key distinction:** `incomplete_expired` is the terminal state for a first-invoice failure within 23 hours. `canceled` is the terminal state for an explicit cancellation or exhausted dunning. These fire the same event (`customer.subscription.deleted`) but your handler may want to log them differently.
+
+**Prevention:** Always set `missing_payment_method` explicitly at subscription creation:
+
+```typescript
+const subscription = await stripe.subscriptions.create({
+  customer: trainer.stripe_customer_id,
+  items: [{ price: PRICE_ID_PRO }],
+  trial_period_days: 14,
+  payment_settings: {
+    save_default_payment_method: 'on_subscription',
+  },
+  trial_settings: {
+    end_behavior: {
+      missing_payment_method: 'cancel', // → fires customer.subscription.deleted
+      // Alternatives: 'pause' (→ customer.subscription.paused), 'create_invoice'
+    },
+  },
+});
+```
+
+**Events to handle for the full trial flow:**
+
+| Event | When | Action in DB |
+|---|---|---|
+| `customer.subscription.trial_will_end` | 3 days before trial ends | Send reminder email to add card |
+| `customer.subscription.updated` | Any subscription change | Sync `subscription_status` field |
+| `customer.subscription.deleted` | Cancellation (including trial expiry) | Set `subscription_tier = 'free'`, clear `stripe_subscription_id` |
+| `customer.subscription.paused` | Trial ended with `pause` setting | Set `subscription_status = 'paused'`, show "Add card to resume" UI |
+| `invoice.payment_failed` | Dunning attempt failed | Set `subscription_status = 'past_due'`, send dunning email |
+
+**Source:** [Use trial periods on subscriptions — Stripe Docs](https://docs.stripe.com/billing/subscriptions/trials)
+
+---
+
+### Pitfall 8: Webhook Idempotency — `customer.subscription.updated` Fires for Every Field Change
+
+**What goes wrong:**
+
+`customer.subscription.updated` fires for: trial start, trial end, plan change, payment method attachment, cancellation scheduling (`cancel_at_period_end = true`), proration creation, and more. If your handler executes a write on every delivery without checking for duplicates, Stripe's at-least-once delivery guarantee means you will write the same state multiple times. Worse: if events arrive out of order (Stripe does not guarantee ordering), a stale event can overwrite a newer state.
+
+**Prevention — two-layer idempotency:**
+
+Layer 1: Deduplication table.
+
+```sql
+CREATE TABLE stripe_webhook_events (
+  event_id        TEXT PRIMARY KEY,
+  event_type      TEXT NOT NULL,
+  processed_at    TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+```typescript
+const { error } = await supabase
+  .from('stripe_webhook_events')
+  .insert({ event_id: event.id, event_type: event.type });
+
+if (error?.code === '23505') {
+  return new Response('Already processed', { status: 200 }); // Return 200, not 4xx
+}
+```
+
+Layer 2: Timestamp guard for subscription state writes. Only update `subscription_tier` if the event's `current_period_start` is newer than the stored `subscription_updated_at`:
+
+```typescript
+await supabase
+  .from('trainer_profiles')
+  .update({ subscription_tier: newTier, subscription_updated_at: periodStart })
+  .eq('stripe_customer_id', customerId)
+  .lt('subscription_updated_at', periodStart); // Only if incoming event is newer
+```
+
+Return `200` even for already-processed events. Non-2xx responses cause Stripe to retry.
+
+---
+
+### Pitfall 9: Proration Default Does Not Immediately Charge on Upgrades
+
+**What goes wrong:**
+
+A trainer upgrades from Pro to Elite on day 15 of their billing month. You expect them to be charged the $20 prorated difference immediately. Nothing happens. The trainer emails support asking if their card was charged.
+
+**Why it happens:** Stripe's default `proration_behavior` is `create_prorations`. This creates a proration invoice item silently but does NOT immediately generate an invoice — it is collected at the next regular billing cycle.
+
+**The three options:**
+
+| `proration_behavior` | Effect | Use When |
+|---|---|---|
+| `create_prorations` (default) | Creates item; charges at next cycle | Acceptable to defer collection |
+| `always_invoice` | Creates item AND immediately generates invoice | Upgrades — charge the difference now |
+| `none` | No proration; full new price at next cycle | Simplicity over billing fairness |
+
+**For FitRush:** Use `always_invoice` for upgrades; use `cancel_at_period_end` scheduling for downgrades.
+
+```typescript
+// Upgrade: charge the difference immediately
+await stripe.subscriptions.update(subscriptionId, {
+  items: [{ id: currentItemId, price: PRICE_ID_ELITE }],
+  proration_behavior: 'always_invoice',
+});
+
+// Downgrade: schedule for end of period — do NOT use always_invoice
+// (credit prorations would issue a refund invoice, which is confusing)
+await stripe.subscriptions.update(subscriptionId, {
+  cancel_at_period_end: true,
+  // Then create a new subscription at the lower price when the old one deletes
+});
+// OR use Subscription Schedules for cleaner period-end plan changes
+```
+
+**Important:** Stripe does NOT automatically apply `cancel_at_period_end` for downgrades. A plan change is immediate by default unless you explicitly schedule otherwise. Decide this explicitly; do not accept defaults.
+
+**Source:** [Prorations — Stripe Docs](https://docs.stripe.com/billing/subscriptions/prorations)
+
+---
+
+### Pitfall 10: Downgrade Data Integrity — Trainer Retains Elite Features After Tier Drops
+
+**What goes wrong:**
+
+When a trainer downgrades from Elite to Free, three things must happen atomically:
+1. `subscription_tier` updated to `free`
+2. Slot count visible to clients capped at 3 (others hidden, not deleted — they need them back if they re-upgrade)
+3. Custom branding fields (`custom_bio_url`, `branding_color`) cleared
+
+If the webhook handler only does step 1, the branded profile page continues displaying Elite elements and over-limit slots remain bookable. A client books slot #4 of a trainer who is now on Free — a booking that the trainer's current tier does not permit.
+
+**Prevention:** The webhook handler or a DB trigger on `subscription_tier` change should:
+
+```sql
+CREATE OR REPLACE FUNCTION on_tier_downgrade()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.subscription_tier = 'free' AND OLD.subscription_tier != 'free' THEN
+    -- Clear Elite-only branding (data is gone; trainer must re-enter on re-upgrade)
+    NEW.custom_bio_url := NULL;
+    NEW.branding_color := NULL;
+    -- Slots are NOT deleted; they are hidden by RLS slot limit policy
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tier_downgrade_cleanup
+BEFORE UPDATE OF subscription_tier ON trainer_profiles
+FOR EACH ROW EXECUTE FUNCTION on_tier_downgrade();
+```
 
 **Warning signs:**
-
 - Webhook handler only updates `subscription_tier`, nothing else
 - No migration plan for what happens to Elite-only profile fields on downgrade
-- Slot visibility is purely RLS-based with no event emitted on tier change
-
-**Phase to address:** Downgrade/cancellation handling phase
+- Slots can still be SELECTed by clients after tier drops (no RLS enforcement)
 
 ---
 
-### Pitfall 7: Featured Placement Ordering — No Tiebreaker for Multiple Elite Trainers
+### Pitfall 11: Slot Limit Enforcement Is UI-Only
 
 **What goes wrong:**
 
-The landing page "Featured Trainers" section shows Elite-tier trainers. With one Elite trainer this works. With five, there is no defined order. The query defaults to `created_at` insertion order or random, making placement unpredictable and potentially unfair. Trainers paying $29/month expect consistent premium visibility; arbitrary ordering erodes the value proposition.
+Free tier allows 3 visible slots. You enforce this by hiding the "Add slot" button after 3. A trainer uses the Supabase JS client directly (or inspects network calls) to POST a 4th slot. No DB constraint exists. The row inserts. Clients can book it.
 
-**Why it happens:**
+**Prevention:** Enforce the slot count in a Postgres trigger at write time:
 
-The initial implementation renders whatever the query returns without explicit ordering. Tiebreaker logic is deferred as a "later problem."
+```sql
+CREATE OR REPLACE FUNCTION enforce_slot_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+  trainer_tier TEXT;
+  max_slots INT;
+  current_count INT;
+BEGIN
+  SELECT subscription_tier INTO trainer_tier
+    FROM trainer_profiles WHERE id = NEW.trainer_id;
 
-**How to avoid:**
+  max_slots := CASE trainer_tier
+    WHEN 'elite' THEN 999
+    WHEN 'pro'   THEN 20
+    ELSE 3  -- free and any unknown tier
+  END;
 
-Define a deterministic Featured sort order at implementation time. A reasonable default: `ORDER BY rating DESC, review_count DESC, created_at ASC`. This rewards quality first, then tenure. Document this in the UI so Elite trainers know what drives their relative placement. Alternatively, introduce a weighted score column updated by the existing analytics RPC and sort on that.
+  SELECT COUNT(*) INTO current_count
+    FROM availability_slots WHERE trainer_id = NEW.trainer_id;
 
-**Warning signs:**
+  IF current_count >= max_slots THEN
+    RAISE EXCEPTION 'Slot limit reached for plan: %', trainer_tier
+      USING ERRCODE = 'P0001';
+  END IF;
 
-- Landing page query fetches `subscription_tier = 'elite'` with no `ORDER BY` clause
-- No product definition of "what determines relative ordering among Elite trainers"
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-**Phase to address:** Landing page featured section phase
+CREATE TRIGGER check_slot_limit
+BEFORE INSERT ON availability_slots
+FOR EACH ROW EXECUTE FUNCTION enforce_slot_limit();
+```
+
+Also: define precisely what "3 visible slots" means. Options: 3 total slots ever created, 3 slots visible to clients at any given time, 3 bookable slots per calendar day. This must be decided before the DB schema is locked — changing the semantics later is a migration.
 
 ---
 
-### Pitfall 8: Trial Abuse — Repeated Free Trials via New Accounts
+### Pitfall 12: Dunning Default Behavior Is Not Configured — Status After Retry Exhaustion Is Unknown
 
 **What goes wrong:**
 
-FitRush uses Google/Facebook/Apple OAuth. A trainer can create multiple OAuth accounts with different email aliases (e.g., Gmail `+` aliases) or burner accounts. Each new account gets a fresh 30-day trial. With enough accounts, a trainer never pays.
+Stripe Smart Retries will re-attempt a failed subscription payment for up to 2 weeks (default: 8 attempts). After all retries fail, the subscription transitions to one of three states: `canceled`, `unpaid`, or remains `past_due` — depending on your Stripe account's **Billing > Revenue recovery > Retries** configuration. Stripe does not have a universal default; new accounts may have a different default than accounts created years ago.
 
-Stripe's own fraud analysis (published November 2025) flagged a "significant increase in abusive free trials" as a broader trend in first-party fraud. Stripe Radar has a native trial abuse control, but it only applies if the trainer submits a payment method at trial signup (Radar evaluates the card). FitRush's no-card trial bypasses Radar entirely.
+If your webhook handler only handles `customer.subscription.deleted` (which fires for `canceled`) but not `customer.subscription.updated` (which fires when status changes to `past_due` or `unpaid`), trainers who hit the `unpaid` path retain paid features indefinitely.
 
-**Why it happens:**
+**Prevention:**
 
-No-card trials are intentionally frictionless. The abuse vector is the direct consequence of frictionless signup with OAuth.
+1. Go to Stripe Dashboard > Billing > Revenue recovery > Retries. Explicitly configure the final action to `cancel` (not `unpaid` or `past_due`). This ensures `customer.subscription.deleted` always fires at the end.
 
-**How to avoid:**
+2. Even with cancellation configured, handle `invoice.payment_failed` defensively: immediately set `subscription_status = 'past_due'` in the DB on first failure. Do not wait for the subscription to reach `canceled` before restricting access.
 
-Layered prevention — implement at least two:
+```typescript
+case 'invoice.payment_failed': {
+  const invoice = event.data.object as Stripe.Invoice;
+  await supabase
+    .from('trainer_profiles')
+    .update({ subscription_status: 'past_due' })
+    .eq('stripe_customer_id', invoice.customer as string);
+  // Send dunning email to trainer
+  break;
+}
+```
 
-1. **Phone verification at trial start.** Require SMS verification before activating the trial. Phone numbers are harder to create in bulk than email aliases. Store `phone_verified_at` on the profile.
-2. **One-trial-per-device fingerprint.** Use a browser fingerprinting signal (device ID stored in a cookie or localStorage) to flag if this device has started a trial before. Soft-block: show friction, not hard error.
-3. **Stripe Radar customer abuse evaluation.** Even without a card, create the Customer object with `email` and `metadata` (IP, device ID) so Radar can evaluate the risk score. Check `customer.abuse_evaluation.risk_score` before activating the trial.
-4. **Admin manual review for flagged accounts.** The admin UI should surface `subscription_tier = 'pro|elite'` trainers with `trial_end` approaching but no payment method attached.
+**Source:** [Automate payment retries — Stripe Docs](https://docs.stripe.com/billing/revenue-recovery/smart-retries)
 
-**Warning signs:**
+---
 
-- No `phone_verified` check before trial activation
-- No unique constraint or check preventing the same Supabase user from starting multiple trials (though this is naturally prevented per-user; the risk is multiple users from same actor)
-- No monitoring for trainers with 0 bookings and multiple profile recreations
+### Pitfall 13: `cancel_at_period_end` Confusion — Wrong Event Handled
 
-**Phase to address:** Subscription creation phase (trial activation gate) + admin monitoring phase
+**What goes wrong:**
+
+A trainer clicks "Cancel Plan." You call `stripe.subscriptions.update({ cancel_at_period_end: true })`. Stripe fires `customer.subscription.updated` (not `deleted`). Your webhook handler only listens for `customer.subscription.deleted` to downgrade to Free.
+
+Result: the trainer keeps Pro for the rest of the billing period (correct behavior) but your UI still shows "Pro" with no cancellation indicator. They contact support thinking the cancel didn't work.
+
+**The full cancel_at_period_end event sequence:**
+
+| Event | When | What it Means |
+|---|---|---|
+| `customer.subscription.updated` (with `cancel_at_period_end: true`) | User clicks Cancel | Cancellation scheduled; access continues |
+| `customer.subscription.deleted` | Billing period ends | Access revoked; downgrade to Free |
+
+Handle both:
+
+```typescript
+case 'customer.subscription.updated': {
+  const sub = event.data.object as Stripe.Subscription;
+  if (sub.cancel_at_period_end) {
+    // Show cancellation badge in UI; set subscription_cancels_at in DB
+    await supabase
+      .from('trainer_profiles')
+      .update({ subscription_cancels_at: new Date(sub.cancel_at! * 1000).toISOString() })
+      .eq('stripe_customer_id', sub.customer as string);
+  }
+  break;
+}
+
+case 'customer.subscription.deleted': {
+  // This fires at actual period end when cancel_at_period_end was set
+  // Also fires for immediate cancellations and trial expirations
+  await supabase
+    .from('trainer_profiles')
+    .update({
+      subscription_tier: 'free',
+      subscription_status: 'canceled',
+      stripe_subscription_id: null,
+      subscription_cancels_at: null,
+    })
+    .eq('stripe_customer_id', (event.data.object as Stripe.Subscription).customer as string);
+  break;
+}
+```
+
+---
+
+### Pitfall 14: Annual-to-Monthly Downgrade Timing Is Ambiguous
+
+**What goes wrong:**
+
+A trainer on annual Elite ($348/yr) wants to switch to monthly Pro ($9/mo). If you do an immediate subscription update with `proration_behavior: 'create_prorations'`, they receive a large credit balance that takes 3+ months to exhaust while their monthly Pro charges try to draw from it. They see confusing invoice math.
+
+If instead you use `cancel_at_period_end` without communicating the timing clearly, they think they're on monthly when they have 9 months of annual Elite remaining.
+
+**Prevention:** Annual-to-monthly downgrades should be scheduled using Subscription Schedules to take effect at the next renewal date, not as an immediate update:
+
+```typescript
+const schedule = await stripe.subscriptionSchedules.create({
+  from_subscription: subscriptionId,
+});
+await stripe.subscriptionSchedules.update(schedule.id, {
+  phases: [
+    {
+      items: [{ price: PRICE_ID_ELITE_ANNUAL }],
+      end_date: currentPeriodEnd,  // existing annual period
+    },
+    {
+      items: [{ price: PRICE_ID_PRO_MONTHLY }],
+      // No end_date = continues monthly thereafter
+    },
+  ],
+});
+```
+
+Show clearly in the UI: "Your plan changes to Pro Monthly on [renewal date]. Until then, you have Elite access."
+
+**Source:** [Subscription schedules — Stripe Docs](https://docs.stripe.com/billing/subscriptions/subscription-schedules)
+
+---
+
+### Pitfall 15: Multiple Webhook Endpoints Causing Double Processing (Staging vs. Production)
+
+**What goes wrong:**
+
+You have two billing webhook endpoints registered in the Stripe Dashboard: one pointing at production (`fitrush.app/webhooks/stripe-billing`) and one at a Netlify preview URL. A real production payment event fires; both endpoints receive it. Both handlers fire. One updates the production DB; the other updates nothing (staging DB) — but the idempotency table in production has now recorded the event as processed, so if the production handler had an error, the event will not be re-delivered successfully.
+
+**Prevention:**
+
+- Use separate Stripe accounts (or separate restricted API keys) for staging and production.
+- Webhook secrets are per-endpoint, not per-account — each endpoint has its own `whsec_*`.
+- In staging, use `stripe listen --forward-to` locally rather than registering a remote webhook for every PR preview.
+- Add a livemode guard in the handler:
+
+```typescript
+if (event.livemode !== (process.env.NODE_ENV === 'production')) {
+  console.warn('Livemode mismatch — ignoring event');
+  return new Response('OK', { status: 200 });
+}
+```
+
+---
+
+### Pitfall 16: Annual Subscription Cancellation — Credit vs. Refund Confusion
+
+**What goes wrong:**
+
+A trainer pays $348/yr upfront for annual Elite, cancels 2 months in. Stripe creates a proration credit on their customer account. This credit is applied to future invoices. But if there are no future invoices (subscription canceled), the credit is stranded. The trainer sees "you have a $231 credit" in any Stripe-hosted billing portal but cannot access it. They open a dispute.
+
+**Stripe's default:** Stripe does not automatically issue prorated cash refunds on annual subscription cancellations. Credit prorations and cash refunds are different things.
+
+**Prevention:**
+
+- Define and document your annual refund policy before launch. Surface it at checkout.
+- If you offer prorated refunds programmatically: `stripe.refunds.create({ payment_intent: invoice.payment_intent, amount: proratedAmount })`.
+- For annual dunning: a failed $348 renewal is materially different from a failed $9 charge. Configure more aggressive advance warning emails (30 / 14 / 7 days before renewal) and consider a more lenient retry window for annual subscribers.
+
+---
+
+### Pitfall 17: Admin Override Tier With No Stripe Subscription Creates Orphaned State
+
+**What goes wrong:**
+
+You manually set `subscription_tier = 'elite'` in the Supabase dashboard for a beta tester. No Stripe subscription exists. Your nightly reconciliation job queries `WHERE subscription_status = 'active' AND stripe_subscription_id IS NOT NULL` and finds nothing — the trainer is silently downgraded. Or: a webhook handler for an unrelated event checks "does this trainer have an active subscription?" sees none, and resets their tier to `free`.
+
+**Prevention:** Create an explicit override pattern the system understands and respects:
+
+```sql
+ALTER TABLE trainer_profiles
+  ADD COLUMN tier_override         TEXT CHECK (tier_override IN ('free', 'pro', 'elite')),
+  ADD COLUMN tier_override_expires TIMESTAMPTZ,
+  ADD COLUMN tier_override_reason  TEXT;
+```
+
+Effective tier resolution (call this everywhere tier is consumed):
+
+```typescript
+function effectiveTier(trainer: TrainerProfile): Tier {
+  if (
+    trainer.tier_override &&
+    (!trainer.tier_override_expires || trainer.tier_override_expires > new Date())
+  ) {
+    return trainer.tier_override;
+  }
+  return trainer.subscription_tier ?? 'free';
+}
+```
+
+The webhook handler only writes `subscription_tier`, never `tier_override`. Admin tools only write `tier_override`. The columns are categorically distinct. Reverting an override is `UPDATE SET tier_override = NULL`.
+
+---
+
+### Pitfall 18: Grandfathered Trainers Have No Defined Starting Tier
+
+**What goes wrong:**
+
+Tiers launch. Existing trainers who joined before tiers existed suddenly cannot access features they have been using freely. Support tickets spike. A trainer with 50 reviews and 200 bookings discovers their profile is now "Free" with 3 slots.
+
+**Prevention:** Decide explicitly before launch. Two reasonable options:
+
+- **Option A (recommended):** All existing trainers start on Free. Grant a 30-day grace period where they retain current behavior. Set `tier_grace_until = NOW() + INTERVAL '30 days'`. RLS policies treat any trainer with `tier_grace_until > NOW()` as Pro-equivalent. Send email explaining the change and the grace period.
+
+- **Option B:** Grandfather all trainers created before a cutoff date into Pro indefinitely. Set `tier_override = 'pro'` with no expiration for all such trainers.
+
+Either way, communicate before the cutoff. Surprise tier changes are the fastest path to negative App Store reviews.
+
+---
+
+### Pitfall 19: Booking Race Condition When Trainer Upgrades Mid-Booking
+
+**What goes wrong:**
+
+Client A begins booking slot #4 of trainer B (Free tier — slot should be invisible). Simultaneously, trainer B upgrades to Pro. The slot visibility check reads "Free, slot #4 not visible" but the UI had already loaded the slot list under the old tier. The booking proceeds against ambiguous state.
+
+**Prevention:** The booking Edge Function must be the authoritative gate. Fetch the trainer's tier inside the same DB transaction as the booking:
+
+```typescript
+// Inside booking Edge Function — Supabase transaction
+const { data: trainer } = await supabase
+  .from('trainer_profiles')
+  .select('subscription_tier, subscription_status')
+  .eq('id', trainerId)
+  .single();  // Fresh DB read, not from client
+
+const slotLimit = tierSlotLimit(trainer.subscription_tier);
+if (slotIndex > slotLimit) {
+  throw new Error(`Slot ${slotIndex} exceeds plan limit of ${slotLimit}`);
+}
+// Proceed with booking atomically
+```
+
+The client's slot list is always stale by definition. The server is the source of truth.
 
 ---
 
 ## Technical Debt Patterns
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Store tier in Zustand only, not re-verified on each request | Faster UI, simpler code | Trainers with lapsed subscriptions retain access until next page load | Never — must be in DB, verified server-side |
-| Single webhook endpoint with no routing | Less infrastructure to manage | Billing events fail signature verification with Connect secret | Never — use separate secrets or routing logic |
-| Soft-delete `subscription_tier` changes without audit log | Simpler schema | Impossible to dispute billing, debug anomalies, or recover from bugs | Never — add `subscription_tier_history` or use `updated_at` + event log |
-| Prorate downgrades immediately | Simplest default | Trainer receives surprise credit/charge mid-month, high support volume | Acceptable if downgrade is scheduled at `period_end` instead |
-| Skip idempotency table for MVP | Faster to ship | Duplicate events cause double-execution of tier changes | Never — idempotency table is trivial to add |
+| Shortcut | Immediate Benefit | Long-term Cost | Acceptable? |
+|---|---|---|---|
+| Store tier in Zustand only, not re-verified server-side | Simpler code | Lapsed subscriptions retain access until page reload | Never |
+| Single webhook endpoint with no secret routing | Less config | Billing events fail signature verification | Never |
+| No idempotency table | Faster to ship | Duplicate events cause double-execution | Never |
+| Skip `missing_payment_method` config | Less code | Trial end behavior is undefined | Never |
+| Tier check in React component only | Faster UI | Bypassed by any direct API call | Never |
+| Prorate downgrades with `always_invoice` | Simple default | Surprise credit invoices; support volume spike | Avoid — use period-end scheduling |
+| No audit log on tier changes | Simpler schema | Cannot debug billing anomalies or dispute chargebacks | Avoid — add `subscription_tier_history` or event log |
 
 ---
 
-## Integration Gotchas
+## Phase-Specific Warnings
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Stripe Billing + Connect | Pass `acct_*` as customer ID for subscriptions | Create a separate `cus_*` Customer on the platform account; store as `stripe_customer_id` |
-| Stripe webhooks | Use Connect webhook secret for billing events | Create a second endpoint for platform billing events; use its separate `whsec_*` secret |
-| Stripe trial settings | Omit `trial_settings.end_behavior.missing_payment_method` | Always set to `'cancel'` for no-card trials to avoid lingering `past_due` subscriptions |
-| Stripe proration | Default `create_prorations` accumulates silently | Preview proration before confirming upgrade; show trainer the amount before charging |
-| Supabase RLS | Gate slots in React component only | Add RLS policy on `availability_slots` that enforces the per-tier slot limit in SQL |
-| Stripe annual billing | Upgrade from monthly to annual bills full year immediately | Show proration preview; warn trainer before confirming annual commitment |
-| `customer.subscription.updated` | Handle unconditionally | Check `event.id` against `processed_stripe_events` table first; check timestamps before writing |
-
----
-
-## Performance Traps
-
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Landing page featured query with no index on `subscription_tier` | Slow featured section as trainer count grows | Add `CREATE INDEX idx_trainer_profiles_tier ON trainer_profiles(subscription_tier)` | ~500 trainers |
-| Checking `subscription_tier` via JOIN on every availability slot query | Slow slot fetches as slot count grows | Denormalize tier check into RLS policy using a fast profile lookup; cache in JWT claims | ~10K slots |
-| Polling Stripe API for subscription status instead of webhook-driven updates | Rate limit errors, stale data | Trust webhook state; poll only for admin-initiated reconciliation | ~100 req/min sustained |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| `subscription_tier` column writable via RLS for authenticated trainer | Trainer self-upgrades to elite for free by PATCHing their own profile | Set UPDATE policy to only allow service-role; write tier exclusively from Edge Functions |
-| Feature gate in React only (no server enforcement) | Authenticated API calls bypass UI limits | RLS policies + Edge Function checks enforce limits independent of UI |
-| Using `SUPABASE_ANON_KEY` client in billing webhook handler | Subscription status writes bypass RLS correctly but fail silently if RLS blocks | Use `SUPABASE_SERVICE_ROLE_KEY` in webhook Edge Functions for all subscription state writes |
-| Not verifying JWT in the `create-subscription` Edge Function | Any unauthenticated caller can create subscriptions for arbitrary customers | Follow same `userClient.auth.getUser()` pattern already used in `create-payment-intent` |
-| Storing full Stripe Customer ID in a client-accessible field without RLS | Allows enumeration of customer IDs across trainers | Ensure `stripe_customer_id` is not SELECTable by other users via RLS |
-
----
-
-## UX Pitfalls
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| No proration preview before upgrade confirmation | Trainer confused by unexpected charge on next invoice | Show `stripe.invoices.retrieveUpcoming()` preview before confirming plan change |
-| Immediate feature revocation on cancellation vs. end of period | Trainer cancels and loses features immediately despite having paid through month end | Set `cancel_at_period_end = true`; revoke access only on `customer.subscription.deleted` event |
-| No email when trial is 3 days from ending and no card added | Trainer loses trial silently, assumes platform charged them | Listen to `customer.subscription.trial_will_end`; send email prompting card addition |
-| Downgrade confirmation with no summary of what is lost | Trainer downgrades not understanding they lose Elite branding and unlimited slots | Pre-downgrade modal listing specifically what changes (slots, branding, search rank) |
-| Annual plan selected without showing monthly equivalent | Trainer doesn't understand the $276/year vs $29/month tradeoff | Show "equivalent to $23.20/month, billed annually" alongside annual price |
-
----
-
-## "Looks Done But Isn't" Checklist
-
-- [ ] **Stripe Customer creation:** Verify `stripe_customer_id` is created and stored before subscription creation — not assumed to exist
-- [ ] **Webhook routing:** Verify billing events are verified with the billing endpoint's secret, not the Connect endpoint's secret
-- [ ] **Trial end no-card path:** Verify subscription is cancelled (not `past_due`) when trial ends with no payment method — test this path explicitly
-- [ ] **Feature gate server enforcement:** Verify a free-tier trainer cannot retrieve more than 3 slots by calling the Supabase REST API directly (no UI)
-- [ ] **Downgrade cleanup:** Verify Elite branding fields are nulled and slot count is restricted when tier drops — not just when the page re-renders
-- [ ] **Idempotency table:** Verify `processed_stripe_events` table exists and is checked before every state write in billing webhook handler
-- [ ] **Webhook secret separation:** Verify `STRIPE_BILLING_WEBHOOK_SECRET` is a different value from `STRIPE_WEBHOOK_SECRET` in Supabase secrets
-- [ ] **Admin manual override writes only through service-role path:** Verify trainer cannot PATCH their own `subscription_tier` via the REST API
-- [ ] **Annual billing proration preview:** Verify upgrade from monthly Pro to annual Elite shows the trainer the exact charge before confirming
+| Phase Topic | Likely Pitfall | Mitigation |
+|---|---|---|
+| DB schema design | Conflating `acct_*` with `cus_*` | Two separate columns; DB check constraint on format |
+| Webhook setup | Using Connect secret for Billing events | Separate endpoint, separate env var |
+| Webhook handler | Global JSON parsing breaking signature | `request.text()` not `request.json()` |
+| Trial creation | Not setting `missing_payment_method` | Always explicit; test the no-card path |
+| Feature gates | Client-side Zustand check | RLS policies + Edge Function checks; test via direct API |
+| JWT claims | Tier in JWT goes stale for 1h | Query DB via `auth.uid()` in RLS; do not embed tier in claims |
+| Upgrade flow | Expecting immediate charge | Use `proration_behavior: 'always_invoice'` for upgrades |
+| Downgrade flow | Unclear when new tier takes effect | Explicit `cancel_at_period_end`; handle both `updated` and `deleted` events |
+| Admin tools | Manual tier set without Stripe subscription | Separate `tier_override` column; webhook never touches it |
+| Slot enforcement | UI-only slot limit | Postgres trigger at write time |
+| Dunning config | Unknown final action on retry exhaustion | Explicitly set to `cancel` in Stripe Dashboard |
+| Annual billing | Large charge dunning; credit vs. refund confusion | Define refund policy; advance email warnings |
+| Multi-env webhooks | Staging consuming prod events | Separate Stripe accounts; `livemode` guard |
+| Grandfathering | Existing users lose access at launch | Grace period with `tier_grace_until` column |
 
 ---
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Billing events dropped due to wrong webhook secret | MEDIUM | Re-register billing endpoint in Stripe Dashboard; store new secret; reconcile subscription state against Stripe API via admin script |
-| Trainers with `past_due` subscriptions still showing Pro/Elite features | MEDIUM | Write one-time reconciliation script: fetch all subscriptions from Stripe API, compare to DB tier, downgrade mismatches; add monitoring |
-| `subscription_tier` written without idempotency, causing duplicates | LOW | Add `processed_stripe_events` table retroactively; re-process recent events via Stripe event log replay |
-| Elite branding fields not cleared on downgrade | LOW | One-time migration to NULL `custom_bio_url` and `branding_color` for all trainers where `subscription_tier != 'elite'` |
-| Trial abuse with multiple accounts | HIGH | Retroactive: cannot easily claw back trial value already consumed. Prospective: add phone verification and rate-limit trial activation per IP |
-
----
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Billing vs Connect customer object confusion | Database migration (add `stripe_customer_id`) + subscription creation Edge Function | Verify `trainer_profiles` has `stripe_customer_id` column; verify subscription creation uses `cus_*` not `acct_*` |
-| Webhook secret collision | Webhook routing setup (before any billing events handled) | Verify two distinct webhook endpoints in Stripe Dashboard with different secrets |
-| Trial end no-card — `past_due` retention | Subscription creation (set `trial_settings`) + billing webhook handler (`invoice.payment_failed`) | Integration test: create trial with no card, advance clock past trial_end, verify DB tier = `free` |
-| Feature gate bypass | Database migration phase (RLS policies on `availability_slots`, `trainer_profiles`) | Directly call Supabase REST API as free-tier trainer; assert slot count <= 3 |
-| Webhook idempotency | Billing webhook handler phase | Send same billing event twice; verify DB is not double-updated |
-| Downgrade data integrity | Downgrade handling (webhook + DB trigger/function) | Downgrade Elite to Free; verify branding fields are NULL and slot cap is enforced |
-| Featured placement ordering | Landing page featured section | Query returns deterministic order with 3+ Elite trainers |
-| Trial abuse | Subscription activation gate | Manual test: attempt second trial on same device/IP |
+|---|---|---|
+| Billing events dropped (wrong webhook secret) | MEDIUM | Re-register endpoint in Stripe Dashboard; reconcile against Stripe Events API; backfill tier state |
+| `past_due` trainers retaining paid features | MEDIUM | One-time script: fetch all subscriptions from Stripe, compare to DB, downgrade mismatches |
+| No idempotency — duplicate tier writes | LOW | Add `stripe_webhook_events` table retroactively; replay recent events via Stripe event log |
+| Elite branding fields not cleared on downgrade | LOW | Migration: NULL `custom_bio_url` and `branding_color` where `subscription_tier != 'elite'` |
+| Trial abuse (multiple accounts) | HIGH | Cannot claw back consumed trial value; add phone verification prospectively |
+| Annual cancellation credit stranded | MEDIUM | Manual refund issuance; add prorated refund logic in cancellation flow |
 
 ---
 
 ## Sources
 
-- [Use trial periods on subscriptions — Stripe Documentation](https://docs.stripe.com/billing/subscriptions/trials) — HIGH confidence
-- [Create subscriptions with Stripe Billing (Connect) — Stripe Documentation](https://docs.stripe.com/connect/subscriptions) — HIGH confidence
-- [Connect webhooks — Stripe Documentation](https://docs.stripe.com/connect/webhooks) — HIGH confidence
-- [Using webhooks with subscriptions — Stripe Documentation](https://docs.stripe.com/billing/subscriptions/webhooks) — HIGH confidence
-- [Prorations — Stripe Documentation](https://docs.stripe.com/billing/subscriptions/prorations) — HIGH confidence
-- [Customer abuse evaluation — Stripe Documentation](https://docs.stripe.com/radar/customer-abuse) — HIGH confidence
-- [Analyzing first-party fraud trends: Account, free trial, and refund abuse — Stripe Blog](https://stripe.com/blog/analyzing-first-party-fraud-trends-account-free-trial-and-refund-abuse) — HIGH confidence
-- [Compare SaaS platform configurations for Accounts v1 and v2 — Stripe Documentation](https://docs.stripe.com/connect/accounts-v2/saas-platform-payments-billing) — HIGH confidence
-- [Stripe subscription states explained — mrcoles.com](https://mrcoles.com/stripe-api-subscription-status/) — MEDIUM confidence (community, consistent with official docs)
-- [Building Reliable Stripe Subscriptions in NestJS: Webhook Idempotency — DEV Community](https://dev.to/aniefon_umanah_ac5f21311c/building-reliable-stripe-subscriptions-in-nestjs-webhook-idempotency-and-optimistic-locking-3o91) — MEDIUM confidence (community, consistent with official guidance)
+- [Charge SaaS fees to your connected accounts — Stripe Docs](https://docs.stripe.com/connect/integrate-billing-connect) — HIGH confidence
+- [Create subscriptions with Stripe Billing (Connect) — Stripe Docs](https://docs.stripe.com/connect/subscriptions) — HIGH confidence
+- [How subscriptions work — Stripe Docs](https://docs.stripe.com/billing/subscriptions/overview) — HIGH confidence
+- [Use trial periods on subscriptions — Stripe Docs](https://docs.stripe.com/billing/subscriptions/trials) — HIGH confidence
+- [Prorations — Stripe Docs](https://docs.stripe.com/billing/subscriptions/prorations) — HIGH confidence
+- [Cancel subscriptions — Stripe Docs](https://docs.stripe.com/billing/subscriptions/cancel) — HIGH confidence
+- [Automate payment retries (Smart Retries) — Stripe Docs](https://docs.stripe.com/billing/revenue-recovery/smart-retries) — HIGH confidence
+- [Subscription schedules — Stripe Docs](https://docs.stripe.com/billing/subscriptions/subscription-schedules) — HIGH confidence
+- [Receive Stripe events in your webhook endpoint — Stripe Docs](https://docs.stripe.com/webhooks) — HIGH confidence
+- [Resolve webhook signature verification errors — Stripe Docs](https://docs.stripe.com/webhooks/signature) — HIGH confidence
+- [Row Level Security — Supabase Docs](https://supabase.com/docs/guides/database/postgres/row-level-security) — HIGH confidence
+- [Stripe API: Subscription status explained — mrcoles.com](https://mrcoles.com/stripe-api-subscription-status/) — MEDIUM confidence (community, consistent with official docs)
+- [Billing webhook race condition solution guide — excessivecoding.com](https://excessivecoding.com/blog/billing-webhook-race-condition-solution-guide) — MEDIUM confidence (community pattern)
+- [Stripe Webhooks: Solving Race Conditions — Pedro Alonso](https://www.pedroalonso.net/blog/stripe-webhooks-solving-race-conditions/) — MEDIUM confidence (community, consistent with official guidance)
 
 ---
 
-*Pitfalls research for: Stripe Billing subscription tiers on FitRush (existing Stripe Connect marketplace)*
+*Domain pitfalls research for: FitRush v2.1 — Stripe Billing subscription tiers on existing Stripe Connect Express marketplace*
 *Researched: 2026-03-15*
