@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: planning
-stopped_at: v2.1 milestone defined — REQUIREMENTS.md (20 req) + ROADMAP.md (Phases 12–16) committed
-last_updated: "2026-03-16T07:33:41.986Z"
+status: in_progress
+stopped_at: Completed 12-02-PLAN.md — Stripe config + Supabase secrets complete; Phase 12 done
+last_updated: "2026-03-16T17:30:33Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State — FitRush
@@ -23,20 +23,20 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 12 of 16 — Subscription Foundation (in progress — 1/2 plans complete)
-**Status:** Plan 12-01 complete — subscription schema live in production
+**Phase:** 12 of 16 — Subscription Foundation (COMPLETE — 2/2 plans done)
+**Status:** Phase 12 complete — schema live + Stripe config done; Phase 13 prerequisites satisfied
 
 ## Progress
 
 ```
 v2.1 Phases:
-Phase 12: Subscription Foundation  [x] Plan 01 complete (schema migration)
+Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [ ] Not started
 Phase 14: Feature Gates + Search   [ ] Not started
 Phase 15: Subscription UI          [ ] Not started
 Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [█████░░░░░] 50%
+Overall: [██░░░░░░░░] 20%
 ```
 
 ## Recent Decisions
@@ -76,6 +76,9 @@ Overall: [█████░░░░░] 50%
 | SECURITY DEFINER for get_visible_slots | 2026-03-16 | Anonymous clients need slot visibility; SECURITY INVOKER would be blocked by restrictive anon RLS on availability_slots |
 | tier_overridden_by references profiles(id) ON DELETE SET NULL | 2026-03-16 | Authoritative schema per research file — plan_split_guidance incorrectly specified bool tier_override |
 | subscription_events insert only via service_role RLS | 2026-03-16 | Webhook Edge Functions write events; no direct client insert path needed |
+| Billing webhook registered before Phase 13 deploys | 2026-03-16 | Stripe retries for 72h so events during Phase 12→13 gap are not lost |
+| Dunning terminal action = Cancel (not past_due/unpaid) | 2026-03-16 | Required for customer.subscription.deleted to fire after payment exhaustion; trainers would retain paid features indefinitely otherwise |
+| Separate billing endpoint from Connect stripe-webhook | 2026-03-16 | Each has its own whsec_ signing secret — prevents cross-event contamination |
 
 ## Pending Todos
 
@@ -90,6 +93,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T07:32:43Z
-Stopped at: Completed 12-01-PLAN.md — subscription foundation schema applied to production
-Resume with: `/gsd:execute-phase 12` (plan 12-02 next)
+Last session: 2026-03-16T17:30:33Z
+Stopped at: Completed 12-02-PLAN.md — Stripe config + 5 Supabase secrets confirmed; Phase 12 complete
+Resume with: `/gsd:execute-phase 13` (Phase 13 Billing Backend next)

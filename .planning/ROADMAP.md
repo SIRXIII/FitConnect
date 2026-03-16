@@ -39,7 +39,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md`
 
 ### 📋 v2.1 Subscription Tiers (Planned)
 
-- [ ] **Phase 12: Subscription Foundation** — DB schema migration + Stripe Dashboard config; prerequisite for all billing phases
+- [x] **Phase 12: Subscription Foundation** — DB schema migration + Stripe Dashboard config; prerequisite for all billing phases
 - [ ] **Phase 13: Billing Backend** — Full subscription lifecycle server-side: create-subscription, webhook handlers, manage-subscription, trial-end email
 - [ ] **Phase 14: Feature Gates + Search** — Tier gates enforced at DB level; Pro/Elite trainers get priority search placement and Featured section
 - [ ] **Phase 15: Subscription UI** — Trainer-facing pricing page, trial activation flow, subscription status, Customer Portal link
@@ -62,8 +62,8 @@ See: `.planning/milestones/v2.0-ROADMAP.md`
 **Plans**: 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — DB migration: 10 subscription columns, subscription_events table, guard trigger, get_visible_slots RPC, TypeScript types
-- [ ] 12-02-PLAN.md — Stripe Dashboard config: 2 Products, 4 Prices, Customer Portal, dunning, billing webhook endpoint, 5 Supabase secrets
+- [x] 12-01-PLAN.md — DB migration: 10 subscription columns, subscription_events table, guard trigger, get_visible_slots RPC, TypeScript types
+- [x] 12-02-PLAN.md — Stripe Dashboard config: 2 Products, 4 Prices, Customer Portal, dunning, billing webhook endpoint, 5 Supabase secrets
 
 ### Phase 13: Billing Backend
 **Goal**: Full subscription lifecycle is handled server-side with no frontend dependency — subscriptions can be created, webhook events correctly sync tier to DB, trial-end email fires, and admin analytics include MRR
@@ -126,11 +126,11 @@ Plans:
 | 9. Trainer Payout System | v2.0 | 3/3 | ✅ | 2026-03-14 |
 | 10. Earnings Analytics | v2.0 | 4/4 | ✅ | 2026-03-15 |
 | 11. Referral Program v1 | v2.0 | 4/4 | ✅ | 2026-03-15 |
-| 12. Subscription Foundation | 1/2 | In Progress|  | — |
+| 12. Subscription Foundation | v2.1 | 2/2 | ✅ | 2026-03-16 |
 | 13. Billing Backend | v2.1 | 0/? | 📋 planned | — |
 | 14. Feature Gates + Search | v2.1 | 0/? | 📋 planned | — |
 | 15. Subscription UI | v2.1 | 0/? | 📋 planned | — |
 | 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
 
 ---
-*Last updated: 2026-03-15 after Phase 12 plans created*
+*Last updated: 2026-03-16 after Phase 12 complete*
