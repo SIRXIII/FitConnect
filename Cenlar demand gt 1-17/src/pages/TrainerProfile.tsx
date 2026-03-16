@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTrainerById } from '@/hooks/useTrainers';
@@ -32,8 +32,12 @@ interface Review {
 const TrainerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuthStore();
   const { trainer, loading } = useTrainerById(id);
+  // Demo trainers (numeric IDs) have no real DB records — disable transactional actions
+  const isMockTrainer = id ? !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id) : false;
+  const availabilityRef = useRef<HTMLDivElement>(null);
   const [availableSlots, setAvailableSlots] = useState<AvailabilitySlot[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
@@ -100,41 +104,50 @@ const TrainerProfile: React.FC = () => {
 
   const fetchSlots = useCallback(async () => {
     if (!id) return;
+    // Mock trainers have no DB records — skip the query to avoid UUID errors
+    if (isMockTrainer) {
+      setAvailableSlots([]);
+      setLoadingSlots(false);
+      return;
+    }
 
     setLoadingSlots(true);
-    const { data } = await supabase
-      .from('availability_slots')
-      .select('*')
-      .eq('trainer_id', id)
-      .eq('is_booked', false)
-      .is('deleted_at', null)
-      .gte('start_time', new Date().toISOString())
-      .order('start_time', { ascending: true })
-      .limit(21);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .rpc('get_visible_slots', { p_trainer_id: id });
 
-    setAvailableSlots((data as AvailabilitySlot[]) || []);
-    setLoadingSlots(false);
-  }, [id]);
+      setAvailableSlots((data as AvailabilitySlot[]) || []);
+    } catch {
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, [id, isMockTrainer]);
 
   const fetchReviews = useCallback(async () => {
-    if (!id) return;
+    if (!id || isMockTrainer) return;
 
-    const { data } = await supabase
-      .from('reviews')
-      .select(`
-        id, client_id, trainer_id, rating, comment, created_at,
-        rating_punctuality, rating_expertise, rating_communication,
-        trainer_response, trainer_response_at,
-        is_flagged, is_hidden,
-        profiles:client_id (full_name, avatar_url)
-      `)
-      .eq('trainer_id', id)
-      .eq('is_hidden', false)
-      .order('created_at', { ascending: false })
-      .limit(20);
+    try {
+      const { data } = await supabase
+        .from('reviews')
+        .select(`
+          id, client_id, trainer_id, rating, comment, created_at,
+          rating_punctuality, rating_expertise, rating_communication,
+          trainer_response, trainer_response_at,
+          is_flagged, is_hidden,
+          profiles:client_id (full_name, avatar_url)
+        `)
+        .eq('trainer_id', id)
+        .eq('is_hidden', false)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-    setReviews((data as unknown as Review[]) || []);
-  }, [id]);
+      setReviews((data as unknown as Review[]) || []);
+    } catch {
+      setReviews([]);
+    }
+  }, [id, isMockTrainer]);
 
   useEffect(() => {
     fetchSlots();
@@ -142,7 +155,7 @@ const TrainerProfile: React.FC = () => {
   }, [fetchSlots, fetchReviews]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || isMockTrainer) return;
 
     const slotChannel = supabase
       .channel(`trainer-profile-slots-${id}`)
@@ -181,6 +194,15 @@ const TrainerProfile: React.FC = () => {
       supabase.removeChannel(reviewChannel);
     };
   }, [id, fetchSlots, fetchReviews]);
+
+  // Auto-scroll to availability section when ?book=true is present
+  useEffect(() => {
+    if (searchParams.get('book') === 'true' && !loading && availabilityRef.current) {
+      setTimeout(() => {
+        availabilityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
+  }, [loading, searchParams]);
 
   // Group available slots by date
   const slotsByDate = useMemo(() => {
@@ -362,8 +384,8 @@ const TrainerProfile: React.FC = () => {
               </div>
             )}
 
-            {/* Message trainer (clients only, not own profile) */}
-            {user && profile?.role === 'client' && trainer.user_id !== user.id && (
+            {/* Message trainer (clients only, not own profile, not demo) */}
+            {user && profile?.role === 'client' && trainer.user_id !== user.id && !isMockTrainer && (
               <div>
                 <button
                   onClick={handleMessageTrainer}
@@ -377,7 +399,7 @@ const TrainerProfile: React.FC = () => {
             )}
 
             {/* Available Sessions */}
-            <div className="space-y-6">
+            <div ref={availabilityRef} className="space-y-6">
               <div className="flex items-center gap-3">
                 <Calendar size={16} className="text-accent" />
                 <h2 className="text-2xl serif font-light italic text-ink">Available Sessions</h2>
@@ -423,7 +445,8 @@ const TrainerProfile: React.FC = () => {
                           return (
                             <Link
                               key={slot.id}
-                              to={`/book/${slot.id}`}
+                              to={isMockTrainer ? '#' : `/book/${slot.id}`}
+                              onClick={isMockTrainer ? (e) => { e.preventDefault(); } : undefined}
                               className={`inline-flex items-center gap-2 px-4 py-2.5 text-[11px] uppercase tracking-[0.15em] hover:bg-accent hover:text-white transition-all duration-300 ${
                                 isBuffer
                                   ? 'border border-amber-400/40 text-amber-700/70'
