@@ -134,7 +134,7 @@ Plans:
 | 11. Referral Program v1 | v2.0 | 4/4 | ✅ | 2026-03-15 |
 | 12. Subscription Foundation | v2.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
-| 14. Feature Gates + Search | 4/4 | Complete   | 2026-03-16 | — |
+| 14. Feature Gates + Search | 4/4 | Complete    | 2026-03-16 | — |
 | 15. Subscription UI | v2.1 | 0/? | 📋 planned | — |
 | 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
 

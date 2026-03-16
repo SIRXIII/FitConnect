@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: executing
+status: planning
 stopped_at: Completed 14-04-PLAN.md — tier ranking signal + FeaturedTrainers + Landing.tsx update
-last_updated: "2026-03-16T21:54:35.660Z"
+last_updated: "2026-03-16T21:59:04.866Z"
 progress:
   total_phases: 5
   completed_phases: 3
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 ## Current Position
 
 **Phase:** 14 of 16 — Feature Gates + Search (COMPLETE — 4/4 plans done)
-**Status:** In progress
+**Status:** Ready to plan
 
 ## Progress
 
