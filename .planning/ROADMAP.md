@@ -89,7 +89,13 @@ Plans:
   4. After a trainer downgrades from Pro to Free, their excess slots and full bio content remain in the DB unchanged; only visibility reverts
   5. The trainer search results list ranks Pro trainers above equivalent Free trainers (same rating, same review count); Elite trainers rank above Pro
   6. The landing page shows a "Featured Trainers" section containing only Elite trainers ordered by `rating DESC`; the section is absent entirely when no Elite trainers exist
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Tier gate foundation: tierGates.ts, useTier/useCan hooks, vitest config, test scaffold (TIER-04, TIER-05)
+- [ ] 14-02-PLAN.md — DB + slot enforcement: bio trigger migration, TrainerProfile.tsx RPC wire (TIER-01, TIER-02, TIER-03, TIER-06)
+- [ ] 14-03-PLAN.md — UI gates: AnalyticsTab gate + slot visibility hint in TrainerDashboard (TIER-05, TIER-06)
+- [ ] 14-04-PLAN.md — Search: rankTrainers tier signal + FeaturedTrainers component + Landing.tsx (SRCH-01, SRCH-02, SRCH-03)
 
 ### Phase 15: Subscription UI
 **Goal**: Trainers can discover, start, and manage their subscription entirely within the app without contacting support
@@ -128,9 +134,9 @@ Plans:
 | 11. Referral Program v1 | v2.0 | 4/4 | ✅ | 2026-03-15 |
 | 12. Subscription Foundation | v2.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
-| 14. Feature Gates + Search | v2.1 | 0/? | 📋 planned | — |
+| 14. Feature Gates + Search | v2.1 | 0/4 | 📋 planned | — |
 | 15. Subscription UI | v2.1 | 0/? | 📋 planned | — |
 | 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
 
 ---
-*Last updated: 2026-03-16 after Phase 12 complete*
+*Last updated: 2026-03-16 after Phase 14 planned*
