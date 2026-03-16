@@ -1,5 +1,51 @@
 # Project Milestones — FitConnect
 
+## Milestone v2.0 — Monetization Sprint ✅
+
+**Status:** Complete
+**Shipped:** 2026-03-15
+**Phases:** 9, 10, 11 (3 phases · 11 plans)
+**Git range:** `3f637f8` → `afdcbde` (92 files changed, 12,295 insertions)
+**Codebase at ship:** 8,942 LOC TypeScript · 10 Edge Functions · 14 migrations
+
+### What Shipped
+
+| Phase | Name | Plans | Commits |
+|-------|------|-------|---------|
+| **9** | **Trainer Payout System** | 3/3 ✅ | `3f637f8`–`45e16db` |
+| **10** | **Earnings Analytics** | 4/4 ✅ | `f43b970`–`c39394f` |
+| **11** | **Referral Program v1** | 4/4 ✅ | `7aa59e8`–`815c277` |
+
+### Key Accomplishments
+
+- Full trainer payout flow: on-demand (≥$50 min) + weekly pg_cron auto-payout, Stripe `transfers.create`, Resend initiation + arrival emails
+- Trainer earnings dashboard: time-range selector (week/month/quarter/year), gross/net cards, AreaChart + BarChart trends, 7×24 peak-hours heatmap, CSV export
+- Admin aggregate analytics: platform revenue, total payouts, booking volume, top earners table — all time-filtered via Postgres RPC
+- Referral attribution pipeline: cookie capture on landing → signup linkage → idempotent `process-referral-reward` Edge Function → $10 payout credit or $5 booking discount
+- ReferralLeaderboard on landing page; ReferralWidget on both trainer and client dashboards
+- All 18 v2.0 requirements delivered and human-verified
+
+### Key Decisions
+
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| Stripe `transfers.create` not `payouts.create` | Transfers move funds to Connect account balance (not bank) — correct for destination charges | ✓ Good |
+| Email failure non-blocking in create-payout | Payout must complete even if Resend fails — email is secondary signal | ✓ Good |
+| `weekly-payouts` validates service-role token directly | System function called only by pg_cron — no user JWT needed | ✓ Good |
+| Vault secrets, not migration constants | Production secrets via `vault.decrypted_secrets` — comments document setup | ✓ Good |
+| `payout.paid` ambiguity guard: skip if multiple processing | Stripe bundles transfers into one payout — 1:1 mapping unavailable | ✓ Good |
+| `discount_adoption_pct` via `rate_charged < optimized_rate` | Most reliable schema signal for "discount applied" | ✓ Good |
+| `SameSite=Lax` for referral cookie | Survives OAuth redirect round-trip — Strict breaks cross-origin returns | ✓ Good |
+| `handle_new_user` trigger generates `referral_code` inline | All signups get code at profile creation regardless of path | ✓ Good |
+| `referral_discount_trainer_id=null` — $5 off any trainer | Simpler UX — discount isn't locked to referred trainer | ✓ Good |
+| `process-referral-reward` fire-and-forget in TrainerBookings | UI never blocked by referral processing | ✓ Good |
+
+### Deferred to v2.1
+
+- Phase 12: Subscription Tiers — Pro ($9/mo) + Elite ($29/mo), Stripe Billing, feature gates
+
+---
+
 ## Milestone v1.0 — Feature Complete + iOS Ready ✅
 
 **Status:** Complete
@@ -65,35 +111,6 @@ These are critical but were deprioritized to ship user-facing features:
 
 ---
 
-## Milestone v2.0 — Monetization Sprint (In Planning)
-
-**Vision:** Transform FitConnect from a **booking platform** into a **revenue-generating marketplace** where trainers see real earnings and growth compounds via referrals.
-
-### Phase Outline (Draft)
-
-| # | Name | Goal | Est. Effort |
-|---|------|------|-------------|
-| 1 | Trainer Payout System | Enable withdrawals via Stripe Connect | 1 week |
-| 2 | Earnings Analytics | Revenue dashboards + trends for trainers & admins | 1 week |
-| 3 | Referral Program v1 | Viral growth: referral codes + incentives | 2 weeks |
-| 4 | Subscription Tiers | Premium trainer features (optional) | 2 weeks |
-
-### Key Research Areas for v2.0
-
-- Payout frequency (weekly/monthly/on-demand)?
-- Referral incentive structure (fixed discount, % of first booking)?
-- Analytics metrics (CAC, LTV, discount adoption)?
-- Admin dashboard separation or unified with trainer view?
-
-### Success Criteria for v2.0
-
-- Trainers complete at least 1 payout per month
-- Analytics show 20%+ discount adoption rate
-- Referral program drives 10%+ new user signups
-- Measurable reduction in user churn
-
----
-
 ## Build Verification (v1.0)
 
 All builds verified clean on 2026-03-14:
@@ -106,14 +123,5 @@ All builds verified clean on 2026-03-14:
 
 ---
 
-## Next Steps
-
-1. **Before v2.0 execution:** Complete Phases 1–4 as v1.1 security patch
-2. **v2.0 planning:** Research questions (payout frequency, referral mechanics) → design phase roadmap
-3. **v2.0 execution:** Phases 1–4 in order (payouts → analytics → referrals → premium)
-4. **App Store:** Once Xcode installed, run `npm run ios` to build + submit
-
----
-
-*Last updated: 2026-03-14*
-*Commits verified: `78bffab`, `de9f155`, `6ef67b2`*
+*Last updated: 2026-03-15 after v2.0 milestone*
+*Commits verified: `78bffab`, `de9f155`, `6ef67b2`, `3f637f8`–`815c277`*

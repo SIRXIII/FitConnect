@@ -1,30 +1,32 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.1
-milestone_name: "- **Phase 12: Subscription Tiers** — Pro"
-status: planning
-stopped_at: Completed 01-01-PLAN.md — Phase 1 Payment & Security Hardening complete
-last_updated: "2026-03-15T19:52:45.925Z"
+milestone_name: Subscription Tiers
+status: between_milestones
+stopped_at: v2.0 Monetization Sprint archived — ready for v2.1 planning
+last_updated: "2026-03-15T00:00:00.000Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State — FitRush
 
 ## Project Reference
 
-**Building:** Luxury fitness marketplace connecting trainers' idle hours with clients at optimized rates
-**Core Value:** Trainers monetize idle hours, clients get premium training at below-market prices
+See: `.planning/PROJECT.md` (updated 2026-03-15)
+
+**Core value:** Trainers monetize idle hours, clients get premium training at below-market prices
+**Current focus:** Planning v2.1 — Subscription Tiers
 **Current Focus:** Milestone v2.0 — Monetization Sprint
 
 ## Current Position
 
 **Phase:** 01 of 01 — Payment & Security Hardening
 **Plan:** 1 of 1 complete
-**Status:** Ready to plan
+**Status:** v2.0 milestone complete
 
 ## Progress
 

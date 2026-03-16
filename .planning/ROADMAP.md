@@ -1,102 +1,60 @@
-# Roadmap — FitRush v2.0 — Monetization Sprint
+# Roadmap — FitRush
 
-## Overview
+## Milestones
 
-3 phases. Payouts first (cash flow for trainers), then analytics (visibility), then referrals (growth).
-
-Phase numbering continues from v1.0 (last phase = 8) → v2.0 starts at Phase 9.
-
----
-
-## Phase 9: Trainer Payout System
-
-**Goal:** Enable trainers to withdraw earnings via Stripe Connect.
-
-**Requirements:** PAYOUT-01, PAYOUT-02, PAYOUT-03, PAYOUT-04, PAYOUT-05, PAYOUT-06
-
-**Plans:** 3/3 plans complete
-
-Plans:
-- [ ] 09-01-PLAN.md — Payout backend: DB migration, create-payout Edge Function, Resend email integration
-- [ ] 09-02-PLAN.md — Payouts tab UI: balance display, transaction history, Request Payout modal
-- [ ] 09-03-PLAN.md — Weekly auto-payout (pg_cron) + payout.paid webhook completion email
-
-**Success Criteria:**
-- Trainer sees accurate available balance on payout dashboard (updates after each completed booking)
-- Trainer can request on-demand payout and receives Stripe transfer within 2 business days
-- Weekly auto-payout fires every Monday for trainers with balance >= $50
-- Transaction history lists all transfers with date, amount, and status
-- Trainer receives email on payout initiation and completion
-
-**Depends on:** Existing Stripe Connect setup (trainer accounts created in v1.0)
+- ✅ **v1.0 Feature Complete** — Phases 1–8 (shipped ~2026-03-01)
+- ✅ **v2.0 Monetization Sprint** — Phases 9–11 (shipped 2026-03-15)
+- 📋 **v2.1 Subscription Tiers** — Phase 12 (planned)
 
 ---
 
-## Phase 10: Earnings Analytics
+## Phases
 
-**Goal:** Give trainers and admins full visibility into revenue, trends, and discount impact.
+<details>
+<summary>✅ v1.0 Feature Complete — shipped ~2026-03-01</summary>
 
-**Requirements:** ANALYTICS-01, ANALYTICS-02, ANALYTICS-03, ANALYTICS-04, ANALYTICS-05, ANALYTICS-06
+- [x] Phase 5: Admin Dashboard — `/admin` with analytics, users, reviews, settings tabs
+- [x] Phase 6: In-App Messaging — real-time chat via Supabase Realtime + unread badge
+- [x] Phase 7: AI Scheduling MVP — idle slot classification + Best Deals Now section
+- [x] Phase 8: Enhanced Reviews — sub-ratings (punctuality/expertise/communication), trainer responses, admin moderation
 
-**Plans:** 1/1 plans complete
+_Phases 1–4 deferred to v1.1 security patch._
 
-Plans:
-- [ ] 10-01-PLAN.md — Postgres analytics RPC migration + analytics.ts utility library
-- [ ] 10-02-PLAN.md — Trainer AnalyticsTab component + TrainerDashboard tab extension
-- [ ] 10-03-PLAN.md — Admin analytics tab with time filter and top earners table
-- [ ] 10-04-PLAN.md — Final build verification + human verification checkpoint
+See: `.planning/milestones/v2.0-ROADMAP.md` for full v2.0 details.
 
-**Success Criteria:**
-- Trainer dashboard shows earnings by selected time range with revenue trend chart
-- Trainer sees gross vs net earnings, booking count, avg price, and discount adoption %
-- Admin sees platform-wide revenue, total payouts, booking volume, and top earners table
-- Admin can filter analytics by time period (week/month/quarter/year)
-- Trainer can download earnings as CSV with correct totals for the selected range
+</details>
 
-**Depends on:** Phase 9 (completed booking payment records needed for accurate aggregation)
+<details>
+<summary>✅ v2.0 Monetization Sprint — shipped 2026-03-15</summary>
 
----
+- [x] Phase 9: Trainer Payout System (3/3 plans) — Stripe transfers, $50 min on-demand, weekly pg_cron auto-payout, Resend emails
+- [x] Phase 10: Earnings Analytics (4/4 plans) — trainer + admin dashboards, Postgres RPCs, CSV export, Recharts visualizations
+- [x] Phase 11: Referral Program v1 (4/4 plans) — referral_code, cookie attribution, $10/$5 incentives, leaderboard, notifications
 
-## Phase 11: Referral Program v1
+See: `.planning/milestones/v2.0-ROADMAP.md`
 
-**Goal:** Drive viral user acquisition through tracked referral incentives.
-
-**Requirements:** REFERRAL-01, REFERRAL-02, REFERRAL-03, REFERRAL-04, REFERRAL-05, REFERRAL-06
-
-**Plans:** 4/4 plans complete
-
-Plans:
-- [ ] 11-01-PLAN.md — Referral DB migration (referrals table, referral_code, discount columns, leaderboard RPC) + referral.ts utility
-- [ ] 11-02-PLAN.md — process-referral-reward Edge Function (idempotent reward processing, notifications, email)
-- [ ] 11-03-PLAN.md — ReferralWidget component + Landing cookie capture + RoleSelect attribution + dashboard integrations
-- [ ] 11-04-PLAN.md — BookSession $5 discount + TrainerBookings reward trigger + ReferralLeaderboard + human verification
-
-**Success Criteria:**
-- Every user has a visible referral code and shareable link on their profile
-- New user signing up via referral link is correctly attributed to the referrer
-- $10 trainer payout credit is applied after referred client's first completed booking
-- $5 client discount is applied at checkout for referred trainer's first booking with that client
-- Landing page leaderboard shows top 10 referrers updated monthly
-- In-app + email notifications fire at key referral milestones
-
-**Depends on:** Phase 9 (payout credit mechanism required for trainer $10 reward)
+</details>
 
 ---
 
-## Dependency Graph
+### 📋 v2.1 Subscription Tiers (Planned)
 
-```
-Phase 9 (Payouts) → Phase 10 (Analytics)
-Phase 9 (Payouts) → Phase 11 (Referrals)
-```
-
-Analytics and Referrals can run in parallel after Payouts ships.
+- [ ] Phase 12: Subscription Tiers — Pro ($9/mo) + Elite ($29/mo), Stripe Billing, feature gates
 
 ---
 
-## Deferred to v2.1
+## Progress
 
-- **Phase 12: Subscription Tiers** — Pro ($9/mo) + Elite ($29/mo), Stripe Billing, feature gates
+| Phase | Milestone | Plans | Status | Shipped |
+|-------|-----------|-------|--------|---------|
+| 5. Admin Dashboard | v1.0 | complete | ✅ | ~2026-03-01 |
+| 6. In-App Messaging | v1.0 | complete | ✅ | ~2026-03-01 |
+| 7. AI Scheduling MVP | v1.0 | complete | ✅ | ~2026-03-01 |
+| 8. Enhanced Reviews | v1.0 | complete | ✅ | ~2026-03-01 |
+| 9. Trainer Payout System | v2.0 | 3/3 | ✅ | 2026-03-14 |
+| 10. Earnings Analytics | v2.0 | 4/4 | ✅ | 2026-03-15 |
+| 11. Referral Program v1 | v2.0 | 4/4 | ✅ | 2026-03-15 |
+| 12. Subscription Tiers | v2.1 | 0/? | 📋 planned | — |
 
 ---
-*3 phases, 18 requirements. Payouts unlock both analytics accuracy and referral credit mechanics.*
+*Last updated: 2026-03-15 after v2.0 milestone completion*
