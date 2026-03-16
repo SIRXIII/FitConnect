@@ -8,13 +8,13 @@
 ### Billing
 
 - [ ] **BILL-01**: Trainer can start a 30-day free trial of Pro or Elite tier with no credit card required
-- [ ] **BILL-02**: When trial ends with no payment method on file, subscription cancels automatically and trainer reverts to Free tier
+- [x] **BILL-02**: When trial ends with no payment method on file, subscription cancels automatically and trainer reverts to Free tier
 - [ ] **BILL-03**: Trainer can upgrade from Free or trial to a paid tier by entering payment details
 - [ ] **BILL-04**: Trainer can choose monthly or annual billing (annual = 20% discount, ~$7.20/mo Pro, ~$23.20/mo Elite)
 - [ ] **BILL-05**: Trainer can upgrade, downgrade, cancel, or update payment method via Stripe Customer Portal (no custom UI required)
-- [ ] **BILL-06**: Stripe subscription events (created, updated, trial end, payment failure, cancellation) correctly sync `subscription_tier` to the database via webhook
-- [ ] **BILL-07**: Failed payment on an active (non-trial) subscription triggers automatic downgrade to Free tier in the database
-- [ ] **BILL-08**: Trainer receives an email 3 days before trial ends prompting them to add a payment method
+- [x] **BILL-06**: Stripe subscription events (created, updated, trial end, payment failure, cancellation) correctly sync `subscription_tier` to the database via webhook
+- [x] **BILL-07**: Failed payment on an active (non-trial) subscription triggers automatic downgrade to Free tier in the database
+- [x] **BILL-08**: Trainer receives an email 3 days before trial ends prompting them to add a payment method
 
 ### Tiers
 
@@ -81,13 +81,13 @@ Features that reduce churn or add polish but are not needed for the billing syst
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BILL-01 | Phase 13 | Pending |
-| BILL-02 | Phase 13 | Pending |
+| BILL-02 | Phase 13 | Complete |
 | BILL-03 | Phase 13 | Pending |
 | BILL-04 | Phase 13 | Pending |
 | BILL-05 | Phase 13 | Pending |
-| BILL-06 | Phase 13 | Pending |
-| BILL-07 | Phase 13 | Pending |
-| BILL-08 | Phase 13 | Pending |
+| BILL-06 | Phase 13 | Complete |
+| BILL-07 | Phase 13 | Complete |
+| BILL-08 | Phase 13 | Complete |
 | TIER-01 | Phase 14 | Pending |
 | TIER-02 | Phase 14 | Pending |
 | TIER-03 | Phase 14 | Pending |
