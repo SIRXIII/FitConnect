@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: planning
-stopped_at: Completed 14-02-PLAN.md — bio tier limit trigger + get_visible_slots RPC wire in TrainerProfile
-last_updated: "2026-03-16T21:48:15.176Z"
+status: executing
+stopped_at: Completed 14-03-PLAN.md — analytics tab gated + LockedFeatureBanner + slot visibility hint
+last_updated: "2026-03-16T21:54:29.782Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 9
 ---
 
 # Project State — FitRush
@@ -23,7 +23,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 14 of 16 — Feature Gates + Search (IN PROGRESS — 2/4 plans done)
+**Phase:** 14 of 16 — Feature Gates + Search (IN PROGRESS — 3/4 plans done)
 **Status:** In progress
 
 ## Progress
@@ -32,11 +32,11 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
-Phase 14: Feature Gates + Search   [~] IN PROGRESS (2/4 plans done — tier hooks + bio trigger + slot RPC wire)
+Phase 14: Feature Gates + Search   [~] IN PROGRESS (3/4 plans done — tier hooks + bio trigger + slot RPC wire + dashboard gates)
 Phase 15: Subscription UI          [ ] Not started
 Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [████████░░] 78%
+Overall: [█████████░] 89%
 ```
 
 ## Recent Decisions
@@ -90,6 +90,9 @@ Overall: [████████░░] 78%
 | Vitest config in vite.config.ts test block | 2026-03-16 | No separate vitest.config.ts — keeps config surface minimal; globals:true + jsdom |
 | Bio trigger fires only on IS DISTINCT FROM OLD.bio | 2026-03-16 | Existing long bios preserved on trainer downgrade — trigger only gates new/changed bio content |
 | supabase cast to any for get_visible_slots RPC | 2026-03-16 | Consistent with project-wide pattern for unregistered RPCs (same as get_referral_leaderboard, get_admin_analytics) |
+| LockedFeatureBanner uses FEATURE_NAMES map for human-readable titles | 2026-03-16 | Avoids brittle string manipulation from label field; explicit map per TierFeature |
+| Analytics tab label visible for all tiers (discovery UX) | 2026-03-16 | Only content is gated behind canAnalytics, not the tab button — users discover feature before upgrading |
+| Slot hint uses tier === 'free' direct check (not useCan) | 2026-03-16 | Informational display about data visibility, not access control — useCan not appropriate here |
 
 ## Pending Todos
 
@@ -104,6 +107,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:48:15Z
-Stopped at: Completed 14-02-PLAN.md — bio tier limit trigger + get_visible_slots RPC wire in TrainerProfile
-Resume with: `/gsd:execute-phase 14` (Phase 14 Plan 03 next)
+Last session: 2026-03-16T21:53:30Z
+Stopped at: Completed 14-03-PLAN.md — analytics tab gated + LockedFeatureBanner + slot visibility hint
+Resume with: `/gsd:execute-phase 14` (Phase 14 Plan 04 next)
