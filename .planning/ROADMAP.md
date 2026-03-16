@@ -59,7 +59,11 @@ See: `.planning/milestones/v2.0-ROADMAP.md`
   3. `SELECT get_visible_slots('<free_trainer_id>')` returns at most 3 rows; Pro returns at most 10; Elite returns all
   4. The `subscription_events` table exists with a `UNIQUE` constraint on `stripe_event_id`
   5. Stripe Dashboard shows 2 Products (Pro, Elite), 4 Price objects, a configured Customer Portal, and a billing webhook endpoint with its own `whsec_*` secret stored as `STRIPE_BILLING_WEBHOOK_SECRET` in Supabase
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — DB migration: 10 subscription columns, subscription_events table, guard trigger, get_visible_slots RPC, TypeScript types
+- [ ] 12-02-PLAN.md — Stripe Dashboard config: 2 Products, 4 Prices, Customer Portal, dunning, billing webhook endpoint, 5 Supabase secrets
 
 ### Phase 13: Billing Backend
 **Goal**: Full subscription lifecycle is handled server-side with no frontend dependency — subscriptions can be created, webhook events correctly sync tier to DB, trial-end email fires, and admin analytics include MRR
@@ -122,11 +126,11 @@ See: `.planning/milestones/v2.0-ROADMAP.md`
 | 9. Trainer Payout System | v2.0 | 3/3 | ✅ | 2026-03-14 |
 | 10. Earnings Analytics | v2.0 | 4/4 | ✅ | 2026-03-15 |
 | 11. Referral Program v1 | v2.0 | 4/4 | ✅ | 2026-03-15 |
-| 12. Subscription Foundation | v2.1 | 0/? | 📋 planned | — |
+| 12. Subscription Foundation | v2.1 | 0/2 | 📋 planned | — |
 | 13. Billing Backend | v2.1 | 0/? | 📋 planned | — |
 | 14. Feature Gates + Search | v2.1 | 0/? | 📋 planned | — |
 | 15. Subscription UI | v2.1 | 0/? | 📋 planned | — |
 | 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
 
 ---
-*Last updated: 2026-03-15 after v2.1 roadmap creation*
+*Last updated: 2026-03-15 after Phase 12 plans created*
