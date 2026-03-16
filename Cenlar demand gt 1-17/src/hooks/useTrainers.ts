@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { sanitizeSearchInput } from '@/lib/sanitize';
 import { buildIdleSlotCounts } from '@/lib/scheduling';
+import { MOCK_TRAINERS } from '@/lib/constants';
 import type { TrainerProfile } from '@/stores/auth';
 
 export interface TrainerWithProfile extends TrainerProfile {
@@ -18,7 +19,7 @@ interface UseTrainersOptions {
   location?: string;
 }
 
-// Weighted-blend ranking: discount 40%, rating 25%, proximity 20%, availability 15%
+// Weighted-blend ranking: discount 35%, rating 20%, proximity 15%, availability 10%, tier 20%
 export function rankTrainers(
   trainers: TrainerWithProfile[],
   slotCounts: Record<string, number>,
@@ -34,12 +35,19 @@ export function rankTrainers(
           : 0
         : 0.5; // neutral when no filter active
     const availabilityScore = Math.min((slotCounts[t.id] ?? 0) / 10, 1);
+    const tierScore = (() => {
+      const tier = t.subscription_tier as string | null | undefined;
+      if (tier === 'elite') return 1.0;
+      if (tier === 'pro') return 0.67;
+      return 0.0;
+    })();
 
     const score =
-      0.40 * discountScore +
-      0.25 * ratingScore +
-      0.20 * proximityScore +
-      0.15 * availabilityScore;
+      0.35 * discountScore +
+      0.20 * ratingScore +
+      0.15 * proximityScore +
+      0.10 * availabilityScore +
+      0.20 * tierScore;
 
     return { trainer: t, score };
   });
@@ -127,12 +135,59 @@ export function useTrainers(options: UseTrainersOptions = {}) {
   return { trainers, loading, error, refetch: fetchTrainers, idleSlotCounts };
 }
 
+/** Returns true for mock/demo IDs like '1', '2', '3' (non-UUID strings) */
+function isMockId(id: string): boolean {
+  return !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id);
+}
+
+/** Map a MOCK_TRAINERS entry to the TrainerWithProfile DB shape */
+function mockToTrainerWithProfile(mock: (typeof MOCK_TRAINERS)[number]): TrainerWithProfile {
+  const specialtyMap: Record<string, string> = {
+    'Strength Training': 'strength_training',
+    'Cardio & HIIT': 'cardio',
+    'Yoga & Pilates': 'yoga',
+    'Nutrition Coaching': 'nutrition',
+    'Injury Rehabilitation': 'rehabilitation',
+  };
+  return {
+    id: mock.id,
+    user_id: `mock-${mock.id}`,
+    specialty: specialtyMap[mock.specialty] ?? 'strength_training',
+    bio: `Elite ${mock.specialty.toLowerCase()} trainer based in ${mock.location}. Specializing in personalized sessions tailored to your fitness goals.`,
+    hourly_rate: mock.hourlyRate,
+    optimized_rate: mock.optimizedRate,
+    discount_percentage: mock.discountPercentage,
+    location: mock.location,
+    latitude: null,
+    longitude: null,
+    certifications: ['NASM', 'CPT'],
+    verified: mock.verified,
+    rating: mock.rating,
+    review_count: mock.reviewCount,
+    stripe_account_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    profiles: {
+      full_name: mock.name,
+      avatar_url: mock.imageUrl,
+    },
+  } as unknown as TrainerWithProfile;
+}
+
 export function useTrainerById(trainerId: string | undefined) {
   const [trainer, setTrainer] = useState<TrainerWithProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!trainerId) return;
+
+    // Demo trainers (numeric IDs) — skip DB, serve mock data immediately
+    if (isMockId(trainerId)) {
+      const mock = MOCK_TRAINERS.find((t) => t.id === trainerId);
+      setTrainer(mock ? mockToTrainerWithProfile(mock) : null);
+      setLoading(false);
+      return;
+    }
 
     const fetchTrainer = async () => {
       const { data } = await supabase
