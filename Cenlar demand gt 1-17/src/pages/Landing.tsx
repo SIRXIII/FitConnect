@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Hero from '@/components/landing/Hero';
 import SearchSection from '@/components/search/SearchSection';
 import BestDeals from '@/components/landing/BestDeals';
+import FeaturedTrainers from '@/components/landing/FeaturedTrainers';
 import HowItWorks from '@/components/landing/HowItWorks';
 import TrustSafety from '@/components/landing/TrustSafety';
 import ReferralLeaderboard from '@/components/landing/ReferralLeaderboard';
@@ -28,6 +29,7 @@ const Landing: React.FC = () => {
       <Hero />
       <main>
         <SearchSection />
+        <FeaturedTrainers />
         <BestDeals />
         <HowItWorks />
         <TrustSafety />

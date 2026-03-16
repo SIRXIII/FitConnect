@@ -3,9 +3,9 @@ import { rankTrainers } from './useTrainers';
 import type { TrainerWithProfile } from './useTrainers';
 
 // Helper: create a minimal TrainerWithProfile with only the fields rankTrainers uses
-function makeTrainer(overrides: Partial<TrainerWithProfile> & { id: string }): TrainerWithProfile {
+function makeTrainer({ id, ...rest }: Partial<TrainerWithProfile> & { id: string }): TrainerWithProfile {
   return {
-    id: overrides.id,
+    id,
     user_id: 'u1',
     specialty: 'strength_training',
     bio: null,
@@ -33,7 +33,7 @@ function makeTrainer(overrides: Partial<TrainerWithProfile> & { id: string }): T
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     profiles: { full_name: 'Test Trainer', avatar_url: null },
-    ...overrides,
+    ...rest,
   } as unknown as TrainerWithProfile;
 }
 
