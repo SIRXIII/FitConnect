@@ -1,25 +1,40 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
 import { useAvailability } from '@/hooks/useAvailability';
+import { useTier, useCan } from '@/hooks/useTier';
 import { supabase } from '@/lib/supabase';
 import AvailabilityManager from '@/components/trainer/AvailabilityManager';
 import DiscountSlider, { computeDiscountedRate } from '@/components/trainer/DiscountSlider';
 import PayoutsTab from '@/components/trainer/PayoutsTab';
 import AnalyticsTab from '@/components/trainer/AnalyticsTab';
 import ReferralWidget from '@/components/shared/ReferralWidget';
+import LockedFeatureBanner from '@/components/shared/LockedFeatureBanner';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const TrainerDashboard: React.FC = () => {
   const { profile, trainerProfile, fetchProfile, user } = useAuthStore();
   const { slots, refetch: refetchAvailability } = useAvailability();
+  const { tier } = useTier();
+  const canAnalytics = useCan('analytics_advanced');
+  const [searchParams] = useSearchParams();
+  const navigateTo = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'payouts' | 'analytics'>('overview');
   const [showAvailability, setShowAvailability] = useState(false);
   const [upcomingCount, setUpcomingCount] = useState(0);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [stripeError, setStripeError] = useState<string | null>(null);
+  // Capture first-visit flag ONCE at mount so URL cleanup doesn't flip it back to false
+  const [isFirstVisit] = useState(() => searchParams.get('welcome') === 'true');
+
+  // Remove ?welcome=true from URL after reading it so a refresh shows "Welcome back"
+  useEffect(() => {
+    if (searchParams.get('welcome') === 'true') {
+      navigateTo('/trainer/dashboard', { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchBookingCount = async () => {
     if (!trainerProfile) return;
@@ -83,13 +98,28 @@ const TrainerDashboard: React.FC = () => {
     setStripeLoading(true);
     setStripeError(null);
 
+    // Single abort controller covers the entire fetch operation
+    const controller = new AbortController();
+    const abortTimer = setTimeout(() => controller.abort(), 10000);
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      if (!token) {
+        throw new Error('Session expired — please sign in again.');
+      }
+
+      if (!SUPABASE_URL) {
+        throw new Error('Stripe setup is not configured. Contact support.');
+      }
+
       const res = await fetch(`${SUPABASE_URL}/functions/v1/create-connect-account`, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           return_url: window.location.href,
@@ -97,17 +127,32 @@ const TrainerDashboard: React.FC = () => {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create Stripe account');
+      clearTimeout(abortTimer);
 
-      // Refresh profile to get updated stripe_account_id
+      if (res.status === 404) {
+        throw new Error('Payment setup not yet available — add STRIPE_SECRET_KEY to Supabase Edge Function secrets.');
+      }
+
+      const payload = await res.json();
+
+      if (!res.ok) {
+        throw new Error(payload?.error || `Server error (${res.status}) — please try again.`);
+      }
+
+      if (!payload?.url) {
+        throw new Error('No redirect URL returned — check STRIPE_SECRET_KEY in Supabase secrets.');
+      }
+
       await fetchProfile(user.id);
-
-      // Redirect to Stripe onboarding
-      window.location.href = data.url;
-    } catch (err: any) {
-      toast.error('Payment setup failed. Please try again.');
-      setStripeError(err.message);
+      window.location.href = payload.url;
+    } catch (err: unknown) {
+      clearTimeout(abortTimer);
+      const isAbort = err instanceof Error && err.name === 'AbortError';
+      const msg = isAbort
+        ? 'Request timed out (10s). Check your connection or Supabase Edge Function logs.'
+        : err instanceof Error ? err.message : 'Payment setup failed — please try again.';
+      toast.error(msg);
+      setStripeError(msg);
     } finally {
       setStripeLoading(false);
     }
@@ -122,7 +167,7 @@ const TrainerDashboard: React.FC = () => {
         {/* Header */}
         <div className="space-y-4">
           <h1 className="text-3xl serif font-light italic text-ink">
-            Welcome back{profile?.full_name ? `, ${profile.full_name}` : ''}
+            {isFirstVisit ? 'Welcome' : 'Welcome back'}{profile?.full_name ? `, ${profile.full_name}` : ''}
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
             Trainer Dashboard
@@ -157,6 +202,16 @@ const TrainerDashboard: React.FC = () => {
           <div className="border border-ink/10 p-8 space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Available Slots</p>
             <p className="text-3xl serif font-light text-accent">{availableSlots}</p>
+            {tier === 'free' && availableSlots > 3 && (
+              <p className="text-[10px] uppercase tracking-[0.2em] text-amber-600/70 font-medium">
+                3 of {availableSlots} visible to clients
+              </p>
+            )}
+            {tier === 'free' && availableSlots <= 3 && availableSlots > 0 && (
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                All {availableSlots} visible — upgrade to show more
+              </p>
+            )}
           </div>
           <div className="border border-ink/10 p-8 space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Booked Slots</p>
@@ -287,7 +342,11 @@ const TrainerDashboard: React.FC = () => {
         </>)}
 
         {activeTab === 'payouts' && <PayoutsTab />}
-        {activeTab === 'analytics' && <AnalyticsTab />}
+        {activeTab === 'analytics' && (
+          canAnalytics
+            ? <AnalyticsTab />
+            : <LockedFeatureBanner feature="analytics_advanced" tier={tier} />
+        )}
 
       </div>
     </div>
