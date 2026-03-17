@@ -140,7 +140,7 @@ Plans:
 | 12. Subscription Foundation | v2.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
 | 14. Feature Gates + Search | 4/4 | Complete    | 2026-03-16 | — |
-| 15. Subscription UI | 1/3 | In Progress|  | — |
+| 15. Subscription UI | 2/3 | In Progress|  | — |
 | 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
 
 ---
