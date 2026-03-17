@@ -51,6 +51,10 @@ const AdminDashboard: React.FC = () => {
     total_platform_fee: number;
     total_payouts: number;
     booking_volume: number;
+    mrr: number;
+    pro_subscriber_count: number;
+    elite_subscriber_count: number;
+    active_trial_count: number;
   } | null>(null);
   const [topEarners, setTopEarners] = useState<Array<{
     trainer_name: string;
@@ -155,6 +159,10 @@ const AdminDashboard: React.FC = () => {
         total_platform_fee: Number(data.totals.total_platform_fee),
         total_payouts: Number(data.totals.total_payouts),
         booking_volume: Number(data.totals.booking_volume),
+        mrr: Number(data.totals.mrr ?? 0),
+        pro_subscriber_count: Number(data.totals.pro_subscriber_count ?? 0),
+        elite_subscriber_count: Number(data.totals.elite_subscriber_count ?? 0),
+        active_trial_count: Number(data.totals.active_trial_count ?? 0),
       });
       setTopEarners((data.top_earners ?? []).map((r: { trainer_name: string; gross: string; net: string; bookings_count: string }) => ({
         trainer_name: r.trainer_name,
@@ -290,6 +298,34 @@ const AdminDashboard: React.FC = () => {
                 label="Booking Volume"
                 value={loadingAdminAnalytics || !adminTotals ? '—' : adminTotals.booking_volume.toLocaleString()}
               />
+            </div>
+
+            {/* Subscription Health */}
+            <div className="space-y-3">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Subscription Health</p>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <StatCard
+                  icon={<TrendingUp size={18} strokeWidth={1.5} />}
+                  label="MRR"
+                  value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.mrr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  accent
+                />
+                <StatCard
+                  icon={<Users size={18} strokeWidth={1.5} />}
+                  label="Pro Subscribers"
+                  value={loadingAdminAnalytics || !adminTotals ? '—' : `${adminTotals.pro_subscriber_count}`}
+                />
+                <StatCard
+                  icon={<Users size={18} strokeWidth={1.5} />}
+                  label="Elite Subscribers"
+                  value={loadingAdminAnalytics || !adminTotals ? '—' : `${adminTotals.elite_subscriber_count}`}
+                />
+                <StatCard
+                  icon={<BarChart2 size={18} strokeWidth={1.5} />}
+                  label="Active Trials"
+                  value={loadingAdminAnalytics || !adminTotals ? '—' : `${adminTotals.active_trial_count}`}
+                />
+              </div>
             </div>
 
             {/* Top Earners table */}
