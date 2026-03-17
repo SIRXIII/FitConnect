@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import type { TierFeature, Tier } from '@/lib/tierGates';
 
 const FEATURE_COPY: Record<TierFeature, { label: string; description: string }> = {
@@ -50,7 +51,9 @@ export const LockedFeatureBanner: React.FC<LockedFeatureBannerProps> = ({ featur
         {FEATURE_NAMES[feature]}
       </p>
       <p className="text-sm text-ink/50 max-w-sm mx-auto">{copy.description}</p>
-      {/* Upgrade CTA placeholder — Phase 15 will add the pricing page link */}
+      <Link to="/pricing" className="text-accent underline underline-offset-2 text-xs">
+        View upgrade options
+      </Link>
     </div>
   );
 };

@@ -10,6 +10,8 @@ import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
 import RoleSelect from '@/pages/RoleSelect';
+import ClientOnboarding from '@/pages/ClientOnboarding';
+import TrainerOnboarding from '@/pages/TrainerOnboarding';
 import TrainerDashboard from '@/pages/TrainerDashboard';
 import TrainerBookings from '@/pages/TrainerBookings';
 import ClientDashboard from '@/pages/ClientDashboard';
@@ -18,6 +20,7 @@ import BookSession from '@/pages/BookSession';
 import MyBookings from '@/pages/MyBookings';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Messages from '@/pages/Messages';
+import Pricing from '@/pages/Pricing';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
@@ -52,9 +55,12 @@ const App: React.FC = () => {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/pricing" element={<Pricing />} />
 
           {/* Onboarding */}
           <Route path="/onboarding/role" element={<RoleSelect />} />
+          <Route path="/onboarding/client" element={<ClientOnboarding />} />
+          <Route path="/onboarding/trainer" element={<TrainerOnboarding />} />
 
           {/* Trainer routes */}
           <Route
