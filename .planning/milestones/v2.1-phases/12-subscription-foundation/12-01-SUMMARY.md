@@ -111,6 +111,14 @@ None - no external service configuration required. Migration applied directly to
 - Phase 15 (Subscription UI) can read subscription_tier/subscription_status to gate UI features
 - Phase 16 (Admin Subscription) can use tier_overridden_by/tier_overridden_at for manual tier management; admin bypass in trigger is already wired
 
+## Self-Check: PASSED
+
+- FOUND: `Cenlar demand gt 1-17/supabase/migrations/20260316100000_subscription_foundation.sql`
+- FOUND: `Cenlar demand gt 1-17/src/types/supabase.ts` (modified)
+- FOUND: `.planning/phases/12-subscription-foundation/12-01-SUMMARY.md`
+- FOUND: commit `b779349` (migration)
+- FOUND: commit `577d53a` (TypeScript types)
+
 ---
 *Phase: 12-subscription-foundation*
 *Completed: 2026-03-16*
