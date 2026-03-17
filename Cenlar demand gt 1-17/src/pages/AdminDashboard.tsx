@@ -24,6 +24,12 @@ interface UserRow {
   role: 'trainer' | 'client' | null;
   is_suspended: boolean;
   created_at: string;
+  trainer_profiles?: {
+    subscription_tier: 'free' | 'pro' | 'elite';
+    subscription_status: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
+    tier_overridden_by: string | null;
+    tier_overridden_at: string | null;
+  } | null;
 }
 
 interface Stats {
@@ -104,7 +110,7 @@ const AdminDashboard: React.FC = () => {
     try {
       let query = supabase
         .from('profiles')
-        .select('id, full_name, role, is_suspended, created_at')
+        .select('id, full_name, role, is_suspended, created_at, trainer_profiles(subscription_tier, subscription_status, tier_overridden_by, tier_overridden_at)')
         .in('role', ['trainer', 'client'])
         .order('created_at', { ascending: false });
 
@@ -114,7 +120,7 @@ const AdminDashboard: React.FC = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      setUsers((data ?? []) as UserRow[]);
+      setUsers((data ?? []) as unknown as UserRow[]);
     } catch {
       toast.error('Failed to load users');
     } finally {
@@ -380,9 +386,10 @@ const AdminDashboard: React.FC = () => {
 
             <div className="border border-ink/10">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_100px_120px_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/2">
+              <div className="grid grid-cols-[1fr_100px_120px_120px_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/2">
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Name</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Role</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Tier</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Joined</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
               </div>
@@ -399,7 +406,7 @@ const AdminDashboard: React.FC = () => {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className="grid grid-cols-[1fr_100px_120px_120px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/2 transition-colors"
+                    className="grid grid-cols-[1fr_100px_120px_120px_120px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/2 transition-colors"
                   >
                     <div>
                       <p className={`text-sm font-medium ${user.is_suspended ? 'text-ink/30 line-through' : 'text-ink'}`}>
@@ -407,6 +414,14 @@ const AdminDashboard: React.FC = () => {
                       </p>
                     </div>
                     <p className="text-[10px] uppercase tracking-widest text-ink/50">{user.role}</p>
+                    <div>
+                      {user.role === 'trainer' && user.trainer_profiles ? (
+                        <TierBadge
+                          tier={user.trainer_profiles.subscription_tier}
+                          status={user.trainer_profiles.subscription_status}
+                        />
+                      ) : null}
+                    </div>
                     <p className="text-[10px] text-ink/40">
                       {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
@@ -568,6 +583,37 @@ const StatCard: React.FC<{
     <p className={`text-3xl serif font-light ${accent ? 'text-accent' : 'text-ink'}`}>{value}</p>
   </div>
 );
+
+const TierBadge: React.FC<{
+  tier: 'free' | 'pro' | 'elite';
+  status: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
+}> = ({ tier, status }) => {
+  const isPastDue = status === 'past_due';
+  const isTrialing = status === 'trialing';
+
+  let label: string;
+  let colorClass: string;
+
+  if (isPastDue) {
+    label = `${tier === 'pro' ? 'Pro' : 'Elite'} — Past Due`;
+    colorClass = 'text-amber-600';
+  } else if (tier === 'free') {
+    label = 'Free';
+    colorClass = 'text-ink/40';
+  } else if (tier === 'pro') {
+    label = isTrialing ? 'Pro — Trialing' : 'Pro';
+    colorClass = isTrialing ? 'text-accent/70' : 'text-accent';
+  } else {
+    label = isTrialing ? 'Elite — Trialing' : 'Elite';
+    colorClass = isTrialing ? 'text-ink/70' : 'text-ink';
+  }
+
+  return (
+    <span className={`text-[10px] uppercase tracking-[0.15em] font-medium ${colorClass}`}>
+      {label}
+    </span>
+  );
+};
 
 const HealthRow: React.FC<{ label: string; status: 'operational' | 'degraded' | 'down' }> = ({ label, status }) => (
   <div className="flex items-center justify-between">
