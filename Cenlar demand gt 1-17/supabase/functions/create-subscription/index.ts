@@ -22,11 +22,19 @@ Deno.serve(async (req) => {
     const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
     const stripeSecretKey = requireEnv('STRIPE_SECRET_KEY');
 
-    // Step 1: Parse request body — priceId is required
+    // Price lookup: resolve tier+interval to Stripe price ID
+    const PRICE_MAP: Record<string, string> = {
+      'pro:month':   Deno.env.get('STRIPE_PRICE_PRO_MONTHLY')!,
+      'pro:year':    Deno.env.get('STRIPE_PRICE_PRO_YEARLY')!,
+      'elite:month': Deno.env.get('STRIPE_PRICE_ELITE_MONTHLY')!,
+      'elite:year':  Deno.env.get('STRIPE_PRICE_ELITE_YEARLY')!,
+    };
+
+    // Step 1: Parse request body — accepts priceId directly OR tier+interval
     let priceId: string;
     try {
       const body = await req.json();
-      priceId = body?.priceId;
+      priceId = body?.priceId ?? PRICE_MAP[`${body?.tier}:${body?.interval}`];
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid request body' }), {
         status: 400,
@@ -35,7 +43,7 @@ Deno.serve(async (req) => {
     }
 
     if (!priceId) {
-      return new Response(JSON.stringify({ error: 'priceId is required' }), {
+      return new Response(JSON.stringify({ error: 'Provide priceId or valid tier+interval' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
