@@ -133,6 +133,16 @@ export async function getPortalUrl(): Promise<{ url: string }> {
   return callEdgeFunction<{ url: string }>('manage-subscription');
 }
 
+export async function setAdminTierOverride(
+  trainerId: string,
+  tier: 'free' | 'pro' | 'elite',
+): Promise<{ success: boolean }> {
+  return callEdgeFunction<{ success: boolean }>(
+    'admin-set-tier-override',
+    { trainerId, tier },
+  );
+}
+
 export function featuresLostOnDowngrade(
   from: Tier,
   to: Tier,

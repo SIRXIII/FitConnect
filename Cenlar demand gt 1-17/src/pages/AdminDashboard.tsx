@@ -4,6 +4,7 @@ import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, Trend
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
+import { setAdminTierOverride } from '@/lib/subscription';
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -69,6 +70,7 @@ const AdminDashboard: React.FC = () => {
     bookings_count: number;
   }>>([]);
   const [loadingAdminAnalytics, setLoadingAdminAnalytics] = useState(false);
+  const [overridingUserId, setOverridingUserId] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -232,6 +234,17 @@ const AdminDashboard: React.FC = () => {
     toast.success(`Platform fee updated to ${Math.round(parsed * 100)}%`);
   };
 
+  const handleOverride = async (trainerId: string, tier: 'free' | 'pro' | 'elite') => {
+    try {
+      await setAdminTierOverride(trainerId, tier);
+      toast.success(`Tier override set to ${tier}`);
+      setOverridingUserId(null);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Override failed');
+    }
+  };
+
   const isDirty = platformFee !== savedFee;
 
   return (
@@ -386,12 +399,13 @@ const AdminDashboard: React.FC = () => {
 
             <div className="border border-ink/10">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_100px_120px_120px_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/2">
+              <div className="grid grid-cols-[1fr_100px_120px_100px_120px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/2">
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Name</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Role</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Tier</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Joined</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Override</p>
               </div>
 
               {loadingUsers ? (
@@ -406,7 +420,7 @@ const AdminDashboard: React.FC = () => {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className="grid grid-cols-[1fr_100px_120px_120px_120px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/2 transition-colors"
+                    className="grid grid-cols-[1fr_100px_120px_100px_120px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/2 transition-colors"
                   >
                     <div>
                       <p className={`text-sm font-medium ${user.is_suspended ? 'text-ink/30 line-through' : 'text-ink'}`}>
@@ -439,6 +453,43 @@ const AdminDashboard: React.FC = () => {
                         <><UserX size={12} /> Suspend</>
                       )}
                     </button>
+                    <div>
+                      {user.role === 'trainer' && (
+                        overridingUserId === user.id ? (
+                          <div className="flex items-center gap-2">
+                            {(['free', 'pro', 'elite'] as const).map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => handleOverride(user.id, t)}
+                                className="text-[9px] uppercase tracking-widest font-medium text-ink/50 hover:text-ink transition-colors"
+                              >
+                                {t}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => setOverridingUserId(null)}
+                              className="text-[9px] uppercase tracking-widest font-medium text-ink/20 hover:text-ink/50 transition-colors ml-1"
+                            >
+                              x
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-0.5">
+                            <button
+                              onClick={() => setOverridingUserId(user.id)}
+                              className="text-[9px] uppercase tracking-widest font-medium text-ink/30 hover:text-ink transition-colors"
+                            >
+                              Override
+                            </button>
+                            {user.trainer_profiles?.tier_overridden_at && (
+                              <p className="text-[8px] text-ink/25">
+                                Set {new Date(user.trainer_profiles.tier_overridden_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            )}
+                          </div>
+                        )
+                      )}
+                    </div>
                   </div>
                 ))
               )}
