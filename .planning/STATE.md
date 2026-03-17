@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-current_plan: 15-02
+current_plan: 16-01
 status: executing
-stopped_at: Completed 15-01-PLAN.md (subscription helpers + PRICE_MAP)
-last_updated: "2026-03-17T03:08:24.286Z"
+stopped_at: Completed 15-03-PLAN.md (trial banner + subscription tab + downgrade modal)
+last_updated: "2026-03-17T03:14:43.000Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State — FitRush
@@ -24,8 +24,8 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 15 of 16 — Subscription UI (EXECUTING — 3 plans, 2/3 executed)
-**Current Plan:** 15-03
+**Phase:** 16 of 16 — Admin Subscription (NOT STARTED)
+**Current Plan:** 16-01
 **Status:** Executing
 
 ## Progress
@@ -35,10 +35,10 @@ v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
 Phase 14: Feature Gates + Search   [x] COMPLETE (tier hooks + bio trigger + slot RPC + dashboard gates + tier ranking + FeaturedTrainers)
-Phase 15: Subscription UI          [~] EXECUTING (3 plans: 15-01 DONE, 15-02 DONE, 15-03 next)
+Phase 15: Subscription UI          [x] COMPLETE (subscription helpers + pricing page + trial banner + subscription tab + downgrade modal)
 Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [████████░░] 83%
+Overall: [█████████░] 92%
 ```
 
 ## Recent Decisions
@@ -103,6 +103,9 @@ Overall: [████████░░] 83%
 | PlanCard CTA 5-state machine | 2026-03-17 | free current, paid current, unauthenticated redirect, trial-eligible, already-subscribed |
 | Default billing interval is monthly | 2026-03-17 | Lower sticker shock per research recommendation |
 | /pricing is a public route | 2026-03-17 | Unauthenticated visitors discover pricing before signup |
+| TrialBanner handles own null checks internally | 2026-03-17 | No loading selector needed -- prevents flash on first render |
+| DowngradeModal confirm redirects to Stripe Portal | 2026-03-17 | Keeps billing state management in Stripe rather than calling cancel API directly |
+| Tab initialization reads ?tab= query param | 2026-03-17 | Stripe Portal return auto-selects subscription tab via lazy useState initializer |
 
 ## Pending Todos
 
@@ -117,6 +120,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-17T03:07:32.000Z
-Stopped at: Completed 15-02-PLAN.md (pricing page + billing toggle + trial start)
-Resume with: `/gsd:execute-phase 15` (Phase 15 — Plan 15-03 next)
+Last session: 2026-03-17T03:14:43.000Z
+Stopped at: Completed 15-03-PLAN.md (trial banner + subscription tab + downgrade modal)
+Resume with: `/gsd:execute-phase 16` (Phase 16 — Admin Subscription)

@@ -42,7 +42,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md`
 - [x] **Phase 12: Subscription Foundation** — DB schema migration + Stripe Dashboard config; prerequisite for all billing phases
 - [x] **Phase 13: Billing Backend** — Full subscription lifecycle server-side: create-subscription, webhook handlers, manage-subscription, trial-end email (completed 2026-03-16)
 - [x] **Phase 14: Feature Gates + Search** — Tier gates enforced at DB level; Pro/Elite trainers get priority search placement and Featured section (completed 2026-03-16)
-- [ ] **Phase 15: Subscription UI** — Trainer-facing pricing page, trial activation flow, subscription status, Customer Portal link
+- [x] **Phase 15: Subscription UI** — Trainer-facing pricing page, trial activation flow, subscription status, Customer Portal link (completed 2026-03-17)
 - [ ] **Phase 16: Admin Subscription Visibility** — Admin tier badges, manual tier override, MRR + subscriber analytics
 
 ---
@@ -140,7 +140,7 @@ Plans:
 | 12. Subscription Foundation | v2.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
 | 14. Feature Gates + Search | 4/4 | Complete    | 2026-03-16 | — |
-| 15. Subscription UI | 2/3 | In Progress|  | — |
+| 15. Subscription UI | 3/3 | Complete   | 2026-03-17 | — |
 | 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
 
 ---
