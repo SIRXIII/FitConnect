@@ -122,7 +122,12 @@ Plans:
   1. The admin trainer list displays a tier badge (Free / Pro / Elite / Trialing / Past Due) next to each trainer, sourced live from `trainer_profiles.subscription_tier` and `subscription_status`
   2. An admin can set a manual tier override for any trainer; the trainer immediately gains that tier's features; a subsequent `customer.subscription.updated` webhook event from Stripe supersedes the override and sets the correct Stripe-driven tier
   3. The admin analytics tab displays MRR, Pro subscriber count, Elite subscriber count, and active trial count — all sourced from the updated `get_admin_analytics` RPC
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 16-01-PLAN.md — DB migration: add active_trial_count to get_admin_analytics RPC (ADMN-03)
+- [ ] 16-02-PLAN.md — AdminDashboard: subscription metric StatCards + TierBadge in users tab (ADMN-01, ADMN-03)
+- [ ] 16-03-PLAN.md — admin-set-tier-override Edge Function + Override UI in users tab (ADMN-02)
 
 ---
 
@@ -141,7 +146,7 @@ Plans:
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
 | 14. Feature Gates + Search | 4/4 | Complete    | 2026-03-16 | — |
 | 15. Subscription UI | 3/3 | Complete    | 2026-03-17 | — |
-| 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
+| 16. Admin Subscription Visibility | v2.1 | 0/3 | 📋 planned | — |
 
 ---
-*Last updated: 2026-03-16 after Phase 15 planned*
+*Last updated: 2026-03-17 after Phase 16 planned*
