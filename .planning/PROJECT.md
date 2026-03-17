@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee and grows via referral incentives.
+A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives.
 
 ## Core Value
 
@@ -40,12 +40,15 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 - ✓ Referral leaderboard on landing page (top 10 this month) — v2.0
 - ✓ Referral notifications (in-app + email) — v2.0
 
-### Active (v2.1 — Subscription Tiers)
+### Validated (v2.1)
 
-- [ ] Trainer can subscribe to Pro tier ($9/month) for priority search placement and advanced analytics
-- [ ] Trainer can subscribe to Elite tier ($29/month) for custom branding and featured section
-- [ ] Stripe Billing integration: automatic recurring charges, upgrade/downgrade UI, invoice history
-- [ ] Feature gates: free (3 slots visible), Pro (10 slots, custom bio), Elite (unlimited, branded)
+- ✓ Trainer can subscribe to Pro tier ($9/month) for priority search placement and advanced analytics — v2.1
+- ✓ Trainer can subscribe to Elite tier ($29/month) for featured section and unlimited slots — v2.1
+- ✓ Stripe Billing integration: 30-day trial, monthly/annual billing, webhook-driven tier sync — v2.1
+- ✓ Feature gates: Free (3 slots, 280-char bio), Pro (10 slots, 1000-char bio), Elite (unlimited) — v2.1
+- ✓ Admin subscription visibility: tier badges, manual override, MRR analytics — v2.1
+
+### Active (next milestone — TBD)
 
 ### Deferred (v1.1 security patch — still pending before major marketing push)
 
@@ -72,21 +75,23 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 
 ## Context
 
-**Current state (v2.0 shipped — 2026-03-15):**
-- React 19 + TypeScript + Vite 6 SPA — 8,942 LOC
-- Supabase PostgreSQL backend — 14 migrations deployed
-- 10 Edge Functions: create-payment-intent, stripe-webhook, create-connect-account, send-notification-email, create-payout, weekly-payouts, process-referral-reward, create-setup-intent, cancel-booking, export-user-data
-- Stripe Connect Express accounts with destination charges + Stripe transfers for payouts
-- 3 Postgres analytics RPCs: `get_trainer_analytics`, `get_trainer_analytics_trend`, `get_admin_analytics`
+**Current state (v2.1 shipped — 2026-03-17):**
+- React 19 + TypeScript + Vite 6 SPA — ~15,239 LOC
+- Supabase PostgreSQL backend — 18 migrations deployed
+- 13 Edge Functions: create-payment-intent, stripe-webhook, create-connect-account, send-notification-email, create-payout, weekly-payouts, process-referral-reward, create-setup-intent, cancel-booking, export-user-data, create-subscription, manage-subscription, admin-set-tier-override
+- Stripe Connect Express + Stripe Billing (subscriptions, trials, dunning, Customer Portal)
+- 3 Postgres analytics RPCs: `get_trainer_analytics`, `get_trainer_analytics_trend`, `get_admin_analytics` (with MRR + subscriber counts)
+- Subscription system: 3-tier feature gates (Free/Pro/Elite), write-guard trigger, get_visible_slots RPC, tier-aware search ranking
 - Referral system: `referrals` table, `referral_code` on profiles, leaderboard RPC, cookie attribution
 - Tailwind CSS v4 with luxury design tokens
 - Zustand v5 for auth state, custom hooks for data fetching
+- Vitest 4.1.x for unit testing (configured in Phase 14)
 - Supabase project: qecwxvvlpvrnrqyrdxrj (fitrush-app.netlify.app)
 
 **Codebase health:**
 - v1.1 security issues partially addressed: GEMINI key moved server-side, discount slider added, orphaned booking cleanup cron, Edge Function auth added
 - Remaining critical: payment race condition, SQL injection via ilike, full RLS audit, cancellation refund
-- No automated tests, no CI/CD pipeline
+- Vitest configured but test coverage is minimal (tier gate tests only)
 
 **Competitive landscape:**
 - Fyt (primary competitor): dumps full calendar to clients, no idle hour optimization
@@ -118,28 +123,16 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 | `handle_new_user` trigger generates `referral_code` | All signups auto-get code regardless of path | ✓ Good |
 | Referral $5 discount applies to any trainer | Simpler UX — not locked to referred trainer | ✓ Good |
 | Subscription tiers deferred to v2.1 | Deliver cash flow (payouts) and growth (referrals) first | ✓ Good |
+| `guard_subscription_tier_write` trigger | Only webhook/service_role can modify subscription_tier | ✓ Good — v2.1 |
+| Frontend sends `{tier, interval}`, backend resolves PRICE_MAP | No frontend env vars for Stripe Price IDs | ✓ Good — v2.1 |
+| admin-set-tier-override uses service_role | Bypasses write-guard; admin identity verified via JWT first | ✓ Good — v2.1 |
 
-## Current Milestone: v2.1 — Subscription Tiers
+## Completed Milestone: v2.1 — Subscription Tiers ✅
 
-**Goal:** Monetize trainer engagement with Pro and Elite tiers, gating features to drive upgrades.
+**Shipped:** 2026-03-17
+**Phases:** 12–16 (5 phases, 15 plans, 20 requirements)
 
-**Tier structure:**
-
-| | Free | Pro ($9/mo) | Elite ($29/mo) |
-|---|---|---|---|
-| Slots visible to clients | 3 | 10 | Unlimited |
-| Profile | Basic bio | Custom bio | Custom bio + branding/URL |
-| Search rank | Standard | Priority | Featured on landing page |
-| Analytics | Basic stats | Advanced dashboard | Advanced dashboard |
-| Support | — | — | Priority |
-
-**Billing:** Monthly + Annual (20% discount = ~$7.20/mo Pro, ~$23.20/mo Elite)
-**Trial:** 30-day free trial, no card required
-
-**Admin features:**
-- Subscription tier status visible per trainer in user list
-- MRR + subscriber count in admin analytics tab
-- Manual tier override (grant/revoke Pro or Elite)
+See `.planning/MILESTONES.md` for full details.
 
 ---
-*Last updated: 2026-03-15 after v2.1 milestone start*
+*Last updated: 2026-03-17 after v2.1 milestone shipped*

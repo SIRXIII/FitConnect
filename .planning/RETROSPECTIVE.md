@@ -56,6 +56,59 @@
 
 ---
 
+## Milestone: v2.1 — Subscription Tiers
+
+**Shipped:** 2026-03-17
+**Phases:** 5 (12–16) | **Plans:** 15 | **Timeline:** 2 days (2026-03-15 → 2026-03-17)
+**Files:** ~15,239 LOC at ship · 13 Edge Functions · 18 migrations
+
+### What Was Built
+
+- **Subscription foundation:** 10-column schema migration on `trainer_profiles`, write-guard trigger (`guard_subscription_tier_write`), `get_visible_slots` RPC with tier-based slot limits, Stripe Dashboard config (2 Products, 4 Prices, Customer Portal)
+- **Billing backend:** `create-subscription` (PRICE_MAP lookup), `stripe-billing-webhook` (idempotent event processing, tier sync), `manage-subscription` (Customer Portal URL), trial-end email via Resend, `get_admin_analytics` extended with MRR
+- **Feature gates:** `tierGates.ts` constant, `useTier`/`useCan` hooks, bio length trigger, slot visibility RPC, analytics tab gating, `LockedFeatureBanner` upgrade CTA
+- **Search ranking:** Tier-weighted ranking (elite=1.0, pro=0.67, free=0.0), `FeaturedTrainers` Elite section on landing page, self-hiding empty state
+- **Subscription UI:** Public `/pricing` page with billing toggle, `PlanCard` 5-state CTA, trial countdown banner (7-day threshold), `SubscriptionTab` in trainer dashboard, `DowngradeModal` with feature-loss preview
+- **Admin visibility:** Tier badges per trainer (7-state color logic), manual tier override via `admin-set-tier-override` Edge Function (service_role bypass), MRR + subscriber + trial count analytics cards
+
+### What Worked
+
+- **Wave-based parallel execution with file-conflict detection:** Plan-checker caught the App.tsx parallel write conflict between 15-02 and 15-03 before execution — promoted 15-03 to Wave 3 with `depends_on: [15-01, 15-02]`. Same pattern applied proactively to AdminDashboard.tsx in Phase 16.
+- **Single-writer webhook pattern:** Only `stripe-billing-webhook` writes `subscription_tier` — `create-subscription` deliberately does NOT write, avoiding race conditions with `customer.subscription.created` events that fire within milliseconds.
+- **PRICE_MAP in backend, not frontend:** Frontend sends `{tier, interval}` instead of `priceId`. No `VITE_STRIPE_PRICE_*` env vars needed, single source of truth in Edge Function, and code works unchanged across Stripe test/live environments.
+- **Progressive disclosure in UI:** Analytics tab label visible for all tiers (discovery UX), but content gated behind `canAnalytics`. LockedFeatureBanner shows what's behind the gate before upgrade. TrialBanner appears only when ≤7 days remain.
+- **Vitest introduction in Phase 14:** First automated tests in the codebase — `tierGates.test.ts`, `useTier.test.ts`, `useCan.test.ts`. Provided immediate regression safety for the hooks that gate every feature.
+
+### What Was Inefficient
+
+- **TypeScript type gaps:** Supabase generated types don't include RPC functions or cross-table joins. The codebase has accumulated multiple `as unknown as X` casts and `any` annotations for `get_admin_analytics`, `get_visible_slots`, etc. This tech debt compounds with each phase.
+- **Summary format still lacks `one_liner` field:** Same issue as v2.0 — `gsd-tools summary-extract` couldn't pull accomplishments automatically. Milestones.md had to be manually populated. Need to standardize summary format or fix the extraction.
+- **Demo data added post-milestone:** Admin dashboard needed demo data fallback for empty databases (demo/investor presentations). This was added as an ad-hoc request rather than being part of the phase plan. Could be anticipated as a standard pattern for dashboards.
+
+### Patterns Established
+
+- **Write-guard trigger + service_role bypass:** `guard_subscription_tier_write` prevents auth-role writes to subscription columns. Webhook and admin-override Edge Functions use service_role to bypass. This is the canonical pattern for "only system processes can modify this column."
+- **callEdgeFunction<T> generic helper:** Module-private fetch wrapper with AbortController timeout (10s), JWT retrieval, and typed response parsing. Public API exports typed wrappers (`startTrial`, `getPortalUrl`, `setAdminTierOverride`).
+- **Tier-aware component patterns:** `useCan('feature')` for access control, `useTier()` for display logic, `TierBadge` for badge rendering, `TIER_GATES` constant as single source of truth for all gate decisions.
+- **TrialBanner null-return pattern:** Returns null when `!trainerProfile` (prevents flash), when `status !== 'trialing'`, when `daysLeft > 7`. Self-contained — no external loading state needed.
+- **Inline selector for admin actions:** Override UI uses inline `free/pro/elite` buttons with dismiss (`x`) rather than a modal. Faster admin workflow, less UI overhead.
+
+### Key Lessons
+
+1. **Webhook is the single source of truth for billing state.** Never write subscription_tier from a user-facing Edge Function — the webhook fires within milliseconds and will race with your write. Let the webhook be the only writer.
+2. **Serialize file modifications across parallel waves.** If two plans modify the same file in the same wave, the second agent overwrites the first's changes. Always check for file conflicts during plan-checking and promote to a later wave.
+3. **Bio triggers should use IS DISTINCT FROM, not simple inequality.** Existing long bios must survive tier downgrades — the trigger only fires when the bio content actually changes, not when any column on the row changes.
+4. **Demo data should be a planned pattern, not an afterthought.** Any admin/analytics dashboard should include a `DEMO_*` constant set and `usingDemoData` state from the start. Investors and demos need populated screens before real data exists.
+5. **Vitest pays for itself immediately.** Even the minimal test coverage from Phase 14 (3 test files) caught a broken import path during Phase 15 refactoring. The 5-second feedback loop is worth the ~30 minutes of setup.
+
+### Cost Observations
+
+- Model mix: ~80% sonnet, ~20% opus (plan-checker and milestone completion)
+- Sessions: ~6 sessions across 2 days
+- Notable: 15 plans executed across 5 phases with 1 plan deviation (wave promotion for App.tsx conflict). Plan-checker verification loop caught the issue before execution — zero rework.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -64,15 +117,19 @@
 |-----------|--------|-------|------------|
 | v1.0 | 4 shipped (8 total) | ~12 | Initial build — feature-first, security deferred |
 | v2.0 | 3 | 11 | Monetization sprint — phased dependency ordering, DB-first |
+| v2.1 | 5 | 15 | Subscription system — wave-based parallelism, plan-checker verification, first automated tests |
 
 ### Cumulative Quality
 
-| Milestone | Tests | Edge Functions | Migrations |
-|-----------|-------|----------------|------------|
-| v1.0 | 0 | 4 | 9 |
-| v2.0 | 0 | 10 | 14 |
+| Milestone | Tests | Edge Functions | Migrations | LOC |
+|-----------|-------|----------------|------------|-----|
+| v1.0 | 0 | 4 | 9 | ~5,000 |
+| v2.0 | 0 | 10 | 14 | ~8,942 |
+| v2.1 | 3 files | 13 | 18 | ~15,239 |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. **Defer to later, but track the debt.** Both v1.0 (Phases 1–4) and v2.0 (security patches) deferred work that created compounding friction. Always log deferred items in PROJECT.md Active/Deferred so they don't disappear.
 2. **Consistent non-blocking patterns across all async operations.** Email, notifications, and referral reward processing all follow the same try/catch wrapper — learned in v1.0 notifications, formalized in v2.0 payout emails.
+3. **Single-writer patterns prevent race conditions.** Established in v2.1 — webhook is the only writer for billing state. Same principle applies to any system where multiple actors could modify the same row concurrently.
+4. **Plan-checker catches file conflicts that humans miss.** Wave-based parallel execution requires explicit file-conflict detection. The App.tsx conflict in Phase 15 would have caused silent data loss without the checker.

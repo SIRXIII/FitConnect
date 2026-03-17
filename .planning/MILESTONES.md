@@ -1,5 +1,54 @@
 # Project Milestones — FitConnect
 
+## Milestone v2.1 — Subscription Tiers ✅
+
+**Status:** Complete
+**Shipped:** 2026-03-17
+**Phases:** 12–16 (5 phases · 15 plans)
+**Codebase at ship:** ~15,239 LOC TypeScript/SQL · 13 Edge Functions · 18 migrations
+**Timeline:** 2 days (2026-03-15 → 2026-03-17)
+
+### What Shipped
+
+| Phase | Name | Plans | Summary |
+|-------|------|-------|---------|
+| **12** | **Subscription Foundation** | 2/2 ✅ | DB schema (10 columns), write-guard trigger, get_visible_slots RPC, Stripe Dashboard config |
+| **13** | **Billing Backend** | 3/3 ✅ | create-subscription, stripe-billing-webhook, manage-subscription, trial-end email, admin MRR RPC |
+| **14** | **Feature Gates + Search** | 4/4 ✅ | tierGates.ts, useTier/useCan hooks, bio trigger, slot visibility, analytics gating, tier ranking, FeaturedTrainers |
+| **15** | **Subscription UI** | 3/3 ✅ | Pricing page, trial activation, trial banner, subscription management tab, downgrade modal |
+| **16** | **Admin Subscription Visibility** | 3/3 ✅ | Tier badges in user list, manual tier override Edge Function, MRR + subscriber analytics cards |
+
+### Key Accomplishments
+
+- Full Stripe Billing integration: 30-day free trial (no card), monthly/annual billing, webhook-driven tier sync, dunning automation
+- 3-tier feature gate system: Free (3 slots, 280-char bio), Pro (10 slots, 1000-char bio, priority search), Elite (unlimited slots, featured on landing page)
+- Subscription UI: public pricing page with billing toggle, trial countdown banner, in-app subscription management, downgrade confirmation with feature-loss preview
+- Admin subscription visibility: tier badges per trainer, manual tier override (service_role bypass), MRR/subscriber/trial analytics cards
+- All 20 v2.1 requirements delivered and verified across 4 categories (Billing, Tiers, Search, Admin)
+
+### Key Decisions
+
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| `guard_subscription_tier_write` trigger | Prevent auth-role writes to subscription_tier — only webhook/service_role can modify | ✓ Good |
+| Frontend sends `{tier, interval}`, backend resolves PRICE_MAP | No VITE_STRIPE_PRICE_ env vars needed; single source of truth in Edge Function | ✓ Good |
+| 2-second webhook delay after trial start | Stripe webhook takes 1-3s to fire; delay before fetchProfile prevents stale data | ✓ Good |
+| TrialBanner returns null when !trainerProfile | Prevents banner flash on initial page load while profile is fetching | ✓ Good |
+| admin-set-tier-override uses service_role | Bypasses write-guard trigger; admin identity verified via JWT before service_role write | ✓ Good |
+| Serialize App.tsx and AdminDashboard.tsx modifications across waves | Prevents parallel file conflict in wave-based execution | ✓ Good |
+| active_trial_count as separate migration | Keeps analytics data source consistent — all metrics from one RPC call | ✓ Good |
+
+### Deferred to v2.1.x
+
+- CHURN-01: Subscription pause (Stripe pause collection)
+- CHURN-02: Contextual upgrade modals at tier gates
+- BRAND-01: Elite custom profile URL/slug
+- UX-01: Proration preview before mid-cycle upgrade
+- UX-02: In-app invoice history
+- SEC-01: Phone verification at trial start
+
+---
+
 ## Milestone v2.0 — Monetization Sprint ✅
 
 **Status:** Complete
