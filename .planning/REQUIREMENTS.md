@@ -33,7 +33,7 @@
 
 ### Admin
 
-- [ ] **ADMN-01**: Admin user list displays subscription tier (Free / Pro / Elite / trial) and status per trainer
+- [x] **ADMN-01**: Admin user list displays subscription tier (Free / Pro / Elite / trial) and status per trainer
 - [ ] **ADMN-02**: Admin can manually grant or revoke a tier override for any trainer without requiring a Stripe subscription
 - [x] **ADMN-03**: Admin analytics tab displays MRR and active subscriber count broken down by tier (Pro and Elite)
 
@@ -97,7 +97,7 @@ Features that reduce churn or add polish but are not needed for the billing syst
 | SRCH-01 | Phase 14 | Complete |
 | SRCH-02 | Phase 14 | Complete |
 | SRCH-03 | Phase 14 | Complete |
-| ADMN-01 | Phase 16 | Pending |
+| ADMN-01 | Phase 16 | Complete |
 | ADMN-02 | Phase 16 | Pending |
 | ADMN-03 | Phase 16 | Complete |
 
