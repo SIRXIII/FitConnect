@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
 status: planning
-stopped_at: Completed 14-04-PLAN.md — tier ranking signal + FeaturedTrainers + Landing.tsx update
-last_updated: "2026-03-16T21:59:04.866Z"
+stopped_at: Phase 15 planning complete — 3 plans ready (15-01 wave 1, 15-02 wave 2, 15-03 wave 3)
+last_updated: "2026-03-16T23:30:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
+  total_plans: 12
   completed_plans: 9
 ---
 
@@ -23,8 +23,8 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 14 of 16 — Feature Gates + Search (COMPLETE — 4/4 plans done)
-**Status:** Ready to plan
+**Phase:** 15 of 16 — Subscription UI (PLANNED — 3 plans, 0/3 executed)
+**Status:** Ready to execute
 
 ## Progress
 
@@ -33,7 +33,7 @@ v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
 Phase 14: Feature Gates + Search   [x] COMPLETE (tier hooks + bio trigger + slot RPC + dashboard gates + tier ranking + FeaturedTrainers)
-Phase 15: Subscription UI          [ ] Not started
+Phase 15: Subscription UI          [ ] PLANNED (3 plans: 15-01 foundation, 15-02 pricing page, 15-03 trial banner + dashboard tab)
 Phase 16: Admin Subscription       [ ] Not started
 
 Overall: [█████████░] 89%
@@ -109,6 +109,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:54:35.658Z
-Stopped at: Completed 14-04-PLAN.md — tier ranking signal + FeaturedTrainers + Landing.tsx update
+Last session: 2026-03-16T23:30:00.000Z
+Stopped at: Phase 15 planning complete — 3 plans verified, App.tsx conflict resolved
 Resume with: `/gsd:execute-phase 15` (Phase 15 — Subscription UI)
