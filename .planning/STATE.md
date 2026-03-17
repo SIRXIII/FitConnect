@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-current_plan: Not started
-status: planning
-stopped_at: Completed 15-03-PLAN.md (trial banner + subscription tab + downgrade modal)
-last_updated: "2026-03-17T03:20:38.324Z"
+current_plan: 16-01 complete, 16-02 next
+status: executing
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-03-17T04:11:37.920Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 15
+  completed_plans: 13
 ---
 
 # Project State — FitRush
@@ -24,9 +24,9 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 16 of 16 — Admin Subscription (NOT STARTED)
-**Current Plan:** Not started
-**Status:** Ready to plan
+**Phase:** 16 of 16 — Admin Subscription (IN PROGRESS)
+**Current Plan:** 16-01 complete, 16-02 next
+**Status:** Executing
 
 ## Progress
 
@@ -36,9 +36,9 @@ Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe confi
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
 Phase 14: Feature Gates + Search   [x] COMPLETE (tier hooks + bio trigger + slot RPC + dashboard gates + tier ranking + FeaturedTrainers)
 Phase 15: Subscription UI          [x] COMPLETE (subscription helpers + pricing page + trial banner + subscription tab + downgrade modal)
-Phase 16: Admin Subscription       [ ] Not started
+Phase 16: Admin Subscription       [~] In progress (1/2 plans)
 
-Overall: [█████████░] 92%
+Overall: [█████████░] 87%
 ```
 
 ## Recent Decisions
@@ -120,6 +120,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-17T03:14:43.000Z
-Stopped at: Completed 15-03-PLAN.md (trial banner + subscription tab + downgrade modal)
+Last session: 2026-03-17T04:11:37.917Z
+Stopped at: Completed 16-01-PLAN.md
 Resume with: `/gsd:execute-phase 16` (Phase 16 — Admin Subscription)

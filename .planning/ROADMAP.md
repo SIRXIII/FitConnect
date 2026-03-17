@@ -146,7 +146,7 @@ Plans:
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
 | 14. Feature Gates + Search | 4/4 | Complete    | 2026-03-16 | — |
 | 15. Subscription UI | 3/3 | Complete    | 2026-03-17 | — |
-| 16. Admin Subscription Visibility | v2.1 | 0/3 | 📋 planned | — |
+| 16. Admin Subscription Visibility | 1/3 | In Progress|  | — |
 
 ---
 *Last updated: 2026-03-17 after Phase 16 planned*
