@@ -11,6 +11,7 @@ import PayoutsTab from '@/components/trainer/PayoutsTab';
 import AnalyticsTab from '@/components/trainer/AnalyticsTab';
 import ReferralWidget from '@/components/shared/ReferralWidget';
 import LockedFeatureBanner from '@/components/shared/LockedFeatureBanner';
+import SubscriptionTab from '@/components/subscription/SubscriptionTab';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -21,7 +22,13 @@ const TrainerDashboard: React.FC = () => {
   const canAnalytics = useCan('analytics_advanced');
   const [searchParams] = useSearchParams();
   const navigateTo = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'payouts' | 'analytics'>('overview');
+  const tabs = ['overview', 'payouts', 'analytics', 'subscription'] as const;
+  const [activeTab, setActiveTab] = useState<typeof tabs[number]>(() => {
+    const tabParam = searchParams.get('tab');
+    return tabs.includes(tabParam as typeof tabs[number])
+      ? (tabParam as typeof tabs[number])
+      : 'overview';
+  });
   const [showAvailability, setShowAvailability] = useState(false);
   const [upcomingCount, setUpcomingCount] = useState(0);
   const [stripeLoading, setStripeLoading] = useState(false);
@@ -176,7 +183,7 @@ const TrainerDashboard: React.FC = () => {
 
         {/* Tabs */}
         <div className="flex border-b border-ink/10">
-          {(['overview', 'payouts', 'analytics'] as const).map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -347,6 +354,7 @@ const TrainerDashboard: React.FC = () => {
             ? <AnalyticsTab />
             : <LockedFeatureBanner feature="analytics_advanced" tier={tier} />
         )}
+        {activeTab === 'subscription' && <SubscriptionTab />}
 
       </div>
     </div>
