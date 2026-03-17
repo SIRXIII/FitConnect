@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-current_plan: 16-01
-status: executing
+current_plan: Not started
+status: planning
 stopped_at: Completed 15-03-PLAN.md (trial banner + subscription tab + downgrade modal)
-last_updated: "2026-03-17T03:14:43.000Z"
+last_updated: "2026-03-17T03:20:38.324Z"
 progress:
   total_phases: 5
   completed_phases: 4
@@ -25,8 +25,8 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 ## Current Position
 
 **Phase:** 16 of 16 — Admin Subscription (NOT STARTED)
-**Current Plan:** 16-01
-**Status:** Executing
+**Current Plan:** Not started
+**Status:** Ready to plan
 
 ## Progress
 
