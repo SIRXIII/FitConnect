@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-current_plan: 16-03 complete — all plans done
-status: complete
+current_plan: Not started
+status: completed
 stopped_at: Completed 16-03-PLAN.md
-last_updated: "2026-03-17T04:23:55.904Z"
+last_updated: "2026-03-17T04:27:03.422Z"
 progress:
   total_phases: 5
   completed_phases: 5
@@ -25,8 +25,8 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 ## Current Position
 
 **Phase:** 16 of 16 — Admin Subscription (COMPLETE)
-**Current Plan:** 16-03 complete -- all plans done
-**Status:** Complete
+**Current Plan:** Not started
+**Status:** Milestone complete
 
 ## Progress
 
