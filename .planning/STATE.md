@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-status: planning
-stopped_at: Phase 15 planning complete — 3 plans ready (15-01 wave 1, 15-02 wave 2, 15-03 wave 3)
-last_updated: "2026-03-16T23:30:00.000Z"
+status: executing
+stopped_at: Phase 15 planning complete — 3 plans verified, App.tsx conflict resolved
+last_updated: "2026-03-17T03:04:20.460Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State — FitRush
@@ -23,8 +23,9 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 15 of 16 — Subscription UI (PLANNED — 3 plans, 0/3 executed)
-**Status:** Ready to execute
+**Phase:** 15 of 16 — Subscription UI (EXECUTING — 3 plans, 1/3 executed)
+**Current Plan:** 15-02
+**Status:** Executing
 
 ## Progress
 
@@ -33,10 +34,10 @@ v2.1 Phases:
 Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe config)
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
 Phase 14: Feature Gates + Search   [x] COMPLETE (tier hooks + bio trigger + slot RPC + dashboard gates + tier ranking + FeaturedTrainers)
-Phase 15: Subscription UI          [ ] PLANNED (3 plans: 15-01 foundation, 15-02 pricing page, 15-03 trial banner + dashboard tab)
+Phase 15: Subscription UI          [~] EXECUTING (3 plans: 15-01 DONE, 15-02 next, 15-03 pending)
 Phase 16: Admin Subscription       [ ] Not started
 
-Overall: [█████████░] 89%
+Overall: [████████░░] 83%
 ```
 
 ## Recent Decisions
@@ -95,6 +96,9 @@ Overall: [█████████░] 89%
 | Slot hint uses tier === 'free' direct check (not useCan) | 2026-03-16 | Informational display about data visibility, not access control — useCan not appropriate here |
 | tierScore IIFE in rankTrainers: elite=1.0, pro=0.67, free=0.0 at weight 0.20 | 2026-03-16 | New weights 0.35/0.20/0.15/0.10/0.20 — elite trainers surface above equivalent Free trainers |
 | FeaturedTrainers self-hides via null vs [] distinction | 2026-03-16 | null=loading returns null, []=no elite trainers returns null — no conditional wrapper needed in Landing.tsx |
+| PRICE_MAP uses env vars not hardcoded Stripe price IDs | 2026-03-17 | Deployment-safe -- same code works across Stripe test/live environments |
+| callEdgeFunction is module-private, startTrial/getPortalUrl are public API | 2026-03-17 | Encapsulated fetch mechanism; only typed callers exposed |
+| Backward compatibility preserved in create-subscription | 2026-03-17 | Still accepts raw priceId alongside new tier+interval path |
 
 ## Pending Todos
 
@@ -109,6 +113,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-16T23:30:00.000Z
-Stopped at: Phase 15 planning complete — 3 plans verified, App.tsx conflict resolved
-Resume with: `/gsd:execute-phase 15` (Phase 15 — Subscription UI)
+Last session: 2026-03-17T03:07:00.000Z
+Stopped at: Completed 15-01-PLAN.md (subscription helpers + PRICE_MAP)
+Resume with: `/gsd:execute-phase 15` (Phase 15 — Plan 15-02 next)
