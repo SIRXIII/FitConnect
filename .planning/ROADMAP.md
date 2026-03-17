@@ -107,7 +107,12 @@ Plans:
   3. A trainer whose trial ends in 6 days sees a persistent banner: "X days left in your Pro trial — add payment to keep access"; the banner is absent when more than 7 days remain
   4. Clicking "Manage Subscription" calls `manage-subscription` and redirects the trainer to the Stripe Customer Portal where they can upgrade, downgrade, cancel, or update payment details
   5. Clicking "Downgrade" within the app presents a confirmation modal listing the exact features that will be lost before the action is submitted
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Foundation: subscription.ts helper lib + create-subscription Edge Function tier+interval support (BILL-01, BILL-04)
+- [ ] 15-02-PLAN.md — Pricing page: PricingTable, PlanCard, BillingToggle components + /pricing route + LockedFeatureBanner upgrade CTA (BILL-01, BILL-04)
+- [ ] 15-03-PLAN.md — Trial banner + SubscriptionTab + DowngradeModal in TrainerDashboard (BILL-02, BILL-03, BILL-05)
 
 ### Phase 16: Admin Subscription Visibility
 **Goal**: Admin has full visibility into trainer subscription state and can intervene manually without requiring a Stripe action
@@ -135,8 +140,8 @@ Plans:
 | 12. Subscription Foundation | v2.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
 | 14. Feature Gates + Search | 4/4 | Complete    | 2026-03-16 | — |
-| 15. Subscription UI | v2.1 | 0/? | 📋 planned | — |
+| 15. Subscription UI | v2.1 | 0/3 | 📋 planned | — |
 | 16. Admin Subscription Visibility | v2.1 | 0/? | 📋 planned | — |
 
 ---
-*Last updated: 2026-03-16 after Phase 14 planned*
+*Last updated: 2026-03-16 after Phase 15 planned*
