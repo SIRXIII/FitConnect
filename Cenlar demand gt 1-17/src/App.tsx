@@ -21,9 +21,11 @@ import MyBookings from '@/pages/MyBookings';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Messages from '@/pages/Messages';
 import Pricing from '@/pages/Pricing';
+import TrialBanner from '@/components/subscription/TrialBanner';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
+  const profile = useAuthStore((s) => s.profile);
 
   useEffect(() => {
     initialize();
@@ -50,6 +52,7 @@ const App: React.FC = () => {
           }}
         />
         <Navbar />
+        {profile?.role === 'trainer' && <TrialBanner />}
         <Routes>
           {/* Public */}
           <Route path="/" element={<Landing />} />
