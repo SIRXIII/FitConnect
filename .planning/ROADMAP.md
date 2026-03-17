@@ -43,7 +43,7 @@ See: `.planning/milestones/v2.0-ROADMAP.md`
 - [x] **Phase 13: Billing Backend** — Full subscription lifecycle server-side: create-subscription, webhook handlers, manage-subscription, trial-end email (completed 2026-03-16)
 - [x] **Phase 14: Feature Gates + Search** — Tier gates enforced at DB level; Pro/Elite trainers get priority search placement and Featured section (completed 2026-03-16)
 - [x] **Phase 15: Subscription UI** — Trainer-facing pricing page, trial activation flow, subscription status, Customer Portal link (completed 2026-03-17)
-- [ ] **Phase 16: Admin Subscription Visibility** — Admin tier badges, manual tier override, MRR + subscriber analytics
+- [x] **Phase 16: Admin Subscription Visibility** — Admin tier badges, manual tier override, MRR + subscriber analytics (completed 2026-03-17)
 
 ---
 
@@ -146,7 +146,7 @@ Plans:
 | 13. Billing Backend | 3/3 | Complete    | 2026-03-16 | — |
 | 14. Feature Gates + Search | 4/4 | Complete    | 2026-03-16 | — |
 | 15. Subscription UI | 3/3 | Complete    | 2026-03-17 | — |
-| 16. Admin Subscription Visibility | 2/3 | In Progress|  | — |
+| 16. Admin Subscription Visibility | 3/3 | Complete   | 2026-03-17 | — |
 
 ---
 *Last updated: 2026-03-17 after Phase 16 planned*

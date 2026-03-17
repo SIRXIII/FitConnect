@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Subscription Tiers
-current_plan: 16-02 complete, 16-03 next
-status: executing
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-03-17T04:19:24.668Z"
+current_plan: 16-03 complete — all plans done
+status: complete
+stopped_at: Completed 16-03-PLAN.md
+last_updated: "2026-03-17T04:23:55.904Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State — FitRush
@@ -24,9 +24,9 @@ See: `.planning/PROJECT.md` (updated 2026-03-15)
 
 ## Current Position
 
-**Phase:** 16 of 16 — Admin Subscription (IN PROGRESS)
-**Current Plan:** 16-02 complete, 16-03 next
-**Status:** Executing
+**Phase:** 16 of 16 — Admin Subscription (COMPLETE)
+**Current Plan:** 16-03 complete -- all plans done
+**Status:** Complete
 
 ## Progress
 
@@ -36,9 +36,9 @@ Phase 12: Subscription Foundation  [x] COMPLETE (schema migration + Stripe confi
 Phase 13: Billing Backend          [x] COMPLETE (webhook handler + subscription RPCs + MRR analytics)
 Phase 14: Feature Gates + Search   [x] COMPLETE (tier hooks + bio trigger + slot RPC + dashboard gates + tier ranking + FeaturedTrainers)
 Phase 15: Subscription UI          [x] COMPLETE (subscription helpers + pricing page + trial banner + subscription tab + downgrade modal)
-Phase 16: Admin Subscription       [~] In progress (2/3 plans)
+Phase 16: Admin Subscription       [x] COMPLETE (subscription health metrics + tier badges + tier override)
 
-Overall: [█████████░] 93%
+Overall: [██████████] 100%
 ```
 
 ## Recent Decisions
@@ -106,6 +106,8 @@ Overall: [█████████░] 93%
 | TrialBanner handles own null checks internally | 2026-03-17 | No loading selector needed -- prevents flash on first render |
 | DowngradeModal confirm redirects to Stripe Portal | 2026-03-17 | Keeps billing state management in Stripe rather than calling cancel API directly |
 | Tab initialization reads ?tab= query param | 2026-03-17 | Stripe Portal return auto-selects subscription tab via lazy useState initializer |
+| Edge Function uses service_role to bypass guard_subscription_tier_write | 2026-03-17 | Admin override must bypass trigger that blocks non-webhook tier writes |
+| Override column expands users table to 6 columns with inline selector | 2026-03-17 | free/pro/elite inline buttons with dismiss; override date subtext |
 | UserRow cast uses as unknown as UserRow[] for trainer_profiles join | 2026-03-17 | Supabase types don't register profiles-to-trainer_profiles FK; matches existing FlaggedReview cast pattern |
 | TierBadge em dash separator for compound labels | 2026-03-17 | Pro --- Trialing, Elite --- Past Due; 7-state color/label logic |
 
@@ -122,6 +124,6 @@ None
 
 ## Session Continuity
 
-Last session: 2026-03-17T04:19:24.665Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-03-17T04:23:55.899Z
+Stopped at: Completed 16-03-PLAN.md
 Resume with: `/gsd:execute-phase 16` (Phase 16 — Admin Subscription)
