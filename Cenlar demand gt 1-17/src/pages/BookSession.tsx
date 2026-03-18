@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth';
 import { formatSpecialty } from '@/types';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import type { TrainerProfile } from '@/stores/auth';
+import { SkeletonRect, SkeletonLine } from '@/components/shared/Skeleton';
 
 interface SlotWithTrainer extends AvailabilitySlot {
   trainer_profiles: TrainerProfile & {
@@ -294,8 +295,11 @@ const BookSession: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper">
-        <div className="w-6 h-6 border border-accent border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-paper pt-28 pb-20 px-6">
+        <div className="max-w-2xl mx-auto space-y-10">
+          <SkeletonLine width="w-48" className="h-6" />
+          <SkeletonRect className="h-64 w-full" />
+        </div>
       </div>
     );
   }

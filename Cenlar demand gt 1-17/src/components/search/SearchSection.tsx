@@ -4,6 +4,7 @@ import { PriceRange, formatSpecialty, DB_SPECIALTIES } from '@/types';
 import type { Trainer } from '@/types';
 import { useTrainers, type TrainerWithProfile } from '@/hooks/useTrainers';
 import TrainerCard from './TrainerCard';
+import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
 
 function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer {
   const discountPct = t.discount_percentage ?? 0;
@@ -150,8 +151,10 @@ const SearchSection: React.FC = () => {
 
         {/* Results */}
         {loading ? (
-          <div className="flex justify-center py-32">
-            <div className="w-6 h-6 border border-accent border-t-transparent rounded-full animate-spin" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <TrainerCardSkeleton key={i} />
+            ))}
           </div>
         ) : displayTrainers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">

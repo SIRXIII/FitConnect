@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { SkeletonLine } from '@/components/shared/Skeleton';
 
 interface ConversationParticipant {
   id: string;
@@ -249,8 +250,11 @@ const Messages: React.FC = () => {
             ${showThread ? 'hidden md:flex' : 'flex'}`}
           >
             {loadingConvos ? (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+              <div className="flex-1 px-5 py-4 space-y-4">
+                <SkeletonLine width="w-full" className="h-16" />
+                <SkeletonLine width="w-full" className="h-16" />
+                <SkeletonLine width="w-full" className="h-16" />
+                <SkeletonLine width="w-full" className="h-16" />
               </div>
             ) : conversations.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center px-8 text-center space-y-4">
@@ -351,8 +355,11 @@ const Messages: React.FC = () => {
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
                   {loadingMessages ? (
-                    <div className="flex justify-center py-12">
-                      <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+                    <div className="space-y-4 py-4">
+                      <SkeletonLine width="w-full" className="h-16" />
+                      <SkeletonLine width="w-full" className="h-16" />
+                      <SkeletonLine width="w-full" className="h-16" />
+                      <SkeletonLine width="w-full" className="h-16" />
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="text-center py-12">

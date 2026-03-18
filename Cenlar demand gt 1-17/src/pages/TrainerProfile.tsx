@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { classifySlot } from '@/lib/scheduling';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
+import { ProfileSkeleton } from '@/components/skeleton/ProfileSkeleton';
+import { SkeletonRect } from '@/components/shared/Skeleton';
 
 interface Review {
   id: string;
@@ -220,11 +222,7 @@ const TrainerProfile: React.FC = () => {
   }, [availableSlots]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-paper">
-        <div className="w-6 h-6 border border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!trainer) {
@@ -406,8 +404,10 @@ const TrainerProfile: React.FC = () => {
               </div>
 
               {loadingSlots ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+                <div className="space-y-3">
+                  <SkeletonRect className="h-12 w-full" />
+                  <SkeletonRect className="h-12 w-full" />
+                  <SkeletonRect className="h-12 w-full" />
                 </div>
               ) : availableSlots.length === 0 ? (
                 <div className="border border-dashed border-ink/10 p-8 text-center">

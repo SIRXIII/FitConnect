@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { buildIdleSlotCounts } from '@/lib/scheduling';
 import { formatSpecialty } from '@/types';
 import { MOCK_TRAINERS } from '@/lib/constants';
+import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
 
 interface DealTrainer {
   id: string;
@@ -87,6 +88,28 @@ const BestDeals: React.FC = () => {
           };
         });
 
+      // If DB trainers exist but none have idle slots, fall back to mock data
+      if (withIdle.length === 0) {
+        const mockDeals = MOCK_TRAINERS
+          .filter((t) => t.discountPercentage > 0 && t.idleSlotCount > 0)
+          .sort((a, b) => b.discountPercentage - a.discountPercentage)
+          .slice(0, 3)
+          .map((t) => ({
+            id: t.id,
+            name: t.name,
+            avatarUrl: t.imageUrl,
+            specialty: t.specialty,
+            optimizedRate: t.optimizedRate,
+            discountPercentage: t.discountPercentage,
+            discountedRate: t.discountedRate,
+            rating: t.rating,
+            idleSlotCount: t.idleSlotCount,
+          }));
+        setDeals(mockDeals);
+        setLoading(false);
+        return;
+      }
+
       setDeals(withIdle);
       setLoading(false);
     };
@@ -122,8 +145,10 @@ const BestDeals: React.FC = () => {
 
         {/* Deal cards */}
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <TrainerCardSkeleton />
+            <TrainerCardSkeleton />
+            <TrainerCardSkeleton />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -144,13 +169,13 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
     <div className="border border-white/10 p-8 space-y-6 hover:border-white/25 transition-colors duration-500">
       {/* Top row: avatar + discount badge */}
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
+        <Link to={`/trainers/${deal.id}`} className="flex items-center gap-4 group">
           {deal.avatarUrl ? (
             <img
               src={deal.avatarUrl}
               alt={deal.name}
               referrerPolicy="no-referrer"
-              className="w-12 h-12 rounded-full object-cover"
+              className="w-12 h-12 rounded-full object-cover group-hover:opacity-80 transition-opacity"
             />
           ) : (
             <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium text-white/60">
@@ -158,10 +183,10 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
             </div>
           )}
           <div>
-            <p className="text-base font-medium text-white">{deal.name}</p>
+            <p className="text-base font-medium text-white group-hover:text-accent transition-colors">{deal.name}</p>
             <p className="text-[10px] uppercase tracking-widest text-white/40 mt-0.5">{deal.specialty}</p>
           </div>
-        </div>
+        </Link>
         <span className="bg-accent text-white text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 font-semibold shrink-0">
           {deal.discountPercentage}% off
         </span>
@@ -191,7 +216,7 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
       </div>
 
       <Link
-        to={`/trainers/${deal.id}`}
+        to={`/trainers/${deal.id}?book=true`}
         className="block w-full text-center border border-white/20 py-3.5 text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-ink transition-all duration-500"
       >
         Book This Deal

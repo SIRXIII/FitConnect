@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import type { Tables } from '@/types/supabase';
 import FitnessPassportCard from '@/components/booking/FitnessPassportCard';
+import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
 
 type BookingStatus = Tables<'bookings'>['status'];
 
@@ -267,8 +268,10 @@ const TrainerBookings: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+          <div className="space-y-4">
+            <BookingCardSkeleton />
+            <BookingCardSkeleton />
+            <BookingCardSkeleton />
           </div>
         ) : (activeTab === 'action' ? actionRequired : history).length === 0 ? (
           <div className="text-center py-20 border border-dashed border-ink/10">

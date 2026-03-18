@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth';
 import { reviewSchema } from '@/lib/schemas';
 import { formatSpecialty } from '@/types';
 import type { Tables } from '@/types/supabase';
+import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
 
 type BookingRow = Tables<'bookings'>;
 type ReviewRow = Tables<'reviews'>;
@@ -296,8 +297,10 @@ const MyBookings: React.FC = () => {
 
         {/* Booking List */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+          <div className="space-y-4">
+            <BookingCardSkeleton />
+            <BookingCardSkeleton />
+            <BookingCardSkeleton />
           </div>
         ) : displayBookings.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-ink/10">

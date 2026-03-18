@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Camera, Check } from 'lucide-react';
+import { SkeletonCircle, SkeletonLine } from '@/components/shared/Skeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
@@ -188,8 +189,14 @@ const ClientPassport: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper pt-24 pb-20 px-6 flex items-center justify-center">
-        <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-paper pt-24 pb-20 px-6">
+        <div className="max-w-xl mx-auto flex flex-col items-center space-y-4 pt-16">
+          <SkeletonCircle size="w-20 h-20" />
+          <SkeletonLine width="w-48" className="h-5" />
+          <SkeletonLine width="w-64" className="h-4" />
+          <SkeletonLine width="w-56" className="h-4" />
+          <SkeletonLine width="w-40" className="h-4" />
+        </div>
       </div>
     );
   }
