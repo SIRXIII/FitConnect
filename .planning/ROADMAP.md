@@ -67,7 +67,7 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
   - [ ] 19-02-PLAN.md — calendar-export Edge Function + buffer enforcement in trigger and RPC
   - [ ] 19-03-PLAN.md — Calendar tab UI on TrainerDashboard (export card + buffer selector)
 
-- [ ] **Phase 20: UX Polish** — UXP-01→UXP-04: Booking flow redesign with progress indicator, image optimization + compression, skeleton loading screens, actionable error states
+- [x] **Phase 20: UX Polish** — UXP-01→UXP-04: Booking flow redesign with progress indicator, image optimization + compression, skeleton loading screens, actionable error states (completed 2026-03-18)
   **Plans:** 3 plans
   Plans:
   - [ ] 20-01-PLAN.md — Shared UX foundation (Skeleton primitives, ErrorState, mapError, imageUtils)
@@ -108,7 +108,7 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 | 17. Security Hardening | v3.0 | 3/3 | ✅ | 2026-03-17 |
 | 18. Trainee Fitness Passport | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 19. Calendar Export & Buffer Times | 3/3 | Complete    | 2026-03-18 | — |
-| 20. UX Polish | 1/3 | In Progress|  | — |
+| 20. UX Polish | 3/3 | Complete   | 2026-03-18 | — |
 
 ---
 *Last updated: 2026-03-18 — Phase 20 planned (3 plans)*
