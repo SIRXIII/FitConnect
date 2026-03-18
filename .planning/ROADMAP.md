@@ -81,6 +81,16 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 
 - [ ] **Phase 20: UX Polish** — UXP-01→UXP-04: Booking flow redesign with progress indicator, image optimization + compression, skeleton loading screens, actionable error states
 
+### Phase 20: UX Polish
+
+**Goal:** Improve user experience with booking flow redesign, image optimization, skeleton loading screens, and actionable error states.
+
+**Requirements:** UXP-01→UXP-04
+- UXP-01: Booking flow redesign with progress indicator (step-by-step wizard)
+- UXP-02: Image optimization + compression (lazy loading, WebP, srcset)
+- UXP-03: Skeleton loading screens (replace spinners with content-shaped placeholders)
+- UXP-04: Actionable error states (retry buttons, helpful messages, recovery paths)
+
 **Build order rationale:** Security first (primitives consumed by all later phases) → Profiles (frontend-heavy, table exists) → Calendar (new Edge Function + DB columns) → UX Polish (cross-cutting refinements last).
 
 ---
