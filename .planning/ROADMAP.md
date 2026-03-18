@@ -86,7 +86,10 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
   3. Visitor sees their position number ("You're #342") immediately after submitting
   4. GCP billing budget alert is set at $10/month and Maps API key is restricted to HTTP referrers
   5. Google OAuth consent screen is submitted for verification to start the 4–8 week approval clock
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 21-01-PLAN.md — Waitlist backend: DB migration, Edge Function, Zod schema
+- [ ] 21-02-PLAN.md — Hero email form with AnimatePresence + GCP checklist
 
 ### Phase 22: Availability Toggle Foundation
 **Goal**: Trainers can go online and offline with a live toggle and sleep timer, and the booking system handles concurrent requests without double-booking
@@ -190,7 +193,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 | 18. Trainee Fitness Passport | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 19. Calendar Export & Buffer Times | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 20. UX Polish | v3.0 | 3/3 | ✅ | 2026-03-18 |
-| 21. Email Capture + Platform Controls | v4.0 | 0/TBD | Not started | - |
+| 21. Email Capture + Platform Controls | v4.0 | 0/2 | Planning complete | - |
 | 22. Availability Toggle Foundation | v4.0 | 0/TBD | Not started | - |
 | 23. Map View + Trainer Locations | v4.0 | 0/TBD | Not started | - |
 | 24. Session Logging | v4.0 | 0/TBD | Not started | - |
