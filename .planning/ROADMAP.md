@@ -67,19 +67,12 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
   - [ ] 19-02-PLAN.md — calendar-export Edge Function + buffer enforcement in trigger and RPC
   - [ ] 19-03-PLAN.md — Calendar tab UI on TrainerDashboard (export card + buffer selector)
 
-### Phase 19: Calendar Export & Buffer Times
-
-**Goal:** Enable trainers to export their schedules to external calendars and configure buffer times between sessions.
-
-**Requirements:** CAL-01→CAL-06
-- CAL-01: iCal .ics file export (one-time download of current bookings)
-- CAL-02: Live iCal feed URL with opaque token (subscribe from Google Calendar / Apple Calendar)
-- CAL-03: Buffer time configuration UI (15/30/45/60 min between sessions)
-- CAL-04: Server-side buffer time enforcement (reject bookings that violate buffer)
-- CAL-05: get_visible_slots buffer integration (hide slots within buffer window)
-- CAL-06: Calendar settings page for trainers
-
 - [ ] **Phase 20: UX Polish** — UXP-01→UXP-04: Booking flow redesign with progress indicator, image optimization + compression, skeleton loading screens, actionable error states
+  **Plans:** 3 plans
+  Plans:
+  - [ ] 20-01-PLAN.md — Shared UX foundation (Skeleton primitives, ErrorState, mapError, imageUtils)
+  - [ ] 20-02-PLAN.md — Cross-app integration (skeletons, image optimization, error states across all pages)
+  - [ ] 20-03-PLAN.md — Booking wizard redesign (progress indicator, step components, Framer Motion transitions)
 
 ### Phase 20: UX Polish
 
@@ -115,7 +108,7 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 | 17. Security Hardening | v3.0 | 3/3 | ✅ | 2026-03-17 |
 | 18. Trainee Fitness Passport | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 19. Calendar Export & Buffer Times | 3/3 | Complete    | 2026-03-18 | — |
-| 20. UX Polish | v3.0 | — | ⬜ | — |
+| 20. UX Polish | v3.0 | 0/3 | ⬜ | — |
 
 ---
-*Last updated: 2026-03-18 — Phase 19 planned (3 plans)*
+*Last updated: 2026-03-18 — Phase 20 planned (3 plans)*
