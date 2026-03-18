@@ -5,6 +5,7 @@
 - ✅ **v1.0 Feature Complete** — Phases 1–8 (shipped ~2026-03-01)
 - ✅ **v2.0 Monetization Sprint** — Phases 9–11 (shipped 2026-03-15)
 - ✅ **v2.1 Subscription Tiers** — Phases 12–16 (shipped 2026-03-17)
+- 🔨 **v3.0 The Premium Experience & Trust Update** — Phases 17–20
 
 ---
 
@@ -46,6 +47,24 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 
 </details>
 
+### Hotfix: Phase 16.1 — QA Fixes
+
+- [x] Phase 16.1: QA Hotfix — 404 page, route guards, mobile hero contrast, footer links, console error silencing
+
+### v3.0 The Premium Experience & Trust Update
+
+- [x] **Phase 17: Security Hardening** — SEC-01→SEC-07: JWT verification (pre-existing ✅), SQL injection (pre-existing ✅), RLS audit (40+ policies verified ✅), payment race condition (webhook-driven ✅), cancellation refunds (pre-existing ✅), Zod validation (expanded 3→9 schemas), audit log table + triggers + admin viewer
+- [ ] **Phase 18: Trainee Fitness Passport** — FIT-01→FIT-06: Client avatar upload + compression, bio field, Fitness Passport intake form (goals, workout types, frequency, limitations), trainer-visible summary on booking detail
+  **Plans:** 3 plans
+  Plans:
+  - [ ] 18-01-PLAN.md — DB migration: add bio + training_frequency to client_profiles
+  - [ ] 18-02-PLAN.md — Client Fitness Passport page (avatar upload, bio, intake form)
+  - [ ] 18-03-PLAN.md — Trainer-visible passport summary on booking detail
+- [ ] **Phase 19: Calendar Export & Buffer Times** — CAL-01→CAL-06: iCal .ics export, live iCal feed URL with opaque token, buffer time configuration (15/30/45/60 min), server-side buffer enforcement, get_visible_slots buffer integration
+- [ ] **Phase 20: UX Polish** — UXP-01→UXP-04: Booking flow redesign with progress indicator, image optimization + compression, skeleton loading screens, actionable error states
+
+**Build order rationale:** Security first (primitives consumed by all later phases) → Profiles (frontend-heavy, table exists) → Calendar (new Edge Function + DB columns) → UX Polish (cross-cutting refinements last).
+
 ---
 
 ## Progress
@@ -64,6 +83,11 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 | 14. Feature Gates + Search | v2.1 | 4/4 | ✅ | 2026-03-16 |
 | 15. Subscription UI | v2.1 | 3/3 | ✅ | 2026-03-17 |
 | 16. Admin Subscription Visibility | v2.1 | 3/3 | ✅ | 2026-03-17 |
+| 16.1 QA Hotfix | hotfix | 1/1 | ✅ | 2026-03-17 |
+| 17. Security Hardening | v3.0 | 3/3 | ✅ | 2026-03-17 |
+| 18. Trainee Fitness Passport | v3.0 | 0/3 | ⬜ | — |
+| 19. Calendar Export & Buffer Times | v3.0 | — | ⬜ | — |
+| 20. UX Polish | v3.0 | — | ⬜ | — |
 
 ---
-*Last updated: 2026-03-17 after v2.1 milestone shipped*
+*Last updated: 2026-03-17 — Phase 18 planned (3 plans)*
