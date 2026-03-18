@@ -36,9 +36,9 @@
 ### UX Polish (UXP)
 
 - [ ] **UXP-01**: Booking flow redesigned for premium feel — progress indicator, animated transitions, clear pricing breakdown before confirmation
-- [ ] **UXP-02**: All user-uploaded images (avatars, trainer photos) optimized with client-side compression (target: <200KB) and served via Supabase Storage CDN
-- [ ] **UXP-03**: Loading states across the app use skeleton screens instead of spinners for a polished feel
-- [ ] **UXP-04**: Error states show actionable messages (not raw error strings) with retry options where applicable
+- [x] **UXP-02**: All user-uploaded images (avatars, trainer photos) optimized with client-side compression (target: <200KB) and served via Supabase Storage CDN
+- [x] **UXP-03**: Loading states across the app use skeleton screens instead of spinners for a polished feel
+- [x] **UXP-04**: Error states show actionable messages (not raw error strings) with retry options where applicable
 
 ## Acceptance Criteria
 
