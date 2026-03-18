@@ -109,6 +109,57 @@
 
 ---
 
+## Milestone: v3.0 — The Premium Experience & Trust Update
+
+**Shipped:** 2026-03-18
+**Phases:** 4 + hotfix (16.1, 17–20) | **Plans:** 12 | **Timeline:** 2 days (2026-03-17 → 2026-03-18)
+**Files:** ~17,700 LOC at ship · 14 Edge Functions · 22 migrations · 86 TS/TSX files
+
+### What Was Built
+
+- **Security hardening:** RLS audit verified 40+ policies across all tables, Zod validation expanded from 3 to 9 schemas, audit log table with SECURITY DEFINER trigger function on 4 tables + admin viewer with color-coded diff display
+- **Fitness Passport:** Client avatar upload with 400x400 canvas compression, bio field (500 chars), fitness intake form (goals, workout types, frequency, limitations), trainer-visible passport summary on booking detail with collapsible disclosure
+- **Calendar system:** RFC 5545 VCALENDAR Edge Function with CRLF line endings and opaque token auth, live iCal feed URL for Google/Apple Calendar subscription, buffer time config (0/15/30/45/60 min) with pill-style selector, server-side enforcement in booking trigger + get_visible_slots RPC
+- **UX overhaul:** 3 skeleton primitives + 3 page-specific skeletons replacing spinners across 12+ pages, ErrorState + mapError (5 error categories), image lazy loading + Unsplash width optimization, booking wizard refactored from 628→351 LOC monolith into 4-step wizard with AnimatePresence transitions
+
+### What Worked
+
+- **QA-first approach:** Playwright browser testing before milestone work identified 5 bugs across 12 routes. Fixing these in Phase 16.1 hotfix prevented cascading issues during the main build phases.
+- **Security audit gap analysis:** Phase 17 research found 5 of 7 SEC requirements were already satisfied from previous milestones. This reduced a 7-requirement phase to just 2 new implementations (Zod expansion + audit log), saving significant execution time.
+- **Wave-based sequential execution for DB-dependent phases:** Phases 18 and 19 each had 3 plans in 3 waves (migration → backend → UI). This forced correct dependency ordering and zero conflicts.
+- **Parallel Wave 2 in Phase 20:** Plans 20-02 (cross-app integration) and 20-03 (booking wizard) had zero file overlap and ran in parallel — verified by plan-checker. Halved the execution time for the final phase.
+- **TDD for UX primitives:** Phase 20-01 wrote 14 tests before implementations. Tests immediately caught an ErrorState prop interface issue during development.
+
+### What Was Inefficient
+
+- **Summary one-liner extraction still broken:** Third milestone in a row where `gsd-tools summary-extract --fields one_liner` returns empty because summaries use YAML frontmatter without an explicit `one_liner` field. Accomplishments had to be manually written. This is now a recurring pattern — needs a format fix or extraction fallback.
+- **Phase 17 scope inflation then deflation:** Research phase for security expected 7 full implementations but found 5 pre-existing. The planning overhead for researching + planning + verifying a phase that was mostly done was disproportionate to the actual work.
+- **STATE.md drift during rapid execution:** With 4 phases executing in one session, STATE.md progress tracking fell behind reality. The auto-update captured plan-level changes but the progress percentage and phase checkboxes drifted from the actual roadmap state.
+
+### Patterns Established
+
+- **Opaque token auth for Edge Functions:** `calendar_export_token` pattern (UUID, not user ID) for public-facing API endpoints. Token-based auth bypasses JWT entirely — suitable for calendar feed subscriptions and similar machine-to-machine integrations.
+- **Canvas-based client-side image compression:** 400x400 JPEG 0.7 quality before Supabase Storage upload. No server-side processing needed. Reusable for any future upload form.
+- **Skeleton-first loading pattern:** `SkeletonLine/Circle/Rect` primitives compose into page-specific skeletons (`TrainerCardSkeleton`, `ProfileSkeleton`, `BookingCardSkeleton`). Content spinners replaced; action spinners (submit buttons) preserved.
+- **mapError utility pattern:** Central error categorization (JWT expired, RLS denied, duplicate key, network failure, default) → user-friendly messages with optional retry. ErrorState component consumes mapError output for consistent error UX.
+- **Booking wizard component decomposition:** PaymentForm passed as component prop to preserve Stripe Elements context. Steps are independent components receiving shared state via props. ProgressIndicator derives from step count.
+
+### Key Lessons
+
+1. **QA testing before milestone work catches low-hanging bugs.** The 5 issues found by Playwright (blank pages, missing 404, contrast, dead links) would have been embarrassing in production. A systematic route-by-route test takes <30 minutes and prevents the worst UX issues.
+2. **Security audits should start with a gap analysis, not a full build plan.** Phase 17 could have been a 1-plan phase if the research had been done before planning. Future security phases: audit first → plan only what's missing.
+3. **Cross-cutting UX phases work best as foundation → integration waves.** Phase 20's pattern (primitives in Wave 1, integration in Wave 2) is the right approach for any "apply pattern X across the whole app" work. It maximizes parallelism and keeps atomic commits meaningful.
+4. **iCal feeds need CRLF line endings (\\r\\n).** RFC 5545 requires carriage return + line feed. Standard template literals produce only \\n. This is easy to miss and breaks calendar app parsing silently (Apple Calendar ignores it, Google Calendar rejects it).
+5. **Buffer time enforcement belongs in the database, not the UI.** Server-side trigger rejection + RPC filtering is the only reliable approach. Client-side-only enforcement can be bypassed via API calls.
+
+### Cost Observations
+
+- Model mix: ~90% sonnet, ~10% opus (plan-checker verification)
+- Sessions: ~3 sessions across 2 days
+- Notable: 12 plans executed across 4 phases with zero deviations. All 4 verification passes scored 10/10 or 11/11 must-haves. Well-specified plans + foundation-first wave ordering eliminated rework.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -118,6 +169,7 @@
 | v1.0 | 4 shipped (8 total) | ~12 | Initial build — feature-first, security deferred |
 | v2.0 | 3 | 11 | Monetization sprint — phased dependency ordering, DB-first |
 | v2.1 | 5 | 15 | Subscription system — wave-based parallelism, plan-checker verification, first automated tests |
+| v3.0 | 4 + hotfix | 12 | Trust & polish — QA-first approach, security gap analysis, cross-cutting UX patterns |
 
 ### Cumulative Quality
 
@@ -126,6 +178,7 @@
 | v1.0 | 0 | 4 | 9 | ~5,000 |
 | v2.0 | 0 | 10 | 14 | ~8,942 |
 | v2.1 | 3 files | 13 | 18 | ~15,239 |
+| v3.0 | 14+ files | 14 | 22 | ~17,700 |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -133,3 +186,5 @@
 2. **Consistent non-blocking patterns across all async operations.** Email, notifications, and referral reward processing all follow the same try/catch wrapper — learned in v1.0 notifications, formalized in v2.0 payout emails.
 3. **Single-writer patterns prevent race conditions.** Established in v2.1 — webhook is the only writer for billing state. Same principle applies to any system where multiple actors could modify the same row concurrently.
 4. **Plan-checker catches file conflicts that humans miss.** Wave-based parallel execution requires explicit file-conflict detection. The App.tsx conflict in Phase 15 would have caused silent data loss without the checker.
+5. **QA testing before milestone work catches low-hanging bugs.** Established in v3.0 — Playwright route-by-route testing identified 5 issues that would have been embarrassing in production. Quick win for confidence.
+6. **Security audits should start with gap analysis.** v3.0 Phase 17 found 5/7 requirements pre-existing — a gap analysis first would have right-sized the phase from the start.

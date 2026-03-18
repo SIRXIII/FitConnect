@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives.
+A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives. Features a premium UX with skeleton loading, animated booking wizard, calendar sync, and rich client profiles ("Fitness Passport").
 
 ## Core Value
 
@@ -48,42 +48,33 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 - ✓ Feature gates: Free (3 slots, 280-char bio), Pro (10 slots, 1000-char bio), Elite (unlimited) — v2.1
 - ✓ Admin subscription visibility: tier badges, manual override, MRR analytics — v2.1
 
-### Active (v3.0 — The Premium Experience & Trust Update)
+### Validated (v3.0)
 
-**Security & Tech Debt:**
-- [ ] Fix payment race condition (booking before payment confirmation)
-- [ ] Fix SQL injection vector in trainer search (ilike)
-- [ ] Verify and harden RLS policies across all tables
-- [ ] Add JWT verification to all Edge Functions
-- [ ] Implement cancellation refund logic via Stripe (backend + admin UI)
-- [ ] Add Zod input validation for all user-facing forms
+- ✓ Security hardening: RLS audit (40+ policies), Zod validation (9 schemas), audit log with triggers — v3.0
+- ✓ Client avatar upload with canvas compression (400x400, JPEG 0.7) — v3.0
+- ✓ Client bio/description field (500 chars) — v3.0
+- ✓ Fitness Passport intake: goals, workout types, frequency, limitations — v3.0
+- ✓ Trainer-visible Fitness Passport on booking detail — v3.0
+- ✓ iCal .ics export + live feed URL with opaque token — v3.0
+- ✓ Buffer time configuration (0–60 min) with server-side enforcement — v3.0
+- ✓ Skeleton loading screens replacing spinners across 12+ pages — v3.0
+- ✓ Actionable error states with mapError + retry buttons — v3.0
+- ✓ Booking wizard redesign with progress indicator + Framer Motion transitions — v3.0
+- ✓ Image optimization: lazy loading + Unsplash width params — v3.0
 
-**Trainer Advanced Scheduling:**
-- [ ] Calendar sync: iCal/Google Calendar bidirectional integration
-- [ ] Buffer times between bookings (configurable 15-60 min)
-
-**Trainee "Fitness Passport" Profile:**
-- [ ] Client profile avatar upload with image optimization
-- [ ] Client bio/description field
-- [ ] Fitness goals, preferred training styles, physical limitations intake
-
-**UI/UX Polish:**
-- [ ] Booking flow UX refinement for premium feel
-- [ ] Image optimization and secure storage for all uploads
-
-### Deferred (post v3.0)
+### Active (next milestone — TBD)
 
 - [ ] Fix cascading slot deletion with soft-delete
 - [ ] Move hardcoded 8% platform fee to configurable DB setting
 - [ ] Replace console.log errors with user-facing toast notifications
 - [ ] Add GDPR capabilities (account deletion, data export)
-- [ ] Discount-based weighted ranking
+- [ ] Google Calendar OAuth bidirectional sync
+- [ ] AI-powered trainer-client matching based on Fitness Passport data
 - [ ] Subscription pause (CHURN-01)
 - [ ] Contextual upgrade modals at tier gates (CHURN-02)
 - [ ] Elite custom profile URL/slug (BRAND-01)
 - [ ] Proration preview before mid-cycle upgrade (UX-01)
 - [ ] In-app invoice history (UX-02)
-- [ ] Phone verification at trial start (SEC-01)
 
 ### Out of Scope
 
@@ -95,70 +86,55 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 
 ## Context
 
-**Current state (v2.1 shipped — 2026-03-17):**
-- React 19 + TypeScript + Vite 6 SPA — ~15,239 LOC
-- Supabase PostgreSQL backend — 18 migrations deployed
-- 13 Edge Functions: create-payment-intent, stripe-webhook, create-connect-account, send-notification-email, create-payout, weekly-payouts, process-referral-reward, create-setup-intent, cancel-booking, export-user-data, create-subscription, manage-subscription, admin-set-tier-override
+**Current state (v3.0 shipped — 2026-03-18):**
+- React 19 + TypeScript + Vite 6 SPA — ~17,700 LOC
+- Supabase PostgreSQL backend — 22 migrations deployed
+- 14 Edge Functions: create-payment-intent, stripe-webhook, create-connect-account, send-notification-email, create-payout, weekly-payouts, process-referral-reward, create-setup-intent, cancel-booking, export-user-data, create-subscription, manage-subscription, admin-set-tier-override, calendar-export
 - Stripe Connect Express + Stripe Billing (subscriptions, trials, dunning, Customer Portal)
-- 3 Postgres analytics RPCs: `get_trainer_analytics`, `get_trainer_analytics_trend`, `get_admin_analytics` (with MRR + subscriber counts)
-- Subscription system: 3-tier feature gates (Free/Pro/Elite), write-guard trigger, get_visible_slots RPC, tier-aware search ranking
-- Referral system: `referrals` table, `referral_code` on profiles, leaderboard RPC, cookie attribution
-- Tailwind CSS v4 with luxury design tokens
-- Zustand v5 for auth state, custom hooks for data fetching
-- Vitest 4.1.x for unit testing (configured in Phase 14)
+- Calendar system: RFC 5545 iCal export with token-based auth, buffer time enforcement
+- Fitness Passport: client profile intake with avatar upload, trainer-visible summary
+- UX layer: skeleton loading, ErrorState + mapError, booking wizard with AnimatePresence
+- 86 TS/TSX files, 14+ test files (Vitest)
 - Supabase project: qecwxvvlpvrnrqyrdxrj (fitrush-app.netlify.app)
 
 **Codebase health:**
-- v1.1 security issues partially addressed: GEMINI key moved server-side, discount slider added, orphaned booking cleanup cron, Edge Function auth added
-- Remaining critical: payment race condition, SQL injection via ilike, full RLS audit, cancellation refund
-- Vitest configured but test coverage is minimal (tier gate tests only)
+- All critical security issues resolved (RLS verified, Zod validation on all forms, audit log active)
+- Automated test coverage growing (Vitest configured, skeleton/error/image/booking tests)
+- Known tech debt: TypeScript `as unknown as X` casts for Supabase RPC types, hardcoded 8% platform fee
 
 **Competitive landscape:**
 - Fyt (primary competitor): dumps full calendar to clients, no idle hour optimization
-- FitRush differentiator: only show genuinely idle slots, AI-driven scheduling insights, referral flywheel
+- FitRush differentiator: only show genuinely idle slots, AI-driven scheduling insights, referral flywheel, rich client profiles
 
 ## Constraints
 
 - **Tech Stack**: React 19, Supabase, Stripe, Vite 6 — established, don't change
 - **Design System**: Cormorant Garamond + Inter + #C5A059 gold — luxury brand identity locked
-- **Security**: Fix remaining critical/high concerns before major marketing push
-- **Database**: Supabase PostgreSQL with existing 18 migrations — additive changes only
-- **Payments**: Stripe Connect Express accounts — existing integration
+- **Database**: Supabase PostgreSQL with 22 migrations — additive changes only
+- **Payments**: Stripe Connect Express + Stripe Billing — existing integration
 - **Budget**: Supabase free/pro tier, Stripe standard pricing
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Security-first approach | 5 critical concerns flagged at v1.0 | ⚠️ Revisit — Phase 01 partial, remainder still pending |
+| Security-first approach | 5 critical concerns flagged at v1.0 | ✓ Good — all resolved in v3.0 Phase 17 |
 | Discount slider 5%–80% range | Balance between meaningful discount and trainer viability | ✓ Good — shipped |
-| Weighted-blend ranking (40/25/20/15) | Incentivize discounts while rewarding quality and proximity | — Pending |
 | AI scheduling MVP = hour classification only | Smart filtering alone differentiates from Fyt without ML | ✓ Good |
-| Skip external calendar sync | Complex API integration, deliver core value first | ✓ Good |
 | Stripe `transfers.create` not `payouts.create` | Transfers move funds to Connect account balance — correct for destination charges | ✓ Good |
-| Email failure non-blocking in payouts | Payout must complete even if Resend fails | ✓ Good |
-| `weekly-payouts` validates service-role token directly | System function called only by pg_cron — no user JWT needed | ✓ Good |
-| Vault secrets for pg_cron | No hardcoded keys in migrations — read at runtime via vault.decrypted_secrets | ✓ Good |
-| `SameSite=Lax` for referral cookie | Survives OAuth redirect round-trip; Strict breaks cross-origin returns | ✓ Good |
-| `handle_new_user` trigger generates `referral_code` | All signups auto-get code regardless of path | ✓ Good |
-| Referral $5 discount applies to any trainer | Simpler UX — not locked to referred trainer | ✓ Good |
-| Subscription tiers deferred to v2.1 | Deliver cash flow (payouts) and growth (referrals) first | ✓ Good |
 | `guard_subscription_tier_write` trigger | Only webhook/service_role can modify subscription_tier | ✓ Good — v2.1 |
-| Frontend sends `{tier, interval}`, backend resolves PRICE_MAP | No frontend env vars for Stripe Price IDs | ✓ Good — v2.1 |
-| admin-set-tier-override uses service_role | Bypasses write-guard; admin identity verified via JWT first | ✓ Good — v2.1 |
-
-## Current Milestone: v3.0 — The Premium Experience & Trust Update
-
-**Goal:** Harden the platform's security foundation, add bidirectional calendar sync for trainers, introduce rich trainee profiles ("Fitness Passport"), and polish the booking UX to feel truly premium — making FitRush marketing-ready.
-
-**Target features:**
-- Critical security fixes (payment race conditions, SQL injection, RLS audit, JWT verification, cancellation refunds, Zod validation)
-- Trainer calendar sync (iCal import/export, Google Calendar bidirectional, auto-block busy times)
-- Trainer buffer times between bookings (configurable travel/prep time)
-- Trainee "Fitness Passport" profile (avatar, bio, fitness goals, training preferences, physical limitations)
-- Booking flow UX polish and image optimization/secure storage
+| Canvas-based avatar compression (400x400, JPEG 0.7) | Client-side before upload; no server processing needed | ✓ Good — v3.0 |
+| Opaque calendar_export_token (not trainer UUID) | Prevents ID enumeration; resettable | ✓ Good — v3.0 |
+| BookingWizard PaymentForm as component prop | Preserves Stripe Elements context boundary | ✓ Good — v3.0 |
+| Skeleton screens only for content-loading | Transient spinners preserved on submit buttons for action feedback | ✓ Good — v3.0 |
 
 ## Completed Milestones
+
+<details>
+<summary>v3.0 — The Premium Experience & Trust Update (shipped 2026-03-18)</summary>
+
+Phases 16.1, 17–20 (4 phases + hotfix, 12 plans, 24 requirements). See `.planning/MILESTONES.md`.
+</details>
 
 <details>
 <summary>v2.1 — Subscription Tiers (shipped 2026-03-17)</summary>
@@ -179,4 +155,4 @@ Phases 5–8 (4 phases, ~12 plans). See `.planning/MILESTONES.md`.
 </details>
 
 ---
-*Last updated: 2026-03-17 after v3.0 milestone started*
+*Last updated: 2026-03-18 after v3.0 milestone*

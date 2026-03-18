@@ -1,5 +1,53 @@
 # Project Milestones — FitConnect
 
+## Milestone v3.0 — The Premium Experience & Trust Update ✅
+
+**Status:** Complete
+**Shipped:** 2026-03-18
+**Phases:** 17–20 (4 phases + 16.1 hotfix · 12 plans)
+**Codebase at ship:** ~17,700 LOC TypeScript/SQL · 14 Edge Functions · 22 migrations
+**Timeline:** 2 days (2026-03-17 → 2026-03-18)
+
+### What Shipped
+
+| Phase | Name | Plans | Summary |
+|-------|------|-------|---------|
+| **16.1** | **QA Hotfix** | 1/1 ✅ | 404 page, protected onboarding routes, mobile hero contrast, footer links, console error silencing |
+| **17** | **Security Hardening** | 3/3 ✅ | RLS audit (40+ policies verified), Zod validation expanded 3→9 schemas, audit log table + triggers + admin viewer; 5/7 SEC requirements pre-existing |
+| **18** | **Trainee Fitness Passport** | 3/3 ✅ | Client avatar upload + canvas compression, bio field, Fitness Passport intake form, trainer-visible passport on booking detail |
+| **19** | **Calendar Export & Buffer Times** | 3/3 ✅ | iCal .ics export Edge Function (RFC 5545), live feed URL with opaque token, buffer time config (0–60 min), server-side enforcement in trigger + RPC |
+| **20** | **UX Polish** | 3/3 ✅ | Skeleton loading primitives (3 base + 3 page-specific), ErrorState + mapError, image lazy loading + Unsplash optimization, booking wizard redesign (628→351 LOC) |
+
+### Key Accomplishments
+
+- Security hardening: RLS audit verified 40+ policies, Zod validation expanded from 3 to 9 schemas (trainer/client profiles, fitness passport, admin overrides, bookings, buffer times), audit log with SECURITY DEFINER triggers on 4 tables
+- Trainee Fitness Passport: client avatar upload with 400x400 canvas compression, bio/description field, fitness intake (goals, workout types, frequency, limitations), trainer-visible passport summary on booking detail page
+- Calendar system: RFC 5545 VCALENDAR Edge Function with token-based auth (no JWT required), live iCal feed for Google/Apple Calendar subscription, buffer time enforcement (server-side rejection + slot visibility filtering)
+- UX overhaul: booking flow refactored into 4-step wizard with Framer Motion AnimatePresence transitions and numbered progress indicator; 12+ pages migrated from spinners to content-shaped skeletons; all images lazy-loaded with Unsplash width optimization; ErrorState with mapError replacing raw error.message strings
+- QA hotfix cycle: Playwright-driven testing identified 5 bugs across 12 routes, all fixed in Phase 16.1 before milestone work began
+
+### Key Decisions
+
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| 5/7 SEC requirements pre-existing | Security audit found JWT, SQL injection, RLS, payment, refunds already handled | ✓ Good — reduced Phase 17 scope |
+| Canvas-based avatar compression (400x400, JPEG 0.7) | Client-side before upload; no server processing needed | ✓ Good |
+| Secondary query for client_profiles on booking detail | No FK from bookings to client_profiles; separate fetch keeps query simple | ✓ Good |
+| Opaque calendar_export_token (not trainer UUID) | Prevents ID enumeration; resettable without affecting trainer account | ✓ Good |
+| SECURITY DEFINER for calendar Edge Function | Token-based auth bypasses JWT; function runs as owner with restricted search_path | ✓ Good |
+| BookingWizard receives PaymentForm as component prop | Preserves Stripe Elements context boundary; avoids re-init on step change | ✓ Good |
+| Transient spinners preserved on submit buttons | Skeleton screens only replace content-loading spinners, not action feedback | ✓ Good |
+
+### Deferred to v3.1+
+
+- Google Calendar OAuth bidirectional sync (requires consent screen verification)
+- AI-powered trainer-client matching based on Fitness Passport data
+- Trainer profile photo upload (focus on client avatars first)
+- Subscription pause (CHURN-01)
+- Contextual upgrade modals at tier gates (CHURN-02)
+
+---
+
 ## Milestone v2.1 — Subscription Tiers ✅
 
 **Status:** Complete
