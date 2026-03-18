@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: planning
-stopped_at: Phase 21 context gathered
-last_updated: "2026-03-18T17:37:18.448Z"
+stopped_at: Completed 21-01-PLAN.md (waitlist backend)
+last_updated: "2026-03-18T20:57:46.133Z"
 last_activity: 2026-03-18 -- v4.0 roadmap created
 progress:
   total_phases: 8
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State -- FitRush
@@ -51,6 +51,8 @@ Recent decisions relevant to v4.0:
 - AI matching: deterministic Postgres RPC (100-point scale, no external API) for MVP
 - PostGIS `geography(POINT)` for spatial queries (with explicit TS type overrides)
 - OAuth tokens in separate `trainer_gcal_tokens` table, not on `trainer_profiles`
+- [Phase 21]: Silent 200 on duplicate email (23505) prevents enumeration attacks
+- [Phase 21]: Service-role key for waitlist insert bypasses RLS without exposing anon policy
 
 ## Blockers / Concerns
 
@@ -73,6 +75,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-18T17:37:18.441Z
-Stopped at: Phase 21 context gathered
-Resume file: .planning/phases/21-email-capture-platform-controls/21-CONTEXT.md
+Last session: 2026-03-18T20:57:46.131Z
+Stopped at: Completed 21-01-PLAN.md (waitlist backend)
+Resume file: None
