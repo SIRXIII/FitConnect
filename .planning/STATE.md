@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: The Premium Experience & Trust Update
 status: completed
-stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-03-18T00:58:26.049Z"
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-03-18T01:22:00.005Z"
 last_activity: 2026-03-18 -- Phase 18 Plan 03 (trainer-visible fitness passport) complete
 progress:
-  total_phases: 3
-  completed_phases: 1
+  total_phases: 1
+  completed_phases: 0
   total_plans: 3
-  completed_plans: 3
+  completed_plans: 1
 ---
 
 # Project State — FitRush
@@ -50,6 +50,7 @@ Overall: [░░░░░░░░░░] 0%
 - **18-01:** Used char_length CHECK for bio max 500 (consistent with existing text columns); reuse health_notes for physical_limitations
 - **18-03:** Secondary Supabase query for client_profiles (no direct FK from bookings); collapsible details/summary for passport display
 - [Phase 18-02]: Canvas-based image compression (400x400, JPEG 0.7) before avatar upload; single-page edit form; physical_limitations maps to health_notes column
+- [Phase 19]: Used gen_random_uuid()::text for calendar_export_token default; partial unique index WHERE NOT NULL; SECURITY DEFINER with search_path on reset RPC
 
 ## Next Steps
 
@@ -58,6 +59,6 @@ Overall: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-18T01:00:00Z
-Stopped at: Completed 18-03-PLAN.md
+Last session: 2026-03-18T01:22:00.004Z
+Stopped at: Completed 19-01-PLAN.md
 Resume with: `/gsd:execute-phase 18` (plan 04)
