@@ -85,7 +85,7 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 | 16. Admin Subscription Visibility | v2.1 | 3/3 | ✅ | 2026-03-17 |
 | 16.1 QA Hotfix | hotfix | 1/1 | ✅ | 2026-03-17 |
 | 17. Security Hardening | v3.0 | 3/3 | ✅ | 2026-03-17 |
-| 18. Trainee Fitness Passport | v3.0 | 0/3 | ⬜ | — |
+| 18. Trainee Fitness Passport | 1/3 | In Progress|  | — |
 | 19. Calendar Export & Buffer Times | v3.0 | — | ⬜ | — |
 | 20. UX Polish | v3.0 | — | ⬜ | — |
 
