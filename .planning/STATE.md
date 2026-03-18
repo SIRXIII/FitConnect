@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
-status: planning
-stopped_at: Completed 21-02-PLAN.md (Hero email form + GCP checklist) — awaiting human verify checkpoint
-last_updated: "2026-03-18T21:05:16Z"
+status: executing
+stopped_at: Completed 21-02-PLAN.md (Hero email capture + GCP checklist) — Phase 21 complete
+last_updated: "2026-03-18T21:15:48.643Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
   completed_plans: 2
 ---
@@ -25,14 +25,14 @@ See: `.planning/PROJECT.md` (updated 2026-03-18)
 ## Current Position
 
 Phase: 21 of 28 (Email Capture + Platform Controls)
-Plan: 2 of 2 (complete — awaiting human verify checkpoint for Task 3)
-Status: In progress
+Plan: 2 of 2 (complete — checkpoint approved, phase fully done)
+Status: Complete
 Last activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 
 ```
-v4.0 Progress: [░░░░░░░░] 0% (0/8 phases)
+v4.0 Progress: [█░░░░░░░] 12% (1/8 phases)
 
-Phase 21: Email Capture + Platform Controls  [ ] Not started
+Phase 21: Email Capture + Platform Controls  [x] Complete
 Phase 22: Availability Toggle Foundation     [ ] Not started
 Phase 23: Map View + Trainer Locations       [ ] Not started
 Phase 24: Session Logging                    [ ] Not started
@@ -55,7 +55,7 @@ Recent decisions relevant to v4.0:
 - [Phase 21]: Service-role key for waitlist insert bypasses RLS without exposing anon policy
 - [Phase 21-02]: Hero input uses type=text not type=email — browser HTML5 validation in jsdom blocks form submit before Zod runs
 - [Phase 21-02]: Zod 4 uses result.error.issues not result.error.errors (breaking change from Zod 3)
-- [Phase 21-02]: No waitlist position number shown — simple "You're In." confirmation per CONTEXT.md locked decision
+- [Phase 21-02]: No waitlist position number shown — simple "You're In." confirmation per CONTEXT.md locked decision overriding WAITLIST-03 literal
 
 ## Blockers / Concerns
 
@@ -78,6 +78,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-18T20:57:46.131Z
-Stopped at: Completed 21-01-PLAN.md (waitlist backend)
+Last session: 2026-03-18T21:15:48.641Z
+Stopped at: Completed 21-02-PLAN.md (Hero email capture + GCP checklist) — Phase 21 complete
 Resume file: None
