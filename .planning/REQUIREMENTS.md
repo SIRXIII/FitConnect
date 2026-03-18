@@ -26,12 +26,12 @@
 
 ### Trainee Profile — "Fitness Passport" (FIT)
 
-- [ ] **FIT-01**: Client can upload a profile avatar (max 5MB, JPEG/PNG/WebP) that is compressed client-side before upload to Supabase Storage
+- [x] **FIT-01**: Client can upload a profile avatar (max 5MB, JPEG/PNG/WebP) that is compressed client-side before upload to Supabase Storage
 - [x] **FIT-02**: Client can write a bio/description (up to 500 characters) visible on their profile
-- [ ] **FIT-03**: Client can complete a "Fitness Passport" intake form capturing: fitness goals, preferred workout types, training frequency preference, and physical limitations/injuries
+- [x] **FIT-03**: Client can complete a "Fitness Passport" intake form capturing: fitness goals, preferred workout types, training frequency preference, and physical limitations/injuries
 - [x] **FIT-04**: Fitness Passport data is stored in the existing `client_profiles` table (fields already exist from onboarding migration)
-- [ ] **FIT-05**: Trainers can view a client's Fitness Passport summary on the booking detail page before accepting a session
-- [ ] **FIT-06**: Client can update their Fitness Passport at any time from their profile settings
+- [x] **FIT-05**: Trainers can view a client's Fitness Passport summary on the booking detail page before accepting a session
+- [x] **FIT-06**: Client can update their Fitness Passport at any time from their profile settings
 
 ### UX Polish (UXP)
 

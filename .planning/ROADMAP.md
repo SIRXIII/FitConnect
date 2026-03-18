@@ -54,7 +54,7 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 ### v3.0 The Premium Experience & Trust Update
 
 - [x] **Phase 17: Security Hardening** — SEC-01→SEC-07: JWT verification (pre-existing ✅), SQL injection (pre-existing ✅), RLS audit (40+ policies verified ✅), payment race condition (webhook-driven ✅), cancellation refunds (pre-existing ✅), Zod validation (expanded 3→9 schemas), audit log table + triggers + admin viewer
-- [ ] **Phase 18: Trainee Fitness Passport** — FIT-01→FIT-06: Client avatar upload + compression, bio field, Fitness Passport intake form (goals, workout types, frequency, limitations), trainer-visible summary on booking detail
+- [x] **Phase 18: Trainee Fitness Passport** — FIT-01→FIT-06: Client avatar upload + compression, bio field, Fitness Passport intake form (goals, workout types, frequency, limitations), trainer-visible summary on booking detail (completed 2026-03-18)
   **Plans:** 3 plans
   Plans:
   - [ ] 18-01-PLAN.md — DB migration: add bio + training_frequency to client_profiles
@@ -85,7 +85,7 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 | 16. Admin Subscription Visibility | v2.1 | 3/3 | ✅ | 2026-03-17 |
 | 16.1 QA Hotfix | hotfix | 1/1 | ✅ | 2026-03-17 |
 | 17. Security Hardening | v3.0 | 3/3 | ✅ | 2026-03-17 |
-| 18. Trainee Fitness Passport | 1/3 | In Progress|  | — |
+| 18. Trainee Fitness Passport | 3/3 | Complete   | 2026-03-18 | — |
 | 19. Calendar Export & Buffer Times | v3.0 | — | ⬜ | — |
 | 20. UX Polish | v3.0 | — | ⬜ | — |
 
