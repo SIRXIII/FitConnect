@@ -85,6 +85,8 @@ export type Database = {
           cancel_at_period_end: boolean;
           tier_overridden_by: string | null;
           tier_overridden_at: string | null;
+          calendar_export_token: string | null;
+          buffer_minutes: number;
         };
         Insert: {
           id?: string;
@@ -116,6 +118,8 @@ export type Database = {
           cancel_at_period_end?: boolean;
           tier_overridden_by?: string | null;
           tier_overridden_at?: string | null;
+          calendar_export_token?: string | null;
+          buffer_minutes?: number;
         };
         Update: {
           id?: string;
@@ -147,6 +151,8 @@ export type Database = {
           cancel_at_period_end?: boolean;
           tier_overridden_by?: string | null;
           tier_overridden_at?: string | null;
+          calendar_export_token?: string | null;
+          buffer_minutes?: number;
         };
         Relationships: [];
       };
