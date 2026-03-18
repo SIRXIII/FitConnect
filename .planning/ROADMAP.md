@@ -61,6 +61,19 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
   - [ ] 18-02-PLAN.md — Client Fitness Passport page (avatar upload, bio, intake form)
   - [ ] 18-03-PLAN.md — Trainer-visible passport summary on booking detail
 - [ ] **Phase 19: Calendar Export & Buffer Times** — CAL-01→CAL-06: iCal .ics export, live iCal feed URL with opaque token, buffer time configuration (15/30/45/60 min), server-side buffer enforcement, get_visible_slots buffer integration
+
+### Phase 19: Calendar Export & Buffer Times
+
+**Goal:** Enable trainers to export their schedules to external calendars and configure buffer times between sessions.
+
+**Requirements:** CAL-01→CAL-06
+- CAL-01: iCal .ics file export (one-time download of current bookings)
+- CAL-02: Live iCal feed URL with opaque token (subscribe from Google Calendar / Apple Calendar)
+- CAL-03: Buffer time configuration UI (15/30/45/60 min between sessions)
+- CAL-04: Server-side buffer time enforcement (reject bookings that violate buffer)
+- CAL-05: get_visible_slots buffer integration (hide slots within buffer window)
+- CAL-06: Calendar settings page for trainers
+
 - [ ] **Phase 20: UX Polish** — UXP-01→UXP-04: Booking flow redesign with progress indicator, image optimization + compression, skeleton loading screens, actionable error states
 
 **Build order rationale:** Security first (primitives consumed by all later phases) → Profiles (frontend-heavy, table exists) → Calendar (new Edge Function + DB columns) → UX Polish (cross-cutting refinements last).
