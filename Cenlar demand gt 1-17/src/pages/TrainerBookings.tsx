@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import type { Tables } from '@/types/supabase';
+import FitnessPassportCard from '@/components/booking/FitnessPassportCard';
 
 type BookingStatus = Tables<'bookings'>['status'];
 
@@ -24,6 +25,14 @@ interface TrainerBooking {
     id: string;
     full_name: string;
     avatar_url: string | null;
+  } | null;
+  client_profiles: {
+    bio: string | null;
+    fitness_goals: string[];
+    workout_types: string[];
+    training_frequency: string | null;
+    health_notes: string | null;
+    fitness_level: string | null;
   } | null;
 }
 
@@ -71,7 +80,49 @@ const TrainerBookings: React.FC = () => {
       .eq('trainer_id', trainerProfile.id)
       .order('created_at', { ascending: false });
 
-    setBookings((data as unknown as TrainerBooking[]) || []);
+    const rawBookings = (data as unknown as Omit<TrainerBooking, 'client_profiles'>[]) || [];
+
+    // Fetch client fitness passport data via secondary query
+    const clientIds = rawBookings
+      .map((b) => b.profiles?.id)
+      .filter((id): id is string => Boolean(id));
+
+    let profileMap = new Map<
+      string,
+      TrainerBooking['client_profiles']
+    >();
+
+    if (clientIds.length > 0) {
+      const uniqueIds = [...new Set(clientIds)];
+      const { data: cpData } = await supabase
+        .from('client_profiles')
+        .select(
+          'user_id, bio, fitness_goals, workout_types, training_frequency, health_notes, fitness_level'
+        )
+        .in('user_id', uniqueIds);
+
+      if (cpData) {
+        for (const cp of cpData) {
+          profileMap.set(cp.user_id, {
+            bio: cp.bio,
+            fitness_goals: cp.fitness_goals || [],
+            workout_types: cp.workout_types || [],
+            training_frequency: cp.training_frequency,
+            health_notes: cp.health_notes,
+            fitness_level: cp.fitness_level,
+          });
+        }
+      }
+    }
+
+    const enriched: TrainerBooking[] = rawBookings.map((b) => ({
+      ...b,
+      client_profiles: b.profiles?.id
+        ? profileMap.get(b.profiles.id) || null
+        : null,
+    }));
+
+    setBookings(enriched);
     setLoading(false);
   };
 
@@ -296,6 +347,17 @@ const TrainerBookings: React.FC = () => {
                       <p className="text-sm text-ink/60">{booking.notes}</p>
                     </div>
                   ) : null}
+
+                  {booking.client_profiles && (
+                    <FitnessPassportCard
+                      bio={booking.client_profiles.bio}
+                      fitnessGoals={booking.client_profiles.fitness_goals}
+                      workoutTypes={booking.client_profiles.workout_types}
+                      trainingFrequency={booking.client_profiles.training_frequency}
+                      healthNotes={booking.client_profiles.health_notes}
+                      fitnessLevel={booking.client_profiles.fitness_level}
+                    />
+                  )}
 
                   {booking.cancellation_reason ? (
                     <div className="border border-red-100 bg-red-50 p-4 text-red-700 text-sm">
