@@ -61,6 +61,11 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
   - [ ] 18-02-PLAN.md — Client Fitness Passport page (avatar upload, bio, intake form)
   - [ ] 18-03-PLAN.md — Trainer-visible passport summary on booking detail
 - [ ] **Phase 19: Calendar Export & Buffer Times** — CAL-01→CAL-06: iCal .ics export, live iCal feed URL with opaque token, buffer time configuration (15/30/45/60 min), server-side buffer enforcement, get_visible_slots buffer integration
+  **Plans:** 3 plans
+  Plans:
+  - [ ] 19-01-PLAN.md — DB migration: calendar_export_token + buffer_minutes columns, reset RPC, Zod schema
+  - [ ] 19-02-PLAN.md — calendar-export Edge Function + buffer enforcement in trigger and RPC
+  - [ ] 19-03-PLAN.md — Calendar tab UI on TrainerDashboard (export card + buffer selector)
 
 ### Phase 19: Calendar Export & Buffer Times
 
@@ -98,9 +103,9 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 | 16. Admin Subscription Visibility | v2.1 | 3/3 | ✅ | 2026-03-17 |
 | 16.1 QA Hotfix | hotfix | 1/1 | ✅ | 2026-03-17 |
 | 17. Security Hardening | v3.0 | 3/3 | ✅ | 2026-03-17 |
-| 18. Trainee Fitness Passport | 3/3 | Complete    | 2026-03-18 | — |
-| 19. Calendar Export & Buffer Times | v3.0 | — | ⬜ | — |
+| 18. Trainee Fitness Passport | v3.0 | 3/3 | ✅ | 2026-03-18 |
+| 19. Calendar Export & Buffer Times | v3.0 | 0/3 | ⬜ | — |
 | 20. UX Polish | v3.0 | — | ⬜ | — |
 
 ---
-*Last updated: 2026-03-17 — Phase 18 planned (3 plans)*
+*Last updated: 2026-03-18 — Phase 19 planned (3 plans)*
