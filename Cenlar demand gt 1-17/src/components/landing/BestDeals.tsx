@@ -175,6 +175,8 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
               src={deal.avatarUrl}
               alt={deal.name}
               referrerPolicy="no-referrer"
+              loading="lazy"
+              decoding="async"
               className="w-12 h-12 rounded-full object-cover group-hover:opacity-80 transition-opacity"
             />
           ) : (

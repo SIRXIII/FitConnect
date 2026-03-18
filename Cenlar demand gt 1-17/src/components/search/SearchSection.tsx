@@ -5,6 +5,7 @@ import type { Trainer } from '@/types';
 import { useTrainers, type TrainerWithProfile } from '@/hooks/useTrainers';
 import TrainerCard from './TrainerCard';
 import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
+import { optimizedUrl } from '@/lib/imageUtils';
 
 function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer {
   const discountPct = t.discount_percentage ?? 0;
@@ -24,7 +25,7 @@ function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer 
     optimizedRate,
     discountPercentage: discountPct,
     discountedRate,
-    imageUrl: t.profiles?.avatar_url || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageUrl: t.profiles?.avatar_url || optimizedUrl('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop'),
     verified: t.verified,
     availableNow: false,
     idleSlotCount,

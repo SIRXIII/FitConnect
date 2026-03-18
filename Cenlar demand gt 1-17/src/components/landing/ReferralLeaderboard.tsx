@@ -16,8 +16,14 @@ const ReferralLeaderboard: React.FC = () => {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      const { data } = await supabase.rpc('get_referral_leaderboard');
-      setEntries((data as LeaderboardEntry[]) || []);
+      try {
+        const { data, error } = await supabase.rpc('get_referral_leaderboard');
+        if (!error && data) {
+          setEntries(data as LeaderboardEntry[]);
+        }
+      } catch {
+        // RPC may not exist yet — silently skip
+      }
       setLoading(false);
     };
     fetchLeaderboard();
@@ -68,6 +74,8 @@ const ReferralLeaderboard: React.FC = () => {
                     <img
                       src={entry.avatar_url}
                       alt={entry.full_name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (

@@ -8,6 +8,8 @@ import { reviewSchema } from '@/lib/schemas';
 import { formatSpecialty } from '@/types';
 import type { Tables } from '@/types/supabase';
 import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
+import { ErrorState } from '@/components/shared/ErrorState';
+import { mapError } from '@/lib/errorMessages';
 
 type BookingRow = Tables<'bookings'>;
 type ReviewRow = Tables<'reviews'>;
@@ -125,6 +127,7 @@ const MyBookings: React.FC = () => {
   const { user } = useAuthStore();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<unknown>(null);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [reviewBooking, setReviewBooking] = useState<BookingWithDetails | null>(null);
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
@@ -132,8 +135,9 @@ const MyBookings: React.FC = () => {
   const fetchBookings = useCallback(async () => {
     if (!user) return;
 
+    setFetchError(null);
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('bookings')
       .select(`
         id, status, rate_charged, notes, created_at,
@@ -146,6 +150,11 @@ const MyBookings: React.FC = () => {
       .eq('client_id', user.id)
       .order('created_at', { ascending: false });
 
+    if (error) {
+      setFetchError(error);
+      setLoading(false);
+      return;
+    }
     setBookings((data as unknown as BookingWithDetails[]) || []);
     setLoading(false);
 
@@ -302,6 +311,11 @@ const MyBookings: React.FC = () => {
             <BookingCardSkeleton />
             <BookingCardSkeleton />
           </div>
+        ) : fetchError ? (
+          <ErrorState
+            {...mapError(fetchError)}
+            onRetry={() => { setFetchError(null); setLoading(true); fetchBookings(); }}
+          />
         ) : displayBookings.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-ink/10">
             <h3 className="text-2xl serif font-light italic text-ink mb-3">
@@ -341,6 +355,8 @@ const MyBookings: React.FC = () => {
                           src={trainer.profiles.avatar_url}
                           alt={trainerName}
                           referrerPolicy="no-referrer"
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (

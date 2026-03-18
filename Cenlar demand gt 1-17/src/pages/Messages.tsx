@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { SkeletonLine } from '@/components/shared/Skeleton';
+import { ErrorState } from '@/components/shared/ErrorState';
+import { mapError } from '@/lib/errorMessages';
 
 interface ConversationParticipant {
   id: string;
@@ -43,6 +45,7 @@ const Messages: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [loadingConvos, setLoadingConvos] = useState(true);
+  const [convoError, setConvoError] = useState<unknown>(null);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [showThread, setShowThread] = useState(!!searchParams.get('conv'));
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -51,6 +54,7 @@ const Messages: React.FC = () => {
   // ── Fetch conversations ─────────────────────────────────────────────────────
   const fetchConversations = useCallback(async () => {
     if (!user) return;
+    setConvoError(null);
     setLoadingConvos(true);
 
     const { data, error } = await supabase
@@ -63,7 +67,7 @@ const Messages: React.FC = () => {
       .or(`trainer_id.eq.${user.id},client_id.eq.${user.id}`)
       .order('updated_at', { ascending: false });
 
-    if (error) { toast.error('Failed to load conversations'); setLoadingConvos(false); return; }
+    if (error) { setConvoError(error); setLoadingConvos(false); return; }
 
     // Fetch last message + unread count for each conversation
     const enriched = await Promise.all(
@@ -256,6 +260,13 @@ const Messages: React.FC = () => {
                 <SkeletonLine width="w-full" className="h-16" />
                 <SkeletonLine width="w-full" className="h-16" />
               </div>
+            ) : convoError ? (
+              <div className="flex-1">
+                <ErrorState
+                  {...mapError(convoError)}
+                  onRetry={() => { setConvoError(null); setLoadingConvos(true); fetchConversations(); }}
+                />
+              </div>
             ) : conversations.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center px-8 text-center space-y-4">
                 <MessageSquare size={32} strokeWidth={1} className="text-ink/15" />
@@ -282,6 +293,8 @@ const Messages: React.FC = () => {
                           src={other.avatar_url}
                           alt={other.full_name}
                           referrerPolicy="no-referrer"
+                          loading="lazy"
+                          decoding="async"
                           className="w-10 h-10 rounded-full object-cover shrink-0"
                         />
                       ) : (
@@ -337,6 +350,8 @@ const Messages: React.FC = () => {
                       src={otherParticipant.avatar_url}
                       alt={otherParticipant.full_name}
                       referrerPolicy="no-referrer"
+                      loading="lazy"
+                      decoding="async"
                       className="w-9 h-9 rounded-full object-cover"
                     />
                   ) : (

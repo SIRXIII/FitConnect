@@ -1,6 +1,7 @@
 import { Star, MapPin, Award, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Trainer } from '@/types';
+import { optimizedUrl } from '@/lib/imageUtils';
 
 interface TrainerCardProps {
   trainer: Trainer;
@@ -14,9 +15,11 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
     <div className="group space-y-6">
       <Link to={profileUrl} className="block relative aspect-[4/5] overflow-hidden bg-ink/5">
         <img
-          src={trainer.imageUrl}
+          src={optimizedUrl(trainer.imageUrl)}
           alt={trainer.name}
           referrerPolicy="no-referrer"
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000"
         />
         {trainer.availableNow && (

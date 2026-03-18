@@ -7,6 +7,8 @@ import { useAuthStore } from '@/stores/auth';
 import type { Tables } from '@/types/supabase';
 import FitnessPassportCard from '@/components/booking/FitnessPassportCard';
 import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
+import { ErrorState } from '@/components/shared/ErrorState';
+import { mapError } from '@/lib/errorMessages';
 
 type BookingStatus = Tables<'bookings'>['status'];
 
@@ -49,14 +51,16 @@ const TrainerBookings: React.FC = () => {
   const { trainerProfile, user } = useAuthStore();
   const [bookings, setBookings] = useState<TrainerBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<unknown>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'action' | 'history'>('action');
 
   const fetchBookings = async () => {
     if (!trainerProfile) return;
 
+    setFetchError(null);
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('bookings')
       .select(
         `
@@ -80,6 +84,12 @@ const TrainerBookings: React.FC = () => {
       )
       .eq('trainer_id', trainerProfile.id)
       .order('created_at', { ascending: false });
+
+    if (error) {
+      setFetchError(error);
+      setLoading(false);
+      return;
+    }
 
     const rawBookings = (data as unknown as Omit<TrainerBooking, 'client_profiles'>[]) || [];
 
@@ -273,6 +283,11 @@ const TrainerBookings: React.FC = () => {
             <BookingCardSkeleton />
             <BookingCardSkeleton />
           </div>
+        ) : fetchError ? (
+          <ErrorState
+            {...mapError(fetchError)}
+            onRetry={() => { setFetchError(null); setLoading(true); fetchBookings(); }}
+          />
         ) : (activeTab === 'action' ? actionRequired : history).length === 0 ? (
           <div className="text-center py-20 border border-dashed border-ink/10">
             <h3 className="text-2xl serif font-light italic text-ink mb-3">No bookings in this view</h3>
@@ -300,6 +315,8 @@ const TrainerBookings: React.FC = () => {
                           src={booking.profiles.avatar_url}
                           alt={clientName}
                           referrerPolicy="no-referrer"
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (

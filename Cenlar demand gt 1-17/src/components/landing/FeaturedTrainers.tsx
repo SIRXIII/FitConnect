@@ -61,6 +61,8 @@ const FeaturedTrainers: React.FC = () => {
                       src={avatar}
                       alt={name}
                       referrerPolicy="no-referrer"
+                      loading="lazy"
+                      decoding="async"
                       className="w-12 h-12 object-cover"
                     />
                   ) : (

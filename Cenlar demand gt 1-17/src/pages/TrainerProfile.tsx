@@ -10,6 +10,7 @@ import { classifySlot } from '@/lib/scheduling';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import { ProfileSkeleton } from '@/components/skeleton/ProfileSkeleton';
 import { SkeletonRect } from '@/components/shared/Skeleton';
+import { ErrorState } from '@/components/shared/ErrorState';
 
 interface Review {
   id: string;
@@ -227,16 +228,12 @@ const TrainerProfile: React.FC = () => {
 
   if (!trainer) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper pt-32">
-        <div className="text-center space-y-6">
-          <h2 className="text-3xl serif font-light italic text-ink">Trainer not found</h2>
-          <Link
-            to="/trainers"
-            className="inline-block border border-ink/20 px-10 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300"
-          >
-            Browse Trainers
-          </Link>
-        </div>
+      <div className="min-h-screen bg-paper pt-32">
+        <ErrorState
+          title="Trainer not found"
+          message="This trainer profile could not be loaded."
+          backTo={{ label: "Browse Trainers", path: "/" }}
+        />
       </div>
     );
   }
@@ -268,6 +265,8 @@ const TrainerProfile: React.FC = () => {
                   src={avatar}
                   alt={name}
                   referrerPolicy="no-referrer"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -489,6 +488,8 @@ const TrainerProfile: React.FC = () => {
                                 src={review.profiles.avatar_url}
                                 alt=""
                                 referrerPolicy="no-referrer"
+                                loading="lazy"
+                                decoding="async"
                                 className="w-8 h-8 rounded-full object-cover"
                               />
                             ) : (
