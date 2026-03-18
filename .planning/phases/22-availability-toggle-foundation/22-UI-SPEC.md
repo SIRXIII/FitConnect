@@ -42,7 +42,7 @@ Declared values (multiples of 4 only):
 | 3xl | 64px | Page-level spacing |
 
 Exceptions:
-- Toggle pill buttons use `py-2 px-6` (10px / 24px) — nearest standard-set value to the BillingToggle.tsx pattern
+- Toggle pill buttons use `py-2 px-6` (8px / 24px) — nearest standard-set value to the BillingToggle.tsx pattern
 - Touch targets for the live toggle: minimum 44px height (mobile accessibility)
 - Sticky header bar: 64px height (`h-16`) so it never competes with nav height at `pt-32`
 - Countdown text is inline within the header, no extra block spacing
@@ -156,9 +156,9 @@ Source: index.css @theme, TrainerCard.tsx (accent for price/rating), BillingTogg
 ### Availability Indicator on Trainer Cards (Client View)
 
 - Green dot: `w-2 h-2 rounded-full bg-green-500 animate-pulse` inline before "Live Now" label
-- "LIVE NOW" badge: `text-[9px] uppercase tracking-[0.2em] text-green-600 font-medium`
-- "Instant Book" badge: `text-[9px] uppercase tracking-[0.2em] text-accent font-medium` below trainer name
-- "Request to Book" badge: `text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium`
+- "LIVE NOW" badge: `text-[10px] uppercase tracking-[0.2em] text-green-600 font-medium`
+- "Instant Book" badge: `text-[10px] uppercase tracking-[0.2em] text-accent font-medium` below trainer name
+- "Request to Book" badge: `text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium`
 - Live trainers sort above non-live in search results (visual priority is sort-order, not style-only)
 
 ### 10-Minute Warning Notification
