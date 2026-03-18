@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
@@ -21,6 +21,8 @@ import MyBookings from '@/pages/MyBookings';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Messages from '@/pages/Messages';
 import Pricing from '@/pages/Pricing';
+import ClientPassport from '@/pages/ClientPassport';
+import NotFound from '@/pages/NotFound';
 import TrialBanner from '@/components/subscription/TrialBanner';
 
 const App: React.FC = () => {
@@ -60,10 +62,16 @@ const App: React.FC = () => {
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/pricing" element={<Pricing />} />
 
-          {/* Onboarding */}
-          <Route path="/onboarding/role" element={<RoleSelect />} />
-          <Route path="/onboarding/client" element={<ClientOnboarding />} />
-          <Route path="/onboarding/trainer" element={<TrainerOnboarding />} />
+          {/* Onboarding (requires auth) */}
+          <Route path="/onboarding/role" element={<ProtectedRoute skipRoleCheck><RoleSelect /></ProtectedRoute>} />
+          <Route path="/onboarding/client" element={<ProtectedRoute skipRoleCheck><ClientOnboarding /></ProtectedRoute>} />
+          <Route path="/onboarding/trainer" element={<ProtectedRoute skipRoleCheck><TrainerOnboarding /></ProtectedRoute>} />
+
+          {/* Redirect legacy routes */}
+          <Route path="/signup" element={<Navigate to="/login" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+          <Route path="/role-select" element={<Navigate to="/login" replace />} />
+          <Route path="/onboarding" element={<Navigate to="/login" replace />} />
 
           {/* Trainer routes */}
           <Route
@@ -97,6 +105,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute requiredRole="client">
                 <MyBookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client/passport"
+            element={
+              <ProtectedRoute requiredRole="client">
+                <ClientPassport />
               </ProtectedRoute>
             }
           />
@@ -134,6 +150,8 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          {/* 404 catch-all */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
       </div>
