@@ -42,7 +42,7 @@ Declared values (multiples of 4 only):
 | 3xl | 64px | Page-level spacing |
 
 Exceptions:
-- Toggle pill buttons use `py-2 px-5` (10px / 20px) to match existing BillingToggle.tsx pattern
+- Toggle pill buttons use `py-2 px-6` (10px / 24px) — nearest standard-set value to the BillingToggle.tsx pattern
 - Touch targets for the live toggle: minimum 44px height (mobile accessibility)
 - Sticky header bar: 64px height (`h-16`) so it never competes with nav height at `pt-32`
 - Countdown text is inline within the header, no extra block spacing
@@ -57,10 +57,11 @@ Source: existing component patterns (BillingToggle.tsx, TrainerDashboard.tsx)
 |------|------|--------|-------------|
 | Body | 16px | 400 (regular) | 1.5 |
 | Label | 10px uppercase tracking-[0.25em] | 500 (medium) | 1.4 |
-| Heading | 20px serif italic | 300 (light) | 1.2 |
-| Display | 28px serif italic | 300 (light) | 1.1 |
+| Heading | 20px serif italic | 400 (regular) | 1.2 |
+| Display | 28px serif italic | 400 (regular) | 1.1 |
 
 Phase-specific notes:
+- Heading and display roles use `font-serif italic` for visual distinction — weight 400 is sufficient; light (300) is not used in this phase
 - Toggle state label ("YOU ARE LIVE" / "OFFLINE") uses 10px uppercase tracking-[0.3em] weight 500 — matches dashboard label pattern
 - Countdown text ("2h 14m remaining") uses 10px uppercase tracking-[0.2em] weight 500 in ink/60
 - Sleep timer pill labels (1hr, 2hr, 4hr, EOD) use 10px uppercase tracking-[0.2em] weight 500 — matches BillingToggle
@@ -163,7 +164,7 @@ Source: index.css @theme, TrainerCard.tsx (accent for price/rating), BillingTogg
 ### 10-Minute Warning Notification
 
 - Delivery: sonner toast `toast.warning()` with action button
-- Copy: "Availability expires in 10 min. Extend?" with "Extend" action that reopens sleep timer pills
+- Copy: "Availability expires in 10 min. Extend Timer?" with "Extend Timer" action that reopens sleep timer pills
 - Duration: persistent (requires user action or manual dismiss)
 
 ---
@@ -187,8 +188,8 @@ Source: index.css @theme, TrainerCard.tsx (accent for price/rating), BillingTogg
 | Going offline with bookings | "You have {n} upcoming bookings. Going offline won't cancel them." |
 | Going offline confirmation CTA | "Go Offline Anyway" |
 | Auto-decline warning (queue) | "Auto-declines in {n} min" |
-| Auto-expiry warning toast | "Availability expires in 10 min. Extend?" |
-| Auto-expiry warning action | "Extend" |
+| Auto-expiry warning toast | "Availability expires in 10 min. Extend Timer?" |
+| Auto-expiry warning action | "Extend Timer" |
 | First-time tooltip | "Tap to go live. Clients can book you instantly." |
 | First-time tooltip dismiss | "Got it" |
 | Pending booking status (client) | "Pending Approval" |
