@@ -16,6 +16,12 @@ export interface SlotWithTrainer extends AvailabilitySlot {
   };
 }
 
+type PaymentFormComponentType = React.FC<{
+  onSuccess: () => void;
+  onBack: () => void;
+  amount: number;
+}>;
+
 interface BookingWizardProps {
   slot: SlotWithTrainer;
   onComplete: () => void;
@@ -24,6 +30,7 @@ interface BookingWizardProps {
   createPaymentIntent: (bookingId: string) => Promise<string | null>;
   platformFeePct: number;
   referralDiscountPending: boolean;
+  PaymentFormComponent?: PaymentFormComponentType;
 }
 
 const stepVariants = {
@@ -76,6 +83,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   createPaymentIntent,
   platformFeePct,
   referralDiscountPending,
+  PaymentFormComponent,
 }) => {
   const steps = useMemo(
     () => ['Review', 'Confirm', ...(stripeConfigured ? ['Payment'] : []), 'Complete'],
@@ -172,12 +180,13 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
           />
         );
       case 'Payment':
-        return clientSecret ? (
+        return clientSecret && PaymentFormComponent ? (
           <StepPayment
             clientSecret={clientSecret}
             amount={displayRate}
             onSuccess={handlePaymentSuccess}
             onBack={handlePaymentBack}
+            PaymentFormComponent={PaymentFormComponent}
           />
         ) : null;
       case 'Complete':
