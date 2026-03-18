@@ -59,6 +59,10 @@ Recent decisions relevant to v4.0:
 - **Phase 27**: Confirm `pg_net` extension availability on current Supabase plan before designing notification trigger (free tier requires pg_cron polling fallback)
 - **Phase 28**: Google OAuth verification must complete before sync feature reaches production users
 
+## Strategic Todos
+
+- **TRUST INFRASTRUCTURE**: Differentiation must be built around: (1) verified credentials and safety guardrails (integrate certification verification flows already available), (2) transparent pricing and in-app cancellation with explicit renewal controls, (3) matching system that prevents availability and location misrepresentation before charging, (4) PT tooling that removes admin pain (autosave, undo, exercise-level notes, scalable programming, structured check-ins). Must deliver 2+ at meaningfully better level than incumbents to avoid slow growth, high churn, and expensive acquisition with low defensibility.
+
 ## Accumulated Context
 
 - 20 phases shipped across 4 milestones (v1.0–v3.0)
