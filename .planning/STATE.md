@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: planning
-stopped_at: Completed 21-01-PLAN.md (waitlist backend)
-last_updated: "2026-03-18T20:57:46.133Z"
-last_activity: 2026-03-18 -- v4.0 roadmap created
+stopped_at: Completed 21-02-PLAN.md (Hero email form + GCP checklist) — awaiting human verify checkpoint
+last_updated: "2026-03-18T21:05:16Z"
+last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State -- FitRush
@@ -25,9 +25,9 @@ See: `.planning/PROJECT.md` (updated 2026-03-18)
 ## Current Position
 
 Phase: 21 of 28 (Email Capture + Platform Controls)
-Plan: -- of -- (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-18 -- v4.0 roadmap created
+Plan: 2 of 2 (complete — awaiting human verify checkpoint for Task 3)
+Status: In progress
+Last activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 
 ```
 v4.0 Progress: [░░░░░░░░] 0% (0/8 phases)
@@ -53,6 +53,9 @@ Recent decisions relevant to v4.0:
 - OAuth tokens in separate `trainer_gcal_tokens` table, not on `trainer_profiles`
 - [Phase 21]: Silent 200 on duplicate email (23505) prevents enumeration attacks
 - [Phase 21]: Service-role key for waitlist insert bypasses RLS without exposing anon policy
+- [Phase 21-02]: Hero input uses type=text not type=email — browser HTML5 validation in jsdom blocks form submit before Zod runs
+- [Phase 21-02]: Zod 4 uses result.error.issues not result.error.errors (breaking change from Zod 3)
+- [Phase 21-02]: No waitlist position number shown — simple "You're In." confirmation per CONTEXT.md locked decision
 
 ## Blockers / Concerns
 

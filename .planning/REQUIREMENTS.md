@@ -71,7 +71,7 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 - [x] **WAITLIST-01**: Visitor can enter email on landing page to join the waitlist
 - [x] **WAITLIST-02**: Visitor receives confirmation email after signup via Resend
-- [ ] **WAITLIST-03**: Visitor sees their position in the waitlist after signup
+- [x] **WAITLIST-03**: Visitor sees their position in the waitlist after signup
 
 ## Future Requirements (v4.1+)
 
@@ -107,7 +107,7 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 |-------------|-------|--------|
 | WAITLIST-01 | Phase 21 | Complete |
 | WAITLIST-02 | Phase 21 | Complete |
-| WAITLIST-03 | Phase 21 | Pending |
+| WAITLIST-03 | Phase 21 | Complete |
 | AVAIL-01 | Phase 22 | Pending |
 | AVAIL-02 | Phase 22 | Pending |
 | AVAIL-03 | Phase 22 | Pending |
