@@ -127,3 +127,15 @@ export type AdminTierOverrideInput = z.infer<typeof adminTierOverrideSchema>;
 export type PlatformSettingsInput = z.infer<typeof platformSettingsSchema>;
 export type BookingInput = z.infer<typeof bookingSchema>;
 export type BufferTimeInput = z.infer<typeof bufferTimeSchema>;
+
+// --- Phase 21: Waitlist ---
+
+export const waitlistSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .max(320, 'Email is too long')
+    .email('Please enter a valid email address'),
+});
+
+export type WaitlistInput = z.infer<typeof waitlistSchema>;
