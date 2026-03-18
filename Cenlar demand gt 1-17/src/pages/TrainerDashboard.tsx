@@ -12,6 +12,8 @@ import AnalyticsTab from '@/components/trainer/AnalyticsTab';
 import ReferralWidget from '@/components/shared/ReferralWidget';
 import LockedFeatureBanner from '@/components/shared/LockedFeatureBanner';
 import SubscriptionTab from '@/components/subscription/SubscriptionTab';
+import CalendarExportCard from '@/components/calendar/CalendarExportCard';
+import BufferTimeSelector from '@/components/calendar/BufferTimeSelector';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -22,7 +24,7 @@ const TrainerDashboard: React.FC = () => {
   const canAnalytics = useCan('analytics_advanced');
   const [searchParams] = useSearchParams();
   const navigateTo = useNavigate();
-  const tabs = ['overview', 'payouts', 'analytics', 'subscription'] as const;
+  const tabs = ['overview', 'payouts', 'analytics', 'subscription', 'calendar'] as const;
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>(() => {
     const tabParam = searchParams.get('tab');
     return tabs.includes(tabParam as typeof tabs[number])
@@ -35,6 +37,8 @@ const TrainerDashboard: React.FC = () => {
   const [stripeError, setStripeError] = useState<string | null>(null);
   // Capture first-visit flag ONCE at mount so URL cleanup doesn't flip it back to false
   const [isFirstVisit] = useState(() => searchParams.get('welcome') === 'true');
+  const [calendarToken, setCalendarToken] = useState(trainerProfile?.calendar_export_token || '');
+  const [bufferMinutes, setBufferMinutes] = useState(trainerProfile?.buffer_minutes || 0);
 
   // Remove ?welcome=true from URL after reading it so a refresh shows "Welcome back"
   useEffect(() => {
@@ -355,6 +359,19 @@ const TrainerDashboard: React.FC = () => {
             : <LockedFeatureBanner feature="analytics_advanced" tier={tier} />
         )}
         {activeTab === 'subscription' && <SubscriptionTab />}
+        {activeTab === 'calendar' && (
+          <div className="space-y-8">
+            <CalendarExportCard
+              token={calendarToken}
+              onTokenReset={(newToken) => setCalendarToken(newToken)}
+            />
+            <BufferTimeSelector
+              currentBuffer={bufferMinutes}
+              trainerId={trainerProfile?.id || ''}
+              onBufferChange={(mins) => setBufferMinutes(mins)}
+            />
+          </div>
+        )}
 
       </div>
     </div>
