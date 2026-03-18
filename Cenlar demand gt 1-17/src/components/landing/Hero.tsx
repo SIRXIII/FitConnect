@@ -1,9 +1,61 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { toast } from 'sonner';
+import { waitlistSchema } from '../../lib/schemas';
+
+type HeroState = 'idle' | 'submitted';
+
+const stepVariants = {
+  enter: { opacity: 0, y: 20 },
+  center: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
 
 const Hero: React.FC = () => {
+  const [heroState, setHeroState] = useState<HeroState>('idle');
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const scrollToSearch = () => {
     const element = document.getElementById('search');
     element?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  void scrollToSearch; // kept for potential external use
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = waitlistSchema.safeParse({ email });
+    if (!result.success) {
+      setError(result.error.issues[0]?.message ?? 'Invalid email');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/waitlist-signup`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: result.data.email }),
+        }
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? 'Signup failed');
+      }
+      setHeroState('submitted');
+      toast.success('You are on the early access list.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+      toast.error('Could not sign you up. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -12,53 +64,96 @@ const Hero: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
           <div className="lg:col-span-7 z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className="space-y-10 relative"
-            >
-              <div className="space-y-4">
-                <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-accent block">
-                  Elite Fitness Marketplace
-                </span>
-                <h1 className="text-5xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.9] tracking-tight text-ink">
-                  Refined <br />
-                  <span className="italic">Strength.</span>
-                </h1>
-              </div>
-
-              <p className="text-lg md:text-xl text-ink/80 md:text-ink/60 font-light leading-relaxed max-w-md">
-                Connecting discerning individuals with certified master trainers during exclusive downtime hours.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-8 pt-6">
-                <button
-                  onClick={scrollToSearch}
-                  className="bg-ink text-white px-12 py-5 text-[11px] uppercase tracking-[0.3em] hover:bg-accent transition-all duration-500"
+            <AnimatePresence mode="wait">
+              {heroState === 'idle' && (
+                <motion.div
+                  key="idle"
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.4 }}
+                  className="space-y-10 relative"
                 >
-                  Discover Trainers
-                </button>
-                <button className="text-ink px-4 py-5 text-[11px] uppercase tracking-[0.3em] border-b border-ink/20 hover:border-ink transition-all">
-                  The Experience
-                </button>
-              </div>
+                  <div className="space-y-4">
+                    <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-accent block">
+                      Elite Fitness Marketplace
+                    </span>
+                    <h1 className="text-5xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.9] tracking-tight text-ink">
+                      Refined <br />
+                      <span className="italic">Strength.</span>
+                    </h1>
+                  </div>
 
-              <div className="grid grid-cols-3 gap-12 pt-16 border-t border-ink/5">
-                <div className="space-y-1">
-                  <div className="text-2xl serif font-light italic">2,000+</div>
-                  <div className="text-[9px] uppercase tracking-widest text-ink/40">Professionals</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-2xl serif font-light italic">Smart</div>
-                  <div className="text-[9px] uppercase tracking-widest text-ink/40">Pricing</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-2xl serif font-light italic">4.9</div>
-                  <div className="text-[9px] uppercase tracking-widest text-ink/40">Excellence Score</div>
-                </div>
-              </div>
-            </motion.div>
+                  <p className="text-lg md:text-xl text-ink/80 md:text-ink/60 font-light leading-relaxed max-w-md">
+                    Connecting discerning individuals with certified master trainers during exclusive downtime hours.
+                  </p>
+
+                  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 pt-6">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                        placeholder="Enter your email"
+                        disabled={loading}
+                        className="w-full bg-transparent border-b border-ink/20 focus:border-accent px-0 py-4 text-ink placeholder:text-ink/30 text-sm tracking-wide outline-none transition-colors duration-300"
+                      />
+                      {error && <p className="text-red-600 text-xs mt-2 tracking-wide">{error}</p>}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="bg-ink text-white px-12 py-4 text-[11px] uppercase tracking-[0.3em] hover:bg-accent transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {loading ? 'Joining...' : 'Get Early Access'}
+                    </button>
+                  </form>
+
+                  <div className="grid grid-cols-3 gap-12 pt-16 border-t border-ink/5">
+                    <div className="space-y-1">
+                      <div className="text-2xl serif font-light italic">2,000+</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Professionals</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl serif font-light italic">Smart</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Pricing</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl serif font-light italic">4.9</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Excellence Score</div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {heroState === 'submitted' && (
+                <motion.div
+                  key="submitted"
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.4 }}
+                  className="space-y-10 relative"
+                >
+                  <div className="space-y-4">
+                    <div className="w-12 h-[1px] bg-accent"></div>
+                    <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-accent block">
+                      Early Access
+                    </span>
+                    <h2 className="text-4xl md:text-6xl lg:text-7xl serif font-normal md:font-light leading-[0.9] tracking-tight text-ink">
+                      You're <br />
+                      <span className="italic">In.</span>
+                    </h2>
+                  </div>
+                  <p className="text-lg md:text-xl text-ink/80 md:text-ink/60 font-light leading-relaxed max-w-md">
+                    Welcome to FitRush. You are on the early access list. We will reach out when it is time.
+                  </p>
+                  <div className="w-12 h-[1px] bg-accent"></div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="lg:col-span-5 relative">
