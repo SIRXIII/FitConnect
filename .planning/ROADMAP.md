@@ -100,7 +100,11 @@ Plans:
   2. Trainer can set a sleep timer (1hr, 2hr, 4hr, end of day) that auto-disables availability
   3. A trainer who forgets to go offline has their availability automatically cleared by the system within 5 minutes of the timer expiry
   4. Two clients booking the same slot simultaneously results in exactly one successful booking and one clean error, with no double-booking
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 22-01-PLAN.md — DB migration: availability columns, booking_requests table, atomic booking RPC, pg_cron expiry
+- [ ] 22-02-PLAN.md — Trainer availability header: live toggle, sleep timer pills, countdown, warm-up animation
+- [ ] 22-03-PLAN.md — Client atomic booking, request queue, live trainer badges in search
 
 ### Phase 23: Map View + Trainer Locations
 **Goal**: Clients can discover available trainers on a live map with clustered pins, and trainers can manage their workout locations with address entry and map preview
@@ -193,8 +197,8 @@ Plans:
 | 18. Trainee Fitness Passport | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 19. Calendar Export & Buffer Times | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 20. UX Polish | v3.0 | 3/3 | ✅ | 2026-03-18 |
-| 21. Email Capture + Platform Controls | 2/2 | Complete    | 2026-03-18 | - |
-| 22. Availability Toggle Foundation | v4.0 | 0/TBD | Not started | - |
+| 21. Email Capture + Platform Controls | v4.0 | 2/2 | ✅ | 2026-03-18 |
+| 22. Availability Toggle Foundation | v4.0 | 0/3 | Not started | - |
 | 23. Map View + Trainer Locations | v4.0 | 0/TBD | Not started | - |
 | 24. Session Logging | v4.0 | 0/TBD | Not started | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |
@@ -203,4 +207,4 @@ Plans:
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-03-18 — v4.0 roadmap created*
+*Last updated: 2026-03-18 — Phase 22 plans created*
