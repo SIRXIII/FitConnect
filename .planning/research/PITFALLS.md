@@ -1,768 +1,439 @@
-# Domain Pitfalls: Stripe Billing on an Existing Connect Marketplace
+# Domain Pitfalls: v4.0 The Live Platform
 
-**Domain:** Adding Stripe Billing (subscription tiers) to a live Stripe Connect Express marketplace
-**Project:** FitRush v2.1 — Free / Pro ($9/mo) / Elite ($29/mo) trainer tiers
-**Researched:** 2026-03-15
-**Confidence:** HIGH — primary sources are current Stripe official documentation; supplemented by verified community patterns
+**Domain:** Adding Google Maps, geolocation, real-time availability toggle, AI matching, Google Calendar OAuth sync, session logging, and push notifications to an existing Supabase/React fitness marketplace
+**Project:** FitRush v4.0 — The Live Platform
+**Researched:** 2026-03-18
+**Confidence:** HIGH for Google Maps billing, Google OAuth, and race conditions (primary source verified). MEDIUM for geolocation battery/Capacitor and GDPR patterns (multiple sources, no official docs). LOW for AI cold-start recommendations (community patterns only).
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes in this section cause security vulnerabilities, billing failures, data corruption, or undetected revenue loss.
+Mistakes in this section cause runaway billing, data corruption, App Store rejection, or regulatory exposure. Address before writing any v4.0 feature code.
 
 ---
 
-### Pitfall 1: Billing Customer Object vs. Connect Account — Two Completely Separate Identity Systems
+### Pitfall 1: Google Maps API Cost Explosion — Multiple SKUs Billed Per Interaction
 
 **What goes wrong:**
 
-Developers assume the existing `stripe_account_id` (`acct_xxx`) stored on `trainer_profiles` is sufficient for billing. It is not. A Connect Account object is a _merchant_ identity used for receiving payouts. A Billing Customer object (`cus_xxx`) is a _consumer_ identity used for subscription charges. Stripe's API treats them as entirely separate — there is no way to turn one into the other or share them.
-
-Passing `acct_xxx` where `cus_xxx` is expected causes `stripe.subscriptions.create()` to throw `No such customer` or create a subscription that can never be charged.
+A single map interaction can trigger multiple billable SKUs simultaneously. Loading a map view fires the Maps JavaScript API SKU. Displaying trainer pins with address lookups fires the Places API SKU. Calculating distance to each trainer fires the Distance Matrix SKU. An autocomplete field fires the Places Autocomplete SKU (billed per keystroke). Developers see "Google gives $200/month free" and assume they're covered — but as of March 1, 2025, Google replaced the $200 monthly credit with per-SKU free caps: 10,000/month for Essentials SKUs and 5,000/month for Pro SKUs. A map view with trainer search, address autocomplete, and distance filtering can exhaust free tiers at a fraction of the expected request volume.
 
 **Why it happens:**
 
-The Stripe Dashboard shows both objects, so developers conflate "trainer has a Stripe account" with "trainer is a Stripe customer of my platform." They are orthogonal. Stripe's own docs state: _"The Account object allows the connected account to collect payments from its customers, but the platform can't use it to collect recurring payments from the connected account."_
+The FitRush trainer search page already has filtering logic. Adding a map view feels like "just adding a component." But each feature layer (pins, clustering, address lookup, distance sort) maps to a different billing SKU that developers don't notice until the first invoice arrives. The landmark case: a startup's Google Maps bill went from $500 to $12,000 overnight when an unrestricted API key was scraped by a bot.
 
-**Consequences:** Subscription creation silently fails or creates a zombie subscription. Trainers see "Pro" in the UI but invoices are never generated. Or: dev mode works fine (you used `cus_xxx`) but someone hardcodes `stripe_account_id` in a new code path and prod breaks on first upgrade.
+**Consequences:**
+
+Uncontrolled Google Cloud billing. No hard billing cap exists by default — Google sends alerts but does not stop requests. An unguarded key or one viral traffic day can produce thousands of dollars in charges before anyone notices.
 
 **Prevention:**
 
-Maintain two separate Stripe IDs per trainer in the DB:
+1. Set a Google Cloud Billing budget alert at $10/month and a hard quota cap via the Google Cloud Console Quotas page before any key is used in code.
+2. Restrict the API key: HTTP referrer restrictions for the frontend key (fitrush-app.netlify.app), IP restrictions for any server-side key.
+3. Audit every map feature against the SKU billing table before building. Specifically: avoid Places Details API for address display — store the formatted address string in `trainer_profiles` after a one-time geocode. Avoid Distance Matrix API for all trainers on every page load — compute distance client-side from stored lat/lng.
+4. Use Static Maps API (not Dynamic Maps) anywhere interactivity is not needed (e.g., trainer profile address preview).
+5. Cache geocode results in the database — never re-geocode an address that already has coordinates.
 
-```
-trainer_profiles:
-  stripe_account_id   TEXT  -- acct_xxx  (payouts TO the trainer via Connect)
-  stripe_customer_id  TEXT  -- cus_xxx   (billing FROM the trainer via Billing)
-```
+**Detection:** Google Cloud Console billing graph. Set daily cost anomaly alerts. Check `Maps JavaScript API` + `Places API` SKUs in billing breakdown separately.
 
-Create the Customer object at first subscription attempt, not at signup:
-
-```typescript
-const customer = await stripe.customers.create({
-  email: trainer.email,
-  metadata: { trainer_id: trainer.id, platform: 'fitrush' },
-  // Never pass stripe_account_id here
-});
-await supabase
-  .from('trainer_profiles')
-  .update({ stripe_customer_id: customer.id })
-  .eq('id', trainer.id);
-```
-
-**Detection:** Add a runtime assert: `assert(stripe_customer_id.startsWith('cus_'))` before any subscription operation. Add a DB check constraint: `CHECK (stripe_customer_id LIKE 'cus_%')`.
-
-**Sources:** [Charge SaaS fees to your connected accounts](https://docs.stripe.com/connect/integrate-billing-connect); [Create subscriptions with Stripe Billing (Connect)](https://docs.stripe.com/connect/subscriptions)
+**Phase:** Must address in the phase that adds Google Maps integration. Cannot defer.
 
 ---
 
-### Pitfall 2: Webhook Secret Collision — Using the Connect Webhook Secret for Billing Events
+### Pitfall 2: Capacitor iOS GPS — Background Location Destroys Battery, Apple Rejects Vague Justifications
 
 **What goes wrong:**
 
-FitRush already has a webhook endpoint (`stripe-webhook`) that processes Connect payout events, verified with `STRIPE_WEBHOOK_SECRET`. Billing subscription events (`customer.subscription.*`, `invoice.*`) originate from the **platform account**, not from connected accounts. These use a different signing secret.
+Two distinct failure modes:
 
-If billing events are routed to the same endpoint and verified with the Connect secret, `stripe.webhooks.constructEvent()` will throw `No signatures found matching the expected signature for payload`. Billing events silently return 400 and are never processed. Stripe retries for up to 3 days, all failing.
+**Mode A — Battery drain:** Continuous GPS polling at high accuracy drains a device battery in 2–4 hours. The standard Capacitor Geolocation plugin (`@capacitor/geolocation`) does not have motion-detection intelligence. If the FitRush trainer availability toggle calls `watchPosition()` without a distanceFilter, it polls GPS at full rate even when the trainer is stationary at their gym.
+
+**Mode B — App Store rejection:** iOS requires `NSLocationAlwaysAndWhenInUseUsageDescription` and `NSLocationAlwaysUsageDescription` keys in Info.plist for background location. Apple App Review rejects apps whose privacy usage description strings are generic ("We use your location"). They require a specific, user-benefit-oriented explanation. Apple additionally audits whether the declared background mode matches actual usage — an availability toggle does not inherently require "always on" background location.
 
 **Why it happens:**
 
-Developers register one webhook URL in the Stripe Dashboard, don't realize Stripe uses per-endpoint signing secrets, and the failure mode is silent (400s logged but not alarmed on).
+The FitRush iOS Capacitor wrapper is already configured (v3.0) but location was never needed. Adding GPS without understanding iOS entitlement tiers is a common oversight. The community plugin (`capacitor-community/background-geolocation`) is noted as less accurate and may fail silently in background.
+
+**Consequences:**
+
+App Store submission rejected in Review (2–4 day delay minimum, re-submission required). Or: app ships but trainers' phones die by 2pm. Negative reviews on battery. Churn from trainer side.
 
 **Prevention:**
 
-Create a second webhook endpoint in the Stripe Dashboard specifically for billing events on the platform account. Store its secret as `STRIPE_BILLING_WEBHOOK_SECRET`. Implement a separate Edge Function `stripe-billing-webhook`. Alternatively, add routing logic at the top of the existing handler:
+1. For the Uber-style availability toggle: do NOT use continuous GPS polling. The toggle should record a lat/lng snapshot on toggle-on, then stop polling. Only refresh location if the trainer manually updates or the sleep timer fires.
+2. For client location-based notifications: use a one-time `getCurrentPosition()` call when the client opens the map, not a persistent watcher.
+3. If background location is genuinely needed: use `transistorsoft/capacitor-background-geolocation` (commercial, $399 license) — it has motion-detection intelligence that turns off GPS when the device is stationary, cutting battery impact by 60–80%. Alternatively, geofencing via `CLRegionMonitoring` wakes the device only on boundary cross, not continuously.
+4. Write a specific Info.plist description: "Your location is shared with FitRush only when you activate your availability to help clients find you nearby. Location is not tracked in the background."
+5. Request "When In Use" authorization only. Do not request "Always" unless App Review will accept the justification — which requires demonstrating that background tracking is core to the app's primary function.
 
-```typescript
-// At top of webhook handler — determine which secret to use
-const connectEventAccount = request.headers.get('stripe-connect-account');
-const secret = connectEventAccount
-  ? process.env.STRIPE_WEBHOOK_SECRET!       // Connect event
-  : process.env.STRIPE_BILLING_WEBHOOK_SECRET!; // Platform billing event
+**Detection:** Test on a real device (not simulator) with Xcode Instruments Energy Log. Simulator does not accurately represent GPS battery impact.
 
-const event = stripe.webhooks.constructEvent(rawBody, sig, secret);
-```
-
-Verify `event.account` presence: Connect events include an `account` field; platform billing events do not.
-
-**Detection:** After wiring billing, check Stripe Dashboard > Developers > Webhooks > your billing endpoint. If 400 responses appear, this is the problem.
+**Phase:** Address in the availability toggle phase, before any App Store submission.
 
 ---
 
-### Pitfall 3: Webhook Endpoint Applying Global JSON Body Parsing
+### Pitfall 3: Google Calendar OAuth — 4–8 Week Verification Blockade Before Production
 
 **What goes wrong:**
 
-Any middleware that parses the raw request body into a JSON object before signature verification breaks `stripe.webhooks.constructEvent()`. Stripe's HMAC-SHA256 signature is computed over the exact raw bytes. Re-serialized JSON (different key ordering, whitespace, Unicode escaping) will never match.
+`calendar.events` and `calendar.readonly` are classified as **sensitive scopes** under Google's OAuth verification framework. Any application requesting these scopes that is not in "Testing" mode (limited to 100 test users) must complete Google's OAuth app verification before it can authorize new users. Verification requires submitting a demonstration video, privacy policy URL, homepage URL, and detailed scope justification. The process takes 4–8 weeks and Google will reject for specific reasons that reset the clock.
 
-This is the single most common Stripe integration bug. Every framework has its own trap:
+Common rejection reasons observed in the developer community (2025):
+- **Domain ownership not confirmed:** The authorized domain in the OAuth consent screen must be verified in Google Search Console under the same Google account that owns the GCP project.
+- **Incomplete demo video:** Video must show the full OAuth consent screen URL bar visible, the login flow, and how calendar data is actually used in the app. Hiding the browser URL bar causes instant rejection.
+- **Generic scope justification:** "We need calendar access to sync sessions" is rejected. Required: specific explanation of why read-write access is needed vs. read-only, what data is written back, and why a narrower scope is insufficient.
+- **Missing developer contact email:** Google's Trust & Safety team sends "need more information" emails to the developer contact listed in the GCP project. If this email is unmonitored, the review pauses indefinitely.
 
-- **Express:** `app.use(express.json())` before the webhook route
-- **Next.js App Router:** `await request.json()` instead of `await request.text()`
-- **Hono:** default body parsing middleware applied globally
+**Why it happens:**
 
-**Consequences:** All webhook events fail verification permanently. `constructEvent` throws. Subscription status changes are never reflected in the DB. Depending on fallback behavior, trainers either get locked out of paid features or retain paid features indefinitely.
+The FitRush iCal export (v3.0) uses a token-based feed — no OAuth required. The jump to bidirectional Google Calendar sync requires OAuth, which is a different compliance track entirely. Teams often discover the verification requirement only after coding the full sync feature.
+
+**Consequences:**
+
+Google Calendar sync feature built but blocked from production users for 4–8 weeks. Or: app ships in Testing mode, then breaks for users #101+ who get "This app is not verified" error and cannot complete OAuth.
 
 **Prevention:**
 
-```typescript
-// Next.js App Router — CORRECT
-export async function POST(request: Request) {
-  const rawBody = await request.text();         // NOT request.json()
-  const sig = request.headers.get('stripe-signature')!;
-  const event = stripe.webhooks.constructEvent(
-    rawBody,
-    sig,
-    process.env.STRIPE_BILLING_WEBHOOK_SECRET!
-  );
-}
+1. Start the OAuth consent screen verification process before writing any bidirectional sync code. Submit as soon as the privacy policy is live and the domain is verified in Search Console.
+2. Request only `calendar.events` (read-write) not broader scopes. Justify specifically: "FitRush writes one calendar event per booking and reads events solely to detect scheduling conflicts. No calendar data is stored on FitRush servers beyond the event ID for update/delete operations."
+3. Monitor the developer contact email in GCP daily during review. A 48-hour non-response to a Google inquiry can extend the review by weeks.
+4. Plan the feature phases so that the one-way iCal feed (already shipped) remains the fallback for users while verification is pending.
 
-// Express — CORRECT: raw middleware applied per-route, before global json()
-app.post(
-  '/webhooks/stripe-billing',
-  express.raw({ type: 'application/json' }),
-  billingWebhookHandler
-);
-```
+**Detection:** GCP Console → APIs & Services → OAuth consent screen → Verification status.
 
-**Detection:** Run `stripe listen --forward-to localhost:3000/webhooks/stripe-billing`. Any 400 with "No signatures found" confirms this problem.
-
-**Sources:** [Receive Stripe events in your webhook endpoint](https://docs.stripe.com/webhooks); [Resolve webhook signature verification errors](https://docs.stripe.com/webhooks/signature)
+**Phase:** Start verification in the first phase that plans Google Calendar work. Build the UI and sync logic in parallel with the verification timeline.
 
 ---
 
-### Pitfall 4: Feature Gate Enforcement Is Client-Side Only
+### Pitfall 4: Race Condition — Availability Toggle + Booking Create Fire Simultaneously
 
 **What goes wrong:**
 
-The typical first implementation reads `trainer.subscription_tier` from the Zustand auth store and renders conditionally. This is purely cosmetic. An authenticated trainer can call the Supabase REST API directly, bypassing React entirely — or open devtools, mutate Zustand state, and access gated features without any server objection.
+The existing `availability_slots` table uses a soft-delete pattern (`deleted_at` column). The current booking flow reads a slot, checks availability, then creates a booking. This is a classic check-then-act race condition. With an Uber-style online/offline toggle that marks all upcoming slots as unavailable, a client booking flow that started 200ms before the toggle fires can complete successfully against a slot that the trainer just deactivated.
 
-FitRush already carries documented debt: "Verify and harden RLS policies across all tables." Subscription tiers without server enforcement compound that debt into an exploitable vulnerability.
+A second race: two clients both open the same trainer's slot at the same millisecond (e.g., from the new map view). Both read the slot as available. Both proceed to payment. Both payments succeed at Stripe. One booking gets written first; the other creates a double-booking because the check happened before either write.
 
-**Prevention:** Every tier-gated operation must be enforced at the database layer. The UI is UX. The DB is security.
+**Why it happens:**
 
-Slot visibility enforced in SQL — not React:
+Supabase's architecture makes classic pessimistic locking (`SELECT ... FOR UPDATE` held across an HTTP request boundary) impractical. The JS client auto-commits transactions, releasing locks between operations. The existing booking flow works for low-concurrency because simultaneous bookings are rare — but the map view with live "online now" trainer indicators will increase concurrent attempts for popular trainers.
 
-```sql
-CREATE POLICY "slot_visibility_by_tier" ON availability_slots
-  FOR SELECT USING (
-    -- The slot belongs to the querying trainer (they see all their own slots)
-    trainer_id = auth.uid()
-    OR
-    -- Clients see slots up to the tier limit
-    slot_index <= (
-      SELECT CASE subscription_tier
-        WHEN 'free'  THEN 3
-        WHEN 'pro'   THEN 20
-        WHEN 'elite' THEN 999
-        ELSE 3
-      END
-      FROM trainer_profiles
-      WHERE id = availability_slots.trainer_id
-    )
-  );
-```
+**Consequences:**
 
-Analytics endpoints: the `get_trainer_analytics` RPC should check tier inside the function body and return only basic stats for `free` callers — regardless of what the client requests.
-
-`subscription_tier` column: add an UPDATE policy restricting writes to the service-role client only. Trainers must not be able to PATCH their own tier via the REST API.
-
-**Warning signs:**
-- `subscription_tier` is a writable column with no UPDATE RLS restriction
-- Slot count limit only exists in a React component
-- No test confirming a free-tier trainer gets at most 3 slots from a direct API call
-
----
-
-### Pitfall 5: Storing Subscription Tier in Supabase JWT Claims
-
-**What goes wrong:**
-
-You store `subscription_tier` in the Supabase JWT custom claims so RLS policies can read `auth.jwt() -> 'subscription_tier'`. A trainer downgrades; the webhook updates the DB instantly, but their JWT is valid for another 60 minutes. They retain Pro features for up to an hour post-cancellation.
-
-For most features, 60-minute staleness is acceptable. For features that cost you money per use (AI coaching calls, premium video slots, priority placement bidding) it is not.
-
-**Why it happens:** JWTs are stateless. Supabase's default access token TTL is 1 hour. There is no server-side revocation mechanism without additional infrastructure.
-
-**Prevention — Option A (recommended):** Do not put subscription tier in JWT claims. Query the DB directly in RLS policies via `auth.uid()`:
-
-```sql
-CREATE POLICY "pro_feature_gate" ON premium_trainer_features
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM trainer_profiles
-      WHERE id = auth.uid()
-        AND subscription_tier IN ('pro', 'elite')
-        AND subscription_status = 'active'
-    )
-  );
-```
-
-This reads the live value on every request. The cost is one extra indexed lookup per policy check — negligible at FitRush's current scale.
-
-**Prevention — Option B (if JWT claims are needed for performance):** Reduce Supabase access token TTL to 5-15 minutes and invalidate the session server-side when the webhook processes a downgrade.
-
----
-
-### Pitfall 6: Webhook Endpoint Requires No JWT But Must Have Signature Verification
-
-**What goes wrong:**
-
-Scenario A: You apply Supabase JWT middleware globally. Stripe's POST has no Authorization header. Every webhook returns 401 silently.
-
-Scenario B: You exclude the webhook route from JWT auth but forget to add signature verification. Any HTTP client can now POST fake events to your endpoint and grant arbitrary trainers Elite status.
+Double-booked sessions. Trainer shows up to two clients. Payment charged to client for a session that then gets cancelled because the trainer went offline. Trust damage is severe for a premium marketplace.
 
 **Prevention:**
 
-The webhook route must be excluded from JWT middleware AND must verify the Stripe signature:
+1. Move the slot availability check and booking creation into a single PostgreSQL RPC function using `SERIALIZABLE` transaction isolation or a `SELECT ... FOR UPDATE` within a stored procedure called via `supabase.rpc()`. Since the entire operation executes server-side in one transaction, locks hold correctly.
+2. For the availability toggle: use an atomic DB update — `UPDATE availability_slots SET deleted_at = NOW() WHERE trainer_id = $1 AND start_time > NOW() AND deleted_at IS NULL` — not a series of individual row updates.
+3. Add a unique partial index on `availability_slots (slot_id)` where `deleted_at IS NULL` to enforce at the DB level that only one active booking can reference a slot.
+4. On the Realtime subscription for slot availability: optimistically mark slots as "pending" in the UI the moment a booking attempt starts, before the DB confirms.
 
-```typescript
-// No JWT middleware on this route — Stripe doesn't send Bearer tokens
-export async function POST(request: Request) {
-  const rawBody = await request.text();
-  const sig = request.headers.get('stripe-signature');
+**Detection:** Write a Vitest concurrent test that fires two booking requests for the same slot simultaneously and asserts only one succeeds.
 
-  if (!sig) return new Response('Missing signature', { status: 400 });
-
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      sig,
-      process.env.STRIPE_BILLING_WEBHOOK_SECRET!
-    );
-  } catch {
-    // Log but don't leak error details
-    return new Response('Signature verification failed', { status: 400 });
-  }
-
-  // Inside handler, use SUPABASE_SERVICE_ROLE_KEY — not anon key
-  // Tier writes need to bypass RLS
-}
-```
-
-The signature verification is the authentication. Never skip it.
+**Phase:** Must address in the availability toggle phase. The existing system has tolerable risk at current traffic; the live map view changes the concurrency profile significantly.
 
 ---
 
 ## Moderate Pitfalls
 
-These cause incorrect billing behavior or degraded UX, but are recoverable.
+Mistakes in this section cause user experience failures, data integrity issues, or integration blockers that require rework.
 
 ---
 
-### Pitfall 7: Trial End With No Payment Method — Status Behavior Depends on Unset Config
+### Pitfall 5: Notification Spam — Location Alerts Fire Too Frequently, Users Disable Notifications
 
 **What goes wrong:**
 
-A trainer signs up, gets a 14-day trial, never enters a card. On day 15, Stripe's behavior is entirely determined by `trial_settings.end_behavior.missing_payment_method`. If you have not set it, the behavior depends on your account's default invoice settings.
+A location-based alert system that fires every time a trainer comes online within a client's saved area will produce 5–15 notifications per day for active clients in dense urban areas. Push notification open rates dropped 31% since 2020 according to OneSignal's 2025 data, largely due to alert fatigue. Users who receive more than 10 notifications per hour reduce engagement by 52%. For a luxury marketplace, unsolicited frequency signals spam rather than service.
 
-**The status machine:**
+**Why it happens:**
 
-| Status | Trigger | Terminal? |
-|---|---|---|
-| `trialing` | Subscription created with `trial_end` | No |
-| `incomplete` | First invoice created, not yet paid (23-hour window) | No |
-| `incomplete_expired` | First invoice unpaid for 23 hours | Yes — subscription is dead |
-| `past_due` | Renewal invoice failed; Smart Retries in progress | No |
-| `unpaid` | Retries exhausted; configured outcome = unpaid | No (recoverable) |
-| `canceled` | Manual cancel, retries exhausted, or trial ended with `missing_payment_method=cancel` | Yes |
-| `paused` | Trial ended with `missing_payment_method=pause` | No (resumable) |
+The existing `notifications` table and `send-notification-email` edge function send one notification per event. Wiring availability toggle events directly to this pipeline with no throttling or preference checks creates a many-to-many fan-out: every trainer toggle fires a notification to every client who has that trainer's area saved.
 
-**Key distinction:** `incomplete_expired` is the terminal state for a first-invoice failure within 23 hours. `canceled` is the terminal state for an explicit cancellation or exhausted dunning. These fire the same event (`customer.subscription.deleted`) but your handler may want to log them differently.
+**Consequences:**
 
-**Prevention:** Always set `missing_payment_method` explicitly at subscription creation:
-
-```typescript
-const subscription = await stripe.subscriptions.create({
-  customer: trainer.stripe_customer_id,
-  items: [{ price: PRICE_ID_PRO }],
-  trial_period_days: 14,
-  payment_settings: {
-    save_default_payment_method: 'on_subscription',
-  },
-  trial_settings: {
-    end_behavior: {
-      missing_payment_method: 'cancel', // → fires customer.subscription.deleted
-      // Alternatives: 'pause' (→ customer.subscription.paused), 'create_invoice'
-    },
-  },
-});
-```
-
-**Events to handle for the full trial flow:**
-
-| Event | When | Action in DB |
-|---|---|---|
-| `customer.subscription.trial_will_end` | 3 days before trial ends | Send reminder email to add card |
-| `customer.subscription.updated` | Any subscription change | Sync `subscription_status` field |
-| `customer.subscription.deleted` | Cancellation (including trial expiry) | Set `subscription_tier = 'free'`, clear `stripe_subscription_id` |
-| `customer.subscription.paused` | Trial ended with `pause` setting | Set `subscription_status = 'paused'`, show "Add card to resume" UI |
-| `invoice.payment_failed` | Dunning attempt failed | Set `subscription_status = 'past_due'`, send dunning email |
-
-**Source:** [Use trial periods on subscriptions — Stripe Docs](https://docs.stripe.com/billing/subscriptions/trials)
-
----
-
-### Pitfall 8: Webhook Idempotency — `customer.subscription.updated` Fires for Every Field Change
-
-**What goes wrong:**
-
-`customer.subscription.updated` fires for: trial start, trial end, plan change, payment method attachment, cancellation scheduling (`cancel_at_period_end = true`), proration creation, and more. If your handler executes a write on every delivery without checking for duplicates, Stripe's at-least-once delivery guarantee means you will write the same state multiple times. Worse: if events arrive out of order (Stripe does not guarantee ordering), a stale event can overwrite a newer state.
-
-**Prevention — two-layer idempotency:**
-
-Layer 1: Deduplication table.
-
-```sql
-CREATE TABLE stripe_webhook_events (
-  event_id        TEXT PRIMARY KEY,
-  event_type      TEXT NOT NULL,
-  processed_at    TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-```typescript
-const { error } = await supabase
-  .from('stripe_webhook_events')
-  .insert({ event_id: event.id, event_type: event.type });
-
-if (error?.code === '23505') {
-  return new Response('Already processed', { status: 200 }); // Return 200, not 4xx
-}
-```
-
-Layer 2: Timestamp guard for subscription state writes. Only update `subscription_tier` if the event's `current_period_start` is newer than the stored `subscription_updated_at`:
-
-```typescript
-await supabase
-  .from('trainer_profiles')
-  .update({ subscription_tier: newTier, subscription_updated_at: periodStart })
-  .eq('stripe_customer_id', customerId)
-  .lt('subscription_updated_at', periodStart); // Only if incoming event is newer
-```
-
-Return `200` even for already-processed events. Non-2xx responses cause Stripe to retry.
-
----
-
-### Pitfall 9: Proration Default Does Not Immediately Charge on Upgrades
-
-**What goes wrong:**
-
-A trainer upgrades from Pro to Elite on day 15 of their billing month. You expect them to be charged the $20 prorated difference immediately. Nothing happens. The trainer emails support asking if their card was charged.
-
-**Why it happens:** Stripe's default `proration_behavior` is `create_prorations`. This creates a proration invoice item silently but does NOT immediately generate an invoice — it is collected at the next regular billing cycle.
-
-**The three options:**
-
-| `proration_behavior` | Effect | Use When |
-|---|---|---|
-| `create_prorations` (default) | Creates item; charges at next cycle | Acceptable to defer collection |
-| `always_invoice` | Creates item AND immediately generates invoice | Upgrades — charge the difference now |
-| `none` | No proration; full new price at next cycle | Simplicity over billing fairness |
-
-**For FitRush:** Use `always_invoice` for upgrades; use `cancel_at_period_end` scheduling for downgrades.
-
-```typescript
-// Upgrade: charge the difference immediately
-await stripe.subscriptions.update(subscriptionId, {
-  items: [{ id: currentItemId, price: PRICE_ID_ELITE }],
-  proration_behavior: 'always_invoice',
-});
-
-// Downgrade: schedule for end of period — do NOT use always_invoice
-// (credit prorations would issue a refund invoice, which is confusing)
-await stripe.subscriptions.update(subscriptionId, {
-  cancel_at_period_end: true,
-  // Then create a new subscription at the lower price when the old one deletes
-});
-// OR use Subscription Schedules for cleaner period-end plan changes
-```
-
-**Important:** Stripe does NOT automatically apply `cancel_at_period_end` for downgrades. A plan change is immediate by default unless you explicitly schedule otherwise. Decide this explicitly; do not accept defaults.
-
-**Source:** [Prorations — Stripe Docs](https://docs.stripe.com/billing/subscriptions/prorations)
-
----
-
-### Pitfall 10: Downgrade Data Integrity — Trainer Retains Elite Features After Tier Drops
-
-**What goes wrong:**
-
-When a trainer downgrades from Elite to Free, three things must happen atomically:
-1. `subscription_tier` updated to `free`
-2. Slot count visible to clients capped at 3 (others hidden, not deleted — they need them back if they re-upgrade)
-3. Custom branding fields (`custom_bio_url`, `branding_color`) cleared
-
-If the webhook handler only does step 1, the branded profile page continues displaying Elite elements and over-limit slots remain bookable. A client books slot #4 of a trainer who is now on Free — a booking that the trainer's current tier does not permit.
-
-**Prevention:** The webhook handler or a DB trigger on `subscription_tier` change should:
-
-```sql
-CREATE OR REPLACE FUNCTION on_tier_downgrade()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.subscription_tier = 'free' AND OLD.subscription_tier != 'free' THEN
-    -- Clear Elite-only branding (data is gone; trainer must re-enter on re-upgrade)
-    NEW.custom_bio_url := NULL;
-    NEW.branding_color := NULL;
-    -- Slots are NOT deleted; they are hidden by RLS slot limit policy
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER tier_downgrade_cleanup
-BEFORE UPDATE OF subscription_tier ON trainer_profiles
-FOR EACH ROW EXECUTE FUNCTION on_tier_downgrade();
-```
-
-**Warning signs:**
-- Webhook handler only updates `subscription_tier`, nothing else
-- No migration plan for what happens to Elite-only profile fields on downgrade
-- Slots can still be SELECTed by clients after tier drops (no RLS enforcement)
-
----
-
-### Pitfall 11: Slot Limit Enforcement Is UI-Only
-
-**What goes wrong:**
-
-Free tier allows 3 visible slots. You enforce this by hiding the "Add slot" button after 3. A trainer uses the Supabase JS client directly (or inspects network calls) to POST a 4th slot. No DB constraint exists. The row inserts. Clients can book it.
-
-**Prevention:** Enforce the slot count in a Postgres trigger at write time:
-
-```sql
-CREATE OR REPLACE FUNCTION enforce_slot_limit()
-RETURNS TRIGGER AS $$
-DECLARE
-  trainer_tier TEXT;
-  max_slots INT;
-  current_count INT;
-BEGIN
-  SELECT subscription_tier INTO trainer_tier
-    FROM trainer_profiles WHERE id = NEW.trainer_id;
-
-  max_slots := CASE trainer_tier
-    WHEN 'elite' THEN 999
-    WHEN 'pro'   THEN 20
-    ELSE 3  -- free and any unknown tier
-  END;
-
-  SELECT COUNT(*) INTO current_count
-    FROM availability_slots WHERE trainer_id = NEW.trainer_id;
-
-  IF current_count >= max_slots THEN
-    RAISE EXCEPTION 'Slot limit reached for plan: %', trainer_tier
-      USING ERRCODE = 'P0001';
-  END IF;
-
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER check_slot_limit
-BEFORE INSERT ON availability_slots
-FOR EACH ROW EXECUTE FUNCTION enforce_slot_limit();
-```
-
-Also: define precisely what "3 visible slots" means. Options: 3 total slots ever created, 3 slots visible to clients at any given time, 3 bookable slots per calendar day. This must be decided before the DB schema is locked — changing the semantics later is a migration.
-
----
-
-### Pitfall 12: Dunning Default Behavior Is Not Configured — Status After Retry Exhaustion Is Unknown
-
-**What goes wrong:**
-
-Stripe Smart Retries will re-attempt a failed subscription payment for up to 2 weeks (default: 8 attempts). After all retries fail, the subscription transitions to one of three states: `canceled`, `unpaid`, or remains `past_due` — depending on your Stripe account's **Billing > Revenue recovery > Retries** configuration. Stripe does not have a universal default; new accounts may have a different default than accounts created years ago.
-
-If your webhook handler only handles `customer.subscription.deleted` (which fires for `canceled`) but not `customer.subscription.updated` (which fires when status changes to `past_due` or `unpaid`), trainers who hit the `unpaid` path retain paid features indefinitely.
+Push notification permission revocation. iOS and Android prompt users to review notification permissions after repeated dismissals. Once revoked, re-requesting is not possible without a re-install prompt. Users who revoke notifications are effectively invisible to the retention channel.
 
 **Prevention:**
 
-1. Go to Stripe Dashboard > Billing > Revenue recovery > Retries. Explicitly configure the final action to `cancel` (not `unpaid` or `past_due`). This ensures `customer.subscription.deleted` always fires at the end.
+1. Implement notification frequency caps at the user level: maximum one location alert per trainer per 4-hour window, maximum 3 location alerts total per day per client.
+2. Build a notification preferences UI before launching location alerts. Allow clients to set: preferred areas, minimum trainer rating filter for alerts, days/times to receive alerts (e.g., "weekday mornings only").
+3. Delay the first location alert for a newly online trainer by 60 seconds — trainers who toggle on briefly then off should not trigger a broadcast.
+4. Track notification dismissal rates in the `notifications` table (add a `dismissed_at` column). Auto-reduce frequency for users who consistently dismiss without clicking.
 
-2. Even with cancellation configured, handle `invoice.payment_failed` defensively: immediately set `subscription_status = 'past_due'` in the DB on first failure. Do not wait for the subscription to reach `canceled` before restricting access.
-
-```typescript
-case 'invoice.payment_failed': {
-  const invoice = event.data.object as Stripe.Invoice;
-  await supabase
-    .from('trainer_profiles')
-    .update({ subscription_status: 'past_due' })
-    .eq('stripe_customer_id', invoice.customer as string);
-  // Send dunning email to trainer
-  break;
-}
-```
-
-**Source:** [Automate payment retries — Stripe Docs](https://docs.stripe.com/billing/revenue-recovery/smart-retries)
+**Phase:** Notification preferences UI must ship before the location-based alert feature goes live.
 
 ---
 
-### Pitfall 13: `cancel_at_period_end` Confusion — Wrong Event Handled
+### Pitfall 6: PostGIS Extension — Added Complexity for FitRush's Actual Query Patterns
 
 **What goes wrong:**
 
-A trainer clicks "Cancel Plan." You call `stripe.subscriptions.update({ cancel_at_period_end: true })`. Stripe fires `customer.subscription.updated` (not `deleted`). Your webhook handler only listens for `customer.subscription.deleted` to downgrade to Free.
+PostGIS is the standard recommendation for geospatial queries in PostgreSQL, but it adds operational complexity that may not be justified for FitRush's query pattern. FitRush needs: (a) find trainers within X miles of a point, (b) sort trainers by distance. These are achievable without PostGIS using PostgreSQL's built-in `earth_distance` extension with a GiST index on a `point` column, or simply with the Haversine formula in a SQL function.
 
-Result: the trainer keeps Pro for the rest of the billing period (correct behavior) but your UI still shows "Pro" with no cancellation indicator. They contact support thinking the cancel didn't work.
+PostGIS-specific pitfalls:
+- Enabling PostGIS on Supabase requires a migration and cannot be done via the table UI
+- PostGIS geometry column data types are opaque to Supabase's auto-generated TypeScript types — the existing `supabase gen types typescript` workflow breaks for geometry columns, requiring manual type overrides
+- The existing FitRush codebase already uses `as unknown as X` casts for RPC types (noted in PROJECT.md) — PostGIS would add more of these
+- `ST_DWithin` queries require the geometry to be in a projected CRS (EPSG:3857) for accurate meter-based distances, not WGS84 (EPSG:4326) latitude/longitude — using the wrong CRS produces silently wrong distances
 
-**The full cancel_at_period_end event sequence:**
+**Why it happens:**
 
-| Event | When | What it Means |
-|---|---|---|
-| `customer.subscription.updated` (with `cancel_at_period_end: true`) | User clicks Cancel | Cancellation scheduled; access continues |
-| `customer.subscription.deleted` | Billing period ends | Access revoked; downgrade to Free |
-
-Handle both:
-
-```typescript
-case 'customer.subscription.updated': {
-  const sub = event.data.object as Stripe.Subscription;
-  if (sub.cancel_at_period_end) {
-    // Show cancellation badge in UI; set subscription_cancels_at in DB
-    await supabase
-      .from('trainer_profiles')
-      .update({ subscription_cancels_at: new Date(sub.cancel_at! * 1000).toISOString() })
-      .eq('stripe_customer_id', sub.customer as string);
-  }
-  break;
-}
-
-case 'customer.subscription.deleted': {
-  // This fires at actual period end when cancel_at_period_end was set
-  // Also fires for immediate cancellations and trial expirations
-  await supabase
-    .from('trainer_profiles')
-    .update({
-      subscription_tier: 'free',
-      subscription_status: 'canceled',
-      stripe_subscription_id: null,
-      subscription_cancels_at: null,
-    })
-    .eq('stripe_customer_id', (event.data.object as Stripe.Subscription).customer as string);
-  break;
-}
-```
-
----
-
-### Pitfall 14: Annual-to-Monthly Downgrade Timing Is Ambiguous
-
-**What goes wrong:**
-
-A trainer on annual Elite ($348/yr) wants to switch to monthly Pro ($9/mo). If you do an immediate subscription update with `proration_behavior: 'create_prorations'`, they receive a large credit balance that takes 3+ months to exhaust while their monthly Pro charges try to draw from it. They see confusing invoice math.
-
-If instead you use `cancel_at_period_end` without communicating the timing clearly, they think they're on monthly when they have 9 months of annual Elite remaining.
-
-**Prevention:** Annual-to-monthly downgrades should be scheduled using Subscription Schedules to take effect at the next renewal date, not as an immediate update:
-
-```typescript
-const schedule = await stripe.subscriptionSchedules.create({
-  from_subscription: subscriptionId,
-});
-await stripe.subscriptionSchedules.update(schedule.id, {
-  phases: [
-    {
-      items: [{ price: PRICE_ID_ELITE_ANNUAL }],
-      end_date: currentPeriodEnd,  // existing annual period
-    },
-    {
-      items: [{ price: PRICE_ID_PRO_MONTHLY }],
-      // No end_date = continues monthly thereafter
-    },
-  ],
-});
-```
-
-Show clearly in the UI: "Your plan changes to Pro Monthly on [renewal date]. Until then, you have Elite access."
-
-**Source:** [Subscription schedules — Stripe Docs](https://docs.stripe.com/billing/subscriptions/subscription-schedules)
-
----
-
-### Pitfall 15: Multiple Webhook Endpoints Causing Double Processing (Staging vs. Production)
-
-**What goes wrong:**
-
-You have two billing webhook endpoints registered in the Stripe Dashboard: one pointing at production (`fitrush.app/webhooks/stripe-billing`) and one at a Netlify preview URL. A real production payment event fires; both endpoints receive it. Both handlers fire. One updates the production DB; the other updates nothing (staging DB) — but the idempotency table in production has now recorded the event as processed, so if the production handler had an error, the event will not be re-delivered successfully.
+"Use PostGIS for geodata" is the default recommendation. But for a single-city or metro-area marketplace with fewer than 10,000 trainers, the `earth_distance` extension with a Haversine function is 95% as accurate for distances up to 50 miles, requires no special data types, and works with standard Supabase TypeScript client types.
 
 **Prevention:**
 
-- Use separate Stripe accounts (or separate restricted API keys) for staging and production.
-- Webhook secrets are per-endpoint, not per-account — each endpoint has its own `whsec_*`.
-- In staging, use `stripe listen --forward-to` locally rather than registering a remote webhook for every PR preview.
-- Add a livemode guard in the handler:
+1. Use `earth_distance` + `cube` extensions (already available in Supabase) rather than PostGIS unless polygon/routing queries are needed.
+2. Store trainer location as `lat FLOAT, lng FLOAT` columns on `trainer_profiles` — simple to type, simple to migrate, compatible with existing Supabase JS client.
+3. Create a PostgreSQL function `trainers_within_distance(lat, lng, radius_miles)` as an RPC. Returns trainer IDs sorted by distance. Client renders pins from this response.
+4. If PostGIS is chosen later (e.g., geofencing with polygon boundaries), add it as an extension to a separate migration, not mixed with the trainer location column migration.
 
-```typescript
-if (event.livemode !== (process.env.NODE_ENV === 'production')) {
-  console.warn('Livemode mismatch — ignoring event');
-  return new Response('OK', { status: 200 });
-}
-```
+**Phase:** Decide before the trainer location migration. Changing coordinate storage format after data exists requires a data migration.
 
 ---
 
-### Pitfall 16: Annual Subscription Cancellation — Credit vs. Refund Confusion
+### Pitfall 7: AI Matching Cold Start — New Clients and New Trainers Produce Garbage Recommendations
 
 **What goes wrong:**
 
-A trainer pays $348/yr upfront for annual Elite, cancels 2 months in. Stripe creates a proration credit on their customer account. This credit is applied to future invoices. But if there are no future invoices (subscription canceled), the credit is stranded. The trainer sees "you have a $231 credit" in any Stripe-hosted billing portal but cannot access it. They open a dispute.
+The AI matching feature relies on Fitness Passport data (goals, workout types, frequency, limitations) for the client side and booking history for the trainer side. New clients who skip or minimally fill in the Fitness Passport get generic recommendations indistinguishable from the existing search sort. New trainers with zero bookings have no signal for compatibility matching.
 
-**Stripe's default:** Stripe does not automatically issue prorated cash refunds on annual subscription cancellations. Credit prorations and cash refunds are different things.
+FitRush's PROJECT.md explicitly rules out ML models ("Requires 6-12 months of booking data"). The AI matching MVP will therefore use content-based filtering (match Fitness Passport fields to trainer specialties) rather than collaborative filtering. Content-based filtering still fails when the Fitness Passport is empty — there is no data to match against.
+
+**Why it happens:**
+
+The v3.0 Fitness Passport intake is optional-feeling: clients can fill in varying levels of detail. The onboarding flow doesn't force completion before showing the trainer search. A client who skipped goals and workout types receives a match score based on zero overlapping fields.
+
+**Consequences:**
+
+AI matching shows recommendations that are random or purely rate-sorted, identical to the existing search. Users distrust the "AI" label. The feature becomes a liability rather than a differentiator.
 
 **Prevention:**
 
-- Define and document your annual refund policy before launch. Surface it at checkout.
-- If you offer prorated refunds programmatically: `stripe.refunds.create({ payment_intent: invoice.payment_intent, amount: proratedAmount })`.
-- For annual dunning: a failed $348 renewal is materially different from a failed $9 charge. Configure more aggressive advance warning emails (30 / 14 / 7 days before renewal) and consider a more lenient retry window for annual subscribers.
+1. Gate the AI match score display behind Fitness Passport completeness. Show "Complete your profile to see your match score" placeholder instead of a low-confidence score.
+2. Define a minimum Fitness Passport completeness threshold (e.g., at least goals + one workout type selected) before generating any match score.
+3. For new trainers (zero bookings): weight trainer specialty tags and certification data heavily. A trainer with "strength training" specialty gets a non-zero match score against a client with strength goals even without booking history.
+4. Add a Fitness Passport completion prompt in the booking wizard (Step 1) — "Your Fitness Passport helps us recommend the right trainer. Takes 30 seconds." This converts the passive optional into an active nudge at the highest-intent moment.
+5. Log every match score calculation with the input fields used. After 30 days, identify which fields drive the most bookings — prioritize those in the onboarding flow.
+
+**Phase:** Fitness Passport completeness prompt should ship before or with AI matching. Match score must have a confidence threshold below which it is hidden.
 
 ---
 
-### Pitfall 17: Admin Override Tier With No Stripe Subscription Creates Orphaned State
+### Pitfall 8: Google Calendar Bidirectional Sync — Conflict Resolution Is a Product Decision, Not a Technical One
 
 **What goes wrong:**
 
-You manually set `subscription_tier = 'elite'` in the Supabase dashboard for a beta tester. No Stripe subscription exists. Your nightly reconciliation job queries `WHERE subscription_status = 'active' AND stripe_subscription_id IS NOT NULL` and finds nothing — the trainer is silently downgraded. Or: a webhook handler for an unrelated event checks "does this trainer have an active subscription?" sees none, and resets their tier to `free`.
+Bidirectional sync has three conflict scenarios:
+1. A session booked on FitRush exists. Trainer deletes it from Google Calendar. What happens to the booking?
+2. Trainer creates a manual "busy" block in Google Calendar. Client tries to book that time. Does the block prevent booking?
+3. Trainer reschedules a booking in Google Calendar. FitRush doesn't know about the time change.
 
-**Prevention:** Create an explicit override pattern the system understands and respects:
+There is no universally correct resolution strategy. Last-write-wins (by timestamp) silently discards legitimate calendar edits. Source-of-truth-is-FitRush means Google Calendar is read-only in practice, defeating the purpose of bidirectional sync. Merge strategies require knowing which fields changed on each side, requiring storing "shadow copies" of every synced event.
 
-```sql
-ALTER TABLE trainer_profiles
-  ADD COLUMN tier_override         TEXT CHECK (tier_override IN ('free', 'pro', 'elite')),
-  ADD COLUMN tier_override_expires TIMESTAMPTZ,
-  ADD COLUMN tier_override_reason  TEXT;
-```
+**Why it happens:**
 
-Effective tier resolution (call this everywhere tier is consumed):
+The existing FitRush iCal export is one-way (FitRush → calendar). The mental model of "just make it two-way" underestimates the semantic complexity. A trainer who deletes a FitRush session from their Google Calendar probably means "I want to cancel this booking," not "I want to hide this from my calendar view."
 
-```typescript
-function effectiveTier(trainer: TrainerProfile): Tier {
-  if (
-    trainer.tier_override &&
-    (!trainer.tier_override_expires || trainer.tier_override_expires > new Date())
-  ) {
-    return trainer.tier_override;
-  }
-  return trainer.subscription_tier ?? 'free';
-}
-```
+**Consequences:**
 
-The webhook handler only writes `subscription_tier`, never `tier_override`. Admin tools only write `tier_override`. The columns are categorically distinct. Reverting an override is `UPDATE SET tier_override = NULL`.
+Undetected cancellations (trainer deletes from calendar, client shows up expecting a session). Sync loops where FitRush re-creates deleted events, Google deletes again, infinitely. Trust damage when calendar and app are out of sync.
+
+**Prevention:**
+
+1. Define explicit rules in the product spec before writing sync code:
+   - **FitRush is authoritative for booking existence.** Deleting a FitRush booking from Google Calendar does NOT cancel it — it only removes the calendar event.
+   - **Google Calendar is authoritative for busy/blocked time.** A manually created "busy" block in Google Calendar prevents FitRush from allowing bookings in that time window.
+   - **Reschedule must happen in FitRush.** Calendar edits to booking time are not synced back.
+2. Store a `gcal_event_id` on each booking for update/delete targeting. Never re-create an event that was deleted from Google Calendar — mark it as `gcal_sync: 'detached'` instead.
+3. Implement sync loop prevention: tag all FitRush-created calendar events with an `extendedProperty` (e.g., `source: 'fitrush'`). On webhook receive, skip events with this tag when determining what "changed."
+4. Use Google Calendar push notifications (webhooks) rather than polling. Polling `events.list` every N minutes is rate-limited and introduces staleness. Webhook channels expire every 7 days and must be renewed via a cron job.
+
+**Phase:** Write the product rules document before the sync implementation phase. The implementation is straightforward once rules are defined; the danger is building without them.
 
 ---
 
-### Pitfall 18: Grandfathered Trainers Have No Defined Starting Tier
+### Pitfall 9: Geofencing Accuracy — Urban GPS Drift Produces False "Nearby" Triggers
 
 **What goes wrong:**
 
-Tiers launch. Existing trainers who joined before tiers existed suddenly cannot access features they have been using freely. Support tickets spike. A trainer with 50 reviews and 200 bookings discovers their profile is now "Free" with 3 slots.
+Geofencing accuracy in urban environments ranges from 100–200 meters due to GPS signal multipath (signals bouncing off buildings). In a dense metro area, a trainer at a gym and a trainer two blocks away may both trigger "nearby" notifications for a client standing outside their apartment building. A 500-meter radius geofence in Manhattan can encompass 20+ gyms.
 
-**Prevention:** Decide explicitly before launch. Two reasonable options:
+The FitRush use case — "notify me when a trainer comes online near me" — is based on the client's saved area (presumably a neighborhood or zip code, not a precise GPS point). The saved area is a coarse polygon, not a GPS geofence. Conflating these two concepts produces either over-broad notifications (too many false positives) or under-broad notifications (trainers 0.4 miles away not included).
 
-- **Option A (recommended):** All existing trainers start on Free. Grant a 30-day grace period where they retain current behavior. Set `tier_grace_until = NOW() + INTERVAL '30 days'`. RLS policies treat any trainer with `tier_grace_until > NOW()` as Pro-equivalent. Send email explaining the change and the grace period.
+**Why it happens:**
 
-- **Option B:** Grandfather all trainers created before a cutoff date into Pro indefinitely. Set `tier_override = 'pro'` with no expiration for all such trainers.
+"Location-based notification" sounds like geofencing, but FitRush's actual requirement is proximity search against a database of trainer locations, not OS-level geofence monitoring. OS geofencing fires when the device crosses a boundary; FitRush needs to fire when a trainer's status changes and the trainer's location is within the client's preferred area.
 
-Either way, communicate before the cutoff. Surprise tier changes are the fastest path to negative App Store reviews.
+**Prevention:**
+
+1. Do not use OS-level geofencing (`CLLocationMonitor`) for the client notification feature. The correct approach is: when a trainer toggles online, run a server-side proximity query (`trainers_within_distance`) against all clients who have opted into location alerts and have a saved area that overlaps the trainer's location. Push the notification from the server (via `send-notification-email` edge function extended to support push).
+2. Use a minimum radius of 2 miles for saved-area proximity. Smaller radii produce too many false negatives due to GPS drift and address geocoding imprecision.
+3. For the map view, show trainers within the visible map bounds (bounding box query), not within a fixed radius. Bounding box queries are cheaper and more intuitive than radius queries for a map interface.
+
+**Phase:** Define whether "saved area" means a neighborhood polygon, a zip code, or a radius before the notification phase. This choice affects the data model.
 
 ---
 
-### Pitfall 19: Booking Race Condition When Trainer Upgrades Mid-Booking
+### Pitfall 10: Supabase Realtime — Channel Count Grows With Concurrent Map Users
 
 **What goes wrong:**
 
-Client A begins booking slot #4 of trainer B (Free tier — slot should be invisible). Simultaneously, trainer B upgrades to Pro. The slot visibility check reads "Free, slot #4 not visible" but the UI had already loaded the slot list under the old tier. The booking proceeds against ambiguous state.
+The FitRush map view showing live trainer availability will subscribe every connected user to trainer status changes. The current Supabase Realtime architecture uses one channel per subscribed table + filter combination. If each client subscribes to individual trainer channels to get live pin updates, a map with 50 visible trainers requires 50 channels per connected user. With 20 concurrent map users, that's 1,000 channels.
 
-**Prevention:** The booking Edge Function must be the authoritative gate. Fetch the trainer's tier inside the same DB transaction as the booking:
+Supabase's free plan has a concurrent connection limit (documented at ~200 peak connections). The Pro plan increases this but still charges $10 per 1,000 peak connections over quota. Presence channels (for tracking "who is currently online") have separate message rate limits.
 
-```typescript
-// Inside booking Edge Function — Supabase transaction
-const { data: trainer } = await supabase
-  .from('trainer_profiles')
-  .select('subscription_tier, subscription_status')
-  .eq('id', trainerId)
-  .single();  // Fresh DB read, not from client
+**Why it happens:**
 
-const slotLimit = tierSlotLimit(trainer.subscription_tier);
-if (slotIndex > slotLimit) {
-  throw new Error(`Slot ${slotIndex} exceeds plan limit of ${slotLimit}`);
-}
-// Proceed with booking atomically
-```
+The existing Supabase Realtime usage is for messaging (point-to-point channels). The map view requires a fan-out pattern: all online trainers, broadcast to all viewing clients. Fan-out is architecturally different and often implemented naively as N individual channels.
 
-The client's slot list is always stale by definition. The server is the source of truth.
+**Prevention:**
+
+1. Use a single broadcast channel for trainer availability updates (`trainer_availability`), not one channel per trainer. Publish all status changes to this channel and filter client-side by visible map bounds.
+2. Alternatively, use Supabase Realtime Postgres Changes on the `trainer_profiles` table filtered by `is_online = true` — a single subscription covers all trainer status changes.
+3. Set a debounce on the map's Realtime listener: don't re-render pin positions on every message — batch updates at 2-second intervals.
+4. Implement a fallback polling mode (every 30 seconds) for clients who hit connection limits or whose WebSocket is blocked by a corporate firewall. Realtime is an enhancement, not a requirement for core functionality.
+
+**Phase:** Realtime architecture design must be decided before building the map view. Retrofitting from N channels to 1 channel requires client and server changes.
 
 ---
 
-## Technical Debt Patterns
+## Minor Pitfalls
 
-| Shortcut | Immediate Benefit | Long-term Cost | Acceptable? |
-|---|---|---|---|
-| Store tier in Zustand only, not re-verified server-side | Simpler code | Lapsed subscriptions retain access until page reload | Never |
-| Single webhook endpoint with no secret routing | Less config | Billing events fail signature verification | Never |
-| No idempotency table | Faster to ship | Duplicate events cause double-execution | Never |
-| Skip `missing_payment_method` config | Less code | Trial end behavior is undefined | Never |
-| Tier check in React component only | Faster UI | Bypassed by any direct API call | Never |
-| Prorate downgrades with `always_invoice` | Simple default | Surprise credit invoices; support volume spike | Avoid — use period-end scheduling |
-| No audit log on tier changes | Simpler schema | Cannot debug billing anomalies or dispute chargebacks | Avoid — add `subscription_tier_history` or event log |
+Mistakes in this section cause rework or polish failures but do not block shipping.
+
+---
+
+### Pitfall 11: GDPR / Privacy — Location Data Requires Explicit Consent and Data Minimization
+
+**What goes wrong:**
+
+GPS coordinates are personal data under GDPR. For EU users (FitRush is US-first, but any EU visitor counts), storing precise GPS coordinates requires:
+- Explicit consent (not just acknowledgment in ToS) before location collection begins
+- A stated retention period for location data
+- The ability to delete location history on request
+
+The existing FitRush `export-user-data` edge function exports profile data but does not include location history. The existing account deletion path (deferred in PROJECT.md) does not purge location records.
+
+Additionally, fitness data (workout types, limitations, health goals in the Fitness Passport) may qualify as health data under GDPR Article 9, requiring special processing conditions. Adding AI matching that processes health data to make recommendations (matching trainers to clients with physical limitations) increases this risk profile.
+
+**Prevention:**
+
+1. Add a location consent checkbox to the "Enable location features" toggle — separate from general ToS acceptance. Store consent timestamp and version.
+2. Define a location data retention policy in the privacy policy (e.g., "Location snapshots are retained for 30 days then deleted"). Implement an automated cleanup via a pg_cron job: `DELETE FROM location_snapshots WHERE created_at < NOW() - INTERVAL '30 days'`.
+3. Extend the `export-user-data` edge function to include location history when adding location features.
+4. For Fitness Passport data used in AI matching: the matching computation should occur server-side and return a score, not expose raw health data to client-side matching logic.
+
+**Phase:** Consent UI and data retention policy must exist before location data is collected. Retrofit is technically simple but legally requires that no data was collected without consent.
+
+---
+
+### Pitfall 12: Google Maps API Key Exposed in Frontend Bundle
+
+**What goes wrong:**
+
+The Maps JavaScript API key is loaded in the browser (unavoidable for a JS API). An unrestricted key scraped from the bundle allows any third party to load maps at the FitRush billing account's expense. This is one of the most common Google Cloud billing emergencies.
+
+**Prevention:**
+
+1. Restrict the API key to HTTP referrers: `fitrush-app.netlify.app/*` and `localhost:*` for development. Create a separate key for each environment.
+2. Enable only the specific APIs needed on each key (Maps JavaScript API, Places API). Do not use a single omnibus key.
+3. Set a Google Cloud billing quota limit per API per day (e.g., Maps JavaScript API: 2,000 loads/day initially). This caps exposure if the key is abused.
+
+**Phase:** Before committing any code that imports the Maps API.
+
+---
+
+### Pitfall 13: Session History — `session_notes` Contains PHI If Trainers Document Injuries
+
+**What goes wrong:**
+
+Post-session notes written by trainers ("client mentioned knee pain," "modified squats due to lower back issue") can qualify as Protected Health Information (PHI) under HIPAA if FitRush operates in a context where trainers are providing health-related services. The existing Fitness Passport data (limitations field) is already borderline. If session notes are stored in plaintext in a Supabase column with standard RLS, a data breach exposes health records.
+
+FitRush is not a HIPAA-covered entity (it's a marketplace, not a healthcare provider), but the data it holds may be subject to FTC Health Breach Notification Rule.
+
+**Prevention:**
+
+1. Scope session notes to objective workout data: sets, reps, weights, exercises performed. Add guidance in the UI: "Record workout details, not medical observations."
+2. Do not store session notes in plaintext if they may contain health information. At minimum, ensure RLS prevents clients from reading trainer notes unless the trainer explicitly shares them.
+3. Add a note in the privacy policy that trainers are responsible for not entering PHI into session notes.
+
+**Phase:** Define the session notes schema with these constraints before building the feature.
+
+---
+
+### Pitfall 14: iCal Export Token Conflict After Adding OAuth Sync
+
+**What goes wrong:**
+
+The existing iCal feed uses an `opaque calendar_export_token` on `trainer_profiles` (v3.0 decision). The upcoming Google Calendar OAuth sync will need to store `gcal_access_token`, `gcal_refresh_token`, and `gcal_token_expiry`. These are different credentials for different purposes but both live on the trainer profile. A developer adding the OAuth columns may accidentally touch the iCal token column or use a confusingly similar naming convention.
+
+**Prevention:**
+
+1. Keep OAuth credentials in a separate table (`trainer_gcal_tokens`) rather than adding columns to `trainer_profiles`. This isolates the sensitive refresh tokens, limits their surface area in RLS policies, and keeps `trainer_profiles` readable without exposing OAuth credentials.
+2. Never include `gcal_refresh_token` in the `trainer_profiles` select in the frontend. The token should only be readable by the edge function that performs calendar operations.
+
+**Phase:** Decide the storage architecture before the Google Calendar OAuth migration.
 
 ---
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|---|---|---|
-| DB schema design | Conflating `acct_*` with `cus_*` | Two separate columns; DB check constraint on format |
-| Webhook setup | Using Connect secret for Billing events | Separate endpoint, separate env var |
-| Webhook handler | Global JSON parsing breaking signature | `request.text()` not `request.json()` |
-| Trial creation | Not setting `missing_payment_method` | Always explicit; test the no-card path |
-| Feature gates | Client-side Zustand check | RLS policies + Edge Function checks; test via direct API |
-| JWT claims | Tier in JWT goes stale for 1h | Query DB via `auth.uid()` in RLS; do not embed tier in claims |
-| Upgrade flow | Expecting immediate charge | Use `proration_behavior: 'always_invoice'` for upgrades |
-| Downgrade flow | Unclear when new tier takes effect | Explicit `cancel_at_period_end`; handle both `updated` and `deleted` events |
-| Admin tools | Manual tier set without Stripe subscription | Separate `tier_override` column; webhook never touches it |
-| Slot enforcement | UI-only slot limit | Postgres trigger at write time |
-| Dunning config | Unknown final action on retry exhaustion | Explicitly set to `cancel` in Stripe Dashboard |
-| Annual billing | Large charge dunning; credit vs. refund confusion | Define refund policy; advance email warnings |
-| Multi-env webhooks | Staging consuming prod events | Separate Stripe accounts; `livemode` guard |
-| Grandfathering | Existing users lose access at launch | Grace period with `tier_grace_until` column |
+| Phase Topic | Pitfall | Severity | Mitigation |
+|-------------|---------|----------|------------|
+| Google Maps integration | Multiple SKUs billed per map load (Pitfall 1) | CRITICAL | Set billing cap before first commit |
+| Google Maps integration | API key exposed in bundle (Pitfall 12) | HIGH | Restrict to HTTP referrer before any key usage |
+| Trainer location storage | PostGIS type complexity vs. simple lat/lng (Pitfall 6) | MEDIUM | Choose `earth_distance` unless polygon queries needed |
+| Availability toggle | Race condition with concurrent booking (Pitfall 4) | CRITICAL | Atomic RPC function for check + book |
+| Availability toggle | iOS battery drain from GPS polling (Pitfall 2) | HIGH | Snapshot on toggle, no continuous `watchPosition` |
+| Availability toggle iOS | App Store rejection for vague location justification (Pitfall 2) | HIGH | Specific Info.plist description before submission |
+| Location notifications | Notification spam / user fatigue (Pitfall 5) | HIGH | Frequency caps + preferences UI ships first |
+| Location notifications | Geofencing accuracy in urban areas (Pitfall 9) | MEDIUM | Use server-side proximity query, not OS geofencing |
+| AI matching | Cold start for new users (Pitfall 7) | MEDIUM | Gate match score on Fitness Passport completeness |
+| Google Calendar sync | OAuth verification 4–8 week timeline (Pitfall 3) | CRITICAL | Start verification before coding sync feature |
+| Google Calendar sync | Bidirectional conflict resolution (Pitfall 8) | HIGH | Write product rules before implementation |
+| Google Calendar sync | iCal token conflict with OAuth columns (Pitfall 14) | MEDIUM | Store OAuth creds in separate table |
+| Real-time map view | Supabase Realtime channel count explosion (Pitfall 10) | MEDIUM | Single broadcast channel, not per-trainer channels |
+| Session history | PHI risk in trainer notes (Pitfall 13) | MEDIUM | Scope to workout data, add UI guidance |
+| Any location feature | GDPR consent and retention (Pitfall 11) | MEDIUM | Consent checkbox and pg_cron cleanup before collection |
 
 ---
 
-## Recovery Strategies
+## Integration-Specific Warnings for Existing FitRush Code
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---|---|---|
-| Billing events dropped (wrong webhook secret) | MEDIUM | Re-register endpoint in Stripe Dashboard; reconcile against Stripe Events API; backfill tier state |
-| `past_due` trainers retaining paid features | MEDIUM | One-time script: fetch all subscriptions from Stripe, compare to DB, downgrade mismatches |
-| No idempotency — duplicate tier writes | LOW | Add `stripe_webhook_events` table retroactively; replay recent events via Stripe event log |
-| Elite branding fields not cleared on downgrade | LOW | Migration: NULL `custom_bio_url` and `branding_color` where `subscription_tier != 'elite'` |
-| Trial abuse (multiple accounts) | HIGH | Cannot claw back consumed trial value; add phone verification prospectively |
-| Annual cancellation credit stranded | MEDIUM | Manual refund issuance; add prorated refund logic in cancellation flow |
+### Existing `availability_slots` soft-delete pattern
+The `deleted_at IS NULL` filter used throughout the codebase will need to interact correctly with the online/offline toggle. Ensure the toggle uses the same soft-delete pattern (`deleted_at = NOW()`) rather than a separate `is_cancelled` flag — otherwise existing RLS policies and queries that filter by `deleted_at` will miss toggled-off slots.
+
+### Existing `notifications` table fan-out
+The current notification system fires one row per notification per user. Location-based alerts to all clients in an area will create N rows per trainer toggle event. At scale this creates table bloat. Consider adding a `notification_type = 'location_alert'` category with a separate retention policy (auto-delete after 7 days) to prevent unbounded growth.
+
+### Existing `stripe-webhook` and `create-payout` edge functions
+Session history with completion logging may interact with payout eligibility (completed sessions unlock trainer earnings). If session completion is confirmed via a new "session logged" event rather than booking status, ensure the payout calculation SQL query is updated to include both paths.
+
+### Existing TypeScript `as unknown as X` casts
+If adding an RPC function for the atomic booking operation (Pitfall 4 prevention), add a proper TypeScript type for the RPC response to the `database.types.ts` file. Stacking another untyped RPC call will degrade the codebase health noted in PROJECT.md.
 
 ---
 
 ## Sources
 
-- [Charge SaaS fees to your connected accounts — Stripe Docs](https://docs.stripe.com/connect/integrate-billing-connect) — HIGH confidence
-- [Create subscriptions with Stripe Billing (Connect) — Stripe Docs](https://docs.stripe.com/connect/subscriptions) — HIGH confidence
-- [How subscriptions work — Stripe Docs](https://docs.stripe.com/billing/subscriptions/overview) — HIGH confidence
-- [Use trial periods on subscriptions — Stripe Docs](https://docs.stripe.com/billing/subscriptions/trials) — HIGH confidence
-- [Prorations — Stripe Docs](https://docs.stripe.com/billing/subscriptions/prorations) — HIGH confidence
-- [Cancel subscriptions — Stripe Docs](https://docs.stripe.com/billing/subscriptions/cancel) — HIGH confidence
-- [Automate payment retries (Smart Retries) — Stripe Docs](https://docs.stripe.com/billing/revenue-recovery/smart-retries) — HIGH confidence
-- [Subscription schedules — Stripe Docs](https://docs.stripe.com/billing/subscriptions/subscription-schedules) — HIGH confidence
-- [Receive Stripe events in your webhook endpoint — Stripe Docs](https://docs.stripe.com/webhooks) — HIGH confidence
-- [Resolve webhook signature verification errors — Stripe Docs](https://docs.stripe.com/webhooks/signature) — HIGH confidence
-- [Row Level Security — Supabase Docs](https://supabase.com/docs/guides/database/postgres/row-level-security) — HIGH confidence
-- [Stripe API: Subscription status explained — mrcoles.com](https://mrcoles.com/stripe-api-subscription-status/) — MEDIUM confidence (community, consistent with official docs)
-- [Billing webhook race condition solution guide — excessivecoding.com](https://excessivecoding.com/blog/billing-webhook-race-condition-solution-guide) — MEDIUM confidence (community pattern)
-- [Stripe Webhooks: Solving Race Conditions — Pedro Alonso](https://www.pedroalonso.net/blog/stripe-webhooks-solving-race-conditions/) — MEDIUM confidence (community, consistent with official guidance)
-
----
-
-*Domain pitfalls research for: FitRush v2.1 — Stripe Billing subscription tiers on existing Stripe Connect Express marketplace*
-*Researched: 2026-03-15*
+- [Google Maps Platform API Pricing 2025](https://developers.google.com/maps/billing-and-pricing/pricing) — HIGH confidence (official docs)
+- [Google Maps Platform Manage Costs](https://developers.google.com/maps/billing-and-pricing/manage-costs) — HIGH confidence (official docs)
+- [Google Maps API Cost Gotchas 2026](https://radar.com/blog/google-maps-api-cost) — MEDIUM confidence (verified against official pricing)
+- [Google Sensitive Scope Verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification) — HIGH confidence (official docs)
+- [Google OAuth Consent Screen Configuration](https://developers.google.com/workspace/guides/configure-oauth-consent) — HIGH confidence (official docs)
+- [Google OAuth Verification: Costs, Timelines, Process](https://www.nylas.com/blog/google-oauth-app-verification/) — MEDIUM confidence (multiple developer reports corroborate)
+- [OAuth Consent Screen review for calendar.readonly](https://issuetracker.google.com/issues/461543459) — MEDIUM confidence (official Google Issue Tracker)
+- [Supabase Realtime Limits](https://supabase.com/docs/guides/realtime/limits) — HIGH confidence (official docs)
+- [Supabase Realtime Concurrent Peak Connections Quota](https://supabase.com/docs/guides/troubleshooting/realtime-concurrent-peak-connections-quota-jdDqcp) — HIGH confidence (official docs)
+- [Transistorsoft Capacitor Background Geolocation](https://transistorsoft.github.io/capacitor-background-geolocation/classes/backgroundgeolocation.html) — MEDIUM confidence (official plugin docs)
+- [Capacitor Community Background Geolocation](https://github.com/capacitor-community/background-geolocation) — MEDIUM confidence (official plugin repo)
+- [PostGIS Geo Queries Supabase](https://supabase.com/docs/guides/database/extensions/postgis) — HIGH confidence (official Supabase docs)
+- [Supabase Distance-Based Filtering](https://blog.mansueli.com/leveraging-supabase-and-postgresql-for-distance-based-filtering-and-location-data-retrieval) — MEDIUM confidence (verified pattern)
+- [Supabase Race Conditions SERIALIZABLE Isolation](https://github.com/orgs/supabase/discussions/30334) — MEDIUM confidence (official Supabase discussion)
+- [Geofencing Accuracy Real-World](https://radar.com/blog/how-accurate-is-geofencing) — MEDIUM confidence (industry source with cited data)
+- [GDPR Compliance for Fitness Apps](https://www.gdpr-advisor.com/gdpr-compliance-for-fitness-apps-safeguarding-personal-health-information/) — MEDIUM confidence (regulatory guidance, not official DPA document)
+- [Alert Fatigue Push Notifications 2025](https://onesignal.com/blog/how-mobile-push-expectations-have-changed/) — MEDIUM confidence (OneSignal industry data)
+- [Bidirectional Calendar Sync 2025](https://calendhub.com/blog/implement-bidirectional-calendar-sync-2025/) — LOW confidence (community guide, verify implementation details)
+- [Cold Start Problem Recommender Systems 2025](https://www.shaped.ai/blog/glossary-cold-start-problem) — MEDIUM confidence (multiple sources agree on content-based fallback pattern)
