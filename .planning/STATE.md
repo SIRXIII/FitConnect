@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 21-02-PLAN.md (Hero email capture + GCP checklist) — Phase 21 complete
-last_updated: "2026-03-18T21:19:37.401Z"
+stopped_at: Phase 22 context gathered
+last_updated: "2026-03-18T22:37:19.561Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
@@ -78,6 +78,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-18T21:15:48.641Z
-Stopped at: Completed 21-02-PLAN.md (Hero email capture + GCP checklist) — Phase 21 complete
-Resume file: None
+Last session: 2026-03-18T22:37:19.553Z
+Stopped at: Phase 22 context gathered
+Resume file: .planning/phases/22-availability-toggle-foundation/22-CONTEXT.md
