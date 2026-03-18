@@ -108,7 +108,7 @@ See: `.planning/milestones/v2.1-ROADMAP.md`
 | 17. Security Hardening | v3.0 | 3/3 | ✅ | 2026-03-17 |
 | 18. Trainee Fitness Passport | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 19. Calendar Export & Buffer Times | 3/3 | Complete    | 2026-03-18 | — |
-| 20. UX Polish | 3/3 | Complete   | 2026-03-18 | — |
+| 20. UX Polish | 3/3 | Complete    | 2026-03-18 | — |
 
 ---
 *Last updated: 2026-03-18 — Phase 20 planned (3 plans)*
