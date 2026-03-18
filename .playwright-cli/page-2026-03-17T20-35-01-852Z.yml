@@ -1,0 +1,88 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - link "Sign In" [active] [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - generic [ref=e352]:
+    - generic [ref=e353]:
+      - heading "FitRush" [level=1] [ref=e354]
+      - paragraph [ref=e355]: Elite fitness, optimized
+    - generic [ref=e356]:
+      - button "Continue with Google" [ref=e357]:
+        - img [ref=e358]
+        - text: Continue with Google
+      - button "Continue with Facebook" [ref=e363]:
+        - img [ref=e364]
+        - text: Continue with Facebook
+      - button "Continue with Apple" [ref=e366]:
+        - img [ref=e367]
+        - text: Continue with Apple
+      - generic [ref=e371]: or
+      - button "Continue with Email" [ref=e373]
+    - paragraph [ref=e374]: By continuing, you agree to FitRush's Terms of Service and Privacy Policy.
+  - contentinfo [ref=e163]:
+    - generic [ref=e164]:
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - heading "FitRush" [level=3] [ref=e167]
+          - paragraph [ref=e168]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e169]:
+            - link [ref=e170] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e171]
+            - link [ref=e174] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e175]
+            - link [ref=e177] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e178]
+        - generic [ref=e182]:
+          - heading "The Collective" [level=4] [ref=e183]
+          - list [ref=e184]:
+            - listitem [ref=e185]:
+              - link "Find a Professional" [ref=e186] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e187]:
+              - link "The Experience" [ref=e188] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e189]:
+              - link "Success Stories" [ref=e190] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e191]:
+              - link "Investment Guide" [ref=e192] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e193]:
+          - heading "Partnership" [level=4] [ref=e194]
+          - list [ref=e195]:
+            - listitem [ref=e196]:
+              - link "Join the Collective" [ref=e197] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e198]:
+              - link "Professional Standards" [ref=e199] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e200]:
+              - link "Insurance & Safety" [ref=e201] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e202]:
+              - link "Partner Portal" [ref=e203] [cursor=pointer]:
+                - /url: "#"
+      - generic [ref=e204]:
+        - paragraph [ref=e205]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e206]:
+          - link "Privacy" [ref=e207] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms" [ref=e208] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=e209] [cursor=pointer]:
+            - /url: "#"

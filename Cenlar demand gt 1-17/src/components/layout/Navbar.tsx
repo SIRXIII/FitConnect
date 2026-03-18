@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
   }, [showUserMenu, showNotifs]);
 
   const handleSignOut = async () => {
-    await signOut();
+    await signOut(); // waits for localStorage to be cleared before navigating
     navigate('/');
   };
 

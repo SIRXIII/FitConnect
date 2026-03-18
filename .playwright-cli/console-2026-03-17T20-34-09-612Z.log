@@ -1,0 +1,6 @@
+Total messages: 4 (Errors: 4, Warnings: 0)
+
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/rpc/get_referral_leaderboard:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/trainer_profiles?select=id%2Cspecialty%2Coptimized_rate%2Cdiscount_percentage%2Crating%2Cprofiles%21trainer_profiles_user_id_fkey%28full_name%2Cavatar_url%29&discount_percentage=gt.0:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/availability_slots?select=trainer_id%2Cstart_time%2Cis_booked%2Cdeleted_at&trainer_id=in.%28f2caa967-0042-46a5-b9e8-2a41480d9a43%2C1fca740c-3b46-4750-8648-cf76d9f63050%29&is_booked=eq.false&deleted_at=is.null&start_time=gte.2026-03-17T20%3A34%3A02.473Z:0
+[ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://m.stripe.com/6:0

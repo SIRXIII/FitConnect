@@ -69,9 +69,9 @@ const RoleSelect: React.FC = () => {
       }
 
       if (selected === 'trainer') {
-        navigate('/trainer/dashboard', { replace: true });
+        navigate('/onboarding/trainer', { replace: true });
       } else {
-        navigate('/trainers', { replace: true });
+        navigate('/onboarding/client', { replace: true });
       }
     } catch (err) {
       toast.error('Failed to set up your account. Please try again.');
@@ -85,10 +85,10 @@ const RoleSelect: React.FC = () => {
         {/* Header */}
         <div className="space-y-4">
           <h1 className="text-3xl md:text-4xl serif font-light italic text-ink">
-            How will you use FitRush?
+            Join as a trainer or trainee?
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
-            Select your role to get started
+            This sets up your experience on FitRush
           </p>
         </div>
 
@@ -108,10 +108,13 @@ const RoleSelect: React.FC = () => {
             </div>
             <div className="space-y-3">
               <h3 className="text-xs uppercase tracking-[0.2em] font-semibold text-ink">
-                I'm a Trainer
+                Certified Personal Trainer
               </h3>
               <p className="text-sm text-ink/50 leading-relaxed font-light">
                 Fill your idle hours with optimized-rate sessions. Keep 92% of every booking. Set your own rates and availability.
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-accent/70 font-medium">
+                Requires valid CPT certification
               </p>
             </div>
           </button>
@@ -130,10 +133,13 @@ const RoleSelect: React.FC = () => {
             </div>
             <div className="space-y-3">
               <h3 className="text-xs uppercase tracking-[0.2em] font-semibold text-ink">
-                I'm Looking for a Trainer
+                I'm a Trainee
               </h3>
               <p className="text-sm text-ink/50 leading-relaxed font-light">
                 Access elite certified trainers at optimized rates during their available hours. World-class coaching, smart pricing.
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.15em] text-ink/30 font-medium">
+                Open to everyone
               </p>
             </div>
           </button>

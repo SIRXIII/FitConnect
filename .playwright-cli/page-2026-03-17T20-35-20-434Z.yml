@@ -1,0 +1,129 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - link "Sign In" [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - generic [ref=e15]:
+    - link "Back to Trainers" [ref=e16] [cursor=pointer]:
+      - /url: /trainers
+      - img [ref=e17]
+      - text: Back to Trainers
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - img "Sienna Moretti" [ref=e22]
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]: Rating
+            - generic [ref=e26]:
+              - img [ref=e27]
+              - generic [ref=e29]: "5.0"
+              - generic [ref=e30]: (215)
+          - generic [ref=e31]:
+            - generic [ref=e32]: Location
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - text: Queens, NY
+          - generic [ref=e37]:
+            - generic [ref=e38]: Verified
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - text: Certified
+        - generic [ref=e42]:
+          - heading "Certifications" [level=3] [ref=e43]
+          - generic [ref=e44]:
+            - generic [ref=e45]: NASM
+            - generic [ref=e46]: CPT
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - heading "Sienna Moretti" [level=1] [ref=e49]
+          - generic [ref=e50]:
+            - img [ref=e51]
+            - generic [ref=e54]: Yoga
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - paragraph [ref=e57]: Standard Rate
+            - paragraph [ref=e58]: $120/hr
+          - generic [ref=e59]:
+            - paragraph [ref=e60]: Optimized Rate
+            - paragraph [ref=e61]: $60/hr
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - paragraph [ref=e64]: Session Rate
+              - generic [ref=e65]: 20% off
+            - paragraph [ref=e66]: $48/hr
+        - generic [ref=e67]:
+          - heading "About" [level=2] [ref=e68]
+          - paragraph [ref=e69]: Elite yoga & pilates trainer based in Queens, NY. Specializing in personalized sessions tailored to your fitness goals.
+        - generic [ref=e70]:
+          - generic [ref=e71]:
+            - img [ref=e72]
+            - heading "Available Sessions" [level=2] [ref=e74]
+          - generic [ref=e75]:
+            - paragraph [ref=e76]: No available sessions at this time
+            - paragraph [ref=e77]: Check back soon for new openings
+  - contentinfo [ref=e78]:
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - heading "FitRush" [level=3] [ref=e82]
+          - paragraph [ref=e83]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e84]:
+            - link [ref=e85] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e86]
+            - link [ref=e89] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e90]
+            - link [ref=e92] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e93]
+        - generic [ref=e97]:
+          - heading "The Collective" [level=4] [ref=e98]
+          - list [ref=e99]:
+            - listitem [ref=e100]:
+              - link "Find a Professional" [ref=e101] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e102]:
+              - link "The Experience" [ref=e103] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e104]:
+              - link "Success Stories" [ref=e105] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e106]:
+              - link "Investment Guide" [ref=e107] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e108]:
+          - heading "Partnership" [level=4] [ref=e109]
+          - list [ref=e110]:
+            - listitem [ref=e111]:
+              - link "Join the Collective" [ref=e112] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e113]:
+              - link "Professional Standards" [ref=e114] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e115]:
+              - link "Insurance & Safety" [ref=e116] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e117]:
+              - link "Partner Portal" [ref=e118] [cursor=pointer]:
+                - /url: "#"
+      - generic [ref=e119]:
+        - paragraph [ref=e120]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e121]:
+          - link "Privacy" [ref=e122] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms" [ref=e123] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=e124] [cursor=pointer]:
+            - /url: "#"

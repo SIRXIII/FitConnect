@@ -41,21 +41,31 @@ const DiscountSlider: React.FC<DiscountSliderProps> = ({ currentDiscount, optimi
   const handleSave = async () => {
     if (!trainerProfile) return;
     setSaving(true);
+    try {
+      const queryPromise = supabase
+        .from('trainer_profiles')
+        .update({ discount_percentage: value })
+        .eq('id', trainerProfile.id)
+        .then((r) => r);
 
-    const { error } = await supabase
-      .from('trainer_profiles')
-      .update({ discount_percentage: value })
-      .eq('id', trainerProfile.id);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out. Please try again.')), 10000)
+      );
 
-    if (error) {
-      toast.error('Failed to save discount. Please try again.');
-    } else {
+      const { error } = await Promise.race([queryPromise, timeoutPromise]);
+
+      if (error) throw error;
+
       prevSaved.current = value;
       setDirty(false);
       onSaved(value);
       toast.success(value > 0 ? `Discount set to ${value}% — sessions now $${saving24h}/hr` : 'Discount removed.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to save discount. Please try again.';
+      toast.error(msg);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const pct = (value / 80) * 100;

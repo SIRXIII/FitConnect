@@ -19,6 +19,8 @@ interface AuthState {
   initialize: () => Promise<void>;
   fetchProfile: (userId: string) => Promise<void>;
   signInWithProvider: (provider: 'google' | 'facebook' | 'apple') => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   setRole: (role: UserRole) => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
@@ -87,8 +89,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
+  signInWithEmail: async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (data.user) await get().fetchProfile(data.user.id);
+  },
+
+  signUpWithEmail: async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) throw error;
+    if (data.user && data.session) await get().fetchProfile(data.user.id);
+  },
+
   signOut: async () => {
-    await supabase.auth.signOut();
+    // 'local' scope clears localStorage immediately without a server round-trip.
+    // This prevents the app from re-authenticating on the next getSession() call.
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      // Fallback: even if the scope flag fails, clear state below
+    }
     set({ user: null, session: null, profile: null, trainerProfile: null });
   },
 

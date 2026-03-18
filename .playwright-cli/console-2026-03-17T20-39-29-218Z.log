@@ -1,0 +1,2 @@
+[     189ms] [WARNING] No routes matched location "/role-select"  @ https://fitrush-app.netlify.app/assets/index-C-ukMhy4.js:57
+[    2448ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://m.stripe.com/6:0

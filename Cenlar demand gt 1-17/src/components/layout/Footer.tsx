@@ -1,4 +1,5 @@
 import { Instagram, Twitter, Linkedin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -13,13 +14,13 @@ const Footer: React.FC = () => {
               Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
             </p>
             <div className="flex space-x-8">
-              <a href="#" className="text-paper/40 hover:text-accent transition-colors">
+              <a href="#" className="text-paper/40 hover:text-accent transition-colors" aria-label="Instagram">
                 <Instagram size={18} strokeWidth={1.5} />
               </a>
-              <a href="#" className="text-paper/40 hover:text-accent transition-colors">
+              <a href="#" className="text-paper/40 hover:text-accent transition-colors" aria-label="Twitter">
                 <Twitter size={18} strokeWidth={1.5} />
               </a>
-              <a href="#" className="text-paper/40 hover:text-accent transition-colors">
+              <a href="#" className="text-paper/40 hover:text-accent transition-colors" aria-label="LinkedIn">
                 <Linkedin size={18} strokeWidth={1.5} />
               </a>
             </div>
@@ -28,20 +29,20 @@ const Footer: React.FC = () => {
           <div className="md:col-span-3 space-y-8">
             <h4 className="text-[10px] uppercase tracking-[0.3em] font-semibold text-accent">The Collective</h4>
             <ul className="space-y-4 text-xs tracking-widest font-light text-paper/60">
-              <li><a href="#" className="hover:text-paper transition-colors">Find a Professional</a></li>
-              <li><a href="#" className="hover:text-paper transition-colors">The Experience</a></li>
-              <li><a href="#" className="hover:text-paper transition-colors">Success Stories</a></li>
-              <li><a href="#" className="hover:text-paper transition-colors">Investment Guide</a></li>
+              <li><Link to="/#search" className="hover:text-paper transition-colors">Find a Professional</Link></li>
+              <li><Link to="/#how-it-works" className="hover:text-paper transition-colors">The Experience</Link></li>
+              <li><Link to="/#search" className="hover:text-paper transition-colors">Browse Trainers</Link></li>
+              <li><Link to="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
             </ul>
           </div>
 
           <div className="md:col-span-3 space-y-8">
             <h4 className="text-[10px] uppercase tracking-[0.3em] font-semibold text-accent">Partnership</h4>
             <ul className="space-y-4 text-xs tracking-widest font-light text-paper/60">
-              <li><a href="#" className="hover:text-paper transition-colors">Join the Collective</a></li>
-              <li><a href="#" className="hover:text-paper transition-colors">Professional Standards</a></li>
-              <li><a href="#" className="hover:text-paper transition-colors">Insurance & Safety</a></li>
-              <li><a href="#" className="hover:text-paper transition-colors">Partner Portal</a></li>
+              <li><Link to="/login" className="hover:text-paper transition-colors">Join the Collective</Link></li>
+              <li><Link to="/#safety" className="hover:text-paper transition-colors">Professional Standards</Link></li>
+              <li><Link to="/#safety" className="hover:text-paper transition-colors">Insurance & Safety</Link></li>
+              <li><Link to="/login" className="hover:text-paper transition-colors">Partner Portal</Link></li>
             </ul>
           </div>
         </div>
@@ -49,9 +50,9 @@ const Footer: React.FC = () => {
         <div className="pt-12 border-t border-paper/5 flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           <p className="text-paper/20 text-[10px] uppercase tracking-[0.2em]">&copy; 2026 FitRush. All rights reserved.</p>
           <div className="flex space-x-10 text-[10px] uppercase tracking-[0.2em] text-paper/20">
-            <a href="#" className="hover:text-paper transition-colors">Privacy</a>
-            <a href="#" className="hover:text-paper transition-colors">Terms</a>
-            <a href="#" className="hover:text-paper transition-colors">Cookies</a>
+            <span className="cursor-default">Privacy</span>
+            <span className="cursor-default">Terms</span>
+            <span className="cursor-default">Cookies</span>
           </div>
         </div>
       </div>

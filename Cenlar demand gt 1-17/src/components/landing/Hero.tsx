@@ -16,19 +16,19 @@ const Hero: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.2 }}
-              className="space-y-10"
+              className="space-y-10 relative"
             >
               <div className="space-y-4">
                 <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-accent block">
                   Elite Fitness Marketplace
                 </span>
-                <h1 className="text-6xl md:text-8xl lg:text-9xl serif font-light leading-[0.9] tracking-tight text-ink">
+                <h1 className="text-5xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.9] tracking-tight text-ink">
                   Refined <br />
                   <span className="italic">Strength.</span>
                 </h1>
               </div>
 
-              <p className="text-lg md:text-xl text-ink/60 font-light leading-relaxed max-w-md">
+              <p className="text-lg md:text-xl text-ink/80 md:text-ink/60 font-light leading-relaxed max-w-md">
                 Connecting discerning individuals with certified master trainers during exclusive downtime hours.
               </p>
 

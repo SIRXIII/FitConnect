@@ -25,7 +25,16 @@
       "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__apply_migration",
       "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__list_tables",
       "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__search_docs",
-      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__execute_sql"
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__execute_sql",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__list_edge_functions",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__list_migrations",
+      "Bash(npm install:*)",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__deploy_edge_function",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__list_extensions",
+      "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__get_advisors",
+      "Skill(gsd:plan-phase)",
+      "Skill(gsd:discuss-phase)",
+      "Skill(gsd:discuss-phase:*)"
     ]
   }
 }

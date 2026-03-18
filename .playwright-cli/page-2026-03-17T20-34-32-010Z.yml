@@ -1,0 +1,110 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - link "Sign In" [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - generic [ref=e307]:
+    - link "Back to Trainers" [ref=e308] [cursor=pointer]:
+      - /url: /trainers
+      - img [ref=e309]
+      - text: Back to Trainers
+    - generic [ref=e311]:
+      - generic [ref=e312]:
+        - generic [ref=e314]: S
+        - generic [ref=e315]:
+          - generic [ref=e316]:
+            - generic [ref=e317]: Rating
+            - generic [ref=e318]:
+              - img [ref=e319]
+              - generic [ref=e321]: New
+          - generic [ref=e322]:
+            - generic [ref=e323]: Location
+            - generic [ref=e324]:
+              - img [ref=e325]
+              - text: Los Angeles, CA
+      - generic [ref=e328]:
+        - generic [ref=e329]:
+          - heading "SIRXIII" [level=1] [ref=e330]
+          - generic [ref=e331]:
+            - img [ref=e332]
+            - generic [ref=e335]: Strength Training
+        - generic [ref=e336]:
+          - generic [ref=e337]:
+            - paragraph [ref=e338]: Standard Rate
+            - paragraph [ref=e339]: $100/hr
+          - generic [ref=e340]:
+            - paragraph [ref=e341]: Optimized Rate
+            - paragraph [ref=e342]: $60/hr
+        - generic [ref=e343]:
+          - generic [ref=e344]:
+            - img [ref=e345]
+            - heading "Available Sessions" [level=2] [ref=e347]
+          - generic [ref=e348]:
+            - paragraph [ref=e349]: No available sessions at this time
+            - paragraph [ref=e350]: Check back soon for new openings
+  - contentinfo [ref=e163]:
+    - generic [ref=e164]:
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - heading "FitRush" [level=3] [ref=e167]
+          - paragraph [ref=e168]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e169]:
+            - link [ref=e170] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e171]
+            - link [ref=e174] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e175]
+            - link [ref=e177] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e178]
+        - generic [ref=e182]:
+          - heading "The Collective" [level=4] [ref=e183]
+          - list [ref=e184]:
+            - listitem [ref=e185]:
+              - link "Find a Professional" [ref=e186] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e187]:
+              - link "The Experience" [ref=e188] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e189]:
+              - link "Success Stories" [ref=e190] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e191]:
+              - link "Investment Guide" [ref=e192] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e193]:
+          - heading "Partnership" [level=4] [ref=e194]
+          - list [ref=e195]:
+            - listitem [ref=e196]:
+              - link "Join the Collective" [ref=e197] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e198]:
+              - link "Professional Standards" [ref=e199] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e200]:
+              - link "Insurance & Safety" [ref=e201] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e202]:
+              - link "Partner Portal" [ref=e203] [cursor=pointer]:
+                - /url: "#"
+      - generic [ref=e204]:
+        - paragraph [ref=e205]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e206]:
+          - link "Privacy" [ref=e207] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms" [ref=e208] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=e209] [cursor=pointer]:
+            - /url: "#"

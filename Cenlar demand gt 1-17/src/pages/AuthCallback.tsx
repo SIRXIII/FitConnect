@@ -24,6 +24,12 @@ const AuthCallback: React.FC = () => {
     const timer = setTimeout(() => {
       if (!profile?.role) {
         navigate('/onboarding/role', { replace: true });
+      } else if (!profile.onboarding_complete) {
+        // Role set but onboarding not finished — resume it
+        navigate(
+          profile.role === 'trainer' ? '/onboarding/trainer' : '/onboarding/client',
+          { replace: true },
+        );
       } else if (profile.role === 'trainer') {
         navigate('/trainer/dashboard', { replace: true });
       } else {

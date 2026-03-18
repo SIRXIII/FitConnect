@@ -1,1044 +1,653 @@
-# Architecture Patterns: Subscription Tiers v2.1
+# Architecture Research
 
-**Domain:** Stripe Billing subscription tiers on existing Stripe Connect + Supabase app
-**Researched:** 2026-03-15
-**Overall Confidence:** HIGH (official Stripe docs + full codebase inspection)
+**Domain:** Fitness marketplace SPA — v3.0 feature integration (Calendar Sync, Trainee Profiles, Security Hardening, UX Polish)
+**Researched:** 2026-03-17
+**Confidence:** HIGH (full codebase inspection + official Supabase docs + Google Calendar API docs)
 
 ---
 
-## System Overview
+## Standard Architecture
+
+### System Overview
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                        React SPA (Netlify)                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────────┐   │
-│  │ TrainerDash  │  │SubscribeFlow │  │   FeatureGate hooks   │   │
-│  │ (existing)   │  │  (new UI)    │  │  useSubscriptionTier  │   │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬────────────┘   │
-└─────────┼────────────────┼──────────────────────┼────────────────┘
-          │                │ Auth JWT              │ RLS read
-          ▼                ▼                       ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                     Supabase Edge Functions                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐    │
-│  │ create-      │  │ manage-      │  │  stripe-webhook      │    │
-│  │ subscription │  │ subscription │  │  (extended — adds    │    │
-│  │ (new)        │  │ (new)        │  │   6 billing events)  │    │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘    │
-└─────────┼────────────────┼──────────────────────┼────────────────┘
-          │ Stripe API      │ Stripe API            │ Stripe webhook
-          ▼                 ▼                       ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                     Stripe (platform account)                     │
-│  ┌──────────────┐   ┌──────────────┐   ┌────────────────────┐    │
-│  │  Customer    │   │ Subscription │   │  Connect Account   │    │
-│  │  cus_xxx     │   │  sub_xxx     │   │  acct_xxx          │    │
-│  │  (billing)   │   │  (tiers)     │   │  (payouts)         │    │
-│  └──────┬───────┘   └──────┬───────┘   └────────────────────┘    │
-│         │                  │                  SEPARATE OBJECTS     │
-└─────────┼──────────────────┼─────────────────────────────────────┘
-          │ stored            │ drives
-          ▼                   ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                     Supabase PostgreSQL                           │
-│  ┌─────────────────────────┐  ┌──────────────────────────────┐   │
-│  │ trainer_profiles (alt.) │  │ subscription_events (new)    │   │
-│  │  + stripe_customer_id   │  │  stripe_event_id UNIQUE      │   │
-│  │  + subscription_tier    │  │  (idempotency key)           │   │
-│  │  + subscription_status  │  └──────────────────────────────┘   │
-│  │  + subscription_id      │                                      │
-│  │  + subscription_interval│                                      │
-│  │  + trial_ends_at        │                                      │
-│  │  + tier_overridden_by   │                                      │
-│  └─────────────────────────┘                                      │
-└──────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                     React 19 SPA (Netlify)                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────┐  │
+│  │ TrainerDash  │  │ ClientProfile│  │ CalendarSync │  │ Security │  │
+│  │ (existing)   │  │  (enhanced)  │  │    Pages     │  │  Guards  │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───┘  │
+└─────────┼────────────────┼─────────────────┼─────────────────┼──────┘
+          │ Auth JWT        │ Auth JWT         │ Auth JWT         │ CSP
+          ▼                 ▼                  ▼                  ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                     Supabase Edge Functions (Deno)                    │
+│  ┌───────────────┐  ┌────────────────┐  ┌──────────────────────────┐  │
+│  │ calendar-sync │  │ calendar-export│  │  existing: stripe-webhook │  │
+│  │ (new — import)│  │ (new — .ics    │  │  payouts, subscriptions   │  │
+│  │               │  │  generation)   │  │  referrals, admin-override│  │
+│  └──────┬────────┘  └──────┬─────────┘  └──────────────────────────┘  │
+└─────────┼─────────────────┼────────────────────────────────────────────┘
+          │                  │
+          ▼                  ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                     Supabase PostgreSQL                               │
+│  ┌────────────────────────────────────────────────────────────────┐   │
+│  │ EXISTING: profiles, trainer_profiles, availability_slots,      │   │
+│  │ bookings, reviews, notifications, messages, referrals,          │   │
+│  │ payout_transactions, subscription_events, client_profiles       │   │
+│  ├────────────────────────────────────────────────────────────────┤   │
+│  │ NEW (v3.0):                                                     │   │
+│  │ calendar_connections  — per-user OAuth tokens + calendar prefs  │   │
+│  │ calendar_sync_log     — import audit trail                      │   │
+│  │ audit_log             — security hardening: all mutations       │   │
+│  └────────────────────────────────────────────────────────────────┘   │
+│                                                                        │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ pg_cron jobs: weekly payouts (existing)                          │  │
+│  │               calendar-sync poll every 15 min (new)              │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                     Supabase Storage                                  │
+│  ┌──────────────────────┐   ┌─────────────────────────────────────┐   │
+│  │  avatars (public)    │   │  calendar-exports (private, temp)   │   │
+│  │  Path: {uid}/avatar  │   │  Path: {uid}/bookings-{ts}.ics      │   │
+│  └──────────────────────┘   └─────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│               Supabase Vault (encrypted secrets)                      │
+│  google_oauth_refresh_{uid}  — per-trainer refresh tokens            │
+└──────────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                     External Services                                 │
+│  ┌──────────────────────┐   ┌──────────────────────────────────────┐  │
+│  │   Google Calendar    │   │   Stripe (existing)                   │  │
+│  │   REST API v3        │   │   Connect Express + Billing           │  │
+│  └──────────────────────┘   └──────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Type |
-|-----------|----------------|------|
-| `trainer_profiles` (extended) | Denormalized source of truth for current tier, trial state, Stripe IDs | DB table (altered) |
-| `subscription_events` | Audit log + idempotency store for every Stripe Billing webhook | DB table (new) |
-| `create-subscription` Edge Function | Create Stripe Customer + Subscription, write IDs back to DB | New Edge Function |
-| `manage-subscription` Edge Function | Cancel, upgrade/downgrade, billing portal URL | New Edge Function |
-| `stripe-webhook` (extended) | Handle 6 new Billing event types alongside existing Connect events | Modified Edge Function |
-| `get_visible_slots` RPC | Enforce per-trainer slot limits based on tier | New DB function |
-| `get_trainer_search` (extended) | Tier-weighted search ranking | Modified DB function |
-| `get_admin_mrr` RPC | MRR calculation from mix of monthly/annual subscriptions | New DB function |
-| `get_admin_analytics` (extended) | Add subscriber counts to existing admin dashboard | Modified DB function |
-| `useSubscriptionTier` hook | Read tier from trainer_profiles via RLS, expose gate helpers | New frontend hook |
+| Component | Responsibility | Typical Implementation |
+|-----------|----------------|------------------------|
+| `calendar-sync` Edge Fn | Fetch Google Calendar events, diff against `availability_slots`, block conflicting slots | Deno + Google Calendar REST v3 + Supabase service_role client |
+| `calendar-export` Edge Fn | Generate RFC 5545 .ics text from trainer's confirmed bookings | Deno string builder, returns `text/calendar` response |
+| `calendar_connections` table | Store per-trainer Google OAuth credential reference, sync preferences | vault_secret_id FK to Vault, last_synced_at, sync_enabled |
+| `calendar_sync_log` table | Audit trail for every import run, how many slots blocked/unblocked | trainer_id, run_at, events_found, slots_affected, error |
+| `audit_log` table | Security-layer immutable write log for all sensitive mutations | actor_id, table_name, operation, old_data, new_data, ip |
+| `avatars` Storage bucket | Public bucket for trainer and client profile photos | `{uid}/avatar.jpg` path, upsert on change, CDN-cached |
+| Supabase Vault | Encrypted per-user Google OAuth refresh tokens | `vault.create_secret()` returns UUID stored in `calendar_connections` |
+| `useCalendarSync` hook | React hook wrapping calendar Edge Functions, provides sync state | Returns `{ connected, lastSync, triggerSync, disconnect }` |
+| `useAvatarUpload` hook | Manages Storage upload flow: resize → upload → update profile.avatar_url | Uses `supabase.storage.from('avatars').upload()` |
+| `client_profiles` table | Already exists (v2.1 onboarding migration) — stores fitness intake | Extend with avatar_url column if not already present |
 
 ---
 
-## 1. Subscriptions Table Design
+## Recommended Project Structure
 
-### Recommendation: Extend `trainer_profiles`, not a separate table
-
-For FitRush's model — one subscription per trainer at a time — a separate `subscriptions` table adds a join on every feature-gated query without meaningful benefit. The right design is to add billing columns directly to `trainer_profiles` (denormalization) plus a separate `subscription_events` table for the audit log and idempotency.
-
-If you ever need subscription history (multiple past subscriptions per trainer), `subscription_events` already records every state transition from webhooks. A separate `subscriptions` table is only warranted when one user can have multiple active subscriptions simultaneously — not the case here.
-
-### Migration: `trainer_profiles` additions
-
-```sql
--- Migration: 20260316100000_subscription_tiers.sql
-
-ALTER TABLE public.trainer_profiles
-  ADD COLUMN IF NOT EXISTS stripe_customer_id     text,
-  ADD COLUMN IF NOT EXISTS subscription_tier      text NOT NULL DEFAULT 'free'
-                              CHECK (subscription_tier IN ('free', 'pro', 'elite')),
-  ADD COLUMN IF NOT EXISTS subscription_status    text NOT NULL DEFAULT 'inactive'
-                              CHECK (subscription_status IN (
-                                'inactive', 'trialing', 'active',
-                                'past_due', 'canceled', 'paused', 'incomplete'
-                              )),
-  ADD COLUMN IF NOT EXISTS subscription_id        text,           -- sub_xxx
-  ADD COLUMN IF NOT EXISTS subscription_interval  text
-                              CHECK (subscription_interval IN ('month', 'year', NULL)),
-  ADD COLUMN IF NOT EXISTS trial_ends_at          timestamptz,
-  ADD COLUMN IF NOT EXISTS current_period_end     timestamptz,
-  ADD COLUMN IF NOT EXISTS cancel_at_period_end   boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS tier_overridden_by     uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS tier_overridden_at     timestamptz;
-
--- Unique constraint prevents duplicate customer objects for one trainer
-CREATE UNIQUE INDEX IF NOT EXISTS trainer_profiles_stripe_customer_id_idx
-  ON public.trainer_profiles(stripe_customer_id)
-  WHERE stripe_customer_id IS NOT NULL;
-
--- Index for tier-based queries (search ranking, slot gating, admin MRR)
-CREATE INDEX IF NOT EXISTS trainer_profiles_subscription_tier_idx
-  ON public.trainer_profiles(subscription_tier);
-
--- Composite index for search ranking query
-CREATE INDEX IF NOT EXISTS trainer_profiles_tier_rating_idx
-  ON public.trainer_profiles(subscription_tier, rating DESC);
+```
+src/
+├── components/
+│   ├── calendar/            # New — calendar sync UI components
+│   │   ├── CalendarSyncBanner.tsx   # Connect/disconnect prompt
+│   │   ├── CalendarSyncStatus.tsx   # Last sync time, conflict count
+│   │   └── ExportBookingsButton.tsx # Triggers .ics download
+│   ├── profile/             # New — shared avatar + profile form pieces
+│   │   ├── AvatarUpload.tsx         # Drag-drop or click-to-upload
+│   │   └── FitnessIntakeForm.tsx    # Client fitness profile editor
+│   ├── shared/
+│   │   └── ProtectedRoute.tsx       # Existing — unchanged
+│   ├── trainer/
+│   │   └── AvailabilityManager.tsx  # Existing — add conflict badge overlay
+│   └── ...existing domains...
+├── hooks/
+│   ├── useCalendarSync.ts   # New — calendar connection state + sync trigger
+│   ├── useAvatarUpload.ts   # New — Storage upload wrapper
+│   ├── useClientProfile.ts  # New — read/write client_profiles rows
+│   └── ...existing hooks...
+├── lib/
+│   ├── ical.ts              # New — .ics generation helper (client-side fallback)
+│   ├── validators.ts        # New — Zod schemas for all user inputs (security)
+│   └── ...existing lib...
+├── pages/
+│   ├── TrainerSettings.tsx  # New or extended — calendar connect, profile edit
+│   ├── ClientProfile.tsx    # New or extended — fitness intake, avatar
+│   └── ...existing pages...
+└── supabase/
+    └── functions/
+        ├── calendar-sync/   # New Edge Function
+        │   └── index.ts
+        └── calendar-export/ # New Edge Function
+            └── index.ts
 ```
 
-**Column rationale vs. the "subscriptions table" schema proposed in the brief:**
+### Structure Rationale
 
-| Proposed column | Where it lives in this design | Notes |
-|-----------------|-------------------------------|-------|
-| `id` | N/A — trainer_profiles.id is the key | |
-| `trainer_id` | N/A — trainer_profiles IS the trainer | |
-| `stripe_customer_id` | `trainer_profiles.stripe_customer_id` | Stored here |
-| `stripe_subscription_id` | `trainer_profiles.subscription_id` | Named `subscription_id` |
-| `tier` | `trainer_profiles.subscription_tier` | |
-| `status` | `trainer_profiles.subscription_status` | |
-| `billing_period` | `trainer_profiles.subscription_interval` | month or year |
-| `trial_end` | `trainer_profiles.trial_ends_at` | |
-| `current_period_end` | `trainer_profiles.current_period_end` | Added — needed for cancel UI |
-| `cancel_at_period_end` | `trainer_profiles.cancel_at_period_end` | Added — drives "cancels on X" UI |
-
-**Missing columns from the brief that should be added:** `current_period_end` and `cancel_at_period_end`. Both come directly from Stripe's subscription object and are needed for the trainer dashboard "Your plan ends on [date]" display.
-
-### New Table: `subscription_events` (audit log + idempotency)
-
-```sql
-CREATE TABLE IF NOT EXISTS public.subscription_events (
-  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  trainer_id       uuid        NOT NULL REFERENCES public.trainer_profiles(id) ON DELETE CASCADE,
-  stripe_event_id  text        NOT NULL,   -- e.g. evt_1xxxxxx
-  event_type       text        NOT NULL,   -- e.g. customer.subscription.updated
-  payload          jsonb,                  -- full event.data.object for audit
-  processed_at     timestamptz NOT NULL DEFAULT now(),
-
-  CONSTRAINT subscription_events_stripe_event_id_unique UNIQUE (stripe_event_id)
-);
-
-CREATE INDEX IF NOT EXISTS subscription_events_trainer_id_idx
-  ON public.subscription_events(trainer_id, processed_at DESC);
-```
-
-The `UNIQUE (stripe_event_id)` constraint is the idempotency mechanism (see section 7).
+- **`components/calendar/`:** Calendar sync is a cross-cutting concern (appears on trainer dashboard and settings). Isolating these components prevents coupling with availability management.
+- **`components/profile/`:** AvatarUpload is reused by both trainer and client profiles. Centralizing avoids duplication.
+- **`lib/validators.ts`:** Security hardening requires Zod validation everywhere. One file > scattered inline validation.
+- **`hooks/useCalendarSync.ts`:** Keeps Edge Function call details out of page components, consistent with existing hook pattern in the codebase.
 
 ---
 
-## 2. Stripe Customer for Trainers — The Critical Distinction
+## Architectural Patterns
 
-FitRush already stores `trainer_profiles.stripe_account_id` (an `acct_xxx` object). This is a Stripe Connect Express account — it represents the trainer as a **payment recipient** (for destination charges and payouts).
+### Pattern 1: iCal Subscription Feed (Recommended for Calendar Sync)
 
-Stripe Billing requires a **Customer** object (`cus_xxx`) on the **platform account**. This represents the trainer as a **billing subscriber paying the platform**. These are two completely separate Stripe objects.
+**What:** Expose a static `.ics` URL per trainer that Google Calendar, Apple Calendar, and Outlook can subscribe to. The URL returns trainer's open availability slots in RFC 5545 format. Users add this URL in their calendar app once; the calendar app polls it on its own schedule.
 
-Source (HIGH confidence, official docs): "to create a subscription for the connected account to pay a recurring fee to the platform, you must create a Customer object to represent the connected account. The Account object allows the connected account to collect payments from its customers, but the platform cannot use it to collect recurring payments from the connected account."
-— https://docs.stripe.com/connect/subscriptions
+**When to use:** This is the correct starting point for v3.0. It requires no OAuth from trainers, no Vault secrets, no webhook channel renewal. It is one-way (app → calendar) but covers the primary use case: trainers seeing their bookings in their calendar.
 
-| Object | ID prefix | Lives on | Purpose | Stored in |
-|--------|-----------|----------|---------|-----------|
-| Connect Account | `acct_` | Platform (linked) | Trainer receives payouts | `trainer_profiles.stripe_account_id` (existing) |
-| Billing Customer | `cus_` | Platform account | Trainer pays subscription fee | `trainer_profiles.stripe_customer_id` (new) |
-| Subscription | `sub_` | Platform account | Tier + billing cycle | `trainer_profiles.subscription_id` (new) |
+**Trade-offs:**
+- Pro: Zero credential management complexity. No Vault. No refresh token rotation. No 7-day channel renewal.
+- Pro: Works for Google Calendar, Apple Calendar, Outlook simultaneously with one endpoint.
+- Pro: Fits the existing Edge Function pattern already in the codebase.
+- Con: Polling latency — Google Calendar may take up to 24 hours to pick up changes. Apple Calendar is configurable (as low as 5 minutes).
+- Con: One-way only. Changes in the user's external calendar do not flow back into FitRush.
 
-### Creation flow in `create-subscription` Edge Function
+**Example implementation:**
 
 ```typescript
-// Step 1: Check if Customer already exists
-const { data: trainerProfile } = await adminClient
-  .from('trainer_profiles')
-  .select('id, stripe_customer_id, stripe_account_id')
-  .eq('user_id', userId)
-  .single();
+// supabase/functions/calendar-export/index.ts
+// GET /functions/v1/calendar-export?trainer_id={uuid}
+// Returns text/calendar — RFC 5545 .ics content
+// No auth required (public subscription URL) — trainer_id is the only key
 
-let customerId = trainerProfile.stripe_customer_id;
+serve(async (req) => {
+  const trainerId = new URL(req.url).searchParams.get('trainer_id');
+  if (!trainerId) return new Response('Missing trainer_id', { status: 400 });
 
-// Step 2: Create Customer on platform account if missing
-if (!customerId) {
-  const customer = await stripe.customers.create({
-    email: userEmail,
-    name: userFullName,
-    metadata: { trainer_profile_id: trainerProfile.id },
-    // Do NOT pass stripeAccount header — this must live on the platform account
+  const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  const { data: bookings } = await adminClient
+    .from('bookings')
+    .select('id, slot:availability_slots(start_time, end_time), notes, client:profiles(full_name)')
+    .eq('trainer_id', trainerId)
+    .in('status', ['confirmed', 'completed'])
+    .gte('availability_slots.start_time', new Date().toISOString());
+
+  const ics = buildICS(bookings);  // RFC 5545 string builder
+
+  return new Response(ics, {
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'Cache-Control': 'public, max-age=300',  // 5-min CDN cache
+    },
   });
-  customerId = customer.id;
-
-  await adminClient
-    .from('trainer_profiles')
-    .update({ stripe_customer_id: customerId })
-    .eq('id', trainerProfile.id);
-}
-
-// Step 3: Create Subscription using platform Customer (not the acct_ ID)
-const subscription = await stripe.subscriptions.create({
-  customer: customerId,  // cus_xxx, NOT acct_xxx
-  items: [{ price: priceId }],
-  trial_period_days: 30,
-  trial_settings: {
-    end_behavior: { missing_payment_method: 'cancel' }
-  },
-  payment_behavior: 'default_incomplete',
-  payment_settings: { save_default_payment_method: 'on_subscription' },
-  expand: ['latest_invoice.payment_intent'],
 });
 ```
 
-**Key:** Never pass `{ stripeAccount: acct_xxx }` as a Stripe API header when creating Billing objects. That header routes the API call to the connected account, where the Customer and Subscription would not be visible to your platform.
-
 ---
 
-## 3. Denormalization vs. Computed Tier
+### Pattern 2: Google Calendar OAuth Import (Advanced — defer to v3.1+)
 
-### Recommendation: Denormalized column (`trainer_profiles.subscription_tier`), updated by webhook
+**What:** Trainer connects their Google account with `calendar.readonly` scope. FitRush stores the refresh token in Vault. A pg_cron job runs every 15 minutes, triggering a `calendar-sync` Edge Function that calls Google Calendar API, fetches events in the next 30 days, finds overlapping `availability_slots`, and marks them `is_booked = true` (soft-block with `blocked_by_calendar = true` flag, not a real booking).
 
-**Why denormalization wins for this use case:**
+**When to use:** When trainers complain that they're getting double-booked because FitRush doesn't know about personal appointments. This is a real problem but adds significant complexity and maintenance burden. Defer until iCal export proves insufficient.
 
-| Concern | Denormalized column | Computed from subscriptions table |
-|---------|---------------------|-----------------------------------|
-| RLS policy simplicity | `subscription_tier = 'pro'` in WHERE — trivial | Requires subquery to subscriptions table on every policy check |
-| Query performance | Single column index scan | JOIN to subscriptions + subquery in every RLS-gated query |
-| Slot gating RPC | `SELECT subscription_tier FROM trainer_profiles WHERE id = p_trainer_id` | Multi-table query inside SECURITY INVOKER function |
-| Search ranking | `ORDER BY tier_weight DESC` with simple CASE expression | Additional join on every search query |
-| Stripe API outage | Zero impact on read path | Zero impact (data is in DB either way) |
-| Consistency risk | Webhook sync lag (< 5 seconds normally) | Always consistent but costs a join |
-| Admin override | Write `tier_overridden_by` + update column directly | Must decide: bypass subscriptions table or write a fake subscription row |
+**Trade-offs:**
+- Pro: Bidirectional awareness — personal appointments block FitRush availability automatically.
+- Con: Google OAuth app verification required for `calendar.readonly` scope (takes 2-4 weeks for production apps, requires privacy policy review).
+- Con: Refresh token rotation and revocation handling. If a trainer revokes access, sync fails silently unless error handling is robust.
+- Con: Google Calendar push notification channels expire every 7 days — must implement auto-renewal via pg_cron or the polling approach degrades to 15-min intervals.
+- Con: Google Calendar API quota: 1,000,000 req/day shared across all trainers. At 15-min polling for 500 trainers, this is 48,000 req/day — fine. At 5,000 trainers, it is at limit.
 
-The consistency risk (webhook lag) is acceptable for a feature gate system. If a trainer's trial ends at 11:59 PM and the webhook fires at 12:00 AM, they may have an extra few seconds of Pro access. This is not a financial risk — Stripe's billing is already settled. Use `current_period_end` to display accurate timing in the UI.
-
-**The one case where a separate subscriptions table is needed:** if FitRush ever offers add-ons (multiple active subscriptions per trainer). Not planned for v2.1.
-
----
-
-## 4. RLS Policies for Subscriptions
-
-The subscription columns live on `trainer_profiles`, which already has RLS enabled. The existing policies cover reads (public select) and writes (owner-only update). One addition is needed: prevent trainers from writing their own tier.
+**Key tables needed for this pattern:**
 
 ```sql
--- Migration: after ALTER TABLE trainer_profiles ADD COLUMN subscription_tier...
-
--- Trainers must NOT be able to self-promote their tier.
--- The existing trainer_profiles_update_own policy allows trainers to update
--- their own row. We need a check to block subscription column writes from
--- non-service-role callers.
-
--- Option A (recommended): Use a separate RLS policy with a WITH CHECK that
--- rejects subscription column changes from authenticated users.
--- Supabase does not support column-level RLS directly, but we can enforce
--- this in a BEFORE UPDATE trigger:
-
-CREATE OR REPLACE FUNCTION public.guard_subscription_tier_write()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  -- Service role and admin can write subscription columns freely
-  IF auth.role() = 'service_role' THEN
-    RETURN NEW;
-  END IF;
-
-  IF (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin' THEN
-    RETURN NEW;
-  END IF;
-
-  -- Authenticated trainers cannot self-modify subscription columns
-  IF NEW.subscription_tier     IS DISTINCT FROM OLD.subscription_tier     OR
-     NEW.subscription_status   IS DISTINCT FROM OLD.subscription_status   OR
-     NEW.subscription_id       IS DISTINCT FROM OLD.subscription_id       OR
-     NEW.stripe_customer_id    IS DISTINCT FROM OLD.stripe_customer_id    OR
-     NEW.trial_ends_at         IS DISTINCT FROM OLD.trial_ends_at         OR
-     NEW.current_period_end    IS DISTINCT FROM OLD.current_period_end    OR
-     NEW.cancel_at_period_end  IS DISTINCT FROM OLD.cancel_at_period_end  THEN
-    RAISE EXCEPTION 'Subscription fields can only be modified by the platform';
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trainer_profiles_guard_subscription_write ON public.trainer_profiles;
-CREATE TRIGGER trainer_profiles_guard_subscription_write
-  BEFORE UPDATE ON public.trainer_profiles
-  FOR EACH ROW EXECUTE FUNCTION public.guard_subscription_tier_write();
+-- Defer to v3.1+
+CREATE TABLE calendar_connections (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  trainer_id       uuid NOT NULL UNIQUE REFERENCES trainer_profiles(id) ON DELETE CASCADE,
+  google_vault_id  uuid REFERENCES vault.secrets(id) ON DELETE SET NULL,
+  calendar_id      text NOT NULL DEFAULT 'primary',
+  sync_enabled     boolean NOT NULL DEFAULT true,
+  last_synced_at   timestamptz,
+  last_error       text,
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
 ```
 
-**For `subscription_events` table:**
+---
+
+### Pattern 3: Avatar Upload via Supabase Storage
+
+**What:** Client uploads image file from browser → Supabase Storage `avatars` bucket (public) → Edge Function or direct Storage API call writes to `{uid}/avatar.{ext}` → profile's `avatar_url` column updated to Storage public URL.
+
+**When to use:** Immediately for v3.0. The `profiles.avatar_url` and `trainer_profiles.avatar_url` columns already exist in the schema. This pattern fills in what was previously only populated from Unsplash mock URLs.
+
+**Trade-offs:**
+- Pro: Public bucket means no signed URLs needed for display — images served via CDN, fast.
+- Pro: Supabase Storage RLS on `storage.objects` enforces `{uid}/*` path restriction — user can only write their own folder.
+- Con: Client-side image resize needed before upload to avoid storing large images. Use browser Canvas API or a library like `browser-image-compression` — do not send this to server raw.
+- Con: Old avatar files accumulate unless cleanup is implemented (Storage does not auto-delete on upsert to same path). Use consistent path (`{uid}/avatar.jpg`) to overwrite on change.
+
+**Example RLS policy for avatars bucket:**
 
 ```sql
-ALTER TABLE public.subscription_events ENABLE ROW LEVEL SECURITY;
-
--- Trainers can read their own audit log
-DROP POLICY IF EXISTS subscription_events_select_own ON public.subscription_events;
-CREATE POLICY subscription_events_select_own
-  ON public.subscription_events
-  FOR SELECT
-  USING (
-    (SELECT user_id FROM public.trainer_profiles WHERE id = trainer_id) = (SELECT auth.uid())
+-- storage.objects RLS
+CREATE POLICY "Users upload own avatar"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND auth.uid()::text = (storage.foldername(name))[1]
   );
 
--- Admins can read all subscription events
-DROP POLICY IF EXISTS subscription_events_select_admin ON public.subscription_events;
-CREATE POLICY subscription_events_select_admin
-  ON public.subscription_events
-  FOR SELECT
+CREATE POLICY "Users update own avatar"
+  ON storage.objects FOR UPDATE
   USING (
-    (SELECT role FROM public.profiles WHERE id = (SELECT auth.uid())) = 'admin'
+    bucket_id = 'avatars'
+    AND auth.uid()::text = (storage.foldername(name))[1]
   );
 
--- INSERT/UPDATE: service role only (webhook handler uses adminClient)
--- No explicit INSERT policy needed — service_role bypasses RLS by default.
--- But add it defensively for clarity:
-DROP POLICY IF EXISTS subscription_events_insert_service ON public.subscription_events;
-CREATE POLICY subscription_events_insert_service
-  ON public.subscription_events
-  FOR INSERT
-  WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "Anyone can view avatars"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'avatars');
 ```
-
-**Performance note (HIGH confidence, from Supabase official docs):** Wrap `auth.uid()` and subqueries used in RLS policies in `(SELECT ...)` to trigger Postgres `initPlan` optimization, caching the result per statement rather than re-evaluating per row. This gives up to 95% speedup on tables with many rows. See the `(SELECT auth.uid())` pattern in the policies above — this is the correct form.
 
 ---
 
-## 5. Slot Visibility Gating at DB Level
+### Pattern 4: Zod Validation at the Gate (Security Hardening)
 
-### Recommendation: RPC function (`get_visible_slots`)
+**What:** Every user input — profile updates, booking creation, availability slot creation — passes through a Zod schema before hitting Supabase. Schemas live in `src/lib/validators.ts` and are imported by both the hooks (client-side) and Edge Functions (server-side).
 
-Three options evaluated:
+**When to use:** Now. The codebase `CONCERNS.md` identified that `updateProfile` accepts `Partial<Profile>` with no validation, slot deletion has no booking check, and search has no input length limits. These are documented risks that v3.0 security hardening should address.
 
-| Option | Mechanism | Pros | Cons |
-|--------|-----------|------|------|
-| (a) RPC with tier check | `get_visible_slots(trainer_id)` PL/pgSQL function | Enforcement in DB, callable by anon, composable | One extra RPC call vs. direct table query |
-| (b) DB view | `CREATE VIEW visible_slots AS ... LIMIT (tier_based)` | Transparent to frontend | PostgreSQL views cannot apply per-row LIMIT based on a different row's tier; would require complex window function |
-| (c) Frontend filter | React filters after fetching all slots | Simple | No server enforcement; circumventable; returns more data than needed |
+**Trade-offs:**
+- Pro: One schema definition used at two enforcement points — client and server.
+- Pro: Zod parse errors produce readable messages usable directly in UI.
+- Con: Zod adds ~13KB to the bundle. Acceptable for a full-featured SPA.
+- Con: Requires discipline to keep schemas and DB schema in sync. Mitigate by writing schemas against the migration, not the TypeScript types.
 
-Option (b) is technically infeasible for a per-trainer limit — a view cannot apply a different LIMIT per trainer_id group without a window function approach that still returns all rows. Option (c) is not enforcement. **Use (a).**
+**Example:**
 
-```sql
--- Migration: add after trainer_profiles ALTER TABLE
-
-CREATE OR REPLACE FUNCTION public.get_visible_slots(p_trainer_id uuid)
-RETURNS SETOF public.availability_slots
-LANGUAGE plpgsql
-SECURITY INVOKER
-STABLE
-AS $$
-DECLARE
-  v_tier  text;
-  v_limit int;
-BEGIN
-  SELECT subscription_tier
-  INTO   v_tier
-  FROM   public.trainer_profiles
-  WHERE  id = p_trainer_id;
-
-  v_limit := CASE v_tier
-    WHEN 'elite' THEN 2147483647   -- effectively unlimited
-    WHEN 'pro'   THEN 10
-    ELSE              3            -- free tier default
-  END;
-
-  RETURN QUERY
-    SELECT s.*
-    FROM   public.availability_slots s
-    WHERE  s.trainer_id  = p_trainer_id
-      AND  s.is_booked   = false
-      AND  s.start_time  > now()
-    ORDER  BY s.start_time
-    LIMIT  v_limit;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_visible_slots(uuid) TO anon;
-GRANT EXECUTE ON FUNCTION public.get_visible_slots(uuid) TO authenticated;
-```
-
-**Frontend usage:**
 ```typescript
-const { data: slots } = await supabase.rpc('get_visible_slots', {
-  p_trainer_id: trainerId
+// src/lib/validators.ts
+import { z } from 'zod';
+
+export const ProfileUpdateSchema = z.object({
+  full_name: z.string().min(1).max(100).trim(),
+  phone: z.string().regex(/^\+?[\d\s\-()]{7,20}$/).optional().nullable(),
+  avatar_url: z.string().url().max(500).optional().nullable(),
+});
+
+export const AvailabilitySlotSchema = z.object({
+  trainer_id: z.string().uuid(),
+  start_time: z.string().datetime(),
+  end_time: z.string().datetime(),
+  discount_percentage: z.number().min(0).max(100).optional(),
+}).refine(d => new Date(d.end_time) > new Date(d.start_time), {
+  message: 'end_time must be after start_time',
 });
 ```
 
-This replaces the direct `supabase.from('availability_slots').select(...)` query on trainer profile pages. Existing trainer-owned slot queries (for the trainer's own dashboard) should continue to use the direct table query — the limit only applies to the client-facing view.
+---
+
+## Data Flow
+
+### Calendar Export Flow (iCal Subscription)
+
+```
+Trainer copies export URL from Settings page
+    ↓
+Trainer adds URL to Google Calendar as "Other calendar" subscription
+    ↓  (happens in Google's UI, no FitRush involvement)
+
+Google Calendar polls URL every ~24h (or manually triggered)
+    ↓
+GET /functions/v1/calendar-export?trainer_id={uuid}
+    ↓
+Edge Function: adminClient queries bookings JOIN availability_slots
+    ↓
+Edge Function: builds RFC 5545 .ics string
+    ↓
+Returns text/calendar response (CDN cached 5 min)
+    ↓
+Google Calendar displays trainer's confirmed sessions as read-only events
+```
+
+### Avatar Upload Flow
+
+```
+User selects image file (AvatarUpload.tsx)
+    ↓
+Browser: canvas resize to max 400×400, quality 0.85 (no server involvement)
+    ↓
+supabase.storage.from('avatars').upload('{uid}/avatar.jpg', blob, { upsert: true })
+    ↓
+Storage: RLS checks auth.uid() == foldername[1] — allows
+    ↓
+On success: extract publicUrl from storage response
+    ↓
+supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', uid)
+    (or trainer_profiles — same uid pattern)
+    ↓
+useAuthStore.fetchProfile() → Zustand store refreshes → avatar displayed everywhere
+```
+
+### Security Audit Log Flow
+
+```
+DB trigger fires AFTER INSERT/UPDATE/DELETE on sensitive tables
+    (profiles, trainer_profiles, bookings, availability_slots)
+    ↓
+Trigger function: audit_log_mutation()
+    ↓
+INSERT into audit_log: { actor_id: auth.uid(), table_name, operation,
+                          old_data: row_to_json(OLD), new_data: row_to_json(NEW),
+                          created_at: now() }
+    ↓
+audit_log: RLS blocks all user SELECT (admin-only via service_role)
+    ↓
+Admin dashboard can query via RPC get_audit_log(start, end) — service_role only
+```
+
+### Client Fitness Intake Flow
+
+```
+Client completes onboarding or visits /client/profile
+    ↓
+FitnessIntakeForm (new component) renders fields from client_profiles schema
+    ↓
+useClientProfile hook: SELECT * FROM client_profiles WHERE user_id = auth.uid()
+    ↓
+User fills age, weight, fitness_goals[], workout_types[], health_notes
+    ↓
+useClientProfile.update(): validates via FitnessIntakeSchema (Zod)
+    ↓
+UPSERT into client_profiles (already exists in 20260315120000_onboarding.sql)
+    ↓
+Trainer can view client_profiles for their booked clients via existing RLS policy:
+    "Trainers can view client profiles for their bookings"
+```
+
+### Rate Limiting Flow (Edge Functions)
+
+```
+Request arrives at Edge Function
+    ↓
+Extract auth.uid() from JWT via verifyJWT()
+    ↓
+Upstash Redis: INCR "ratelimit:{uid}:{minute_bucket}"
+Set TTL = 60s on first increment
+    ↓
+If count > threshold (e.g., 10 req/min for sync): return 429
+    ↓
+Else: proceed with function logic
+```
 
 ---
 
-## 6. Search Ranking with Tier Boost
+## New Database Objects Required
 
-The existing trainer search (likely `ORDER BY tp.rating DESC`) needs a tier multiplier. The pattern is a computed score column in the ORDER BY clause.
+### New Tables
 
 ```sql
-CREATE OR REPLACE FUNCTION public.get_trainer_search(
-  p_specialty text    DEFAULT NULL,
-  p_location  text    DEFAULT NULL,
-  p_limit     int     DEFAULT 20,
-  p_offset    int     DEFAULT 0
-)
-RETURNS TABLE (
-  id               uuid,
-  user_id          uuid,
-  full_name        text,
-  specialty        text,
-  bio              text,
-  hourly_rate      numeric,
-  location         text,
-  rating           numeric,
-  review_count     int,
-  subscription_tier text,
-  is_featured      boolean,
-  avatar_url       text,
-  search_score     numeric
-)
-LANGUAGE sql
-SECURITY INVOKER
-STABLE
-AS $$
-  SELECT
-    tp.id,
-    tp.user_id,
-    p.full_name,
-    tp.specialty,
-    tp.bio,
-    tp.hourly_rate,
-    tp.location,
-    tp.rating,
-    tp.review_count,
-    tp.subscription_tier,
-    tp.is_featured,
-    p.avatar_url,
-    -- Weighted search score: tier multiplier * quality signals
-    (
-      CASE tp.subscription_tier
-        WHEN 'elite' THEN 3.0
-        WHEN 'pro'   THEN 2.0
-        ELSE              1.0
-      END
-      -- Rating weight: 0-5 scale, normalized to 0-1, then multiplied
-      * (0.6 * (tp.rating / 5.0) + 0.4 * LEAST(tp.review_count::numeric / 20.0, 1.0))
-    ) AS search_score
-  FROM public.trainer_profiles tp
-  JOIN public.profiles p ON p.id = tp.user_id
-  WHERE tp.verified = true
-    AND (p_specialty IS NULL OR tp.specialty = p_specialty)
-    AND (p_location  IS NULL OR tp.location ILIKE '%' || p_location || '%')
-  ORDER BY
-    tp.is_featured DESC,          -- featured (elite) trainers first
-    search_score   DESC,          -- tier * quality
-    tp.rating      DESC           -- tiebreaker
-  LIMIT  p_limit
-  OFFSET p_offset;
-$$;
+-- calendar_connections: Phase 1 deferred (iCal export needs no table)
+-- calendar_sync_log: if Google Calendar import is added in v3.1+
+-- audit_log: security hardening — needed in v3.0
 
-GRANT EXECUTE ON FUNCTION public.get_trainer_search(text, text, int, int) TO anon;
-GRANT EXECUTE ON FUNCTION public.get_trainer_search(text, text, int, int) TO authenticated;
-```
-
-**Score formula explained:**
-- Elite trainers get 3x multiplier, Pro gets 2x, Free gets 1x
-- Rating component (60% weight): a 5-star trainer scores 1.0
-- Review volume component (40% weight): caps at 20 reviews to prevent high-volume low-quality trainers from dominating
-- `is_featured` (Elite perk) sorts before the score, ensuring Elite featured trainers always appear at the top
-
-The composite index `(subscription_tier, rating DESC)` created in section 1 serves this query.
-
----
-
-## 7. Webhook Idempotency
-
-Stripe guarantees at-least-once delivery — the same event can fire multiple times (network retry, Stripe retry on non-200). The subscription state machine means a double-processed `customer.subscription.deleted` could incorrectly downgrade an active trainer.
-
-### Pattern: Insert-first into `subscription_events`
-
-```typescript
-// stripe-webhook/index.ts — add to each billing event case block
-
-async function handleBillingEvent(
-  event: Stripe.Event,
-  adminClient: SupabaseClient,
-  trainerId: string
-): Promise<boolean> {
-  // Attempt to record the event — unique constraint on stripe_event_id
-  const { error } = await adminClient
-    .from('subscription_events')
-    .insert({
-      trainer_id:      trainerId,
-      stripe_event_id: event.id,
-      event_type:      event.type,
-      payload:         event.data.object,
-    });
-
-  if (error?.code === '23505') {
-    // PostgreSQL unique_violation: this event was already processed
-    // Return 200 to Stripe (do not retry), skip all processing
-    return false; // caller skips the update
-  }
-
-  if (error) {
-    // Unexpected error — throw to trigger Stripe retry
-    throw error;
-  }
-
-  return true; // caller proceeds with state update
-}
-```
-
-**Usage in the switch block:**
-
-```typescript
-case 'customer.subscription.updated': {
-  const sub = event.data.object as Stripe.Subscription;
-  const trainerId = await resolveTrainerByCustomerId(sub.customer as string, adminClient);
-
-  const shouldProcess = await handleBillingEvent(event, adminClient, trainerId);
-  if (!shouldProcess) break;
-
-  // Safe to process — not a duplicate
-  await adminClient.from('trainer_profiles').update({
-    subscription_tier:     resolvetier(sub),
-    subscription_status:   sub.status,
-    subscription_interval: sub.items.data[0]?.price.recurring?.interval ?? null,
-    current_period_end:    new Date(sub.current_period_end * 1000).toISOString(),
-    cancel_at_period_end:  sub.cancel_at_period_end,
-    trial_ends_at:         sub.trial_end
-      ? new Date(sub.trial_end * 1000).toISOString()
-      : null,
-  }).eq('id', trainerId);
-
-  break;
-}
-```
-
-**Always return HTTP 200 to Stripe**, even for duplicates. Returning 4xx causes Stripe to retry indefinitely (up to 3 days). The insert-first pattern handles deduplication at the DB level. Source: https://docs.stripe.com/webhooks
-
-**The six billing events to handle (and their idempotency guards):**
-
-| Event | DB action | Notes |
-|-------|-----------|-------|
-| `customer.subscription.created` | Write `subscription_id`, `subscription_tier`, `subscription_status: 'trialing'`, `trial_ends_at` | Fires after `create-subscription` Edge Function; Edge Function writes first, webhook confirms |
-| `customer.subscription.updated` | Sync `subscription_tier`, `subscription_status`, `subscription_interval`, `current_period_end`, `cancel_at_period_end` | Primary event for all state changes |
-| `customer.subscription.deleted` | `subscription_tier → 'free'`, `subscription_status → 'inactive'`, `subscription_id → NULL`, clear `cancel_at_period_end` | Terminal state |
-| `customer.subscription.trial_will_end` | Send notification to trainer (3 days warning); no tier change | Fires ~72h before trial_end |
-| `invoice.paid` | `subscription_status → 'active'` if currently `trialing` or `past_due` | Also fires on normal renewals |
-| `invoice.payment_failed` | `subscription_status → 'past_due'`; send failure notification | Does NOT change tier yet |
-
----
-
-## 8. Migration Strategy
-
-With 14 existing migrations, v2.1 requires exactly **2 new migration files**. Both are additive — no existing columns or constraints are modified.
-
-### Migration 15: `20260316100000_subscription_tiers.sql`
-
-```sql
--- Migration 15: Subscription Tier DB Foundation
--- Adds subscription columns to trainer_profiles and creates subscription_events
-
-BEGIN;
-
--- ============================================================
--- 1. Extend trainer_profiles with subscription fields
--- ============================================================
-
-ALTER TABLE public.trainer_profiles
-  ADD COLUMN IF NOT EXISTS stripe_customer_id     text,
-  ADD COLUMN IF NOT EXISTS subscription_tier      text NOT NULL DEFAULT 'free'
-                              CHECK (subscription_tier IN ('free', 'pro', 'elite')),
-  ADD COLUMN IF NOT EXISTS subscription_status    text NOT NULL DEFAULT 'inactive'
-                              CHECK (subscription_status IN (
-                                'inactive', 'trialing', 'active',
-                                'past_due', 'canceled', 'paused', 'incomplete'
-                              )),
-  ADD COLUMN IF NOT EXISTS subscription_id        text,
-  ADD COLUMN IF NOT EXISTS subscription_interval  text
-                              CHECK (subscription_interval IN ('month', 'year', NULL)),
-  ADD COLUMN IF NOT EXISTS trial_ends_at          timestamptz,
-  ADD COLUMN IF NOT EXISTS current_period_end     timestamptz,
-  ADD COLUMN IF NOT EXISTS cancel_at_period_end   boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS tier_overridden_by     uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS tier_overridden_at     timestamptz;
-
-CREATE UNIQUE INDEX IF NOT EXISTS trainer_profiles_stripe_customer_id_idx
-  ON public.trainer_profiles(stripe_customer_id)
-  WHERE stripe_customer_id IS NOT NULL;
-
-CREATE INDEX IF NOT EXISTS trainer_profiles_subscription_tier_idx
-  ON public.trainer_profiles(subscription_tier);
-
-CREATE INDEX IF NOT EXISTS trainer_profiles_tier_rating_idx
-  ON public.trainer_profiles(subscription_tier, rating DESC);
-
--- ============================================================
--- 2. Trigger: prevent trainer self-modification of subscription fields
--- ============================================================
-
-CREATE OR REPLACE FUNCTION public.guard_subscription_tier_write()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF auth.role() = 'service_role' THEN
-    RETURN NEW;
-  END IF;
-  IF (SELECT role FROM public.profiles WHERE id = (SELECT auth.uid())) = 'admin' THEN
-    RETURN NEW;
-  END IF;
-  IF NEW.subscription_tier     IS DISTINCT FROM OLD.subscription_tier    OR
-     NEW.subscription_status   IS DISTINCT FROM OLD.subscription_status  OR
-     NEW.subscription_id       IS DISTINCT FROM OLD.subscription_id      OR
-     NEW.stripe_customer_id    IS DISTINCT FROM OLD.stripe_customer_id   OR
-     NEW.trial_ends_at         IS DISTINCT FROM OLD.trial_ends_at        OR
-     NEW.current_period_end    IS DISTINCT FROM OLD.current_period_end   OR
-     NEW.cancel_at_period_end  IS DISTINCT FROM OLD.cancel_at_period_end THEN
-    RAISE EXCEPTION 'Subscription fields are managed by the platform only';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trainer_profiles_guard_subscription_write ON public.trainer_profiles;
-CREATE TRIGGER trainer_profiles_guard_subscription_write
-  BEFORE UPDATE ON public.trainer_profiles
-  FOR EACH ROW EXECUTE FUNCTION public.guard_subscription_tier_write();
-
--- ============================================================
--- 3. subscription_events table (audit log + idempotency)
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS public.subscription_events (
-  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  trainer_id       uuid        NOT NULL REFERENCES public.trainer_profiles(id) ON DELETE CASCADE,
-  stripe_event_id  text        NOT NULL,
-  event_type       text        NOT NULL,
-  payload          jsonb,
-  processed_at     timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT subscription_events_stripe_event_id_unique UNIQUE (stripe_event_id)
+CREATE TABLE audit_log (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_id    uuid        REFERENCES profiles(id) ON DELETE SET NULL,
+  table_name  text        NOT NULL,
+  operation   text        NOT NULL CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE')),
+  old_data    jsonb,
+  new_data    jsonb,
+  created_at  timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS subscription_events_trainer_id_idx
-  ON public.subscription_events(trainer_id, processed_at DESC);
-
-ALTER TABLE public.subscription_events ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY subscription_events_select_own
-  ON public.subscription_events FOR SELECT
-  USING (
-    (SELECT user_id FROM public.trainer_profiles WHERE id = trainer_id)
-      = (SELECT auth.uid())
+-- RLS: no user SELECT; service_role and admin only
+ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY audit_log_admin_select ON audit_log
+  FOR SELECT USING (
+    (SELECT role FROM profiles WHERE id = auth.uid()) = 'admin'
   );
-
-CREATE POLICY subscription_events_select_admin
-  ON public.subscription_events FOR SELECT
-  USING (
-    (SELECT role FROM public.profiles WHERE id = (SELECT auth.uid())) = 'admin'
-  );
-
-CREATE POLICY subscription_events_insert_service
-  ON public.subscription_events FOR INSERT
-  WITH CHECK (auth.role() = 'service_role');
-
--- ============================================================
--- 4. get_visible_slots RPC
--- ============================================================
-
-CREATE OR REPLACE FUNCTION public.get_visible_slots(p_trainer_id uuid)
-RETURNS SETOF public.availability_slots
-LANGUAGE plpgsql
-SECURITY INVOKER
-STABLE
-AS $$
-DECLARE
-  v_tier  text;
-  v_limit int;
-BEGIN
-  SELECT subscription_tier INTO v_tier
-  FROM   public.trainer_profiles
-  WHERE  id = p_trainer_id;
-
-  v_limit := CASE v_tier
-    WHEN 'elite' THEN 2147483647
-    WHEN 'pro'   THEN 10
-    ELSE              3
-  END;
-
-  RETURN QUERY
-    SELECT s.*
-    FROM   public.availability_slots s
-    WHERE  s.trainer_id = p_trainer_id
-      AND  s.is_booked  = false
-      AND  s.start_time > now()
-    ORDER BY s.start_time
-    LIMIT v_limit;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_visible_slots(uuid) TO anon;
-GRANT EXECUTE ON FUNCTION public.get_visible_slots(uuid) TO authenticated;
-
-COMMIT;
 ```
 
-### Migration 16: `20260316110000_subscription_rpcs.sql`
+### Schema Additions (ALTER TABLE)
 
 ```sql
--- Migration 16: Subscription RPCs (search ranking + admin MRR)
+-- profiles: add timezone for UX Polish (timezone display fix from CONCERNS #18)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS timezone text DEFAULT 'America/New_York';
 
-BEGIN;
+-- trainer_profiles: calendar export token (opaque URL segment, not OAuth)
+ALTER TABLE trainer_profiles
+  ADD COLUMN IF NOT EXISTS calendar_export_token text UNIQUE DEFAULT gen_random_uuid()::text;
 
--- ============================================================
--- 1. get_trainer_search (tier-boosted ranking)
--- ============================================================
+-- availability_slots: flag for calendar-blocked slots (v3.1+ Google import)
+-- Defer this column until Google Calendar import phase
+-- ALTER TABLE availability_slots ADD COLUMN IF NOT EXISTS blocked_by_calendar boolean DEFAULT false;
+```
 
-CREATE OR REPLACE FUNCTION public.get_trainer_search(
-  p_specialty text DEFAULT NULL,
-  p_location  text DEFAULT NULL,
-  p_limit     int  DEFAULT 20,
-  p_offset    int  DEFAULT 0
-)
-RETURNS TABLE (
-  id                uuid,
-  user_id           uuid,
-  full_name         text,
-  specialty         text,
-  bio               text,
-  hourly_rate       numeric,
-  location          text,
-  rating            numeric,
-  review_count      int,
-  subscription_tier text,
-  is_featured       boolean,
-  avatar_url        text,
-  search_score      numeric
-)
+### New RPC Functions
+
+```sql
+-- generate_calendar_export_url: returns the export URL for a trainer
+-- Called from TrainerSettings page
+CREATE OR REPLACE FUNCTION get_calendar_export_url(p_trainer_id uuid)
+RETURNS text
 LANGUAGE sql
-SECURITY INVOKER
+SECURITY DEFINER
 STABLE
 AS $$
-  SELECT
-    tp.id,
-    tp.user_id,
-    p.full_name,
-    tp.specialty,
-    tp.bio,
-    tp.hourly_rate,
-    tp.location,
-    tp.rating,
-    tp.review_count,
-    tp.subscription_tier,
-    tp.is_featured,
-    p.avatar_url,
-    (
-      CASE tp.subscription_tier
-        WHEN 'elite' THEN 3.0
-        WHEN 'pro'   THEN 2.0
-        ELSE              1.0
-      END
-      * (0.6 * (tp.rating / 5.0) + 0.4 * LEAST(tp.review_count::numeric / 20.0, 1.0))
-    ) AS search_score
-  FROM public.trainer_profiles tp
-  JOIN public.profiles p ON p.id = tp.user_id
-  WHERE tp.verified = true
-    AND (p_specialty IS NULL OR tp.specialty = p_specialty)
-    AND (p_location  IS NULL OR tp.location ILIKE '%' || p_location || '%')
-  ORDER BY
-    tp.is_featured DESC,
-    search_score   DESC,
-    tp.rating      DESC
-  LIMIT  p_limit
-  OFFSET p_offset;
+  SELECT 'https://' || current_setting('app.supabase_url') ||
+         '/functions/v1/calendar-export?token=' || calendar_export_token
+  FROM trainer_profiles
+  WHERE id = p_trainer_id AND user_id = auth.uid();
 $$;
-
-GRANT EXECUTE ON FUNCTION public.get_trainer_search(text, text, int, int) TO anon;
-GRANT EXECUTE ON FUNCTION public.get_trainer_search(text, text, int, int) TO authenticated;
-
--- ============================================================
--- 2. get_admin_mrr — MRR from monthly + annual subscriptions
--- ============================================================
-
-CREATE OR REPLACE FUNCTION public.get_admin_mrr()
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_role text;
-  v_result jsonb;
-BEGIN
-  -- Admin-only
-  SELECT role INTO v_role FROM public.profiles WHERE id = (SELECT auth.uid());
-  IF v_role IS DISTINCT FROM 'admin' THEN
-    RAISE EXCEPTION 'Admin access required';
-  END IF;
-
-  WITH active_subs AS (
-    -- Only count trainers with an active billing relationship
-    -- Trials are excluded (no payment yet)
-    SELECT
-      tp.subscription_tier,
-      tp.subscription_interval,
-      tp.subscription_status
-    FROM public.trainer_profiles tp
-    WHERE tp.subscription_status IN ('active', 'past_due')
-      AND tp.subscription_tier    IN ('pro', 'elite')
-      AND tp.tier_overridden_by  IS NULL   -- exclude admin-granted free overrides
-  ),
-  mrr_by_tier AS (
-    SELECT
-      subscription_tier,
-      subscription_interval,
-      COUNT(*) AS subscriber_count,
-      -- Normalize all plans to monthly equivalent
-      COUNT(*) * CASE
-        WHEN subscription_tier = 'pro'   AND subscription_interval = 'month' THEN 9.00
-        WHEN subscription_tier = 'pro'   AND subscription_interval = 'year'  THEN 86.40  / 12.0
-        WHEN subscription_tier = 'elite' AND subscription_interval = 'month' THEN 29.00
-        WHEN subscription_tier = 'elite' AND subscription_interval = 'year'  THEN 278.40 / 12.0
-        ELSE 0
-      END AS mrr_contribution
-    FROM active_subs
-    GROUP BY subscription_tier, subscription_interval
-  )
-  SELECT jsonb_build_object(
-    'mrr_total',    COALESCE(SUM(mrr_contribution), 0),
-    'arr_estimate', COALESCE(SUM(mrr_contribution) * 12, 0),
-    'breakdown',    COALESCE(
-      jsonb_agg(jsonb_build_object(
-        'tier',             subscription_tier,
-        'interval',         subscription_interval,
-        'subscriber_count', subscriber_count,
-        'mrr_contribution', mrr_contribution
-      ) ORDER BY mrr_contribution DESC),
-      '[]'::jsonb
-    ),
-    'trial_count',  (
-      SELECT COUNT(*)
-      FROM public.trainer_profiles
-      WHERE subscription_status = 'trialing'
-    ),
-    'past_due_count', (
-      SELECT COUNT(*)
-      FROM public.trainer_profiles
-      WHERE subscription_status = 'past_due'
-    )
-  ) INTO v_result
-  FROM mrr_by_tier;
-
-  RETURN v_result;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_admin_mrr() TO authenticated;
-
-COMMIT;
+-- Returns NULL if caller is not the owner — security enforced by WHERE user_id = auth.uid()
 ```
 
-**Summary of all SQL changes for v2.1:**
+### New Edge Functions
 
-| Change | Type | Migration |
-|--------|------|-----------|
-| 9 new columns on `trainer_profiles` | ALTER TABLE | 15 |
-| 2 new indexes on `trainer_profiles` | CREATE INDEX | 15 |
-| 1 UNIQUE index on `stripe_customer_id` | CREATE UNIQUE INDEX | 15 |
-| `guard_subscription_tier_write` trigger | CREATE FUNCTION + TRIGGER | 15 |
-| `subscription_events` table + 2 indexes | CREATE TABLE | 15 |
-| 3 RLS policies on `subscription_events` | CREATE POLICY | 15 |
-| `get_visible_slots` RPC | CREATE FUNCTION | 15 |
-| `get_trainer_search` RPC | CREATE FUNCTION | 16 |
-| `get_admin_mrr` RPC | CREATE FUNCTION | 16 |
+| Function | Trigger | Auth | Purpose |
+|----------|---------|------|---------|
+| `calendar-export` | HTTP GET (public, token-based) | `calendar_export_token` query param | Return RFC 5545 .ics of trainer's confirmed bookings |
+| `delete-account` | HTTP POST (authenticated) | JWT required | GDPR account deletion: anonymize bookings, delete profile, remove Storage files |
 
-No existing tables are modified destructively. All changes are additive.
+### Modified Edge Functions
+
+| Function | Change | Reason |
+|----------|--------|--------|
+| `stripe-webhook` | Add Zod validation on incoming payload fields before processing | Security hardening — currently no input validation documented |
+| `create-payment-intent` | Add idempotency key + booking ownership check | Addresses CONCERNS #1 and #4 (race condition, no auth check on ownership) |
 
 ---
 
-## 9. Trial Period Enforcement
+## Integration Points with Existing Tables
 
-### Status Values Needed
+### availability_slots
 
-| Status | Meaning | How DB gets there |
-|--------|---------|-------------------|
-| `inactive` | No subscription, free tier | Default; also set by `customer.subscription.deleted` |
-| `trialing` | Within 30-day trial, no charge yet | `create-subscription` Edge Function writes on creation; `customer.subscription.created` webhook confirms |
-| `active` | Paying subscriber in good standing | `invoice.paid` after successful charge |
-| `past_due` | Last payment failed, retrying | `invoice.payment_failed` webhook |
-| `canceled` | Trial expired without card, or trainer canceled at period end | `customer.subscription.deleted` webhook — also sets tier → 'free' |
-| `paused` | Trial ended without payment method AND `missing_payment_method: 'pause'` was configured | `customer.subscription.paused` webhook |
-| `incomplete` | Subscription created but initial payment not yet confirmed | Write from `create-subscription` if `payment_behavior: 'default_incomplete'` — cleared by `customer.subscription.updated` once payment confirmed |
+| v3.0 Feature | Integration Point | Change Type |
+|--------------|------------------|-------------|
+| iCal Export | `calendar-export` reads `bookings JOIN availability_slots` to populate .ics VEVENT entries | Read-only — no schema change |
+| Google Calendar Import (v3.1+) | Add `blocked_by_calendar boolean` column; `calendar-sync` Edge Fn sets this flag when personal event overlaps slot | Schema addition (deferred) |
+| UX Polish: timezone display | Read `start_time` with trainer's `profiles.timezone` for display conversion | No schema change; client-side conversion |
 
-### Recommended trial configuration
+### bookings
 
-Use `missing_payment_method: 'cancel'` (not `pause`) for simplicity. The canceled flow is cleaner for trainers — they clearly lose access and must re-subscribe, preventing confusion about "paused" state. Only use `pause` if you want to allow trainers to resume from the exact subscription state after adding a card.
+| v3.0 Feature | Integration Point | Change Type |
+|--------------|------------------|-------------|
+| iCal Export | bookings with status `confirmed` or `completed` become VEVENT records in .ics | Read-only |
+| Audit Log | `audit_log_mutation()` trigger fires on bookings INSERT/UPDATE | New trigger |
+| GDPR delete-account | `delete-account` Edge Fn anonymizes `notes`, sets `client_id = NULL` on completed bookings | Mutation via service_role |
 
-### Payment Failure Flow
+### profiles / trainer_profiles
 
-```
-Day 30 — trial ends, card on file:
-  Stripe charges → invoice.paid
-  webhook: subscription_status → 'active'
+| v3.0 Feature | Integration Point | Change Type |
+|--------------|------------------|-------------|
+| Avatar Upload | `profiles.avatar_url` and `trainer_profiles.avatar_url` updated after Storage upload | Existing column, new write path |
+| Timezone | `profiles.timezone` column added | New column via migration |
+| Calendar Export Token | `trainer_profiles.calendar_export_token` column added | New column via migration |
+| Zod Validation | `updateProfile()` in auth store gates on `ProfileUpdateSchema.parse()` before Supabase call | No schema change; code change |
 
-Day 30 — trial ends, no card:
-  Stripe fires customer.subscription.deleted
-  webhook: subscription_tier → 'free', subscription_status → 'inactive'
-  Trainer loses Pro/Elite features immediately
+### client_profiles (existing since 20260315120000)
 
-Renewal failure (active subscription, card declined):
-  invoice.payment_failed
-  webhook: subscription_status → 'past_due'
-  Stripe retries per Smart Retries schedule (default: day 1, 3, 5, 7)
-  All retries: invoice.payment_failed (idempotency guard prevents duplicate DB writes)
-  Max retries exceeded → customer.subscription.deleted
-  webhook: subscription_tier → 'free', subscription_status → 'inactive'
-```
-
-**Access during `past_due`:** Keep tier access active while `past_due`. Trainers should see a banner "Payment failed — update your payment method or lose access." Stripping access immediately on first failure is bad UX and loses revenue on retried payments. Revoke access only on `canceled`.
-
----
-
-## 10. Admin MRR RPC
-
-The `get_admin_mrr()` function is defined in full in section 8 (Migration 16). Key design decisions:
-
-**Annual plan normalization:** Divide annual revenue by 12 to get monthly equivalent (MRR). Do not count the full annual payment in the month it's charged — that would distort MRR.
-- Pro monthly: $9.00/month MRR per subscriber
-- Pro annual: $86.40 / 12 = $7.20/month MRR per subscriber (discounted)
-- Elite monthly: $29.00/month MRR per subscriber
-- Elite annual: $278.40 / 12 = $23.20/month MRR per subscriber (discounted)
-
-**Exclusions from MRR:**
-- `trialing` status: no payment made yet; counted separately as `trial_count`
-- `inactive` / `canceled`: no revenue
-- `tier_overridden_by IS NOT NULL`: admin-granted tiers that bypassed Stripe billing should not inflate MRR (they generate no revenue)
-- `past_due` is INCLUDED: the payment is expected to succeed on retry; this is standard MRR accounting practice
-
-**Return shape:**
-```json
-{
-  "mrr_total": 1247.60,
-  "arr_estimate": 14971.20,
-  "breakdown": [
-    { "tier": "elite", "interval": "month", "subscriber_count": 12, "mrr_contribution": 348.00 },
-    { "tier": "pro",   "interval": "month", "subscriber_count": 89, "mrr_contribution": 801.00 },
-    { "tier": "pro",   "interval": "year",  "subscriber_count": 14, "mrr_contribution":  98.60 }
-  ],
-  "trial_count": 23,
-  "past_due_count": 4
-}
-```
-
----
-
-## Build Order (Dependency-Driven)
-
-| Step | Component | Type | Depends On |
-|------|-----------|------|-----------|
-| 1 | Create Stripe Products + Prices in Dashboard | Stripe config | Nothing |
-| 2 | Add price IDs as Supabase secrets | Config | Step 1 |
-| 3 | Migration 15: `trainer_profiles` columns + `subscription_events` + `get_visible_slots` | DB | Nothing — additive |
-| 4 | Migration 16: `get_trainer_search` + `get_admin_mrr` RPCs | DB | Step 3 |
-| 5 | `create-subscription` Edge Function | Edge Function | Steps 2, 3 |
-| 6 | Register billing webhook events in Stripe Dashboard | Stripe config | Step 5 |
-| 7 | Extend `stripe-webhook` with 6 billing event handlers | Edge Function | Steps 3, 6 |
-| 8 | `manage-subscription` Edge Function (cancel, billing portal) | Edge Function | Steps 2, 3 |
-| 9 | `useSubscriptionTier` hook + `SubscriptionGate` component | Frontend | Steps 3, 5 |
-| 10 | Subscription UI: plan picker, trial CTA, billing portal link | Frontend | Steps 5, 8, 9 |
-| 11 | Feature gate enforcement: slot gating, search ranking, analytics guard | Frontend + DB | Steps 4, 9 |
-| 12 | Admin UI: tier badge, manual override, MRR widget | Frontend | Step 4 |
-
----
-
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Storing Tier Only in Stripe
-
-**What goes wrong:** Skip `subscription_tier` column, query Stripe API to check tier on each request.
-**Consequences:** 100–500ms latency on every gated page load; Stripe outage blocks feature access; RLS cannot reference Stripe state.
-**Prevention:** Store tier in DB. DB is the read path. Stripe is the write/billing path. Webhook keeps them in sync.
-
-### Anti-Pattern 2: Using `acct_xxx` as Billing Customer
-
-**What goes wrong:** Pass `customer: acct_xxx` when creating a Subscription.
-**Consequences:** Stripe rejects or routes to the wrong account; platform cannot bill the trainer.
-**Prevention:** Always create a separate `cus_xxx` Customer on the platform account. Store both `stripe_account_id` (existing) and `stripe_customer_id` (new) on `trainer_profiles`.
-
-### Anti-Pattern 3: Skipping Idempotency
-
-**What goes wrong:** Process webhook events without duplicate check. Stripe retries on timeout or server errors.
-**Consequences:** Double email sends, double tier changes, double audit log entries.
-**Prevention:** Insert into `subscription_events` first. PostgreSQL `23505` unique violation = already processed. Exit cleanly.
-
-### Anti-Pattern 4: Client-Side-Only Feature Gates
-
-**What goes wrong:** Check tier in React component only.
-**Consequences:** Any user can observe and bypass the JS check in DevTools. A compromised JWT with a manipulated profile query could expose unlimited slots.
-**Prevention:** `get_visible_slots` RPC enforces the limit at DB level. `get_trainer_analytics` checks tier inside the function. Client gates are UX, not security.
-
-### Anti-Pattern 5: Revoking Access on First Payment Failure
-
-**What goes wrong:** Drop tier to 'free' immediately when `invoice.payment_failed` fires.
-**Consequences:** Stripe retries payments 3–4 times over a week. Revoking access immediately for a card that was just declined due to a transient issue loses real revenue and creates bad UX.
-**Prevention:** `past_due` status keeps tier active. Only downgrade to 'free' on `customer.subscription.deleted` (all retries exhausted).
-
-### Anti-Pattern 6: Not Backfilling `subscription_tier` to 'free'
-
-**What goes wrong:** Migration adds `subscription_tier` with DEFAULT 'free', but existing 14 migrations have trainer_profiles rows without it.
-**Consequences:** None — `DEFAULT 'free'` in the column definition handles existing rows. PostgreSQL applies the default to all existing NULLs when the column has `NOT NULL DEFAULT`. Verify this works in dev before deploying.
+| v3.0 Feature | Integration Point | Change Type |
+|--------------|------------------|-------------|
+| Fitness Intake UI | Expose existing `client_profiles` table via `useClientProfile` hook and `FitnessIntakeForm` component | No schema change; new frontend only |
+| Avatar | Add `avatar_url` column to `client_profiles` if not present | Schema addition |
 
 ---
 
 ## Scaling Considerations
 
-| Scale | Concern | Approach |
-|-------|---------|----------|
-| 0–500 trainers | Webhook throughput | Single `stripe-webhook` function handles all events; within Supabase Edge Function limits |
-| 500–10k trainers | Search performance | `(subscription_tier, rating DESC)` index serves `get_trainer_search`; pg stats will drive planner |
-| 10k+ trainers | MRR aggregation | `get_admin_mrr` scans all `trainer_profiles`; consider materialized view refreshed hourly |
-| 10k+ trainers | Webhook event volume | Separate Billing webhook function from Connect webhook function; current combined function becomes a hot path |
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 0-1k trainers | iCal export via Edge Function, no caching layer needed. pg_cron calendar poll is fine. |
+| 1k-10k trainers | Add `Cache-Control: max-age=300` on calendar-export response (already in pattern above). Supabase CDN handles it. Avatar Storage bucket: fine, S3-backed. |
+| 10k+ trainers | Google Calendar import polling at 15-min intervals hits quota. Switch to push notification channels (7-day renewal) or move to dedicated sync worker. Calendar export CDN caching becomes essential. |
+
+### Scaling Priorities
+
+1. **First bottleneck:** Google Calendar API quota if sync is implemented for many trainers. Mitigate by per-trainer polling rate limits and exponential backoff on errors.
+2. **Second bottleneck:** audit_log table grows unbounded. Add `created_at` index and a pg_cron job to archive rows older than 90 days to a cold table or delete non-payment rows.
+
+---
+
+## Build Order (Security-First)
+
+The dependency chain dictates this specific order:
+
+```
+Phase A: Security Hardening (no dependencies — improves existing code)
+    ↓
+    Zod validators.ts (lib only, no DB)
+    Profile input validation (modifies auth store + hooks)
+    Rate limiting on existing Edge Functions (Upstash Redis, modify existing functions)
+    audit_log table + triggers (new migration)
+    Notifications self-insert RLS cleanup (modifies existing migration)
+
+Phase B: Trainee Profile Enhancements (depends on: Security hardening from Phase A)
+    ↓
+    avatars Storage bucket + RLS policies
+    AvatarUpload component + useAvatarUpload hook
+    FitnessIntakeForm component + useClientProfile hook
+    client_profiles avatar_url column (migration)
+    profiles.timezone column (migration)
+    Wire into existing onboarding flow (ClientOnboarding.tsx — already exists untracked)
+
+Phase C: Calendar Sync — iCal Export (depends on: Phase B timezone column)
+    ↓
+    trainer_profiles.calendar_export_token column (migration)
+    calendar-export Edge Function
+    ExportBookingsButton + CalendarSyncStatus components
+    TrainerSettings page (or extend TrainerDashboard)
+    get_calendar_export_url RPC
+
+Phase D: UX Polish (depends on: Phase B avatar, Phase C calendar)
+    ↓
+    Timezone-aware date display (uses profiles.timezone from Phase B)
+    Loading states on cancellation (MyBookings.tsx)
+    Pagination on trainer search (useTrainers hook)
+    Mock data DEV-only guard (SearchSection.tsx)
+    Input length limits on search (useTrainers.ts)
+```
+
+**Why Security first:** Phase A's Zod validators are referenced by Phase B's avatar upload hook and Phase C's calendar-export Edge Function. Building them first means Phase B and C inherit validation automatically rather than retrofitting it.
+
+**Why iCal before Google Calendar OAuth:** iCal export (Phase C) requires zero OAuth, zero Vault secrets, zero channel renewal. It delivers 80% of the calendar value (trainers see bookings in their calendar) with 20% of the complexity. Google Calendar OAuth import (bidirectional) should be a separate v3.1 milestone after iCal proves the use case.
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Google Calendar OAuth Before iCal Export
+
+**What people do:** Jump straight to Google Calendar OAuth integration for "bidirectional sync" because it sounds more complete.
+
+**Why it's wrong:** Requires Google OAuth app verification (2-4 week review), Vault refresh token storage, pg_cron-driven 7-day channel renewal, and rate limit management — all before a single trainer has used calendar sync. The primary user need is "see my bookings in my calendar," which iCal export solves with one Edge Function and zero credential management.
+
+**Do this instead:** Ship iCal export first. Measure adoption. If trainers report double-bookings from personal appointments, that's the signal to build Google Calendar import.
+
+---
+
+### Anti-Pattern 2: Public Calendar Export URL Without Token
+
+**What people do:** Expose `/functions/v1/calendar-export?trainer_id={uuid}` with no other authentication, reasoning that trainer UUIDs are "not guessable."
+
+**Why it's wrong:** UUIDs are not secret. Trainer IDs are present in the URL when a client books a session (`/book/:slotId` reveals trainer context), in `trainer_profiles` public table rows, and potentially in browser history. Anyone who obtains a trainer UUID can subscribe to that trainer's booking calendar, exposing client names.
+
+**Do this instead:** Use `calendar_export_token` — a separate random token stored on `trainer_profiles`, not derivable from the trainer UUID. The trainer can reset it (generate a new token) if they suspect exposure, invalidating existing subscriptions without changing their account.
+
+---
+
+### Anti-Pattern 3: Storing OAuth Refresh Tokens in a Plain DB Column
+
+**What people do:** Add a `google_refresh_token text` column to `trainer_profiles`.
+
+**Why it's wrong:** PostgreSQL stores text columns in plaintext on disk. Any database backup, snapshot, or leaked pg_dump exposes all refresh tokens. A single compromised backup gives an attacker access to every trainer's Google Calendar.
+
+**Do this instead:** Use Supabase Vault. Store the UUID returned by `vault.create_secret()` in the `calendar_connections` table. Decrypt via `vault.decrypted_secrets` view only inside Edge Functions running as service_role. Revoke access to the view from the `authenticated` role.
+
+---
+
+### Anti-Pattern 4: Avatar URL Stored as Unsplash or External URL
+
+**What people do:** Accept any URL string as `avatar_url` from user input.
+
+**Why it's wrong:** External URLs break when the source changes, create privacy leaks (Unsplash sees a request for every avatar render in production), and allow users to set `avatar_url` to tracking pixels, 10GB video files, or NSFW content hosted externally — the app has no control over what is displayed.
+
+**Do this instead:** Accept only Storage URLs from the `avatars` bucket. Validate in ProfileUpdateSchema that `avatar_url` matches `^https://{your-supabase-project}.supabase.co/storage/v1/object/public/avatars/` if set. The `AvatarUpload` component should be the only path for updating `avatar_url` — not a free text field.
+
+---
+
+### Anti-Pattern 5: Audit Log Written by the Client
+
+**What people do:** Call a mutation from the browser to insert into `audit_log` whenever a sensitive action occurs.
+
+**Why it's wrong:** The client controls the audit. A user could emit misleading entries, omit entries when convenient, or forge entries for other users.
+
+**Do this instead:** Audit log entries are written exclusively by a `SECURITY DEFINER` trigger on the relevant tables. The trigger fires on the database server regardless of what the client does. Users have no `INSERT` permission on `audit_log`. The RLS blocks all reads except admin role and service_role.
+
+---
+
+## Integration Points
+
+### External Services
+
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Google Calendar v3 REST API | HTTP fetch from Deno Edge Function using per-trainer OAuth access token | Access token derived from refresh token stored in Vault. Refresh token obtained once via `signInWithOAuth` with `access_type=offline` param. Requires `calendar.readonly` scope for import; no scope needed for export (app reads its own DB). |
+| Supabase Storage | Direct JS SDK call: `supabase.storage.from('avatars').upload()` from browser | Public bucket — no signed URLs for reads. RLS on `storage.objects` enforces write ownership via `foldername` check. |
+| Supabase Vault | SQL: `vault.create_secret()` on connect, `vault.decrypted_secrets` view on sync | Only accessible from Edge Functions (service_role) and SECURITY DEFINER functions. Never accessible via anon or authenticated role. |
+| Upstash Redis | HTTP REST API from Edge Function — no persistent connection needed | Required only if rate limiting is implemented. Serverless-compatible (HTTP). Supabase's own docs recommend this for Edge Function rate limiting. |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| React hooks ↔ Supabase Storage | `@supabase/supabase-js` StorageClient methods | Same SDK, same auth session. No new auth plumbing needed. |
+| `calendar-export` Edge Fn ↔ `bookings` table | Supabase service_role client query | Uses service_role to bypass RLS — needed because the function is called without user auth (calendar app HTTP request has no JWT). The `calendar_export_token` provides caller identity. |
+| `audit_log` trigger ↔ `profiles` table | PostgreSQL AFTER trigger | `audit_log_mutation()` is a `SECURITY DEFINER` function — fires as DB owner regardless of RLS. Inserts rows that `authenticated` role cannot read. |
+| `useClientProfile` hook ↔ `client_profiles` | `@supabase/supabase-js` authenticated query | Existing RLS: `auth.uid() = user_id` — no changes needed. Trainers viewing client intake data flow through the existing "Trainers can view client profiles for their bookings" policy. |
 
 ---
 
 ## Sources
 
-- [Stripe: Charge SaaS fees to connected accounts](https://docs.stripe.com/connect/integrate-billing-connect) — HIGH confidence. Customer vs. Connect Account distinction; must create separate `cus_xxx`.
-- [Stripe: Subscription lifecycle webhooks](https://docs.stripe.com/billing/subscriptions/webhooks) — HIGH confidence. Event names, timing, trial_will_end timing.
-- [Stripe: How subscriptions work](https://docs.stripe.com/billing/subscriptions/overview) — HIGH confidence. All status values: trialing, active, past_due, incomplete, incomplete_expired, unpaid, canceled, paused.
-- [Stripe: Trial periods](https://docs.stripe.com/billing/subscriptions/trials) — HIGH confidence. `trial_settings.end_behavior.missing_payment_method: 'cancel'` vs `'pause'`.
-- [Stripe: Handling webhooks](https://docs.stripe.com/webhooks) — HIGH confidence. Idempotency guidance; return 200 for duplicates.
-- [Supabase: Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security) — HIGH confidence. `(SELECT auth.uid())` initPlan optimization; 95% speedup claim.
-- [Supabase: RLS Performance Best Practices](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — HIGH confidence. Subquery wrapping pattern for policy performance.
-- Existing codebase (migration files 1–14) — HIGH confidence. Admin role pattern, service-role policy pattern, SECURITY DEFINER function pattern, `initiated_by` constraint pattern.
+- [Supabase Storage Buckets Fundamentals](https://supabase.com/docs/guides/storage/buckets/fundamentals) — Public vs private buckets, RLS on storage.objects, signed URLs
+- [Supabase Storage Access Control](https://supabase.com/docs/guides/storage/security/access-control) — storage.objects RLS policy patterns
+- [Supabase Vault Docs](https://supabase.com/docs/guides/database/vault) — vault.create_secret(), vault.decrypted_secrets view, per-user secret pattern
+- [Supabase Rate Limiting Edge Functions](https://supabase.com/docs/guides/functions/examples/rate-limiting) — Upstash Redis pattern
+- [Google Calendar API Sync Guide](https://developers.google.com/workspace/calendar/api/guides/sync) — Differential sync, push notification channels
+- [Google Calendar Push Notifications](https://developers.google.com/workspace/calendar/api/guides/push) — 7-day expiration, channel renewal requirements
+- [CalendHub Bidirectional Sync Guide 2025](https://calendhub.com/blog/implement-bidirectional-calendar-sync-2025/) — Conflict loop prevention, rate limit tradeoffs
+- [ABC Trainerize Calendar Sync](https://help.trainerize.com/hc/en-us/articles/360052750491) — Industry precedent: fitness apps sync appointments one-way first, then add bidirectional
+- Existing codebase: `20260315120000_onboarding.sql` — `client_profiles` table already exists with fitness intake fields
+- Existing codebase: `20260316100000_subscription_foundation.sql` — `guard_subscription_tier_write` trigger pattern reusable for audit log
+- Existing codebase: `.planning/codebase/CONCERNS.md` — Security gaps requiring v3.0 hardening
 
 ---
 
-*Architecture research for: FitRush v2.1 — Subscription Tiers (Supabase + Stripe Connect + Stripe Billing)*
-*Researched: 2026-03-15*
+*Architecture research for: FitRush v3.0 — Calendar Sync, Trainee Profiles, Security Hardening, UX Polish*
+*Researched: 2026-03-17*
