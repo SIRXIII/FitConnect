@@ -17,8 +17,8 @@
 
 ### Calendar & Scheduling (CAL)
 
-- [ ] **CAL-01**: Trainer can export their availability schedule as an `.ics` file (RFC 5545) downloadable from Trainer Settings
-- [ ] **CAL-02**: Trainer can subscribe to a live iCal feed URL that auto-updates when slots or bookings change (calendar apps poll this URL)
+- [x] **CAL-01**: Trainer can export their availability schedule as an `.ics` file (RFC 5545) downloadable from Trainer Settings
+- [x] **CAL-02**: Trainer can subscribe to a live iCal feed URL that auto-updates when slots or bookings change (calendar apps poll this URL)
 - [x] **CAL-03**: iCal feed uses an opaque `calendar_export_token` (not trainer UUID) to prevent ID enumeration; token is resettable from Trainer Settings
 - [x] **CAL-04**: Trainer can configure buffer time between bookings (15, 30, 45, or 60 minutes) in Trainer Settings
 - [x] **CAL-05**: Buffer time is enforced server-side — booking attempts that violate buffer time are rejected with a clear error message
