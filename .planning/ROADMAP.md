@@ -135,7 +135,11 @@ Plans:
   4. Client can log health conditions, injuries, allergies, or medical notes in a free-text field
   5. Client can set workout intensity preference via a visual toggle or slider (light, moderate, intense)
   6. Booked trainers can view the client's profile data (stats, conditions, preferences) before a session
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 23.1-01-PLAN.md — DB migration, Zod schema extension, shared profileConstants
+- [ ] 23.1-02-PLAN.md — ClientPassport refactor: progress ring, health checklist, intensity slider, goal ranker, auto-save
+- [ ] 23.1-03-PLAN.md — ClientSummaryCard for trainer view + BookingRequestCard integration
 
 ### Phase 24: Session Logging
 **Goal**: Trainers can write post-session notes and structured workout data after a session, and clients can view their personal training history and progress over time
@@ -218,7 +222,8 @@ Plans:
 | 20. UX Polish | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 21. Email Capture + Platform Controls | v4.0 | 2/2 | ✅ | 2026-03-18 |
 | 22. Availability Toggle Foundation | v4.0 | 3/3 | ✅ | 2026-03-19 |
-| 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | - |
+| 23. Map View + Trainer Locations | v4.0 | 4/4 | ✅ | 2026-03-19 |
+| 23.1. Client Profile Enhancement | v4.0 | 0/3 | Not started | - |
 | 24. Session Logging | v4.0 | 0/TBD | Not started | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |
 | 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
@@ -226,4 +231,4 @@ Plans:
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 23 plans created*
+*Last updated: 2026-03-19 — Phase 23.1 plans created*
