@@ -10,6 +10,7 @@ import ClientSummaryCard from '@/components/client/ClientSummaryCard';
 import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { mapError } from '@/lib/errorMessages';
+import SessionLogPanel from '@/components/session/SessionLogPanel';
 
 type BookingStatus = Tables<'bookings'>['status'];
 
@@ -61,6 +62,7 @@ const TrainerBookings: React.FC = () => {
   const [fetchError, setFetchError] = useState<unknown>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'action' | 'history'>('action');
+  const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
 
   const fetchBookings = async () => {
     if (!trainerProfile) return;
@@ -260,6 +262,17 @@ const TrainerBookings: React.FC = () => {
             }
           ).catch((err) => console.error('[TrainerBookings] referral reward error:', err));
         }
+
+        toast("Don't forget to log session notes.", {
+          duration: 6000,
+          action: {
+            label: 'Go to notes',
+            onClick: () => {
+              setExpandedLogs((prev) => new Set(prev).add(bookingId));
+              document.getElementById(`booking-${bookingId}`)?.scrollIntoView({ behavior: 'smooth' });
+            },
+          },
+        });
       }
     }
 
@@ -333,7 +346,7 @@ const TrainerBookings: React.FC = () => {
               const canManageConfirmed = booking.status === 'confirmed';
 
               return (
-                <div key={booking.id} className="border border-ink/10 p-6 space-y-4">
+                <div key={booking.id} id={`booking-${booking.id}`} className="border border-ink/10 p-6 space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
                       {booking.profiles?.avatar_url ? (
@@ -427,6 +440,24 @@ const TrainerBookings: React.FC = () => {
                       <p>{booking.cancellation_reason}</p>
                     </div>
                   ) : null}
+
+                  {booking.status === 'completed' && (
+                    <SessionLogPanel
+                      bookingId={booking.id}
+                      trainerId={trainerProfile!.id}
+                      clientId={booking.profiles?.id || ''}
+                      slotEndTime={booking.availability_slots?.end_time || null}
+                      expanded={expandedLogs.has(booking.id)}
+                      onToggle={() =>
+                        setExpandedLogs((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(booking.id)) next.delete(booking.id);
+                          else next.add(booking.id);
+                          return next;
+                        })
+                      }
+                    />
+                  )}
 
                   {(canManagePending || canManageConfirmed) && (
                     <div className="flex flex-wrap gap-3 pt-2">
