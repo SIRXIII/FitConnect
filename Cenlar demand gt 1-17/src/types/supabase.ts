@@ -87,6 +87,10 @@ export type Database = {
           tier_overridden_at: string | null;
           calendar_export_token: string | null;
           buffer_minutes: number;
+          availability_status: 'offline' | 'live';
+          booking_mode: 'instant' | 'request';
+          sleep_timer_expires_at: string | null;
+          availability_session_started_at: string | null;
         };
         Insert: {
           id?: string;
@@ -120,6 +124,10 @@ export type Database = {
           tier_overridden_at?: string | null;
           calendar_export_token?: string | null;
           buffer_minutes?: number;
+          availability_status?: 'offline' | 'live';
+          booking_mode?: 'instant' | 'request';
+          sleep_timer_expires_at?: string | null;
+          availability_session_started_at?: string | null;
         };
         Update: {
           id?: string;
@@ -153,6 +161,10 @@ export type Database = {
           tier_overridden_at?: string | null;
           calendar_export_token?: string | null;
           buffer_minutes?: number;
+          availability_status?: 'offline' | 'live';
+          booking_mode?: 'instant' | 'request';
+          sleep_timer_expires_at?: string | null;
+          availability_session_started_at?: string | null;
         };
         Relationships: [];
       };
@@ -259,6 +271,45 @@ export type Database = {
           notes?: string | null;
           cancellation_reason?: string | null;
           cancelled_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_requests: {
+        Row: {
+          id: string;
+          trainer_id: string;
+          client_id: string;
+          slot_id: string;
+          status: 'pending' | 'accepted' | 'declined';
+          decline_reason: string | null;
+          declined_at: string | null;
+          accepted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          trainer_id: string;
+          client_id: string;
+          slot_id: string;
+          status?: 'pending' | 'accepted' | 'declined';
+          decline_reason?: string | null;
+          declined_at?: string | null;
+          accepted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          trainer_id?: string;
+          client_id?: string;
+          slot_id?: string;
+          status?: 'pending' | 'accepted' | 'declined';
+          decline_reason?: string | null;
+          declined_at?: string | null;
+          accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
