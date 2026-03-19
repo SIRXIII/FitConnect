@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 27-01-PLAN.md
-last_updated: "2026-03-19T20:48:10.256Z"
+stopped_at: Completed 27-02-PLAN.md
+last_updated: "2026-03-19T20:53:32.723Z"
 last_activity: "2026-03-19 -- AI Discount Analytics UI: OptimizationSection with score gauge, idle heatmap, discount cards"
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 21
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # Project State -- FitRush
@@ -96,6 +96,8 @@ Recent decisions relevant to v4.0:
 - [Phase 26-ai-discount-analytics]: Visible hours 6-22 only for fitness heatmap context
 - [Phase 27]: Use sonner (not react-hot-toast) for toast.error in useLookingNow — project-wide toast library
 - [Phase 27]: vi.hoisted() + waitFor pattern for async hook testing with React 19 + testing-library v16 + Vitest 4 (act() hangs in this environment)
+- [Phase 27]: NotificationPreferencesSection wrapped in own APIProvider (no ancestor on ClientDashboard) - follows Pitfall 6 pattern
+- [Phase 27]: LookingNowToggle renders null when geolocation unavailable - graceful degradation
 
 ## Blockers / Concerns
 
@@ -118,6 +120,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:48:10.254Z
-Stopped at: Completed 27-01-PLAN.md
+Last session: 2026-03-19T20:53:32.721Z
+Stopped at: Completed 27-02-PLAN.md
 Resume file: None

@@ -72,7 +72,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 - [x] **Phase 24: Session Logging** — Post-session notes, structured workout logs, client progress timeline (completed 2026-03-19)
 - [x] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations (completed 2026-03-19)
 - [x] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score (completed 2026-03-19)
-- [ ] **Phase 27: Location-Based Notifications** — Nearby trainer alerts, notification preferences, frequency caps
+- [x] **Phase 27: Location-Based Notifications** — Nearby trainer alerts, notification preferences, frequency caps (completed 2026-03-19)
 - [ ] **Phase 28: Google Calendar Bidirectional Sync** — OAuth connect flow, booking push to GCal, external event blocking
 
 ## Phase Details
@@ -193,7 +193,7 @@ Plans:
   3. Client receives an in-app alert when a nearby trainer goes online within their configured area
   4. Client can turn location-based notifications on or off from their notification settings at any time
   5. A single trainer going online does not trigger more than one alert to the same client within 4 hours, and no client receives more than 3 location alerts per day
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 27-01-PLAN.md — DB migration (preferences table, notify_nearby_clients trigger, RLS), hooks (useNotificationPreferences, useLookingNow), TypeScript types
 - [ ] 27-02-PLAN.md — NotificationPreferencesSection UI, LookingNowToggle, ClientDashboard Alerts tab, SearchSection + Navbar wiring
@@ -242,7 +242,7 @@ Plans:
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
 | 26. AI Discount Analytics | 2/2 | Complete    | 2026-03-19 | - |
-| 27. Location-Based Notifications | 1/2 | In Progress|  | - |
+| 27. Location-Based Notifications | 2/2 | Complete   | 2026-03-19 | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
