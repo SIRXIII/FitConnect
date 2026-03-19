@@ -52,14 +52,15 @@ Exceptions: Exercise row inputs (sets/reps) use 8px internal gap between the two
 | Body | 14px | 400 (regular) | 1.5 |
 | Label | 12px | 500 (medium) | 1.4 |
 | Heading | 20px | 400 (regular, serif Cormorant Garamond) | 1.2 |
-| Display | 28px | 300 (light, serif italic Cormorant Garamond) | 1.2 |
+| Display | 28px | 400 (regular, serif italic Cormorant Garamond) | 1.2 |
 
 Notes:
 - Section headings ("Session Notes", "Workout Log", tab labels) use Label at 12px with `uppercase tracking-[0.2em]` — this is the established app pattern (`text-xs uppercase tracking-[0.2em] text-ink/40`).
 - Progress timeline dates use Label at 12px, weight 400, `text-ink/40`.
 - Exercise names in the workout log use Body at 14px, weight 400.
 - Numeric inputs (sets, reps) use Body at 14px, weight 500, center-aligned.
-- Chart axis labels use 11px / weight 400 — Recharts default, do not override.
+- Chart axis labels use `text-xs` (12px) / weight 400 via `tick={{ fontSize: 12, fill: 'rgba(26,26,26,0.4)' }}` — aligned to Label size.
+- Locked notes caption uses `text-xs` (12px) / `text-ink/30` — same size as Label, no separate 11px size.
 
 ---
 
@@ -92,17 +93,17 @@ Source: `src/index.css` token definitions + `AnalyticsTab.tsx` chart color patte
 - Textarea: full-width, `border border-ink/10 bg-paper p-4 text-sm resize-none min-h-[96px]` — no outline ring, uses app's minimal border style
 - Auto-save trigger: `onBlur` — same as `ClientPassport.tsx` `saveField()` pattern
 - Save feedback: Sonner toast, duration 2000ms, message "Notes saved." — no icon needed
-- Locked state (>24hrs post-session): textarea replaced with `<p>` in `text-ink/60 text-sm`, lock icon (lucide `Lock` at 12px, `text-ink/30`) and caption "Editing closed 24 hours after the session" in 11px `text-ink/30`
+- Locked state (>24hrs post-session): textarea replaced with `<p>` in `text-ink/60 text-sm`, lock icon (lucide `Lock` at `text-xs`, `text-ink/30`) and caption "Editing closed 24 hours after the session." in `text-xs text-ink/30`
 - Expand button label (pre-notes): "Add session notes"
 - Expand button label (post-notes): "Edit session notes" (within 24hr window) or "View session notes" (locked)
 
 ### WorkoutLogSection (new — below SessionNotesSection on completed booking cards)
 
 - Heading: `text-xs uppercase tracking-[0.2em] text-ink/40` — "Workout Log"
-- Exercise row layout: `flex gap-2 items-center` — exercise name input (flex-1) + sets numeric input (w-16) + "×" separator text (text-ink/30) + reps numeric input (w-16) + remove button (lucide `X` at 12px, `text-ink/30 hover:text-red-500`)
+- Exercise row layout: `flex gap-2 items-center` — exercise name input (flex-1) + sets numeric input (w-16) + "×" separator text (text-ink/30) + reps numeric input (w-16) + remove button (lucide `X` at `text-xs`, `text-ink/30 hover:text-red-500`, `aria-label="Remove exercise"`)
 - Exercise name input: `border-b border-ink/10 bg-transparent px-0 py-1 text-sm focus:outline-none focus:border-ink/30` — underline-only style, no box
 - Sets/reps inputs: `border border-ink/10 text-center w-16 h-9 text-sm bg-paper` — boxed, compact
-- "Add exercise" button: `flex items-center gap-1 text-xs text-ink/40 hover:text-ink/70 mt-2` with lucide `Plus` at 12px — subtle text button, no border
+- "Add exercise" button: `flex items-center gap-1 text-xs text-ink/40 hover:text-ink/70 mt-2` with lucide `Plus` at `text-xs` — subtle text button, no border
 - Save trigger: explicit "Save workout" button (`border border-accent text-accent text-xs uppercase tracking-[0.2em] px-4 py-2 hover:bg-accent/5`) — workout data saved on button press, not on blur
 - Save feedback: Sonner toast, duration 2000ms, message "Workout saved."
 - Empty state (no exercises yet): single line "No exercises logged yet." in `text-xs text-ink/30 italic`
@@ -128,7 +129,7 @@ Source: `src/index.css` token definitions + `AnalyticsTab.tsx` chart color patte
 - Recharts `LineChart` inside `ResponsiveContainer` with `height={200}`
 - Two lines: sessions/week (accent `#C5A059`, strokeWidth 1.5) + sets/week (`rgba(45,45,45,0.4)`, strokeWidth 1.5)
 - No `CartesianGrid` — clean minimal look per CONTEXT.md "no grid clutter"
-- `XAxis`: week labels ("Mar 10", "Mar 17", etc.), `tick={{ fontSize: 11, fill: 'rgba(26,26,26,0.4)' }}`
+- `XAxis`: week labels ("Mar 10", "Mar 17", etc.), `tick={{ fontSize: 12, fill: 'rgba(26,26,26,0.4)' }}`
 - `YAxis`: hidden (`hide={true}`) — values surfaced only in tooltip
 - `Tooltip`: custom minimal style — `bg-paper border border-ink/10 text-xs p-2`
 - Legend: simple two-item text legend below chart, `text-xs text-ink/40`, colored dot + label
