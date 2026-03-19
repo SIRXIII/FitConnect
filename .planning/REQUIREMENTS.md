@@ -32,11 +32,11 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 ### Location Notifications (NOTIF)
 
-- [ ] **NOTIF-01**: Client can set preferred area/neighborhood for trainer availability alerts
-- [ ] **NOTIF-02**: Client can opt into live GPS mode when activating "looking now" toggle
+- [x] **NOTIF-01**: Client can set preferred area/neighborhood for trainer availability alerts
+- [x] **NOTIF-02**: Client can opt into live GPS mode when activating "looking now" toggle
 - [ ] **NOTIF-03**: Client receives in-app alert when a nearby trainer goes live at a great rate
-- [ ] **NOTIF-04**: Client can toggle location-based notifications on/off
-- [ ] **NOTIF-05**: Notifications are frequency-capped (max 3/day per client, 4hr cooldown per trainer)
+- [x] **NOTIF-04**: Client can toggle location-based notifications on/off
+- [x] **NOTIF-05**: Notifications are frequency-capped (max 3/day per client, 4hr cooldown per trainer)
 - [ ] **NOTIF-06**: Client can configure notification preferences before alerts begin
 
 ### AI Matching (AIMATCH)
@@ -148,11 +148,11 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | AIANALYTICS-01 | Phase 26 | Complete |
 | AIANALYTICS-02 | Phase 26 | Complete |
 | AIANALYTICS-03 | Phase 26 | Complete |
-| NOTIF-01 | Phase 27 | Pending |
-| NOTIF-02 | Phase 27 | Pending |
+| NOTIF-01 | Phase 27 | Complete |
+| NOTIF-02 | Phase 27 | Complete |
 | NOTIF-03 | Phase 27 | Pending |
-| NOTIF-04 | Phase 27 | Pending |
-| NOTIF-05 | Phase 27 | Pending |
+| NOTIF-04 | Phase 27 | Complete |
+| NOTIF-05 | Phase 27 | Complete |
 | NOTIF-06 | Phase 27 | Pending |
 | CALSYNC-01 | Phase 28 | Pending |
 | CALSYNC-02 | Phase 28 | Pending |

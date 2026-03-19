@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-03-19T20:21:01.577Z"
+stopped_at: Completed 27-01-PLAN.md
+last_updated: "2026-03-19T20:48:10.256Z"
 last_activity: "2026-03-19 -- AI Discount Analytics UI: OptimizationSection with score gauge, idle heatmap, discount cards"
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 21
+  completed_plans: 20
 ---
 
 # Project State -- FitRush
@@ -94,6 +94,8 @@ Recent decisions relevant to v4.0:
 - [Phase 26-ai-discount-analytics]: Status filter placed in ON clause of LEFT JOIN for get_trainer_idle_heatmap RPC to preserve LEFT JOIN semantics
 - [Phase 26-ai-discount-analytics]: buildIdleCellMap uses 'day-hour' string key for O(1) heatmap cell lookup in Plan 02 UI
 - [Phase 26-ai-discount-analytics]: Visible hours 6-22 only for fitness heatmap context
+- [Phase 27]: Use sonner (not react-hot-toast) for toast.error in useLookingNow — project-wide toast library
+- [Phase 27]: vi.hoisted() + waitFor pattern for async hook testing with React 19 + testing-library v16 + Vitest 4 (act() hangs in this environment)
 
 ## Blockers / Concerns
 
@@ -116,6 +118,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:20:16.637Z
-Stopped at: Completed 26-02-PLAN.md
+Last session: 2026-03-19T20:48:10.254Z
+Stopped at: Completed 27-01-PLAN.md
 Resume file: None

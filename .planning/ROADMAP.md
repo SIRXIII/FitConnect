@@ -193,7 +193,7 @@ Plans:
   3. Client receives an in-app alert when a nearby trainer goes online within their configured area
   4. Client can turn location-based notifications on or off from their notification settings at any time
   5. A single trainer going online does not trigger more than one alert to the same client within 4 hours, and no client receives more than 3 location alerts per day
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 27-01-PLAN.md — DB migration (preferences table, notify_nearby_clients trigger, RLS), hooks (useNotificationPreferences, useLookingNow), TypeScript types
 - [ ] 27-02-PLAN.md — NotificationPreferencesSection UI, LookingNowToggle, ClientDashboard Alerts tab, SearchSection + Navbar wiring
@@ -242,7 +242,7 @@ Plans:
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
 | 26. AI Discount Analytics | 2/2 | Complete    | 2026-03-19 | - |
-| 27. Location-Based Notifications | v4.0 | 0/2 | Not started | - |
+| 27. Location-Based Notifications | 1/2 | In Progress|  | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
