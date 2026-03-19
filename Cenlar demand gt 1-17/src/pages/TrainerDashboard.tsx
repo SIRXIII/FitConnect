@@ -14,6 +14,7 @@ import LockedFeatureBanner from '@/components/shared/LockedFeatureBanner';
 import SubscriptionTab from '@/components/subscription/SubscriptionTab';
 import CalendarExportCard from '@/components/calendar/CalendarExportCard';
 import BufferTimeSelector from '@/components/calendar/BufferTimeSelector';
+import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -173,7 +174,8 @@ const TrainerDashboard: React.FC = () => {
   const bookedSlots = slots.filter((s) => s.is_booked).length;
 
   return (
-    <div className="min-h-screen bg-paper pt-32 pb-20 px-6">
+    <div className="min-h-screen bg-paper pt-48 pb-20 px-6">
+      {trainerProfile && <AvailabilityHeader />}
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Header */}
         <div className="space-y-4">
