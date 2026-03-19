@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-03-19T15:34:42.978Z"
+stopped_at: Completed 23.1-01-PLAN.md
+last_updated: "2026-03-19T17:07:14.659Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # Project State -- FitRush
@@ -73,6 +73,8 @@ Recent decisions relevant to v4.0:
 - [Phase 23]: GoLiveLocationPicker rendered outside header div using React Fragment — modal overlay sibling to sticky header
 - [Phase 23]: Map component aliased as GoogleMap to avoid collision with native Map type
 - [Phase 23]: filteredPins computed at MapView level shared between MapInner and MobileTrainerSheet
+- [Phase 23.1-01]: New field Zod schemas are standalone (healthConditionsSchema etc.) not merged into fitnessPassportSchema — supports independent auto-save field-level validation
+- [Phase 23.1-01]: HEALTH_CONDITION_VALUES uses as-unknown cast from .map() to satisfy Zod enum-compatible readonly tuple type
 
 ## Blockers / Concerns
 
@@ -95,6 +97,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T15:34:42.976Z
-Stopped at: Completed 23-04-PLAN.md
+Last session: 2026-03-19T17:07:14.657Z
+Stopped at: Completed 23.1-01-PLAN.md
 Resume file: None

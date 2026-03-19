@@ -222,7 +222,7 @@ Plans:
 | 20. UX Polish | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 21. Email Capture + Platform Controls | v4.0 | 2/2 | ✅ | 2026-03-18 |
 | 22. Availability Toggle Foundation | v4.0 | 3/3 | ✅ | 2026-03-19 |
-| 23. Map View + Trainer Locations | v4.0 | 4/4 | ✅ | 2026-03-19 |
+| 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | 2026-03-19 |
 | 23.1. Client Profile Enhancement | v4.0 | 0/3 | Not started | - |
 | 24. Session Logging | v4.0 | 0/TBD | Not started | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |
