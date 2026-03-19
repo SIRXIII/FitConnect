@@ -9,7 +9,7 @@ const CountdownDisplay: React.FC<CountdownDisplayProps> = ({ display, onTap }) =
   return (
     <span
       aria-live="polite"
-      className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/60 cursor-pointer tabular-nums"
+      className="text-[10px] uppercase tracking-[0.2em] font-medium text-stone-300 tabular-nums cursor-pointer hover:text-white transition-colors"
       onClick={onTap}
       role="button"
       tabIndex={0}

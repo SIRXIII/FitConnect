@@ -13,8 +13,10 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Redirect already-authenticated users (e.g. revisiting /login while logged in)
+  // Only redirect when initialized + not submitting (avoid race with signInWithEmail)
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !submitting) {
       if (!profile?.role) {
         navigate('/onboarding/role', { replace: true });
       } else if (profile.role === 'trainer') {
@@ -23,7 +25,7 @@ const Login: React.FC = () => {
         navigate('/trainers', { replace: true });
       }
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, loading, submitting, navigate]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +37,15 @@ const Login: React.FC = () => {
         toast.success('Account created — check your email to confirm, or log in directly.');
       } else {
         await signInWithEmail(email, password);
+        // signInWithEmail awaits fetchProfile, so profile is ready now
+        const { profile: freshProfile } = useAuthStore.getState();
+        if (freshProfile?.role === 'trainer') {
+          navigate('/trainer/dashboard', { replace: true });
+        } else if (freshProfile?.role) {
+          navigate('/trainers', { replace: true });
+        } else {
+          navigate('/onboarding/role', { replace: true });
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Authentication failed';

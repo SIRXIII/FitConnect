@@ -13,7 +13,7 @@ const PILLS: { label: string; value: number | 'eod' }[] = [
   { label: 'EOD', value: 'eod' },
 ];
 
-const base = 'px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors rounded-full';
+const base = 'px-5 py-1.5 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-200 rounded-full border';
 
 const SleepTimerPills: React.FC<SleepTimerPillsProps> = ({
   selectedDuration,
@@ -26,7 +26,7 @@ const SleepTimerPills: React.FC<SleepTimerPillsProps> = ({
         <motion.div
           role="group"
           aria-label="Sleep timer duration"
-          className="flex items-center gap-2"
+          className="flex items-center gap-1.5"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -40,7 +40,9 @@ const SleepTimerPills: React.FC<SleepTimerPillsProps> = ({
                 type="button"
                 onClick={() => onSelect(pill.value)}
                 className={`${base} ${
-                  isSelected ? 'bg-ink text-white' : 'text-ink/40 hover:text-ink'
+                  isSelected
+                    ? 'bg-white text-stone-950 border-white/80 shadow-sm shadow-white/10'
+                    : 'text-stone-400 border-stone-600/40 hover:text-white hover:border-stone-400/60'
                 }`}
               >
                 {pill.label}
