@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Download } from 'lucide-react';
+import OptimizationSection from './OptimizationSection';
 import {
   AreaChart,
   Area,
@@ -358,6 +359,9 @@ const AnalyticsTab: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ---- Section F: Optimization ---- */}
+      {trainerProfile && <OptimizationSection trainerId={trainerProfile.id} />}
 
       {/* ---- Section E: Export CSV ---- */}
       <div className="flex justify-end">
