@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 23.1-02-PLAN.md
-last_updated: "2026-03-19T17:17:25.873Z"
+stopped_at: Completed 23.1-03-PLAN.md
+last_updated: "2026-03-19T17:22:58.720Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 9
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State -- FitRush
@@ -77,6 +77,8 @@ Recent decisions relevant to v4.0:
 - [Phase 23.1-01]: HEALTH_CONDITION_VALUES uses as-unknown cast from .map() to satisfy Zod enum-compatible readonly tuple type
 - [Phase 23.1-02]: Supabase TypeScript types not regenerated for client_profiles — use (supabase as any) cast rather than regenerating types mid-phase
 - [Phase 23.1-02]: Use .toBeTruthy() not .toBeInTheDocument() in component tests — project has no vitest setup file for @testing-library/jest-dom matchers
+- [Phase 23.1-03]: (supabase as any) cast for client_profiles secondary query in TrainerBookings — Supabase TS types not regenerated mid-phase
+- [Phase 23.1-03]: ClientSummaryCard returns null when data is null — graceful no-op for unenriched booking requests
 
 ## Blockers / Concerns
 
@@ -99,6 +101,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T17:17:20.504Z
-Stopped at: Completed 23.1-02-PLAN.md
+Last session: 2026-03-19T17:22:53.564Z
+Stopped at: Completed 23.1-03-PLAN.md
 Resume file: None

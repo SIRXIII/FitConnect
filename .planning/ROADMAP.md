@@ -68,7 +68,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 - [x] **Phase 21: Email Capture + Platform Controls** — Landing page waitlist with position display, GCP billing safeguards, Google OAuth verification started (completed 2026-03-18)
 - [x] **Phase 22: Availability Toggle Foundation** — Uber-style live toggle, sleep timer, atomic booking RPC (completed 2026-03-19)
 - [x] **Phase 23: Map View + Trainer Locations** — Clustered trainer pins on Google Maps, trainer location management, live pin updates (completed 2026-03-19)
-- [ ] **Phase 23.1: Client Profile Enhancement** — Photo upload, personal stats (age/weight/height), fitness level, health conditions, workout intensity preferences
+- [x] **Phase 23.1: Client Profile Enhancement** — Photo upload, personal stats (age/weight/height), fitness level, health conditions, workout intensity preferences (completed 2026-03-19)
 - [ ] **Phase 24: Session Logging** — Post-session notes, structured workout logs, client progress timeline
 - [ ] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations
 - [ ] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score
@@ -135,7 +135,7 @@ Plans:
   4. Client can log health conditions, injuries, allergies, or medical notes in a free-text field
   5. Client can set workout intensity preference via a visual toggle or slider (light, moderate, intense)
   6. Booked trainers can view the client's profile data (stats, conditions, preferences) before a session
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 23.1-01-PLAN.md — DB migration, Zod schema extension, shared profileConstants
 - [ ] 23.1-02-PLAN.md — ClientPassport refactor: progress ring, health checklist, intensity slider, goal ranker, auto-save
@@ -223,7 +223,7 @@ Plans:
 | 21. Email Capture + Platform Controls | v4.0 | 2/2 | ✅ | 2026-03-18 |
 | 22. Availability Toggle Foundation | v4.0 | 3/3 | ✅ | 2026-03-19 |
 | 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | 2026-03-19 |
-| 23.1. Client Profile Enhancement | 2/3 | In Progress|  | - |
+| 23.1. Client Profile Enhancement | 3/3 | Complete   | 2026-03-19 | - |
 | 24. Session Logging | v4.0 | 0/TBD | Not started | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |
 | 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
