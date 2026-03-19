@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: executing
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-03-19T19:43:04.854Z"
+stopped_at: Completed 25-02-PLAN.md
+last_updated: "2026-03-19T19:47:25.001Z"
 last_activity: "2026-03-19 -- Session logging progress tab: ProgressTab component + aggregateByWeek utility + ClientDashboard tab navigation"
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 17
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State -- FitRush
@@ -89,6 +89,8 @@ Recent decisions relevant to v4.0:
 - [Phase 25]: localStorage for match cache (vs Supabase table): simpler, zero-infrastructure, sufficient for single-device MVP
 - [Phase 25-01]: Single hourly_budget_max (not min+max range): simplifies scoring and UI; neutral 30/60 fallback when null
 - [Phase 25-01]: clearMatchCache on ALL saveField calls: any passport change should invalidate stale matches
+- [Phase 25]: CarouselInner inner component used to avoid conditional hook call in RecommendedCarousel role-gate block
+- [Phase 25]: [Phase 25-02]: Silent null return on carousel fetch error — recommendation is non-critical path, main grid unaffected
 
 ## Blockers / Concerns
 
@@ -111,6 +113,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T19:43:04.852Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-03-19T19:47:19.913Z
+Stopped at: Completed 25-02-PLAN.md
 Resume file: None

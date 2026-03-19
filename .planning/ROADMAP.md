@@ -70,7 +70,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 - [x] **Phase 23: Map View + Trainer Locations** — Clustered trainer pins on Google Maps, trainer location management, live pin updates (completed 2026-03-19)
 - [x] **Phase 23.1: Client Profile Enhancement** — Photo upload, personal stats (age/weight/height), fitness level, health conditions, workout intensity preferences (completed 2026-03-19)
 - [x] **Phase 24: Session Logging** — Post-session notes, structured workout logs, client progress timeline (completed 2026-03-19)
-- [ ] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations
+- [x] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations (completed 2026-03-19)
 - [ ] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score
 - [ ] **Phase 27: Location-Based Notifications** — Nearby trainer alerts, notification preferences, frequency caps
 - [ ] **Phase 28: Google Calendar Bidirectional Sync** — OAuth connect flow, booking push to GCal, external event blocking
@@ -165,7 +165,7 @@ Plans:
   2. Each recommended trainer card shows a match score and 2–3 attribute explanations (e.g., "matches your HIIT goals, prefers your frequency")
   3. Client whose Fitness Passport is below the completeness threshold sees a prompt to complete it before recommendations appear
   4. Match results load quickly because they are cached for 24 hours after initial computation
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 25-01-PLAN.md — DB migration (hourly_budget_max), matchScoring.ts (TDD), ClientPassport budget field
 - [ ] 25-02-PLAN.md — useMatchedTrainers hook, RecommendedCarousel, MatchCard, PassportPromptCard, SearchSection integration
@@ -232,7 +232,7 @@ Plans:
 | 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | 2026-03-19 |
 | 23.1. Client Profile Enhancement | 3/3 | Complete    | 2026-03-19 | - |
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
-| 25. AI Trainer-Client Matching | 1/2 | In Progress|  | - |
+| 25. AI Trainer-Client Matching | 2/2 | Complete   | 2026-03-19 | - |
 | 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
 | 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
