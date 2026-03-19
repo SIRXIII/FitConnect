@@ -178,7 +178,7 @@ Plans:
   1. Trainer sees an "Optimization" tab in their analytics dashboard with a day/hour heatmap showing idle slot patterns
   2. Trainer sees recommendation cards for specific empty time blocks (e.g., "5 idle Tuesday 9am slots — try 20–30% off")
   3. Trainer sees a numeric optimization score that reflects how well their available slots are being utilized
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 26-01-PLAN.md — DB migration (RPCs) + slotOptimization pure-TS library with TDD tests
 - [ ] 26-02-PLAN.md — OptimizationSection component + AnalyticsTab integration
@@ -242,7 +242,7 @@ Plans:
 | 23.1. Client Profile Enhancement | 3/3 | Complete    | 2026-03-19 | - |
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
-| 26. AI Discount Analytics | v4.0 | 0/2 | Planned | - |
+| 26. AI Discount Analytics | 1/2 | In Progress|  | - |
 | 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 

@@ -48,9 +48,9 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 ### AI Trainer Analytics (AIANALYTICS)
 
-- [ ] **AIANALYTICS-01**: Trainer sees idle slot pattern analysis as a day/hour heatmap
-- [ ] **AIANALYTICS-02**: Trainer receives actionable discount recommendation cards for empty slots
-- [ ] **AIANALYTICS-03**: Trainer sees an optimization score based on slot utilization
+- [x] **AIANALYTICS-01**: Trainer sees idle slot pattern analysis as a day/hour heatmap
+- [x] **AIANALYTICS-02**: Trainer receives actionable discount recommendation cards for empty slots
+- [x] **AIANALYTICS-03**: Trainer sees an optimization score based on slot utilization
 
 ### Google Calendar Sync (CALSYNC)
 
@@ -145,9 +145,9 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | AIMATCH-02 | Phase 25 | Complete |
 | AIMATCH-03 | Phase 25 | Complete |
 | AIMATCH-04 | Phase 25 | Complete |
-| AIANALYTICS-01 | Phase 26 | Pending |
-| AIANALYTICS-02 | Phase 26 | Pending |
-| AIANALYTICS-03 | Phase 26 | Pending |
+| AIANALYTICS-01 | Phase 26 | Complete |
+| AIANALYTICS-02 | Phase 26 | Complete |
+| AIANALYTICS-03 | Phase 26 | Complete |
 | NOTIF-01 | Phase 27 | Pending |
 | NOTIF-02 | Phase 27 | Pending |
 | NOTIF-03 | Phase 27 | Pending |
