@@ -208,7 +208,7 @@ Plans:
   3. An event added to the trainer's external Google Calendar blocks the corresponding FitRush availability slot from being booked
   4. When a booking is cancelled in FitRush, the corresponding Google Calendar event is removed
   5. Trainers who have not connected Google Calendar can still subscribe to the iCal feed as before
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 28-01-PLAN.md — DB migration, TS types, shared gcal-helpers module, OAuth callback page
 - [ ] 28-02-PLAN.md — OAuth connect Edge Function, useGcalConnection hook, GoogleCalendarConnect UI, TrainerDashboard wiring
@@ -245,7 +245,7 @@ Plans:
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
 | 26. AI Discount Analytics | 2/2 | Complete    | 2026-03-19 | - |
 | 27. Location-Based Notifications | 2/2 | Complete    | 2026-03-19 | - |
-| 28. Google Calendar Bidirectional Sync | v4.0 | 0/3 | In progress | - |
+| 28. Google Calendar Bidirectional Sync | 1/3 | In Progress|  | - |
 
 ---
 *Last updated: 2026-03-19 — Phase 28 plans created*

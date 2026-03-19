@@ -54,11 +54,11 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 ### Google Calendar Sync (CALSYNC)
 
-- [ ] **CALSYNC-01**: Trainer can connect Google Calendar via OAuth from settings
+- [x] **CALSYNC-01**: Trainer can connect Google Calendar via OAuth from settings
 - [ ] **CALSYNC-02**: FitRush bookings automatically push to Google Calendar as events
-- [ ] **CALSYNC-03**: External Google Calendar events block FitRush availability slots
+- [x] **CALSYNC-03**: External Google Calendar events block FitRush availability slots
 - [ ] **CALSYNC-04**: Booking cancellation removes the corresponding Google Calendar event
-- [ ] **CALSYNC-05**: Existing iCal export continues working as fallback during OAuth verification
+- [x] **CALSYNC-05**: Existing iCal export continues working as fallback during OAuth verification
 
 ### Client Profile (CPROFILE)
 
@@ -154,11 +154,11 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | NOTIF-04 | Phase 27 | Complete |
 | NOTIF-05 | Phase 27 | Complete |
 | NOTIF-06 | Phase 27 | Complete |
-| CALSYNC-01 | Phase 28 | Pending |
+| CALSYNC-01 | Phase 28 | Complete |
 | CALSYNC-02 | Phase 28 | Pending |
-| CALSYNC-03 | Phase 28 | Pending |
+| CALSYNC-03 | Phase 28 | Complete |
 | CALSYNC-04 | Phase 28 | Pending |
-| CALSYNC-05 | Phase 28 | Pending |
+| CALSYNC-05 | Phase 28 | Complete |
 
 **Coverage:**
 - v4.0 requirements: 44 total

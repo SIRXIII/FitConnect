@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 27-02-PLAN.md
-last_updated: "2026-03-19T20:54:08.154Z"
-last_activity: "2026-03-19 -- AI Discount Analytics UI: OptimizationSection with score gauge, idle heatmap, discount cards"
+stopped_at: Completed 28-01-PLAN.md
+last_updated: "2026-03-19T21:13:16.964Z"
+last_activity: "2026-03-19 -- GCal sync DB foundation, shared helpers, TS types, OAuth popup callback"
 progress:
   total_phases: 9
   completed_phases: 8
-  total_plans: 21
-  completed_plans: 21
+  total_plans: 24
+  completed_plans: 22
 ---
 
 # Project State -- FitRush
@@ -24,13 +24,13 @@ See: `.planning/PROJECT.md` (updated 2026-03-18)
 
 ## Current Position
 
-Phase: 26 of 28 (AI Discount Analytics)
-Plan: 2 of 2 (complete)
-Status: Complete
-Last activity: 2026-03-19 -- AI Discount Analytics UI: OptimizationSection with score gauge, idle heatmap, discount cards
+Phase: 28 of 28 (Google Calendar Bidirectional Sync)
+Plan: 1 of 3 (complete)
+Status: In Progress
+Last activity: 2026-03-19 -- GCal sync DB foundation, shared helpers, TS types, OAuth popup callback
 
 ```
-v4.0 Progress: [██████████] 100% (7/8 phases)
+v4.0 Progress: [█████████░] 92% (22/24 plans)
 
 Phase 21: Email Capture + Platform Controls  [x] Complete
 Phase 22: Availability Toggle Foundation     [x] Complete
@@ -38,8 +38,8 @@ Phase 23: Map View + Trainer Locations       [x] Complete
 Phase 24: Session Logging                    [x] Complete (3/3 plans)
 Phase 25: AI Trainer-Client Matching         [x] Complete
 Phase 26: AI Discount Analytics              [x] Complete (2/2 plans)
-Phase 27: Location-Based Notifications       [ ] Not started
-Phase 28: Google Calendar Bidirectional Sync [ ] Not started
+Phase 27: Location-Based Notifications       [x] Complete
+Phase 28: Google Calendar Bidirectional Sync [ ] In Progress (1/3 plans)
 ```
 
 ## Decisions
@@ -98,6 +98,8 @@ Recent decisions relevant to v4.0:
 - [Phase 27]: vi.hoisted() + waitFor pattern for async hook testing with React 19 + testing-library v16 + Vitest 4 (act() hangs in this environment)
 - [Phase 27]: NotificationPreferencesSection wrapped in own APIProvider (no ancestor on ClientDashboard) - follows Pitfall 6 pattern
 - [Phase 27]: LookingNowToggle renders null when geolocation unavailable - graceful degradation
+- [Phase 28]: gcal-helpers listGcalEvents uses privateExtendedProperty=source!=fitrush to exclude FitRush booking events from blocks (Pitfall 4 prevention)
+- [Phase 28]: GoogleCalendarCallback not wrapped in ProtectedRoute — popup window has no auth context
 
 ## Blockers / Concerns
 
@@ -120,6 +122,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:53:32.721Z
-Stopped at: Completed 27-02-PLAN.md
+Last session: 2026-03-19T21:13:16.962Z
+Stopped at: Completed 28-01-PLAN.md
 Resume file: None
