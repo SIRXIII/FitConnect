@@ -8,6 +8,7 @@ import { SearchAreaButton } from '@/components/map/SearchAreaButton';
 import { ClientLocationDot } from '@/components/map/ClientLocationDot';
 import { RadiusCircle } from '@/components/map/RadiusCircle';
 import { useMapTrainers } from '@/hooks/useMapTrainers';
+import { MobileTrainerSheet } from './MobileTrainerSheet';
 import type { TrainerPin as TrainerPinType, LocationType, MapBounds } from '@/types/map';
 import { LA_DEFAULT } from '@/types/map';
 
@@ -43,13 +44,13 @@ interface MapViewProps {
 
 // Inner component that has access to the Google Maps map instance via useMap()
 interface MapInnerProps {
-  pins: TrainerPinType[];
+  // Pre-filtered pins (filtering done at MapView level)
+  filteredPins: TrainerPinType[];
   loading: boolean;
   error: string | null;
   selectedTrainerId: string | null;
-  locationTypeFilter: LocationType | 'all';
-  distanceMiles: number;
   clientPosition: { lat: number; lng: number } | null;
+  distanceMiles: number;
   showSearchArea: boolean;
   searchLoading: boolean;
   onPinClick: (trainerId: string) => void;
@@ -59,13 +60,12 @@ interface MapInnerProps {
 }
 
 function MapInner({
-  pins,
+  filteredPins,
   loading,
   error,
   selectedTrainerId,
-  locationTypeFilter,
-  distanceMiles,
   clientPosition,
+  distanceMiles,
   showSearchArea,
   searchLoading,
   onPinClick,
@@ -144,14 +144,6 @@ function MapInner({
       g?.maps?.event?.removeListener(listener);
     };
   }, [map, onBoundsChange]);
-
-  // Filter pins by location type, then by distance if client location available
-  const filteredPins = pins
-    .filter((pin) => locationTypeFilter === 'all' || pin.location_type === locationTypeFilter)
-    .filter((pin) => {
-      if (!clientPosition) return true;
-      return haversineDistance(clientPosition.lat, clientPosition.lng, pin.latitude, pin.longitude) <= distanceMiles;
-    });
 
   const selectedPin = selectedTrainerId
     ? filteredPins.find((p) => p.trainer_id === selectedTrainerId)
@@ -311,6 +303,14 @@ export function MapView({ filters }: MapViewProps) {
     setSelectedTrainerId((prev) => (prev === trainerId ? null : trainerId));
   }, []);
 
+  // Compute filtered pins at MapView level for both MapInner and MobileTrainerSheet
+  const filteredPins = pins
+    .filter((pin) => locationTypeFilter === 'all' || pin.location_type === locationTypeFilter)
+    .filter((pin) => {
+      if (!clientPosition) return true;
+      return haversineDistance(clientPosition.lat, clientPosition.lng, pin.latitude, pin.longitude) <= distanceMiles;
+    });
+
   const initialCenter = clientPosition ?? LA_DEFAULT;
 
   return (
@@ -330,11 +330,10 @@ export function MapView({ filters }: MapViewProps) {
             onClick={() => setSelectedTrainerId(null)}
           >
             <MapInner
-              pins={pins}
+              filteredPins={filteredPins}
               loading={loading}
               error={error}
               selectedTrainerId={selectedTrainerId}
-              locationTypeFilter={locationTypeFilter}
               distanceMiles={distanceMiles}
               clientPosition={clientPosition}
               showSearchArea={showSearchArea}
@@ -416,6 +415,12 @@ export function MapView({ filters }: MapViewProps) {
             <p className="text-[11px] uppercase tracking-[0.2em] text-ink/60">Loading trainers...</p>
           </div>
         )}
+
+        {/* Mobile bottom sheet — returns null on desktop */}
+        <MobileTrainerSheet
+          trainers={filteredPins}
+          onTrainerSelect={handlePinClick}
+        />
       </div>
     </div>
   );

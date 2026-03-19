@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { MOCK_TRAINERS, SPECIALTIES } from '@/lib/constants';
 import { PriceRange, formatSpecialty, DB_SPECIALTIES } from '@/types';
 import type { Trainer } from '@/types';
@@ -8,6 +9,8 @@ import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
 import { optimizedUrl } from '@/lib/imageUtils';
 import LiveNowBadge from '@/components/shared/LiveNowBadge';
 import BookingModeBadge from '@/components/shared/BookingModeBadge';
+import { MapListToggle } from './MapListToggle';
+import { MapView } from './MapView';
 
 function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer {
   const discountPct = t.discount_percentage ?? 0;
@@ -41,6 +44,7 @@ const SearchSection: React.FC = () => {
   const [specialty, setSpecialty] = useState('');
   const [priceRange, setPriceRange] = useState('');
   const [useMock, setUseMock] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   // Query Supabase for trainers with filters
   const { trainers: dbTrainers, loading, error, idleSlotCounts } = useTrainers({
@@ -148,53 +152,87 @@ const SearchSection: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-end">
-              <button className="w-full bg-ink text-white py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-accent transition-all duration-500">
+            <div className="flex items-end justify-between gap-4">
+              <button className="flex-1 bg-ink text-white py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-accent transition-all duration-500">
                 Refine Search
               </button>
+              <MapListToggle viewMode={viewMode} onChange={setViewMode} />
             </div>
           </div>
         </div>
 
         {/* Results */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <TrainerCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : displayTrainers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
-            {displayTrainers.map((trainer) => (
-              <div key={trainer.id} className="space-y-2">
-                {!useMock && (trainer.isLive || trainer.bookingMode) && (
-                  <div className="flex items-center gap-3">
-                    {trainer.isLive && <LiveNowBadge />}
-                    {trainer.bookingMode && (
-                      <BookingModeBadge mode={trainer.bookingMode} />
-                    )}
-                  </div>
-                )}
-                <TrainerCard trainer={trainer} isMock={useMock} />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-32 border border-dashed border-ink/10">
-            <h3 className="text-3xl serif font-light text-ink mb-4 italic">No matches found</h3>
-            <p className="text-sm uppercase tracking-widest text-ink/40 mb-8">Adjust your criteria for the collective</p>
-            <button
-              onClick={() => {
-                setLocation('');
-                setSpecialty('');
-                setPriceRange('');
-              }}
-              className="text-[10px] uppercase tracking-[0.2em] border-b border-ink/20 hover:border-ink transition-all pb-1"
+        <AnimatePresence mode="wait">
+          {viewMode === 'list' ? (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              Reset Filters
-            </button>
-          </div>
-        )}
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <TrainerCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : displayTrainers.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+                  {displayTrainers.map((trainer) => (
+                    <div key={trainer.id} className="space-y-2">
+                      {!useMock && (trainer.isLive || trainer.bookingMode) && (
+                        <div className="flex items-center gap-3">
+                          {trainer.isLive && <LiveNowBadge />}
+                          {trainer.bookingMode && (
+                            <BookingModeBadge mode={trainer.bookingMode} />
+                          )}
+                        </div>
+                      )}
+                      <TrainerCard trainer={trainer} isMock={useMock} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-32 border border-dashed border-ink/10">
+                  <h3 className="text-3xl serif font-light text-ink mb-4 italic">No matches found</h3>
+                  <p className="text-sm uppercase tracking-widest text-ink/40 mb-8">Adjust your criteria for the collective</p>
+                  <button
+                    onClick={() => {
+                      setLocation('');
+                      setSpecialty('');
+                      setPriceRange('');
+                    }}
+                    className="text-[10px] uppercase tracking-[0.2em] border-b border-ink/20 hover:border-ink transition-all pb-1"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="map"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <MapView
+                filters={{
+                  specialty: specialty || undefined,
+                  maxRate:
+                    priceRange === PriceRange.BUDGET
+                      ? 50
+                      : priceRange === PriceRange.STANDARD
+                      ? 80
+                      : undefined,
+                  location: location || undefined,
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
