@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Phase 22 UI-SPEC approved
-last_updated: "2026-03-18T22:51:25.547Z"
+stopped_at: Completed 22-01-PLAN.md — DB foundation for availability toggle
+last_updated: "2026-03-19T00:54:21.103Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
 ---
 
 # Project State -- FitRush
@@ -56,6 +56,8 @@ Recent decisions relevant to v4.0:
 - [Phase 21-02]: Hero input uses type=text not type=email — browser HTML5 validation in jsdom blocks form submit before Zod runs
 - [Phase 21-02]: Zod 4 uses result.error.issues not result.error.errors (breaking change from Zod 3)
 - [Phase 21-02]: No waitlist position number shown — simple "You're In." confirmation per CONTEXT.md locked decision overriding WAITLIST-03 literal
+- [Phase 22-01]: pg_cron scheduled with graceful DO $$ IF EXISTS $$ fallback — migration won't fail on Free plan
+- [Phase 22-01]: expire_stale_availability auto-declines pending requests in two passes: first for trainers who went offline, then 30-minute timeout — order matters
 
 ## Blockers / Concerns
 
@@ -78,6 +80,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-18T22:51:25.541Z
-Stopped at: Phase 22 UI-SPEC approved
-Resume file: .planning/phases/22-availability-toggle-foundation/22-UI-SPEC.md
+Last session: 2026-03-19T00:54:21.102Z
+Stopped at: Completed 22-01-PLAN.md — DB foundation for availability toggle
+Resume file: None

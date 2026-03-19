@@ -27,8 +27,8 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 - [ ] **AVAIL-01**: Trainer can toggle online/offline availability (Uber-style live switch)
 - [ ] **AVAIL-02**: Trainer can set sleep timer to auto-disable availability at a chosen time
-- [ ] **AVAIL-03**: System auto-expires stale availability sessions via pg_cron
-- [ ] **AVAIL-04**: Booking creation uses atomic PostgreSQL RPC to prevent double-booking race conditions
+- [x] **AVAIL-03**: System auto-expires stale availability sessions via pg_cron
+- [x] **AVAIL-04**: Booking creation uses atomic PostgreSQL RPC to prevent double-booking race conditions
 
 ### Location Notifications (NOTIF)
 
@@ -110,8 +110,8 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | WAITLIST-03 | Phase 21 | Complete |
 | AVAIL-01 | Phase 22 | Pending |
 | AVAIL-02 | Phase 22 | Pending |
-| AVAIL-03 | Phase 22 | Pending |
-| AVAIL-04 | Phase 22 | Pending |
+| AVAIL-03 | Phase 22 | Complete |
+| AVAIL-04 | Phase 22 | Complete |
 | MAP-01 | Phase 23 | Pending |
 | MAP-02 | Phase 23 | Pending |
 | MAP-03 | Phase 23 | Pending |
