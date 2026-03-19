@@ -177,6 +177,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             platformFeePct={platformFeePct}
             paymentError={paymentError}
             stripeConfigured={stripeConfigured}
+            bookingMode={slot.trainer_profiles.booking_mode}
           />
         );
       case 'Payment':
