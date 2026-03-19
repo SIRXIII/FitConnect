@@ -178,7 +178,10 @@ Plans:
   1. Trainer sees an "Optimization" tab in their analytics dashboard with a day/hour heatmap showing idle slot patterns
   2. Trainer sees recommendation cards for specific empty time blocks (e.g., "5 idle Tuesday 9am slots — try 20–30% off")
   3. Trainer sees a numeric optimization score that reflects how well their available slots are being utilized
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 26-01-PLAN.md — DB migration (RPCs) + slotOptimization pure-TS library with TDD tests
+- [ ] 26-02-PLAN.md — OptimizationSection component + AnalyticsTab integration
 
 ### Phase 27: Location-Based Notifications
 **Goal**: Clients can opt into location-based alerts and receive in-app notifications when a nearby trainer goes live, with frequency caps and preferences configured before any alerts fire
@@ -190,7 +193,10 @@ Plans:
   3. Client receives an in-app alert when a nearby trainer goes online within their configured area
   4. Client can turn location-based notifications on or off from their notification settings at any time
   5. A single trainer going online does not trigger more than one alert to the same client within 4 hours, and no client receives more than 3 location alerts per day
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 26-01-PLAN.md — DB migration (RPCs) + slotOptimization pure-TS library with TDD tests
+- [ ] 26-02-PLAN.md — OptimizationSection component + AnalyticsTab integration
 
 ### Phase 28: Google Calendar Bidirectional Sync
 **Goal**: Trainers can connect their Google Calendar and have FitRush bookings automatically appear as events, with external calendar blocks preventing double-booking, and iCal export remaining functional throughout
@@ -202,7 +208,10 @@ Plans:
   3. An event added to the trainer's external Google Calendar blocks the corresponding FitRush availability slot from being booked
   4. When a booking is cancelled in FitRush, the corresponding Google Calendar event is removed
   5. Trainers who have not connected Google Calendar can still subscribe to the iCal feed as before
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 26-01-PLAN.md — DB migration (RPCs) + slotOptimization pure-TS library with TDD tests
+- [ ] 26-02-PLAN.md — OptimizationSection component + AnalyticsTab integration
 
 ---
 
@@ -233,9 +242,9 @@ Plans:
 | 23.1. Client Profile Enhancement | 3/3 | Complete    | 2026-03-19 | - |
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
-| 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
+| 26. AI Discount Analytics | v4.0 | 0/2 | Planned | - |
 | 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 25 plans created*
+*Last updated: 2026-03-19 — Phase 26 plans created*
