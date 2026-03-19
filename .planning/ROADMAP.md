@@ -242,7 +242,7 @@ Plans:
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
 | 26. AI Discount Analytics | 2/2 | Complete    | 2026-03-19 | - |
-| 27. Location-Based Notifications | 2/2 | Complete   | 2026-03-19 | - |
+| 27. Location-Based Notifications | 2/2 | Complete    | 2026-03-19 | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
