@@ -253,19 +253,22 @@ const BookSession: React.FC = () => {
       return null;
     }
 
-    if (data?.error === 'slot_taken') {
+    // data is { booking_id: string } | { error: string } — use type narrowing
+    const rpcResult = data as { booking_id?: string; error?: string } | null;
+
+    if (rpcResult?.error === 'slot_taken') {
       toast.error('This slot was just booked. Pick another time.');
       fetchSlot();
       return null;
     }
 
-    if (data?.error === 'slot_deleted' || data?.error === 'slot_not_found') {
+    if (rpcResult?.error === 'slot_deleted' || rpcResult?.error === 'slot_not_found') {
       toast.error('This slot is no longer available.');
       fetchSlot();
       return null;
     }
 
-    if (!data?.booking_id) return null;
+    if (!rpcResult?.booking_id) return null;
 
     if (hadReferralDiscount) {
       await supabase
@@ -274,7 +277,7 @@ const BookSession: React.FC = () => {
         .eq('id', user.id);
     }
 
-    return data.booking_id;
+    return rpcResult.booking_id;
   }, [slot, user, platformFeePct, fetchSlot]);
 
   // Create Stripe payment intent -- returns client_secret or null on failure

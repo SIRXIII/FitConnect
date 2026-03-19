@@ -41,15 +41,24 @@ const BookingRequestQueue: React.FC = () => {
       .limit(5);
 
     if (!error && data) {
-      const mapped: BookingRequest[] = data.map((row) => ({
+      const mapped: BookingRequest[] = (data as unknown as Array<{
+        id: string;
+        client_id: string;
+        slot_id: string;
+        trainer_id: string;
+        status: 'pending' | 'accepted' | 'declined';
+        created_at: string;
+        profiles?: { full_name: string; avatar_url: string | null };
+        availability_slots?: { start_time: string; end_time: string };
+      }>).map((row) => ({
         id: row.id,
         client_id: row.client_id,
         slot_id: row.slot_id,
         trainer_id: row.trainer_id,
         status: row.status,
         created_at: row.created_at,
-        client: (row as { profiles?: { full_name: string; avatar_url: string | null } }).profiles ?? undefined,
-        slot: (row as { availability_slots?: { start_time: string; end_time: string } }).availability_slots ?? undefined,
+        client: row.profiles ?? undefined,
+        slot: row.availability_slots ?? undefined,
       }));
       setRequests(mapped);
     }

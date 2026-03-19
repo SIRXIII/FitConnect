@@ -491,7 +491,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      create_booking_atomic: {
+        Args: {
+          p_slot_id: string;
+          p_client_id: string;
+          p_trainer_id: string;
+          p_rate_charged: number;
+          p_platform_fee: number;
+          p_trainer_payout: number;
+          p_notes?: string | null;
+        };
+        Returns: { booking_id: string } | { error: string };
+      };
     };
     Enums: {
       [_ in never]: never;
