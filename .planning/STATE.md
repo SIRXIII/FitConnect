@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
-status: completed
-stopped_at: Completed 28-01-PLAN.md
-last_updated: "2026-03-19T21:13:16.964Z"
-last_activity: "2026-03-19 -- GCal sync DB foundation, shared helpers, TS types, OAuth popup callback"
+status: executing
+stopped_at: Completed 28-02-PLAN.md
+last_updated: "2026-03-19T21:18:00.925Z"
+last_activity: 2026-03-19 -- GCal OAuth connect/disconnect Edge Function, useGcalConnection hook, GoogleCalendarConnect UI card
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 24
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State -- FitRush
@@ -25,12 +25,12 @@ See: `.planning/PROJECT.md` (updated 2026-03-18)
 ## Current Position
 
 Phase: 28 of 28 (Google Calendar Bidirectional Sync)
-Plan: 1 of 3 (complete)
+Plan: 2 of 3 (complete)
 Status: In Progress
-Last activity: 2026-03-19 -- GCal sync DB foundation, shared helpers, TS types, OAuth popup callback
+Last activity: 2026-03-19 -- GCal OAuth connect/disconnect Edge Function, useGcalConnection hook, GoogleCalendarConnect UI card
 
 ```
-v4.0 Progress: [█████████░] 92% (22/24 plans)
+v4.0 Progress: [██████████] 96% (23/24 plans)
 
 Phase 21: Email Capture + Platform Controls  [x] Complete
 Phase 22: Availability Toggle Foundation     [x] Complete
@@ -39,7 +39,7 @@ Phase 24: Session Logging                    [x] Complete (3/3 plans)
 Phase 25: AI Trainer-Client Matching         [x] Complete
 Phase 26: AI Discount Analytics              [x] Complete (2/2 plans)
 Phase 27: Location-Based Notifications       [x] Complete
-Phase 28: Google Calendar Bidirectional Sync [ ] In Progress (1/3 plans)
+Phase 28: Google Calendar Bidirectional Sync [ ] In Progress (2/3 plans)
 ```
 
 ## Decisions
@@ -100,6 +100,9 @@ Recent decisions relevant to v4.0:
 - [Phase 27]: LookingNowToggle renders null when geolocation unavailable - graceful degradation
 - [Phase 28]: gcal-helpers listGcalEvents uses privateExtendedProperty=source!=fitrush to exclude FitRush booking events from blocks (Pitfall 4 prevention)
 - [Phase 28]: GoogleCalendarCallback not wrapped in ProtectedRoute — popup window has no auth context
+- [Phase 28]: Edge Function handles both connect and disconnect in one function via action param to keep deploy surface minimal
+- [Phase 28]: prompt=consent + access_type=offline hardcoded in OAuth URL to guarantee refresh_token on every auth (Pitfall 1)
+- [Phase 28]: sessionStorage for CSRF state in OAuth popup flow — cleared on tab close, scoped to origin
 
 ## Blockers / Concerns
 
@@ -122,6 +125,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T21:13:16.962Z
-Stopped at: Completed 28-01-PLAN.md
+Last session: 2026-03-19T21:17:55.915Z
+Stopped at: Completed 28-02-PLAN.md
 Resume file: None
