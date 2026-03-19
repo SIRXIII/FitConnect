@@ -91,6 +91,7 @@ export type Database = {
           booking_mode: 'instant' | 'request';
           sleep_timer_expires_at: string | null;
           availability_session_started_at: string | null;
+          active_location_id: string | null;
         };
         Insert: {
           id?: string;
@@ -128,6 +129,7 @@ export type Database = {
           booking_mode?: 'instant' | 'request';
           sleep_timer_expires_at?: string | null;
           availability_session_started_at?: string | null;
+          active_location_id?: string | null;
         };
         Update: {
           id?: string;
@@ -165,6 +167,7 @@ export type Database = {
           booking_mode?: 'instant' | 'request';
           sleep_timer_expires_at?: string | null;
           availability_session_started_at?: string | null;
+          active_location_id?: string | null;
         };
         Relationships: [];
       };
@@ -271,6 +274,42 @@ export type Database = {
           notes?: string | null;
           cancellation_reason?: string | null;
           cancelled_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      workout_locations: {
+        Row: {
+          id: string;
+          trainer_id: string;
+          nickname: string | null;
+          address: string;
+          latitude: number;
+          longitude: number;
+          location_type: 'gym' | 'park' | 'in-home';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          trainer_id: string;
+          nickname?: string | null;
+          address: string;
+          latitude: number;
+          longitude: number;
+          location_type: 'gym' | 'park' | 'in-home';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          trainer_id?: string;
+          nickname?: string | null;
+          address?: string;
+          latitude?: number;
+          longitude?: number;
+          location_type?: 'gym' | 'park' | 'in-home';
           created_at?: string;
           updated_at?: string;
         };
@@ -526,6 +565,21 @@ export type Database = {
       get_visible_slots: {
         Args: { p_trainer_id: string };
         Returns: Json;
+      };
+      trainers_in_view: {
+        Args: {
+          min_lat: number;
+          min_lng: number;
+          max_lat: number;
+          max_lng: number;
+        };
+        Returns: {
+          trainer_id: string;
+          latitude: number;
+          longitude: number;
+          location_type: string;
+          nickname: string | null;
+        }[];
       };
     };
     Enums: {
