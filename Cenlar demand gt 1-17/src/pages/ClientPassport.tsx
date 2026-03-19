@@ -9,6 +9,7 @@ import ProfileProgressRing from '@/components/client/ProfileProgressRing';
 import HealthConditionsChecklist from '@/components/client/HealthConditionsChecklist';
 import IntensitySlider from '@/components/client/IntensitySlider';
 import GoalRankPicker from '@/components/client/GoalRankPicker';
+import { clearMatchCache } from '@/lib/matchScoring';
 
 // --- Image compression ---
 
@@ -61,6 +62,9 @@ const ClientPassport: React.FC = () => {
   const [intensityPreference, setIntensityPreference] = useState<string | null>(null);
   const [goalsRanked, setGoalsRanked] = useState<string[]>([]);
 
+  // Budget preference for AI matching (Phase 25)
+  const [hourlyBudgetMax, setHourlyBudgetMax] = useState<number | ''>('');
+
   // Personal stats (already in DB but now editable here)
   const [age, setAge] = useState<number | ''>('');
   const [weightLbs, setWeightLbs] = useState<number | ''>('');
@@ -76,7 +80,7 @@ const ClientPassport: React.FC = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data } = await (supabase as any)
           .from('client_profiles')
-          .select('bio, fitness_goals, workout_types, training_frequency, health_notes, health_conditions, intensity_preference, goals_ranked, age, weight_lbs, height_ft, height_in, fitness_level')
+          .select('bio, fitness_goals, workout_types, training_frequency, health_notes, health_conditions, intensity_preference, goals_ranked, age, weight_lbs, height_ft, height_in, fitness_level, hourly_budget_max')
           .eq('user_id', user.id)
           .single() as unknown as { data: Record<string, unknown> | null };
         if (data) {
@@ -93,6 +97,7 @@ const ClientPassport: React.FC = () => {
           setHeightFt((data.height_ft as number) ?? '');
           setHeightIn((data.height_in as number) ?? '');
           setFitnessLevel((data.fitness_level as string) ?? '');
+          setHourlyBudgetMax((data.hourly_budget_max as number) ?? '');
         }
       } catch {
         // No profile yet — that's fine
@@ -122,7 +127,10 @@ const ClientPassport: React.FC = () => {
     const { error } = await (supabase as any)
       .from('client_profiles')
       .upsert({ user_id: user.id, ...updates }, { onConflict: 'user_id' });
-    if (!error) toast.success('Saved', { duration: 1200, id: 'profile-save' });
+    if (!error) {
+      toast.success('Saved', { duration: 1200, id: 'profile-save' });
+      clearMatchCache(user.id); // Bust 24hr match cache so carousel recomputes on next visit
+    }
     else toast.error('Save failed');
   };
 
@@ -385,6 +393,36 @@ const ClientPassport: React.FC = () => {
           <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/30 border-b border-ink/10 pb-2">
             Preferences
           </h2>
+
+          {/* Budget Preference */}
+          <div className="space-y-4">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">
+              Max Hourly Budget
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="text-ink/40 text-lg">$</span>
+              <input
+                type="number"
+                min={0}
+                max={500}
+                step={5}
+                value={hourlyBudgetMax}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? '' : Number(e.target.value);
+                  setHourlyBudgetMax(val);
+                }}
+                onBlur={() => {
+                  if (hourlyBudgetMax !== '') {
+                    saveField({ hourly_budget_max: hourlyBudgetMax });
+                  }
+                }}
+                placeholder="e.g. 60"
+                className="w-32 py-2 bg-transparent border-b border-ink/10 focus:border-ink/30 focus:ring-0 outline-none text-ink serif text-xl placeholder:text-ink/20"
+              />
+              <span className="text-ink/40 text-sm">/hr</span>
+            </div>
+            <p className="text-xs text-ink/30">Used to match you with trainers in your price range</p>
+          </div>
 
           {/* Intensity */}
           <div className="space-y-2">
