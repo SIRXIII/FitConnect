@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import LiveToggle from '@/components/trainer/LiveToggle';
 import SleepTimerPills from '@/components/trainer/SleepTimerPills';
 import CountdownDisplay from '@/components/trainer/CountdownDisplay';
+import GoLiveLocationPicker from '@/components/trainer/GoLiveLocationPicker';
 
 const TOOLTIP_STORAGE_KEY = 'fitrush_toggle_tooltip_dismissed';
 
@@ -44,6 +45,10 @@ const AvailabilityHeader: React.FC = () => {
     setShowTooltip(isFirstTime && !dismissed);
   }, [trainerProfile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Location picker state
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [pendingLocationId, setPendingLocationId] = useState<string | null>(null);
+
   // Going-offline warning state
   const [showOfflineWarning, setShowOfflineWarning] = useState(false);
   const [upcomingCount, setUpcomingCount] = useState(0);
@@ -71,9 +76,15 @@ const AvailabilityHeader: React.FC = () => {
       }
       await goOffline();
     } else if (uiStatus === 'offline') {
-      goLive(pendingBookingMode, pendingTimer);
-      dismissTooltip();
+      setShowLocationPicker(true);
     }
+  };
+
+  const handleLocationSelect = (locationId: string) => {
+    setPendingLocationId(locationId);
+    setShowLocationPicker(false);
+    goLive(pendingBookingMode, pendingTimer, locationId);
+    dismissTooltip();
   };
 
   const handleGoOfflineAnyway = async () => {
@@ -110,9 +121,14 @@ const AvailabilityHeader: React.FC = () => {
   };
 
   return (
+    <>
     <div
-      className={`fixed top-16 left-0 right-0 z-40 h-16 border-b border-ink/10 bg-paper ${
-        isLive ? 'border-t-2 border-green-500' : ''
+      className={`fixed top-16 left-0 right-0 z-[55] h-16 border-b transition-colors duration-300 ${
+        isLive
+          ? 'bg-emerald-950/95 border-emerald-500/30 backdrop-blur-sm'
+          : uiStatus === 'going_live'
+          ? 'bg-amber-950/90 border-amber-500/30 backdrop-blur-sm'
+          : 'bg-stone-950/95 border-stone-700/30 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-6xl mx-auto h-full px-6 flex items-center justify-between gap-4">
@@ -123,10 +139,10 @@ const AvailabilityHeader: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setPendingBookingMode('instant')}
-                className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors rounded-full ${
+                className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-200 rounded-full border ${
                   pendingBookingMode === 'instant'
-                    ? 'bg-ink text-white'
-                    : 'text-ink/40 hover:text-ink'
+                    ? 'bg-white text-stone-950 border-white/80 shadow-sm shadow-white/10'
+                    : 'text-stone-400 border-stone-600/40 hover:text-white hover:border-stone-400/60'
                 }`}
               >
                 Instant Book
@@ -134,10 +150,10 @@ const AvailabilityHeader: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setPendingBookingMode('request')}
-                className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors rounded-full ${
+                className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-200 rounded-full border ${
                   pendingBookingMode === 'request'
-                    ? 'bg-ink text-white'
-                    : 'text-ink/40 hover:text-ink'
+                    ? 'bg-white text-stone-950 border-white/80 shadow-sm shadow-white/10'
+                    : 'text-stone-400 border-stone-600/40 hover:text-white hover:border-stone-400/60'
                 }`}
               >
                 Request
@@ -155,7 +171,7 @@ const AvailabilityHeader: React.FC = () => {
             {/* First-time tooltip */}
             {showTooltip && uiStatus === 'offline' && (
               <div
-                className="absolute top-full left-0 mt-2 z-50 bg-ink text-paper p-3 text-[10px] uppercase tracking-[0.2em] whitespace-nowrap"
+                className="absolute top-full left-0 mt-2 z-50 bg-white text-stone-900 p-3 text-[10px] uppercase tracking-[0.2em] whitespace-nowrap rounded shadow-lg"
                 style={{ minWidth: '240px' }}
               >
                 Tap to go live. Clients can book you instantly.
@@ -174,7 +190,7 @@ const AvailabilityHeader: React.FC = () => {
         {/* Center: Status + Countdown */}
         <div className="flex items-center gap-3">
           {isActive && (
-            <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/40">
+            <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-emerald-300/70">
               {bookingMode === 'instant' ? 'Instant Book' : 'Request to Book'}
             </span>
           )}
@@ -196,8 +212,8 @@ const AvailabilityHeader: React.FC = () => {
 
       {/* Going-offline warning */}
       {showOfflineWarning && (
-        <div className="absolute inset-x-0 top-full z-40 bg-paper border-b border-ink/10 px-6 py-3 flex items-center gap-4">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/60 flex-1">
+        <div className="absolute inset-x-0 top-full z-40 bg-stone-950 border-b border-stone-700/30 px-6 py-3 flex items-center gap-4">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-stone-400 flex-1">
             You have {upcomingCount} upcoming{' '}
             {upcomingCount === 1 ? 'booking' : 'bookings'}. Going offline
             won&apos;t cancel them.
@@ -205,7 +221,7 @@ const AvailabilityHeader: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowOfflineWarning(false)}
-            className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/40 hover:text-ink"
+            className="text-[10px] uppercase tracking-[0.2em] font-medium text-stone-500 hover:text-white"
           >
             Stay Live
           </button>
@@ -219,6 +235,16 @@ const AvailabilityHeader: React.FC = () => {
         </div>
       )}
     </div>
+
+    {/* Location picker modal */}
+    {showLocationPicker && trainerProfile && (
+      <GoLiveLocationPicker
+        trainerId={trainerProfile.id}
+        onSelect={handleLocationSelect}
+        onClose={() => setShowLocationPicker(false)}
+      />
+    )}
+    </>
   );
 };
 

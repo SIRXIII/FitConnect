@@ -13,7 +13,7 @@ export interface UseAvailabilitySessionReturn {
   countdownDisplay: string;
   showExtendPills: boolean;
   setShowExtendPills: (v: boolean) => void;
-  goLive: (bookingMode: 'instant' | 'request', timer: number | 'eod' | null) => void;
+  goLive: (bookingMode: 'instant' | 'request', timer: number | 'eod' | null, locationId?: string) => void;
   goOffline: () => Promise<void>;
   cancelWarmup: () => void;
   setSleepTimer: (duration: number | 'eod') => void;
@@ -128,7 +128,7 @@ export function useAvailabilitySession(
   }, []);
 
   const goLive = useCallback(
-    (mode: 'instant' | 'request', timer: number | 'eod' | null) => {
+    (mode: 'instant' | 'request', timer: number | 'eod' | null, locationId?: string) => {
       if (!trainerProfile) return;
 
       setUiStatus('going_live');
@@ -145,6 +145,7 @@ export function useAvailabilitySession(
             booking_mode: mode,
             sleep_timer_expires_at: sleepTimerExpiresAt,
             availability_session_started_at: new Date().toISOString(),
+            active_location_id: locationId ?? null,
           })
           .eq('id', trainerProfile.id);
 
@@ -154,6 +155,7 @@ export function useAvailabilitySession(
           await useAuthStore.getState().fetchProfile(trainerProfile.user_id);
         } else {
           // DB write failed — revert to offline
+          console.error('[goLive] DB update failed:', JSON.stringify(error));
           setUiStatus('offline');
           toast.error('Failed to go live. Check your connection and try again.');
         }
@@ -171,6 +173,7 @@ export function useAvailabilitySession(
         availability_status: 'offline',
         sleep_timer_expires_at: null,
         availability_session_started_at: null,
+        active_location_id: null,
       })
       .eq('id', trainerProfile.id);
 
