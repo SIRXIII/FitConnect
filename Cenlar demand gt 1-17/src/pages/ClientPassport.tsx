@@ -5,6 +5,10 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { FITNESS_GOALS, WORKOUT_TYPES, FREQUENCIES } from '@/lib/profileConstants';
+import ProfileProgressRing from '@/components/client/ProfileProgressRing';
+import HealthConditionsChecklist from '@/components/client/HealthConditionsChecklist';
+import IntensitySlider from '@/components/client/IntensitySlider';
+import GoalRankPicker from '@/components/client/GoalRankPicker';
 
 // --- Image compression ---
 
@@ -28,6 +32,13 @@ async function compressImage(file: File, maxSize = 400, quality = 0.7): Promise<
     img.src = URL.createObjectURL(file);
   });
 }
+
+// --- Fitness level options ---
+const LEVELS = [
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
+];
 
 // --- Component ---
 
@@ -182,12 +193,15 @@ const ClientPassport: React.FC = () => {
     <div className="min-h-screen bg-paper pt-24 pb-20 px-6">
       <div className="max-w-xl mx-auto space-y-10">
 
-        {/* Header */}
-        <div className="space-y-3">
-          <h1 className="text-3xl serif font-light italic">Your Fitness Passport</h1>
-          <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
-            Help trainers understand your goals and build sessions tailored to you
-          </p>
+        {/* Header + Progress Ring */}
+        <div className="flex items-start gap-6">
+          <ProfileProgressRing completionPct={completionPct} missingFields={missingFields} />
+          <div className="space-y-2 pt-2">
+            <h1 className="text-3xl serif font-light italic">Your Fitness Passport</h1>
+            <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              Help trainers understand your goals
+            </p>
+          </div>
         </div>
 
         {/* Avatar Section */}
@@ -236,136 +250,254 @@ const ClientPassport: React.FC = () => {
           />
         </div>
 
-        {/* Bio Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-              Bio
-            </label>
-            <span className={`text-[10px] tracking-wide ${bio.length > 450 ? 'text-red-500' : 'text-ink/30'}`}>
-              {bio.length}/500
-            </span>
+        {/* SECTION: Personal Info */}
+        <section className="space-y-6">
+          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/30 border-b border-ink/10 pb-2">
+            Personal Info
+          </h2>
+
+          {/* Bio */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Bio</label>
+              <span className={`text-[10px] tracking-wide ${bio.length > 450 ? 'text-red-500' : 'text-ink/30'}`}>
+                {bio.length}/500
+              </span>
+            </div>
+            <textarea
+              value={bio}
+              onChange={e => setBio(e.target.value.slice(0, 500))}
+              onBlur={() => saveField({ bio: bio.trim() || null })}
+              rows={4}
+              placeholder="Tell trainers about yourself, your fitness journey, and what you're looking for..."
+              className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
+            />
           </div>
-          <textarea
-            value={bio}
-            onChange={e => setBio(e.target.value.slice(0, 500))}
-            onBlur={() => saveField({ bio: bio.trim() || null })}
-            rows={4}
-            placeholder="Tell trainers about yourself, your fitness journey, and what you're looking for..."
-            className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
+
+          {/* Age */}
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Age</label>
+            <input
+              type="number"
+              value={age}
+              onChange={e => setAge(e.target.value ? parseInt(e.target.value) : '')}
+              onBlur={() => age !== '' && saveField({ age })}
+              min={13}
+              max={120}
+              placeholder="e.g. 28"
+              className="w-full border border-ink/15 bg-transparent p-3 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20"
+            />
+          </div>
+
+          {/* Weight */}
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Weight (lbs)</label>
+            <input
+              type="number"
+              value={weightLbs}
+              onChange={e => setWeightLbs(e.target.value ? parseFloat(e.target.value) : '')}
+              onBlur={() => weightLbs !== '' && saveField({ weight_lbs: weightLbs })}
+              min={50}
+              max={1000}
+              placeholder="e.g. 160"
+              className="w-full border border-ink/15 bg-transparent p-3 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20"
+            />
+          </div>
+
+          {/* Height */}
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Height</label>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <input
+                  type="number"
+                  value={heightFt}
+                  onChange={e => setHeightFt(e.target.value ? parseInt(e.target.value) : '')}
+                  onBlur={() => (heightFt !== '' || heightIn !== '') && saveField({ height_ft: heightFt || null, height_in: heightIn || null })}
+                  min={3}
+                  max={8}
+                  placeholder="ft"
+                  className="w-full border border-ink/15 bg-transparent p-3 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20"
+                />
+              </div>
+              <div className="flex-1">
+                <input
+                  type="number"
+                  value={heightIn}
+                  onChange={e => setHeightIn(e.target.value ? parseInt(e.target.value) : '')}
+                  onBlur={() => (heightFt !== '' || heightIn !== '') && saveField({ height_ft: heightFt || null, height_in: heightIn || null })}
+                  min={0}
+                  max={11}
+                  placeholder="in"
+                  className="w-full border border-ink/15 bg-transparent p-3 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Fitness Level */}
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Fitness Level</p>
+            <div className="flex gap-2">
+              {LEVELS.map(l => (
+                <button
+                  key={l.value}
+                  type="button"
+                  onClick={() => {
+                    setFitnessLevel(l.value);
+                    saveField({ fitness_level: l.value });
+                  }}
+                  className={`flex-1 py-3 border text-[11px] uppercase tracking-[0.15em] font-medium transition-all ${
+                    fitnessLevel === l.value
+                      ? 'border-accent bg-accent/5 text-accent'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                  }`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION: Health */}
+        <section className="space-y-6">
+          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/30 border-b border-ink/10 pb-2">
+            Health
+          </h2>
+          <HealthConditionsChecklist
+            selected={healthConditions}
+            otherNotes={limitations}
+            onToggle={(val) => {
+              const next = healthConditions.includes(val)
+                ? healthConditions.filter(c => c !== val)
+                : [...healthConditions, val];
+              setHealthConditions(next);
+              saveField({ health_conditions: next });
+            }}
+            onNotesChange={(notes) => setLimitations(notes)}
+            onNotesBlur={() => saveField({ health_notes: limitations.trim() || null })}
           />
-        </div>
+        </section>
 
-        {/* Fitness Goals */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-              Fitness Goals
-            </p>
-            <span className="text-[10px] text-ink/30 tracking-wide">
-              {fitnessGoals.length}/5 selected
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {FITNESS_GOALS.map(g => (
-              <button
-                key={g.value}
-                onClick={() => {
-                  if (!fitnessGoals.includes(g.value) && fitnessGoals.length >= 5) return;
-                  const next = toggle(fitnessGoals, g.value);
-                  setFitnessGoals(next);
-                  saveField({ fitness_goals: next });
-                }}
-                className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
-                  fitnessGoals.includes(g.value)
-                    ? 'border-accent bg-accent/5 text-accent'
-                    : 'border-ink/10 hover:border-ink/30 text-ink/60'
-                }`}
-              >
-                {g.label}
-                {fitnessGoals.includes(g.value) && <Check size={12} />}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* SECTION: Preferences */}
+        <section className="space-y-6">
+          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/30 border-b border-ink/10 pb-2">
+            Preferences
+          </h2>
 
-        {/* Workout Types */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-              Workout Types
-            </p>
-            <span className="text-[10px] text-ink/30 tracking-wide">
-              {workoutTypes.length}/8 selected
-            </span>
+          {/* Intensity */}
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Workout Intensity</p>
+            <IntensitySlider
+              value={intensityPreference}
+              onChange={(val) => {
+                setIntensityPreference(val);
+                saveField({ intensity_preference: val });
+              }}
+            />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {WORKOUT_TYPES.map(w => (
-              <button
-                key={w.value}
-                onClick={() => {
-                  if (!workoutTypes.includes(w.value) && workoutTypes.length >= 8) return;
-                  const next = toggle(workoutTypes, w.value);
-                  setWorkoutTypes(next);
-                  saveField({ workout_types: next });
-                }}
-                className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
-                  workoutTypes.includes(w.value)
-                    ? 'border-accent bg-accent/5 text-accent'
-                    : 'border-ink/10 hover:border-ink/30 text-ink/60'
-                }`}
-              >
-                {w.label}
-                {workoutTypes.includes(w.value) && <Check size={12} />}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {/* Training Frequency */}
-        <div className="space-y-3">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-            Training Frequency
-          </p>
-          <div className="flex gap-2">
-            {FREQUENCIES.map(f => (
-              <button
-                key={f.value}
-                onClick={() => {
-                  setTrainingFrequency(f.value);
-                  saveField({ training_frequency: f.value });
-                }}
-                className={`flex-1 py-3 border text-[11px] uppercase tracking-[0.15em] font-medium transition-all ${
-                  trainingFrequency === f.value
-                    ? 'border-accent bg-accent/5 text-accent'
-                    : 'border-ink/10 hover:border-ink/30 text-ink/60'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
+          {/* Goal Ranking */}
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Goal Ranking</p>
+            <GoalRankPicker
+              ranked={goalsRanked}
+              onChange={(ranked) => {
+                setGoalsRanked(ranked);
+                saveField({ goals_ranked: ranked });
+              }}
+            />
           </div>
-        </div>
 
-        {/* Physical Limitations */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-              Physical Limitations & Health Notes
-            </label>
-            <span className={`text-[10px] tracking-wide ${limitations.length > 900 ? 'text-red-500' : 'text-ink/30'}`}>
-              {limitations.length}/1000
-            </span>
+          {/* Workout Types */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Workout Types</p>
+              <span className="text-[10px] text-ink/30 tracking-wide">
+                {workoutTypes.length}/8 selected
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {WORKOUT_TYPES.map(w => (
+                <button
+                  key={w.value}
+                  type="button"
+                  onClick={() => {
+                    if (!workoutTypes.includes(w.value) && workoutTypes.length >= 8) return;
+                    const next = toggle(workoutTypes, w.value);
+                    setWorkoutTypes(next);
+                    saveField({ workout_types: next });
+                  }}
+                  className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
+                    workoutTypes.includes(w.value)
+                      ? 'border-accent bg-accent/5 text-accent'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                  }`}
+                >
+                  {w.label}
+                  {workoutTypes.includes(w.value) && <Check size={12} />}
+                </button>
+              ))}
+            </div>
           </div>
-          <textarea
-            value={limitations}
-            onChange={e => setLimitations(e.target.value.slice(0, 1000))}
-            onBlur={() => saveField({ health_notes: limitations.trim() || null })}
-            rows={3}
-            placeholder="e.g. Previous ACL surgery, avoid high-impact on left knee"
-            className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
-          />
-        </div>
+
+          {/* Training Frequency */}
+          <div className="space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Training Frequency</p>
+            <div className="flex gap-2">
+              {FREQUENCIES.map(f => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => {
+                    setTrainingFrequency(f.value);
+                    saveField({ training_frequency: f.value });
+                  }}
+                  className={`flex-1 py-3 border text-[11px] uppercase tracking-[0.15em] font-medium transition-all ${
+                    trainingFrequency === f.value
+                      ? 'border-accent bg-accent/5 text-accent'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Fitness Goals (legacy — keep for backwards compatibility) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Additional Goals</p>
+              <span className="text-[10px] text-ink/30 tracking-wide">
+                {fitnessGoals.length}/5 selected
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {FITNESS_GOALS.map(g => (
+                <button
+                  key={g.value}
+                  type="button"
+                  onClick={() => {
+                    if (!fitnessGoals.includes(g.value) && fitnessGoals.length >= 5) return;
+                    const next = toggle(fitnessGoals, g.value);
+                    setFitnessGoals(next);
+                    saveField({ fitness_goals: next });
+                  }}
+                  className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
+                    fitnessGoals.includes(g.value)
+                      ? 'border-accent bg-accent/5 text-accent'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                  }`}
+                >
+                  {g.label}
+                  {fitnessGoals.includes(g.value) && <Check size={12} />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
 
       </div>
     </div>
