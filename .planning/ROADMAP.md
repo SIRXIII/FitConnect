@@ -150,7 +150,7 @@ Plans:
   2. Client can read session notes left by their trainer on each past booking
   3. Trainer can log structured workout data (exercises, sets, reps) for a completed session
   4. Client sees a progress timeline view that charts session history and workout trends over time
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 24-01-PLAN.md — DB migration, TypeScript types, SessionLogPanel component, TrainerBookings integration
 - [ ] 24-02-PLAN.md — SessionNotesDisplay component, MyBookings integration (client view)
@@ -228,7 +228,7 @@ Plans:
 | 22. Availability Toggle Foundation | v4.0 | 3/3 | ✅ | 2026-03-19 |
 | 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | 2026-03-19 |
 | 23.1. Client Profile Enhancement | 3/3 | Complete    | 2026-03-19 | - |
-| 24. Session Logging | 1/3 | In Progress|  | - |
+| 24. Session Logging | 2/3 | In Progress|  | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |
 | 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
 | 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
