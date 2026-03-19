@@ -68,6 +68,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 - [x] **Phase 21: Email Capture + Platform Controls** — Landing page waitlist with position display, GCP billing safeguards, Google OAuth verification started (completed 2026-03-18)
 - [x] **Phase 22: Availability Toggle Foundation** — Uber-style live toggle, sleep timer, atomic booking RPC (completed 2026-03-19)
 - [x] **Phase 23: Map View + Trainer Locations** — Clustered trainer pins on Google Maps, trainer location management, live pin updates (completed 2026-03-19)
+- [ ] **Phase 23.1: Client Profile Enhancement** — Photo upload, personal stats (age/weight/height), fitness level, health conditions, workout intensity preferences
 - [ ] **Phase 24: Session Logging** — Post-session notes, structured workout logs, client progress timeline
 - [ ] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations
 - [ ] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score
@@ -122,6 +123,19 @@ Plans:
 - [ ] 23-02-PLAN.md — Trainer workout location management: useWorkoutLocations hook, WorkoutLocationsManager, GoLiveLocationPicker
 - [ ] 23-03-PLAN.md — Map sub-components: TrainerMapPin, TrainerInfoCard, LocationTypeChips, SearchAreaButton, ClientLocationDot, RadiusCircle
 - [ ] 23-04-PLAN.md — MapView integration: useMapTrainers hook, MapView, MapListToggle, SearchSection wiring, MobileTrainerSheet
+
+### Phase 23.1: Client Profile Enhancement
+**Goal**: Clients can complete a rich profile with photos, personal stats, fitness level, health conditions, and workout intensity preferences so trainers can prepare effective sessions
+**Depends on**: Phase 23
+**Requirements**: CPROFILE-01, CPROFILE-02, CPROFILE-03, CPROFILE-04, CPROFILE-05, CPROFILE-06
+**Success Criteria** (what must be TRUE):
+  1. Client can upload a profile photo and gallery images from their profile settings
+  2. Client can enter age, weight, and height with appropriate input validation
+  3. Client can select their fitness/strength level (beginner, intermediate, advanced)
+  4. Client can log health conditions, injuries, allergies, or medical notes in a free-text field
+  5. Client can set workout intensity preference via a visual toggle or slider (light, moderate, intense)
+  6. Booked trainers can view the client's profile data (stats, conditions, preferences) before a session
+**Plans**: TBD
 
 ### Phase 24: Session Logging
 **Goal**: Trainers can write post-session notes and structured workout data after a session, and clients can view their personal training history and progress over time

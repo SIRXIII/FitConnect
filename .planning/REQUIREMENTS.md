@@ -60,6 +60,15 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 - [ ] **CALSYNC-04**: Booking cancellation removes the corresponding Google Calendar event
 - [ ] **CALSYNC-05**: Existing iCal export continues working as fallback during OAuth verification
 
+### Client Profile (CPROFILE)
+
+- [ ] **CPROFILE-01**: Client can upload profile photos (avatar + gallery)
+- [ ] **CPROFILE-02**: Client can enter personal stats (age, weight, height)
+- [ ] **CPROFILE-03**: Client can set fitness/strength level (beginner, intermediate, advanced)
+- [ ] **CPROFILE-04**: Client can log health conditions and medical notes (injuries, allergies, limitations)
+- [ ] **CPROFILE-05**: Client can set workout intensity preference (light, moderate, intense) via toggle/slider
+- [ ] **CPROFILE-06**: Client profile data is visible to booked trainers for session preparation
+
 ### Session History (SESSION)
 
 - [ ] **SESSION-01**: Trainer can write post-session notes for a completed booking
@@ -122,6 +131,12 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | LOC-02 | Phase 23 | Complete |
 | LOC-03 | Phase 23 | Complete |
 | LOC-04 | Phase 23 | Complete |
+| CPROFILE-01 | Phase 23.1 | Pending |
+| CPROFILE-02 | Phase 23.1 | Pending |
+| CPROFILE-03 | Phase 23.1 | Pending |
+| CPROFILE-04 | Phase 23.1 | Pending |
+| CPROFILE-05 | Phase 23.1 | Pending |
+| CPROFILE-06 | Phase 23.1 | Pending |
 | SESSION-01 | Phase 24 | Pending |
 | SESSION-02 | Phase 24 | Pending |
 | SESSION-03 | Phase 24 | Pending |
@@ -146,8 +161,8 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | CALSYNC-05 | Phase 28 | Pending |
 
 **Coverage:**
-- v4.0 requirements: 38 total
-- Mapped to phases: 38
+- v4.0 requirements: 44 total
+- Mapped to phases: 44
 - Unmapped: 0 ✓
 
 ---
