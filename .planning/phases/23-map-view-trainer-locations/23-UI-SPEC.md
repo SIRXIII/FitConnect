@@ -53,10 +53,10 @@ Exceptions:
 |------|------|--------|-------------|------|
 | Body | 14px | 400 (regular) | 1.5 | Inter (sans) |
 | Label | 10px | 600 (semibold), uppercase, tracking-[0.2em] | 1 | Inter (sans) |
-| Heading | 24px | 300 (light) | 1.2 | Cormorant Garamond (serif) |
+| Heading | 24px | 400 (regular) | 1.2 | Cormorant Garamond (serif) |
 | Display | 20px | 400 italic | 1.2 | Cormorant Garamond (serif, prices/rates) |
 
-Pattern from TrainerCard: `text-2xl serif font-light` for name, `text-[10px] uppercase tracking-widest` for labels. All labels use uppercase + wide tracking — apply consistently on info card, chip toggles, and location manager.
+Pattern from TrainerCard: `text-2xl serif` for name, `text-[10px] uppercase tracking-widest` for labels. The serif typeface provides sufficient visual distinction from Inter without font-light. All labels use uppercase + wide tracking — apply consistently on info card, chip toggles, and location manager.
 
 ---
 
@@ -164,7 +164,7 @@ Live status: `green-500` (#22C55E) pulsing dot — matches existing `LiveNowBadg
 - Location type: three-button toggle (Gym / Park / In-Home); required before saving
 - Nickname field: optional text input, placeholder "e.g. Venice Beach Spot"; max 40 characters
 - Maximum 5 locations: "Add Location" button disabled and shows tooltip "Maximum 5 locations reached" when at capacity
-- Delete location: trash icon button (lucide `Trash2`, 16px); triggers inline confirmation "Remove this location? This cannot be undone. [Cancel] [Remove]" — uses `red-500` for Remove button
+- Delete location: trash icon button (lucide `Trash2`, 16px, `aria-label="Remove location"`); triggers inline confirmation "Remove this location? This cannot be undone. [Cancel] [Remove]" — uses `red-500` for Remove button
 
 ### Go Live Location Picker
 
@@ -209,6 +209,8 @@ Live status: `green-500` (#22C55E) pulsing dot — matches existing `LiveNowBadg
 ---
 
 ## Map Styling
+
+Primary visual anchor: the map surface with trainer pins. All overlay controls (chips, search button, bottom sheet) are secondary to the map canvas.
 
 Map style: light, minimal — use Google Maps default light style. No custom map JSON styles this phase (left to Claude's discretion per CONTEXT.md). Avoid dark map theme as it conflicts with `--color-paper` dominant surface.
 
