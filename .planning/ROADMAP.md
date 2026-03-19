@@ -73,7 +73,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 - [x] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations (completed 2026-03-19)
 - [x] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score (completed 2026-03-19)
 - [x] **Phase 27: Location-Based Notifications** — Nearby trainer alerts, notification preferences, frequency caps (completed 2026-03-19)
-- [ ] **Phase 28: Google Calendar Bidirectional Sync** — OAuth connect flow, booking push to GCal, external event blocking
+- [x] **Phase 28: Google Calendar Bidirectional Sync** — OAuth connect flow, booking push to GCal, external event blocking (completed 2026-03-19)
 
 ## Phase Details
 
@@ -208,7 +208,7 @@ Plans:
   3. An event added to the trainer's external Google Calendar blocks the corresponding FitRush availability slot from being booked
   4. When a booking is cancelled in FitRush, the corresponding Google Calendar event is removed
   5. Trainers who have not connected Google Calendar can still subscribe to the iCal feed as before
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 28-01-PLAN.md — DB migration, TS types, shared gcal-helpers module, OAuth callback page
 - [ ] 28-02-PLAN.md — OAuth connect Edge Function, useGcalConnection hook, GoogleCalendarConnect UI, TrainerDashboard wiring
@@ -245,7 +245,7 @@ Plans:
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
 | 26. AI Discount Analytics | 2/2 | Complete    | 2026-03-19 | - |
 | 27. Location-Based Notifications | 2/2 | Complete    | 2026-03-19 | - |
-| 28. Google Calendar Bidirectional Sync | 2/3 | In Progress|  | - |
+| 28. Google Calendar Bidirectional Sync | 3/3 | Complete   | 2026-03-19 | - |
 
 ---
 *Last updated: 2026-03-19 — Phase 28 plans created*

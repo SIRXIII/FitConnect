@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
-status: executing
-stopped_at: Completed 28-02-PLAN.md
-last_updated: "2026-03-19T21:18:00.925Z"
-last_activity: 2026-03-19 -- GCal OAuth connect/disconnect Edge Function, useGcalConnection hook, GoogleCalendarConnect UI card
+status: complete
+stopped_at: Completed 28-03-PLAN.md
+last_updated: "2026-03-19T21:22:00.000Z"
+last_activity: 2026-03-19 -- sync-booking-to-gcal, sync-gcal-events Edge Functions; cancel-booking extended with GCal deletion
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State -- FitRush
@@ -103,6 +103,8 @@ Recent decisions relevant to v4.0:
 - [Phase 28]: Edge Function handles both connect and disconnect in one function via action param to keep deploy surface minimal
 - [Phase 28]: prompt=consent + access_type=offline hardcoded in OAuth URL to guarantee refresh_token on every auth (Pitfall 1)
 - [Phase 28]: sessionStorage for CSRF state in OAuth popup flow — cleared on tab close, scoped to origin
+- [Phase 28]: GCal deletion on cancellation is best-effort (non-blocking) — cancellation never fails due to GCal
+- [Phase 28]: sync-gcal-events accepts both service-role (pg_cron) and user auth (manual sync) in one function
 
 ## Blockers / Concerns
 
@@ -125,6 +127,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T21:17:55.915Z
-Stopped at: Completed 28-02-PLAN.md
+Last session: 2026-03-19T21:21:59.025Z
+Stopped at: Completed 28-03-PLAN.md
 Resume file: None
