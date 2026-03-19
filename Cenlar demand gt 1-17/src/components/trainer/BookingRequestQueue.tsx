@@ -20,6 +20,16 @@ interface BookingRequest {
     start_time: string;
     end_time: string;
   };
+  client_profile?: {
+    fitness_level: string | null;
+    goals_ranked: string[];
+    health_conditions: string[];
+    intensity_preference: string | null;
+    health_notes: string | null;
+    age: number | null;
+    weight_lbs: number | null;
+    workout_types: string[];
+  } | null;
 }
 
 const BookingRequestQueue: React.FC = () => {
@@ -33,7 +43,7 @@ const BookingRequestQueue: React.FC = () => {
     const { data, error } = await supabase
       .from('booking_requests')
       .select(
-        '*, profiles!booking_requests_client_id_fkey(full_name, avatar_url), availability_slots!booking_requests_slot_id_fkey(start_time, end_time)'
+        '*, profiles!booking_requests_client_id_fkey(full_name, avatar_url), client_profiles!booking_requests_client_id_fkey(fitness_level, goals_ranked, health_conditions, intensity_preference, health_notes, age, weight_lbs, workout_types), availability_slots!booking_requests_slot_id_fkey(start_time, end_time)'
       )
       .eq('trainer_id', trainerProfile.id)
       .eq('status', 'pending')
@@ -49,6 +59,16 @@ const BookingRequestQueue: React.FC = () => {
         status: 'pending' | 'accepted' | 'declined';
         created_at: string;
         profiles?: { full_name: string; avatar_url: string | null };
+        client_profiles?: {
+          fitness_level: string | null;
+          goals_ranked: string[];
+          health_conditions: string[];
+          intensity_preference: string | null;
+          health_notes: string | null;
+          age: number | null;
+          weight_lbs: number | null;
+          workout_types: string[];
+        } | null;
         availability_slots?: { start_time: string; end_time: string };
       }>).map((row) => ({
         id: row.id,
@@ -59,6 +79,7 @@ const BookingRequestQueue: React.FC = () => {
         created_at: row.created_at,
         client: row.profiles ?? undefined,
         slot: row.availability_slots ?? undefined,
+        client_profile: row.client_profiles ?? undefined,
       }));
       setRequests(mapped);
     }

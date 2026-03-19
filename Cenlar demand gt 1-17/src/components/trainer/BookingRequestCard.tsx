@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import ClientSummaryCard from '@/components/client/ClientSummaryCard';
 
 interface BookingRequestCardProps {
   request: {
@@ -16,6 +17,16 @@ interface BookingRequestCardProps {
       start_time: string;
       end_time: string;
     };
+    client_profile?: {
+      fitness_level: string | null;
+      goals_ranked: string[];
+      health_conditions: string[];
+      intensity_preference: string | null;
+      health_notes: string | null;
+      age: number | null;
+      weight_lbs: number | null;
+      workout_types: string[];
+    } | null;
   };
   onAccept: (requestId: string) => void;
   onDecline: (requestId: string) => void;
@@ -104,6 +115,14 @@ const BookingRequestCard: React.FC<BookingRequestCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Client profile summary */}
+      <ClientSummaryCard
+        data={request.client_profile ? {
+          ...request.client_profile,
+          primary_goal: request.client_profile.goals_ranked?.[0] ?? null,
+        } : null}
+      />
 
       {/* Auto-decline countdown */}
       <p className={`text-[10px] uppercase tracking-[0.15em] font-medium ${countdownColor}`}>
