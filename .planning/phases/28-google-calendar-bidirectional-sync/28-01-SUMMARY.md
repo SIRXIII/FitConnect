@@ -85,7 +85,7 @@ Each task was committed atomically:
 1. **Task 1: Database migration for Google Calendar sync tables and RPC updates** - `c116a0e` (feat)
 2. **Task 2: TypeScript types, shared GCal helpers, and OAuth callback page** - `eeece44` (feat)
 
-**Plan metadata:** _(pending docs commit)_
+**Plan metadata:** `d4bb94b` (docs: complete plan)
 
 ## Files Created/Modified
 
