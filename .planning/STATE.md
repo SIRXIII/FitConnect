@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Phase 23 UI-SPEC approved
-last_updated: "2026-03-19T04:16:36.823Z"
+stopped_at: Completed 23-01-PLAN.md
+last_updated: "2026-03-19T05:37:10.910Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 9
+  completed_plans: 6
 ---
 
 # Project State -- FitRush
@@ -64,6 +64,8 @@ Recent decisions relevant to v4.0:
 - [Phase 22]: [22-02] 10-minute warning fires when remaining in 590-600s range to handle 1s tick jitter
 - [Phase 22]: Request mode navigates immediately to /client/bookings after booking_requests insert — avoids payment wizard for request flow
 - [Phase 22]: [Phase 22-03]: create_booking_atomic function signature added manually to supabase.ts Types until supabase types are regenerated
+- [Phase 23-map-view-trainer-locations]: geo_point omitted from TS types — GENERATED ALWAYS column is server-side only
+- [Phase 23-map-view-trainer-locations]: trainers_in_view uses SET search_path TO '' for security — all refs fully schema-qualified
 
 ## Blockers / Concerns
 
@@ -86,6 +88,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:16:36.820Z
-Stopped at: Phase 23 UI-SPEC approved
-Resume file: .planning/phases/23-map-view-trainer-locations/23-UI-SPEC.md
+Last session: 2026-03-19T05:37:10.907Z
+Stopped at: Completed 23-01-PLAN.md
+Resume file: None

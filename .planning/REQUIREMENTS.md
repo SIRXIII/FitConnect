@@ -9,19 +9,19 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 ### Maps (MAP)
 
-- [ ] **MAP-01**: Client can view a Google Map with clustered trainer location pins
+- [x] **MAP-01**: Client can view a Google Map with clustered trainer location pins
 - [ ] **MAP-02**: Client can click a pin to see trainer info card (name, specialty, rate, Book button)
 - [ ] **MAP-03**: Client can toggle between map view and list view on the search page
-- [ ] **MAP-04**: Map shows only trainers currently marked as available (live pin visibility)
+- [x] **MAP-04**: Map shows only trainers currently marked as available (live pin visibility)
 - [ ] **MAP-05**: Trainer pins display location type icon (gym, park, in-home)
 - [ ] **MAP-06**: Elite trainer pins display tier badge on map
 
 ### Trainer Locations (LOC)
 
-- [ ] **LOC-01**: Trainer can add workout locations with address entry and Google Maps preview
-- [ ] **LOC-02**: Trainer can adjust pin position on map after address entry
-- [ ] **LOC-03**: Trainer can select location type (gym, park, in-home) for each workout spot
-- [ ] **LOC-04**: Trainer can manage multiple workout locations
+- [x] **LOC-01**: Trainer can add workout locations with address entry and Google Maps preview
+- [x] **LOC-02**: Trainer can adjust pin position on map after address entry
+- [x] **LOC-03**: Trainer can select location type (gym, park, in-home) for each workout spot
+- [x] **LOC-04**: Trainer can manage multiple workout locations
 
 ### Availability Toggle (AVAIL)
 
@@ -112,16 +112,16 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | AVAIL-02 | Phase 22 | Complete |
 | AVAIL-03 | Phase 22 | Complete |
 | AVAIL-04 | Phase 22 | Complete |
-| MAP-01 | Phase 23 | Pending |
+| MAP-01 | Phase 23 | Complete |
 | MAP-02 | Phase 23 | Pending |
 | MAP-03 | Phase 23 | Pending |
-| MAP-04 | Phase 23 | Pending |
+| MAP-04 | Phase 23 | Complete |
 | MAP-05 | Phase 23 | Pending |
 | MAP-06 | Phase 23 | Pending |
-| LOC-01 | Phase 23 | Pending |
-| LOC-02 | Phase 23 | Pending |
-| LOC-03 | Phase 23 | Pending |
-| LOC-04 | Phase 23 | Pending |
+| LOC-01 | Phase 23 | Complete |
+| LOC-02 | Phase 23 | Complete |
+| LOC-03 | Phase 23 | Complete |
+| LOC-04 | Phase 23 | Complete |
 | SESSION-01 | Phase 24 | Pending |
 | SESSION-02 | Phase 24 | Pending |
 | SESSION-03 | Phase 24 | Pending |
