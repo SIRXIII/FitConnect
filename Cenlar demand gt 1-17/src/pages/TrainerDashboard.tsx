@@ -14,6 +14,7 @@ import LockedFeatureBanner from '@/components/shared/LockedFeatureBanner';
 import SubscriptionTab from '@/components/subscription/SubscriptionTab';
 import CalendarExportCard from '@/components/calendar/CalendarExportCard';
 import BufferTimeSelector from '@/components/calendar/BufferTimeSelector';
+import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 
@@ -375,6 +376,7 @@ const TrainerDashboard: React.FC = () => {
         {activeTab === 'subscription' && <SubscriptionTab />}
         {activeTab === 'calendar' && (
           <div className="space-y-8">
+            <GoogleCalendarConnect trainerId={trainerProfile?.id || ''} />
             <CalendarExportCard
               token={calendarToken}
               onTokenReset={(newToken) => setCalendarToken(newToken)}
