@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 22-01-PLAN.md — DB foundation for availability toggle
-last_updated: "2026-03-19T00:54:21.103Z"
+stopped_at: Completed 22-02-PLAN.md — availability toggle UI components
+last_updated: "2026-03-19T01:00:17.495Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State -- FitRush
@@ -58,6 +58,10 @@ Recent decisions relevant to v4.0:
 - [Phase 21-02]: No waitlist position number shown — simple "You're In." confirmation per CONTEXT.md locked decision overriding WAITLIST-03 literal
 - [Phase 22-01]: pg_cron scheduled with graceful DO $$ IF EXISTS $$ fallback — migration won't fail on Free plan
 - [Phase 22-01]: expire_stale_availability auto-declines pending requests in two passes: first for trainers who went offline, then 30-minute timeout — order matters
+- [Phase 22]: [22-02] DB write on goLive fires after 5s timeout completes — warm-up keeps trainer offline to clients (Pitfall 5 compliance)
+- [Phase 22]: [22-02] AvailabilityHeader top-16 z-40, TrainerDashboard padding pt-32 -> pt-48 (nav 64px + header 64px)
+- [Phase 22]: [22-02] cancelWarmup clears setTimeout without DB write — correct since no DB change happens during warm-up
+- [Phase 22]: [22-02] 10-minute warning fires when remaining in 590-600s range to handle 1s tick jitter
 
 ## Blockers / Concerns
 
@@ -80,6 +84,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T00:54:21.102Z
-Stopped at: Completed 22-01-PLAN.md — DB foundation for availability toggle
+Last session: 2026-03-19T01:00:17.493Z
+Stopped at: Completed 22-02-PLAN.md — availability toggle UI components
 Resume file: None

@@ -25,8 +25,8 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 ### Availability Toggle (AVAIL)
 
-- [ ] **AVAIL-01**: Trainer can toggle online/offline availability (Uber-style live switch)
-- [ ] **AVAIL-02**: Trainer can set sleep timer to auto-disable availability at a chosen time
+- [x] **AVAIL-01**: Trainer can toggle online/offline availability (Uber-style live switch)
+- [x] **AVAIL-02**: Trainer can set sleep timer to auto-disable availability at a chosen time
 - [x] **AVAIL-03**: System auto-expires stale availability sessions via pg_cron
 - [x] **AVAIL-04**: Booking creation uses atomic PostgreSQL RPC to prevent double-booking race conditions
 
@@ -108,8 +108,8 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | WAITLIST-01 | Phase 21 | Complete |
 | WAITLIST-02 | Phase 21 | Complete |
 | WAITLIST-03 | Phase 21 | Complete |
-| AVAIL-01 | Phase 22 | Pending |
-| AVAIL-02 | Phase 22 | Pending |
+| AVAIL-01 | Phase 22 | Complete |
+| AVAIL-02 | Phase 22 | Complete |
 | AVAIL-03 | Phase 22 | Complete |
 | AVAIL-04 | Phase 22 | Complete |
 | MAP-01 | Phase 23 | Pending |
