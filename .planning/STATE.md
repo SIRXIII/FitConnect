@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: executing
-stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-03-19T18:37:48.615Z"
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-03-19T19:43:04.854Z"
 last_activity: "2026-03-19 -- Session logging progress tab: ProgressTab component + aggregateByWeek utility + ClientDashboard tab navigation"
 progress:
   total_phases: 9
   completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 17
+  completed_plans: 16
 ---
 
 # Project State -- FitRush
@@ -86,6 +86,9 @@ Recent decisions relevant to v4.0:
 - [Phase 24]: SessionNotesDisplay returns null when notes and exercises both empty — no expand button rendered for clients on bookings without logged data
 - [Phase 24]: Two-query fallback in ProgressTab if nested Supabase join fails — maintains data display without crashing
 - [Phase 24]: aggregateByWeek uses YYYY-WXX lexicographic sort key to avoid date parsing overhead
+- [Phase 25]: localStorage for match cache (vs Supabase table): simpler, zero-infrastructure, sufficient for single-device MVP
+- [Phase 25-01]: Single hourly_budget_max (not min+max range): simplifies scoring and UI; neutral 30/60 fallback when null
+- [Phase 25-01]: clearMatchCache on ALL saveField calls: any passport change should invalidate stale matches
 
 ## Blockers / Concerns
 
@@ -108,6 +111,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T18:34:01.747Z
-Stopped at: Completed 24-03-PLAN.md
+Last session: 2026-03-19T19:43:04.852Z
+Stopped at: Completed 25-01-PLAN.md
 Resume file: None

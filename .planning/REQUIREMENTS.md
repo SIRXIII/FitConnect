@@ -41,10 +41,10 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 ### AI Matching (AIMATCH)
 
-- [ ] **AIMATCH-01**: Client sees "Recommended for You" trainers based on Fitness Passport data
-- [ ] **AIMATCH-02**: Match score displays with 2-3 attribute explanation (e.g. "matches your HIIT goals")
-- [ ] **AIMATCH-03**: Client prompted to complete Fitness Passport if data is below matching threshold
-- [ ] **AIMATCH-04**: Match results cached for 24 hours to reduce computation
+- [x] **AIMATCH-01**: Client sees "Recommended for You" trainers based on Fitness Passport data
+- [x] **AIMATCH-02**: Match score displays with 2-3 attribute explanation (e.g. "matches your HIIT goals")
+- [x] **AIMATCH-03**: Client prompted to complete Fitness Passport if data is below matching threshold
+- [x] **AIMATCH-04**: Match results cached for 24 hours to reduce computation
 
 ### AI Trainer Analytics (AIANALYTICS)
 
@@ -141,10 +141,10 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | SESSION-02 | Phase 24 | Complete |
 | SESSION-03 | Phase 24 | Complete |
 | SESSION-04 | Phase 24 | Complete |
-| AIMATCH-01 | Phase 25 | Pending |
-| AIMATCH-02 | Phase 25 | Pending |
-| AIMATCH-03 | Phase 25 | Pending |
-| AIMATCH-04 | Phase 25 | Pending |
+| AIMATCH-01 | Phase 25 | Complete |
+| AIMATCH-02 | Phase 25 | Complete |
+| AIMATCH-03 | Phase 25 | Complete |
+| AIMATCH-04 | Phase 25 | Complete |
 | AIANALYTICS-01 | Phase 26 | Pending |
 | AIANALYTICS-02 | Phase 26 | Pending |
 | AIANALYTICS-03 | Phase 26 | Pending |

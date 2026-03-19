@@ -165,7 +165,7 @@ Plans:
   2. Each recommended trainer card shows a match score and 2–3 attribute explanations (e.g., "matches your HIIT goals, prefers your frequency")
   3. Client whose Fitness Passport is below the completeness threshold sees a prompt to complete it before recommendations appear
   4. Match results load quickly because they are cached for 24 hours after initial computation
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 25-01-PLAN.md — DB migration (hourly_budget_max), matchScoring.ts (TDD), ClientPassport budget field
 - [ ] 25-02-PLAN.md — useMatchedTrainers hook, RecommendedCarousel, MatchCard, PassportPromptCard, SearchSection integration
@@ -232,7 +232,7 @@ Plans:
 | 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | 2026-03-19 |
 | 23.1. Client Profile Enhancement | 3/3 | Complete    | 2026-03-19 | - |
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
-| 25. AI Trainer-Client Matching | v4.0 | 0/2 | Planned | - |
+| 25. AI Trainer-Client Matching | 1/2 | In Progress|  | - |
 | 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
 | 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
