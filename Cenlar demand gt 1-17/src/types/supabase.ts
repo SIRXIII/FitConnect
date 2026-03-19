@@ -503,6 +503,30 @@ export type Database = {
         };
         Returns: { booking_id: string } | { error: string };
       };
+      get_referral_leaderboard: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      get_trainer_analytics: {
+        Args: { p_trainer_id: string; p_period?: string };
+        Returns: Json;
+      };
+      get_trainer_peak_hours: {
+        Args: { p_trainer_id: string; p_period?: string };
+        Returns: Json;
+      };
+      get_admin_analytics: {
+        Args: { p_period?: string };
+        Returns: Json;
+      };
+      reset_calendar_export_token: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      get_visible_slots: {
+        Args: { p_trainer_id: string };
+        Returns: Json;
+      };
     };
     Enums: {
       [_ in never]: never;
