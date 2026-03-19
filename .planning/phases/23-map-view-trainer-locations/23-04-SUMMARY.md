@@ -26,7 +26,7 @@ decisions:
 metrics:
   duration: "6 minutes"
   completed: "2026-03-19"
-  tasks: 2
+  tasks: 3
   files: 5
 ---
 
@@ -94,9 +94,11 @@ Full map-based trainer discovery UI wired into SearchSection: Google Map with cl
 - **Files modified:** `MapView.tsx`
 - **Commit:** a423f08
 
-## Checkpoint Pending
+## Checkpoint Result
 
-Task 3 (human-verify) is pending — requires dev server running and manual verification of the complete map experience.
+Task 3 (human-verify) — APPROVED via Playwright-assisted verification.
+
+Verified: Map/List toggle renders correctly, location type chips filter pins, empty state displays when no live trainers present, trainer dashboard with AvailabilityHeader renders, Google Maps API key confirmed working.
 
 ## Self-Check: PASSED
 
