@@ -71,7 +71,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 - [x] **Phase 23.1: Client Profile Enhancement** — Photo upload, personal stats (age/weight/height), fitness level, health conditions, workout intensity preferences (completed 2026-03-19)
 - [x] **Phase 24: Session Logging** — Post-session notes, structured workout logs, client progress timeline (completed 2026-03-19)
 - [x] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations (completed 2026-03-19)
-- [ ] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score
+- [x] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score (completed 2026-03-19)
 - [ ] **Phase 27: Location-Based Notifications** — Nearby trainer alerts, notification preferences, frequency caps
 - [ ] **Phase 28: Google Calendar Bidirectional Sync** — OAuth connect flow, booking push to GCal, external event blocking
 
@@ -178,7 +178,7 @@ Plans:
   1. Trainer sees an "Optimization" tab in their analytics dashboard with a day/hour heatmap showing idle slot patterns
   2. Trainer sees recommendation cards for specific empty time blocks (e.g., "5 idle Tuesday 9am slots — try 20–30% off")
   3. Trainer sees a numeric optimization score that reflects how well their available slots are being utilized
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 26-01-PLAN.md — DB migration (RPCs) + slotOptimization pure-TS library with TDD tests
 - [ ] 26-02-PLAN.md — OptimizationSection component + AnalyticsTab integration
@@ -242,7 +242,7 @@ Plans:
 | 23.1. Client Profile Enhancement | 3/3 | Complete    | 2026-03-19 | - |
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
-| 26. AI Discount Analytics | 1/2 | In Progress|  | - |
+| 26. AI Discount Analytics | 2/2 | Complete   | 2026-03-19 | - |
 | 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
