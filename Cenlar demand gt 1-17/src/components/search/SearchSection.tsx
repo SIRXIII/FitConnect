@@ -11,6 +11,7 @@ import LiveNowBadge from '@/components/shared/LiveNowBadge';
 import BookingModeBadge from '@/components/shared/BookingModeBadge';
 import { MapListToggle } from './MapListToggle';
 import { MapView } from './MapView';
+import { RecommendedCarousel } from '@/components/recommendations/RecommendedCarousel';
 
 function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer {
   const discountPct = t.discount_percentage ?? 0;
@@ -160,6 +161,9 @@ const SearchSection: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Recommendations - only in list view */}
+        {viewMode === 'list' && <RecommendedCarousel />}
 
         {/* Results */}
         <AnimatePresence mode="wait">
