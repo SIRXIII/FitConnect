@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard, Bell, MessageSquare } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Bell, MessageSquare, MapPin } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
@@ -137,7 +137,12 @@ const Navbar: React.FC = () => {
                                   <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
                                 )}
                                 <div className={!notif.read ? '' : 'pl-3.5'}>
-                                  <p className="text-xs font-medium text-ink">{notif.title}</p>
+                                  <div className="flex items-center gap-1">
+                                    {(notif as any).type === 'trainer_live_nearby' && (
+                                      <MapPin size={12} className="text-accent shrink-0" />
+                                    )}
+                                    <p className="text-xs font-medium text-ink">{notif.title}</p>
+                                  </div>
                                   <p className="text-[10px] text-ink/40 mt-0.5">{notif.message}</p>
                                   <p className="text-[9px] text-ink/20 mt-1">
                                     {new Date(notif.created_at).toLocaleDateString('en-US', {

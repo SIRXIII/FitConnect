@@ -12,6 +12,8 @@ import BookingModeBadge from '@/components/shared/BookingModeBadge';
 import { MapListToggle } from './MapListToggle';
 import { MapView } from './MapView';
 import { RecommendedCarousel } from '@/components/recommendations/RecommendedCarousel';
+import { LookingNowToggle } from './LookingNowToggle';
+import { useAuthStore } from '@/stores/auth';
 
 function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer {
   const discountPct = t.discount_percentage ?? 0;
@@ -41,6 +43,7 @@ function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer 
 }
 
 const SearchSection: React.FC = () => {
+  const { profile } = useAuthStore();
   const [location, setLocation] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [priceRange, setPriceRange] = useState('');
@@ -157,7 +160,10 @@ const SearchSection: React.FC = () => {
               <button className="flex-1 bg-ink text-white py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-accent transition-all duration-500">
                 Refine Search
               </button>
-              <MapListToggle viewMode={viewMode} onChange={setViewMode} />
+              <div className="flex items-center gap-3">
+                {profile?.role === 'client' && <LookingNowToggle />}
+                <MapListToggle viewMode={viewMode} onChange={setViewMode} />
+              </div>
             </div>
           </div>
         </div>

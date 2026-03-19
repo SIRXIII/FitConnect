@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, User } from 'lucide-react';
+import { Calendar, Clock, User, Bell } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import ReferralWidget from '@/components/shared/ReferralWidget';
 import ProgressTab from '@/components/client/ProgressTab';
+import { NotificationPreferencesSection } from '@/components/client/NotificationPreferencesSection';
 
 const ClientDashboard: React.FC = () => {
   const { profile, user } = useAuthStore();
   const [upcomingCount, setUpcomingCount] = useState(0);
   const [pastCount, setPastCount] = useState(0);
-  const [activeTab, setActiveTab] = useState<'overview' | 'progress'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'alerts'>('overview');
 
   useEffect(() => {
     if (!user) return;
@@ -62,6 +63,15 @@ const ClientDashboard: React.FC = () => {
             }`}
           >
             Progress
+          </button>
+          <button
+            onClick={() => setActiveTab('alerts')}
+            className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors flex items-center gap-1.5 ${
+              activeTab === 'alerts' ? 'text-ink border-b-2 border-accent' : 'text-ink/30 hover:text-ink/50'
+            }`}
+          >
+            <Bell size={11} />
+            Alerts
           </button>
         </div>
 
@@ -136,8 +146,10 @@ const ClientDashboard: React.FC = () => {
               <ReferralWidget referralCode={profile.referral_code} />
             )}
           </>
-        ) : (
+        ) : activeTab === 'progress' ? (
           <ProgressTab userId={user!.id} />
+        ) : (
+          <NotificationPreferencesSection />
         )}
       </div>
     </div>
