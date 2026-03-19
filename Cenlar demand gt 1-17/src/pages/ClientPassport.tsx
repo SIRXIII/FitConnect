@@ -4,41 +4,7 @@ import { SkeletonCircle, SkeletonLine } from '@/components/shared/Skeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
-import { fitnessPassportSchema } from '@/lib/schemas';
-
-// --- Constants ---
-
-const FITNESS_GOALS = [
-  { value: 'weight_loss', label: 'Weight Loss' },
-  { value: 'muscle_gain', label: 'Build Muscle' },
-  { value: 'endurance', label: 'Endurance' },
-  { value: 'flexibility', label: 'Flexibility' },
-  { value: 'general_fitness', label: 'General Fitness' },
-  { value: 'rehabilitation', label: 'Rehabilitation' },
-  { value: 'sports_performance', label: 'Sports Performance' },
-];
-
-const WORKOUT_TYPES = [
-  { value: 'strength_training', label: 'Strength Training' },
-  { value: 'cardio', label: 'Cardio' },
-  { value: 'hiit', label: 'HIIT' },
-  { value: 'yoga', label: 'Yoga' },
-  { value: 'pilates', label: 'Pilates' },
-  { value: 'swimming', label: 'Swimming' },
-  { value: 'running', label: 'Running' },
-  { value: 'cycling', label: 'Cycling' },
-  { value: 'martial_arts', label: 'Martial Arts' },
-  { value: 'dance', label: 'Dance' },
-  { value: 'crossfit', label: 'CrossFit' },
-  { value: 'calisthenics', label: 'Calisthenics' },
-];
-
-const FREQUENCIES = [
-  { value: '1-2', label: '1-2x/week' },
-  { value: '3-4', label: '3-4x/week' },
-  { value: '5-6', label: '5-6x/week' },
-  { value: '7+', label: '7+/week' },
-];
+import { FITNESS_GOALS, WORKOUT_TYPES, FREQUENCIES } from '@/lib/profileConstants';
 
 // --- Image compression ---
 
@@ -69,6 +35,7 @@ const ClientPassport: React.FC = () => {
   const { user, profile, updateProfile } = useAuthStore();
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
+  // Existing state
   const [bio, setBio] = useState('');
   const [fitnessGoals, setFitnessGoals] = useState<string[]>([]);
   const [workoutTypes, setWorkoutTypes] = useState<string[]>([]);
@@ -76,25 +43,45 @@ const ClientPassport: React.FC = () => {
   const [limitations, setLimitations] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // New state — Phase 23.1
+  const [healthConditions, setHealthConditions] = useState<string[]>([]);
+  const [intensityPreference, setIntensityPreference] = useState<string | null>(null);
+  const [goalsRanked, setGoalsRanked] = useState<string[]>([]);
+
+  // Personal stats (already in DB but now editable here)
+  const [age, setAge] = useState<number | ''>('');
+  const [weightLbs, setWeightLbs] = useState<number | ''>('');
+  const [heightFt, setHeightFt] = useState<number | ''>('');
+  const [heightIn, setHeightIn] = useState<number | ''>('');
+  const [fitnessLevel, setFitnessLevel] = useState<string>('');
 
   // Load existing data on mount
   useEffect(() => {
     if (!user) return;
     const load = async () => {
       try {
-        const { data } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data } = await (supabase as any)
           .from('client_profiles')
-          .select('bio, fitness_goals, workout_types, training_frequency, health_notes')
+          .select('bio, fitness_goals, workout_types, training_frequency, health_notes, health_conditions, intensity_preference, goals_ranked, age, weight_lbs, height_ft, height_in, fitness_level')
           .eq('user_id', user.id)
-          .single();
+          .single() as unknown as { data: Record<string, unknown> | null };
         if (data) {
-          setBio(data.bio ?? '');
-          setFitnessGoals(data.fitness_goals ?? []);
-          setWorkoutTypes(data.workout_types ?? []);
-          setTrainingFrequency(data.training_frequency ?? '');
-          setLimitations(data.health_notes ?? '');
+          setBio((data.bio as string) ?? '');
+          setFitnessGoals((data.fitness_goals as string[]) ?? []);
+          setWorkoutTypes((data.workout_types as string[]) ?? []);
+          setTrainingFrequency((data.training_frequency as string) ?? '');
+          setLimitations((data.health_notes as string) ?? '');
+          setHealthConditions((data.health_conditions as string[]) ?? []);
+          setIntensityPreference((data.intensity_preference as string) ?? null);
+          setGoalsRanked((data.goals_ranked as string[]) ?? []);
+          setAge((data.age as number) ?? '');
+          setWeightLbs((data.weight_lbs as number) ?? '');
+          setHeightFt((data.height_ft as number) ?? '');
+          setHeightIn((data.height_in as number) ?? '');
+          setFitnessLevel((data.fitness_level as string) ?? '');
         }
       } catch {
         // No profile yet — that's fine
@@ -116,6 +103,39 @@ const ClientPassport: React.FC = () => {
   const initials = profile?.full_name
     ? profile.full_name.trim().split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
     : '?';
+
+  // --- Auto-save helper ---
+  const saveField = async (updates: Record<string, unknown>) => {
+    if (!user) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
+      .from('client_profiles')
+      .upsert({ user_id: user.id, ...updates }, { onConflict: 'user_id' });
+    if (!error) toast.success('Saved', { duration: 1200, id: 'profile-save' });
+    else toast.error('Save failed');
+  };
+
+  // --- Progress ring computation ---
+  const COMPLETION_FIELDS = [
+    !!avatarPreview,
+    !!(age),
+    !!(weightLbs),
+    !!(heightFt || heightIn),
+    !!fitnessLevel,
+    healthConditions.length > 0 || (limitations && limitations.trim().length > 0),
+    !!intensityPreference,
+    goalsRanked.length > 0,
+  ];
+  const completionPct = Math.round(
+    (COMPLETION_FIELDS.filter(Boolean).length / COMPLETION_FIELDS.length) * 100
+  );
+  const missingFields: string[] = [];
+  if (!age) missingFields.push('age');
+  if (!weightLbs) missingFields.push('weight');
+  if (!heightFt && !heightIn) missingFields.push('height');
+  if (!fitnessLevel) missingFields.push('fitness level');
+  if (!intensityPreference) missingFields.push('intensity preference');
+  if (goalsRanked.length === 0) missingFields.push('goal ranking');
 
   // --- Avatar upload with compression ---
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,49 +161,6 @@ const ClientPassport: React.FC = () => {
       toast.error('Photo upload failed. Please try again.');
     } finally {
       setUploadingAvatar(false);
-    }
-  };
-
-  // --- Save all form data ---
-  const handleSave = async () => {
-    if (!user) return;
-
-    const validation = fitnessPassportSchema.safeParse({
-      fitness_goals: fitnessGoals,
-      workout_types: workoutTypes,
-      training_frequency: trainingFrequency || undefined,
-      physical_limitations: limitations || undefined,
-      bio: bio || undefined,
-    });
-
-    if (!validation.success) {
-      const firstError = validation.error.errors[0];
-      toast.error(firstError.message);
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('client_profiles')
-        .upsert(
-          {
-            user_id: user.id,
-            bio: bio.trim() || null,
-            fitness_goals: fitnessGoals,
-            workout_types: workoutTypes,
-            training_frequency: trainingFrequency,
-            health_notes: limitations.trim() || null,
-          },
-          { onConflict: 'user_id' },
-        );
-      if (error) throw error;
-      toast.success('Fitness Passport saved!');
-    } catch (err) {
-      console.error('[ClientPassport] save error:', err);
-      toast.error('Failed to save. Please try again.');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -272,6 +249,7 @@ const ClientPassport: React.FC = () => {
           <textarea
             value={bio}
             onChange={e => setBio(e.target.value.slice(0, 500))}
+            onBlur={() => saveField({ bio: bio.trim() || null })}
             rows={4}
             placeholder="Tell trainers about yourself, your fitness journey, and what you're looking for..."
             className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
@@ -294,7 +272,9 @@ const ClientPassport: React.FC = () => {
                 key={g.value}
                 onClick={() => {
                   if (!fitnessGoals.includes(g.value) && fitnessGoals.length >= 5) return;
-                  setFitnessGoals(toggle(fitnessGoals, g.value));
+                  const next = toggle(fitnessGoals, g.value);
+                  setFitnessGoals(next);
+                  saveField({ fitness_goals: next });
                 }}
                 className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
                   fitnessGoals.includes(g.value)
@@ -325,7 +305,9 @@ const ClientPassport: React.FC = () => {
                 key={w.value}
                 onClick={() => {
                   if (!workoutTypes.includes(w.value) && workoutTypes.length >= 8) return;
-                  setWorkoutTypes(toggle(workoutTypes, w.value));
+                  const next = toggle(workoutTypes, w.value);
+                  setWorkoutTypes(next);
+                  saveField({ workout_types: next });
                 }}
                 className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
                   workoutTypes.includes(w.value)
@@ -349,7 +331,10 @@ const ClientPassport: React.FC = () => {
             {FREQUENCIES.map(f => (
               <button
                 key={f.value}
-                onClick={() => setTrainingFrequency(f.value)}
+                onClick={() => {
+                  setTrainingFrequency(f.value);
+                  saveField({ training_frequency: f.value });
+                }}
                 className={`flex-1 py-3 border text-[11px] uppercase tracking-[0.15em] font-medium transition-all ${
                   trainingFrequency === f.value
                     ? 'border-accent bg-accent/5 text-accent'
@@ -375,27 +360,13 @@ const ClientPassport: React.FC = () => {
           <textarea
             value={limitations}
             onChange={e => setLimitations(e.target.value.slice(0, 1000))}
+            onBlur={() => saveField({ health_notes: limitations.trim() || null })}
             rows={3}
             placeholder="e.g. Previous ACL surgery, avoid high-impact on left knee"
             className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
           />
         </div>
 
-        {/* Save Button */}
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-4 bg-ink text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {saving ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
-              Saving...
-            </span>
-          ) : (
-            'Save Fitness Passport'
-          )}
-        </button>
       </div>
     </div>
   );
