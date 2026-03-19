@@ -74,7 +74,7 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 - [x] **SESSION-01**: Trainer can write post-session notes for a completed booking
 - [x] **SESSION-02**: Client can view session notes written by trainers
 - [x] **SESSION-03**: Trainer can log structured workout data (exercises, sets, reps)
-- [ ] **SESSION-04**: Client sees a progress timeline with session history and workout trends
+- [x] **SESSION-04**: Client sees a progress timeline with session history and workout trends
 
 ### Email Capture (WAITLIST)
 
@@ -140,7 +140,7 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | SESSION-01 | Phase 24 | Complete |
 | SESSION-02 | Phase 24 | Complete |
 | SESSION-03 | Phase 24 | Complete |
-| SESSION-04 | Phase 24 | Pending |
+| SESSION-04 | Phase 24 | Complete |
 | AIMATCH-01 | Phase 25 | Pending |
 | AIMATCH-02 | Phase 25 | Pending |
 | AIMATCH-03 | Phase 25 | Pending |
