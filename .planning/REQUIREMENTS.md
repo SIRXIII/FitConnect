@@ -62,9 +62,9 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 
 ### Client Profile (CPROFILE)
 
-- [ ] **CPROFILE-01**: Client can upload profile photos (avatar + gallery)
+- [x] **CPROFILE-01**: Client can upload profile photos (avatar + gallery)
 - [x] **CPROFILE-02**: Client can enter personal stats (age, weight, height)
-- [ ] **CPROFILE-03**: Client can set fitness/strength level (beginner, intermediate, advanced)
+- [x] **CPROFILE-03**: Client can set fitness/strength level (beginner, intermediate, advanced)
 - [x] **CPROFILE-04**: Client can log health conditions and medical notes (injuries, allergies, limitations)
 - [x] **CPROFILE-05**: Client can set workout intensity preference (light, moderate, intense) via toggle/slider
 - [ ] **CPROFILE-06**: Client profile data is visible to booked trainers for session preparation
@@ -131,9 +131,9 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | LOC-02 | Phase 23 | Complete |
 | LOC-03 | Phase 23 | Complete |
 | LOC-04 | Phase 23 | Complete |
-| CPROFILE-01 | Phase 23.1 | Pending |
+| CPROFILE-01 | Phase 23.1 | Complete |
 | CPROFILE-02 | Phase 23.1 | Complete |
-| CPROFILE-03 | Phase 23.1 | Pending |
+| CPROFILE-03 | Phase 23.1 | Complete |
 | CPROFILE-04 | Phase 23.1 | Complete |
 | CPROFILE-05 | Phase 23.1 | Complete |
 | CPROFILE-06 | Phase 23.1 | Pending |

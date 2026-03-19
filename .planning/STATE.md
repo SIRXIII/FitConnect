@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 23.1-01-PLAN.md
-last_updated: "2026-03-19T17:07:14.659Z"
+stopped_at: Completed 23.1-02-PLAN.md
+last_updated: "2026-03-19T17:17:25.873Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State -- FitRush
@@ -75,6 +75,8 @@ Recent decisions relevant to v4.0:
 - [Phase 23]: filteredPins computed at MapView level shared between MapInner and MobileTrainerSheet
 - [Phase 23.1-01]: New field Zod schemas are standalone (healthConditionsSchema etc.) not merged into fitnessPassportSchema — supports independent auto-save field-level validation
 - [Phase 23.1-01]: HEALTH_CONDITION_VALUES uses as-unknown cast from .map() to satisfy Zod enum-compatible readonly tuple type
+- [Phase 23.1-02]: Supabase TypeScript types not regenerated for client_profiles — use (supabase as any) cast rather than regenerating types mid-phase
+- [Phase 23.1-02]: Use .toBeTruthy() not .toBeInTheDocument() in component tests — project has no vitest setup file for @testing-library/jest-dom matchers
 
 ## Blockers / Concerns
 
@@ -97,6 +99,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T17:07:14.657Z
-Stopped at: Completed 23.1-01-PLAN.md
+Last session: 2026-03-19T17:17:20.504Z
+Stopped at: Completed 23.1-02-PLAN.md
 Resume file: None
