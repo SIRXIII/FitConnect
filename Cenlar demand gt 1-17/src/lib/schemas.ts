@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { INTENSITY_LEVEL_VALUES } from '@/lib/profileConstants';
 
 // --- Existing Schemas ---
 
@@ -139,3 +140,15 @@ export const waitlistSchema = z.object({
 });
 
 export type WaitlistInput = z.infer<typeof waitlistSchema>;
+
+// --- Phase 23.1: Client Profile Enhancement ---
+
+export const healthConditionsSchema = z.array(z.string()).default([]);
+
+export const intensityPreferenceSchema = z.enum(INTENSITY_LEVEL_VALUES).optional();
+
+export const goalsRankedSchema = z.array(z.string()).max(3, 'Rank up to 3 goals').default([]);
+
+export type HealthConditionsInput = z.infer<typeof healthConditionsSchema>;
+export type IntensityPreferenceInput = z.infer<typeof intensityPreferenceSchema>;
+export type GoalsRankedInput = z.infer<typeof goalsRankedSchema>;
