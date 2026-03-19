@@ -150,7 +150,11 @@ Plans:
   2. Client can read session notes left by their trainer on each past booking
   3. Trainer can log structured workout data (exercises, sets, reps) for a completed session
   4. Client sees a progress timeline view that charts session history and workout trends over time
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 24-01-PLAN.md — DB migration, TypeScript types, SessionLogPanel component, TrainerBookings integration
+- [ ] 24-02-PLAN.md — SessionNotesDisplay component, MyBookings integration (client view)
+- [ ] 24-03-PLAN.md — sessionAggregation utility, ProgressTab component, ClientDashboard tab navigation
 
 ### Phase 25: AI Trainer-Client Matching
 **Goal**: Clients with a completed Fitness Passport see personalized trainer recommendations with visible match scores and explanations, and clients with incomplete passports are prompted to fill them in
@@ -224,11 +228,11 @@ Plans:
 | 22. Availability Toggle Foundation | v4.0 | 3/3 | ✅ | 2026-03-19 |
 | 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | 2026-03-19 |
 | 23.1. Client Profile Enhancement | 3/3 | Complete    | 2026-03-19 | - |
-| 24. Session Logging | v4.0 | 0/TBD | Not started | - |
+| 24. Session Logging | v4.0 | 0/3 | Not started | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |
 | 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
 | 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 23.1 plans created*
+*Last updated: 2026-03-19 — Phase 24 plans created*
