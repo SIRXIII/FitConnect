@@ -51,14 +51,14 @@ Exceptions: Horizontal scroll snap container uses `scroll-padding-left: 16px` on
 |------|------|--------|-------------|
 | Body | 14px | 400 (regular) | 1.5 |
 | Label | 10px | 400 (regular) | 1.0 — uppercase tracking-widest |
-| Heading | 20px | 300 (light) | 1.2 — serif Cormorant Garamond italic |
-| Display | 28px | 300 (light) | 1.2 — serif, section title "Recommended for You" |
+| Heading | 20px | 500 (medium) | 1.2 — serif Cormorant Garamond italic |
+| Display | 28px | 500 (medium) | 1.2 — serif, section title "Recommended for You" |
 
 Notes:
-- Match score percentage: 28px serif light italic, `text-accent` — visually prominent, consistent with rate display pattern in BestDeals/TrainerCard
+- Match score percentage: 28px serif italic `text-accent` — visually prominent, consistent with rate display pattern in BestDeals/TrainerCard
 - Match tier label ("Great Match", "Good Match", "Fair Match"): 10px uppercase tracking-widest, `text-ink/40` below score
-- Explanation bullets: 12px regular, `text-ink/60`, prefixed with a `·` separator dot
-- Trainer name on match card: 16px `font-medium text-ink` (Inter sans, not serif) — consistent with DealCard in BestDeals.tsx
+- Explanation bullets: 14px regular (400), `text-ink/60`, prefixed with a `·` separator dot — merged from prior 12px spec
+- Trainer name on match card: 14px `font-medium text-ink` (Inter sans, not serif) — merged from prior 16px spec; weight 500 carries hierarchy
 - Specialty line: 10px uppercase `tracking-widest text-ink/40` — same pattern as existing cards
 
 ---
@@ -96,7 +96,7 @@ Source: `src/index.css` `@theme` block, consistent with existing TrainerCard and
 **Section header (when carousel visible):**
 ```
 [Sparkles icon 14px, text-accent]  MATCHED FOR YOU  [10px uppercase tracking-[0.3em] text-ink/40]
-"Recommended for You"  [28px serif light italic]
+"Recommended for You"  [28px serif italic]
 ```
 No "See all" link — top 3 is intentional curation, not a filtered view.
 
@@ -108,14 +108,14 @@ Dimensions: fixed `w-full` on desktop grid cell, `w-72` on mobile scroll. Intern
 
 **Anatomy (top to bottom):**
 
-1. **Avatar + name row** — 48px avatar (rounded-full), trainer name 16px medium, specialty 10px uppercase. Same structure as DealCard in BestDeals.tsx.
+1. **Avatar + name row** — 48px avatar (rounded-full), trainer name 14px medium (500), specialty 10px uppercase. Same structure as DealCard in BestDeals.tsx.
 2. **Rate row** — `$X/hr` in 20px serif italic `text-accent`, consistent with TrainerCard rate display.
-3. **Match score row** — score percentage in 28px serif light italic `text-accent`, tier label in 10px uppercase `text-ink/40` to the right or below. Example: `87%  ·  Great Match`.
+3. **Match score row** — score percentage in 28px serif italic `text-accent`, tier label in 10px uppercase `text-ink/40` to the right or below. Example: `87%  ·  Great Match`.
    - Tier thresholds (from CONTEXT.md): Great Match 80%+, Good Match 60–79%, Fair Match 40–59%.
    - No color change per tier — accent is always accent; tier label text communicates tier.
-4. **Explanation bullets** — 2–3 lines, 12px regular `text-ink/60`, each line prefixed with `·` dot. Line examples: `· Matches your HIIT goals`, `· Within your $50–80 range`.
+4. **Explanation bullets** — 2–3 lines, 14px regular (400) `text-ink/60`, each line prefixed with `·` dot. Line examples: `· Matches your HIIT goals`, `· Within your $50–80 range`.
 5. **Divider** — `border-t border-ink/5 pt-4`
-6. **View Profile CTA** — full-width ghost button: `border border-ink/10 py-3.5 text-[10px] uppercase tracking-[0.3em] hover:bg-ink hover:text-white transition-all duration-500`. Same style as TrainerCard's "View Profile" button.
+6. **View Profile CTA** — full-width ghost button: `border border-ink/10 py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-ink hover:text-white transition-all duration-500`. Same style as TrainerCard's "View Profile" button.
 
 ---
 
@@ -125,7 +125,7 @@ Shown when client has fewer than 3 key fields filled (fitness level + at least 1
 
 **Structure:** Single card, same border and padding as MatchCard. No avatar, no score. Contains:
 - Icon: `Sparkles` or `User` (16px, `text-accent`)
-- Heading (16px `font-medium text-ink`): "Your matches are waiting."
+- Heading (14px `font-medium text-ink`): "Your matches are waiting."
 - Body (14px `text-ink/60`): "Complete your Fitness Passport so we can recommend trainers matched to your goals, intensity preference, and budget."
 - CTA link (styled as text underline in accent): "Complete Fitness Passport →" — navigates to `/client/passport`
 
