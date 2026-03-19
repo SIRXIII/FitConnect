@@ -66,7 +66,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 **Milestone Goal:** Transform FitRush from a booking marketplace into an Uber-like real-time fitness platform with live location, AI-powered matching and analytics, and instant availability.
 
 - [x] **Phase 21: Email Capture + Platform Controls** — Landing page waitlist with position display, GCP billing safeguards, Google OAuth verification started (completed 2026-03-18)
-- [ ] **Phase 22: Availability Toggle Foundation** — Uber-style live toggle, sleep timer, atomic booking RPC
+- [x] **Phase 22: Availability Toggle Foundation** — Uber-style live toggle, sleep timer, atomic booking RPC (completed 2026-03-19)
 - [ ] **Phase 23: Map View + Trainer Locations** — Clustered trainer pins on Google Maps, trainer location management, live pin updates
 - [ ] **Phase 24: Session Logging** — Post-session notes, structured workout logs, client progress timeline
 - [ ] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations
@@ -100,7 +100,7 @@ Plans:
   2. Trainer can set a sleep timer (1hr, 2hr, 4hr, end of day) that auto-disables availability
   3. A trainer who forgets to go offline has their availability automatically cleared by the system within 5 minutes of the timer expiry
   4. Two clients booking the same slot simultaneously results in exactly one successful booking and one clean error, with no double-booking
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 22-01-PLAN.md — DB migration: availability columns, booking_requests table, atomic booking RPC, pg_cron expiry
 - [ ] 22-02-PLAN.md — Trainer availability header: live toggle, sleep timer pills, countdown, warm-up animation
@@ -198,7 +198,7 @@ Plans:
 | 19. Calendar Export & Buffer Times | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 20. UX Polish | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 21. Email Capture + Platform Controls | v4.0 | 2/2 | ✅ | 2026-03-18 |
-| 22. Availability Toggle Foundation | 2/3 | In Progress|  | - |
+| 22. Availability Toggle Foundation | 3/3 | Complete   | 2026-03-19 | - |
 | 23. Map View + Trainer Locations | v4.0 | 0/TBD | Not started | - |
 | 24. Session Logging | v4.0 | 0/TBD | Not started | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |

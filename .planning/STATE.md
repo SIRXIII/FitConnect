@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 22-02-PLAN.md — availability toggle UI components
-last_updated: "2026-03-19T01:00:17.495Z"
+stopped_at: Completed 22-03-PLAN.md — client atomic booking, request queue, search badges
+last_updated: "2026-03-19T01:05:09.237Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State -- FitRush
@@ -62,6 +62,8 @@ Recent decisions relevant to v4.0:
 - [Phase 22]: [22-02] AvailabilityHeader top-16 z-40, TrainerDashboard padding pt-32 -> pt-48 (nav 64px + header 64px)
 - [Phase 22]: [22-02] cancelWarmup clears setTimeout without DB write — correct since no DB change happens during warm-up
 - [Phase 22]: [22-02] 10-minute warning fires when remaining in 590-600s range to handle 1s tick jitter
+- [Phase 22]: Request mode navigates immediately to /client/bookings after booking_requests insert — avoids payment wizard for request flow
+- [Phase 22]: [Phase 22-03]: create_booking_atomic function signature added manually to supabase.ts Types until supabase types are regenerated
 
 ## Blockers / Concerns
 
@@ -84,6 +86,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T01:00:17.493Z
-Stopped at: Completed 22-02-PLAN.md — availability toggle UI components
+Last session: 2026-03-19T01:05:09.234Z
+Stopped at: Completed 22-03-PLAN.md — client atomic booking, request queue, search badges
 Resume file: None
