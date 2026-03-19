@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Phase 23 context gathered
-last_updated: "2026-03-19T03:47:39.293Z"
+stopped_at: Phase 23 UI-SPEC approved
+last_updated: "2026-03-19T04:16:36.823Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
@@ -86,6 +86,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T03:47:39.290Z
-Stopped at: Phase 23 context gathered
-Resume file: .planning/phases/23-map-view-trainer-locations/23-CONTEXT.md
+Last session: 2026-03-19T04:16:36.820Z
+Stopped at: Phase 23 UI-SPEC approved
+Resume file: .planning/phases/23-map-view-trainer-locations/23-UI-SPEC.md
