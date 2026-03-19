@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 23-03-PLAN.md
-last_updated: "2026-03-19T05:41:44.254Z"
+stopped_at: Completed 23-02-PLAN.md
+last_updated: "2026-03-19T05:43:55.401Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State -- FitRush
@@ -69,6 +69,8 @@ Recent decisions relevant to v4.0:
 - [Phase 23]: TrainerInfoCard rendered as AdvancedMarker (not floating div) to stay anchored to map coordinates
 - [Phase 23]: RadiusCircle uses imperative google.maps.Circle with useEffect/useRef — no JSX return, cleanup on unmount
 - [Phase 23]: Inline styles for pin internals inside AdvancedMarker — Tailwind utilities may not reliably apply in Google Maps DOM
+- [Phase 23]: WorkoutLocationsManager wrapped in APIProvider with libraries=['places'] per @vis.gl/react-google-maps requirement
+- [Phase 23]: GoLiveLocationPicker rendered outside header div using React Fragment — modal overlay sibling to sticky header
 
 ## Blockers / Concerns
 
@@ -91,6 +93,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:41:44.251Z
-Stopped at: Completed 23-03-PLAN.md
+Last session: 2026-03-19T05:43:55.399Z
+Stopped at: Completed 23-02-PLAN.md
 Resume file: None
