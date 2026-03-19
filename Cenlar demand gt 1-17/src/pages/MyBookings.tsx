@@ -10,6 +10,8 @@ import type { Tables } from '@/types/supabase';
 import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { mapError } from '@/lib/errorMessages';
+import SessionNotesDisplay from '@/components/session/SessionNotesDisplay';
+import type { ExerciseEntry } from '@/types/session';
 
 type BookingRow = Tables<'bookings'>;
 type ReviewRow = Tables<'reviews'>;
@@ -131,6 +133,8 @@ const MyBookings: React.FC = () => {
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [reviewBooking, setReviewBooking] = useState<BookingWithDetails | null>(null);
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
+  const [sessionLogsMap, setSessionLogsMap] = useState<Map<string, { notes: string | null; exercises: ExerciseEntry[] }>>(new Map());
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
 
   const fetchBookings = useCallback(async () => {
     if (!user) return;
@@ -167,6 +171,24 @@ const MyBookings: React.FC = () => {
       if (reviews) {
         setReviewedIds(new Set(reviews.map((r: Pick<ReviewRow, 'booking_id'>) => r.booking_id)));
       }
+
+    // Fetch session logs for completed bookings
+    const completedIds = ((data as unknown as BookingWithDetails[]) || [])
+      .filter(b => b.status === 'completed')
+      .map(b => b.id);
+    if (completedIds.length > 0) {
+      const { data: logsData } = await (supabase as any)
+        .from('session_logs')
+        .select('booking_id, notes, exercises')
+        .in('booking_id', completedIds);
+      if (logsData) {
+        const map = new Map<string, { notes: string | null; exercises: ExerciseEntry[] }>();
+        for (const log of logsData) {
+          map.set(log.booking_id, { notes: log.notes, exercises: log.exercises ?? [] });
+        }
+        setSessionLogsMap(map);
+      }
+    }
   }, [user?.id]);
 
   useEffect(() => {
@@ -436,6 +458,20 @@ const MyBookings: React.FC = () => {
                       </span>
                     )}
                   </div>
+
+                  {booking.status === 'completed' && sessionLogsMap.has(booking.id) && (
+                    <SessionNotesDisplay
+                      notes={sessionLogsMap.get(booking.id)!.notes}
+                      exercises={(sessionLogsMap.get(booking.id)!.exercises as ExerciseEntry[]) ?? []}
+                      expanded={expandedNotes.has(booking.id)}
+                      onToggle={() => setExpandedNotes(prev => {
+                        const next = new Set(prev);
+                        if (next.has(booking.id)) next.delete(booking.id);
+                        else next.add(booking.id);
+                        return next;
+                      })}
+                    />
+                  )}
                 </div>
               );
             })}
