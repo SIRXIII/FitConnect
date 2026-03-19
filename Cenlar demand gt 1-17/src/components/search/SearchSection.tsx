@@ -6,6 +6,8 @@ import { useTrainers, type TrainerWithProfile } from '@/hooks/useTrainers';
 import TrainerCard from './TrainerCard';
 import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
 import { optimizedUrl } from '@/lib/imageUtils';
+import LiveNowBadge from '@/components/shared/LiveNowBadge';
+import BookingModeBadge from '@/components/shared/BookingModeBadge';
 
 function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer {
   const discountPct = t.discount_percentage ?? 0;
@@ -29,6 +31,8 @@ function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer 
     verified: t.verified,
     availableNow: false,
     idleSlotCount,
+    isLive: t.availability_status === 'live',
+    bookingMode: t.booking_mode as 'instant' | 'request',
   };
 }
 
@@ -83,6 +87,8 @@ const SearchSection: React.FC = () => {
     if (priceRange === PriceRange.PREMIUM) {
       result = result.filter((t) => t.optimizedRate > 80);
     }
+    // Sort live trainers (availability_status === 'live') above non-live trainers
+    result.sort((a, b) => (b.isLive ? 1 : 0) - (a.isLive ? 1 : 0));
     return result;
   }, [useMock, dbTrainers, location, specialty, priceRange]);
 
@@ -160,7 +166,17 @@ const SearchSection: React.FC = () => {
         ) : displayTrainers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
             {displayTrainers.map((trainer) => (
-              <TrainerCard key={trainer.id} trainer={trainer} isMock={useMock} />
+              <div key={trainer.id} className="space-y-2">
+                {!useMock && (trainer.isLive || trainer.bookingMode) && (
+                  <div className="flex items-center gap-3">
+                    {trainer.isLive && <LiveNowBadge />}
+                    {trainer.bookingMode && (
+                      <BookingModeBadge mode={trainer.bookingMode} />
+                    )}
+                  </div>
+                )}
+                <TrainerCard trainer={trainer} isMock={useMock} />
+              </div>
             ))}
           </div>
         ) : (

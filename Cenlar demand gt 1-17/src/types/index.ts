@@ -20,6 +20,8 @@ export interface Trainer {
   verified: boolean;
   availableNow: boolean;
   idleSlotCount: number;
+  isLive?: boolean;
+  bookingMode?: 'instant' | 'request';
 }
 
 // DB specialty enum values

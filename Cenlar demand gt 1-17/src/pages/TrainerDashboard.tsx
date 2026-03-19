@@ -15,6 +15,7 @@ import SubscriptionTab from '@/components/subscription/SubscriptionTab';
 import CalendarExportCard from '@/components/calendar/CalendarExportCard';
 import BufferTimeSelector from '@/components/calendar/BufferTimeSelector';
 import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
+import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -346,6 +347,17 @@ const TrainerDashboard: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Booking Request Queue — shown when live and in request mode */}
+        {trainerProfile?.availability_status === 'live' && trainerProfile?.booking_mode === 'request' && (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h2 className="text-xl serif font-light text-ink italic">Booking Requests</h2>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Pending requests from clients</p>
+            </div>
+            <BookingRequestQueue />
+          </div>
+        )}
 
         {/* Referral Widget */}
         {profile?.referral_code && (
