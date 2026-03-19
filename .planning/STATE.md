@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-03-19T05:43:55.401Z"
+stopped_at: Checkpoint 23-04-PLAN.md Task 3 (human-verify)
+last_updated: "2026-03-19T05:53:29.414Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State -- FitRush
@@ -71,6 +71,8 @@ Recent decisions relevant to v4.0:
 - [Phase 23]: Inline styles for pin internals inside AdvancedMarker — Tailwind utilities may not reliably apply in Google Maps DOM
 - [Phase 23]: WorkoutLocationsManager wrapped in APIProvider with libraries=['places'] per @vis.gl/react-google-maps requirement
 - [Phase 23]: GoLiveLocationPicker rendered outside header div using React Fragment — modal overlay sibling to sticky header
+- [Phase 23]: Map component aliased as GoogleMap to avoid collision with native Map type
+- [Phase 23]: filteredPins computed at MapView level shared between MapInner and MobileTrainerSheet
 
 ## Blockers / Concerns
 
@@ -93,6 +95,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:43:55.399Z
-Stopped at: Completed 23-02-PLAN.md
+Last session: 2026-03-19T05:53:29.412Z
+Stopped at: Checkpoint 23-04-PLAN.md Task 3 (human-verify)
 Resume file: None

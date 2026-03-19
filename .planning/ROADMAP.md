@@ -67,7 +67,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 
 - [x] **Phase 21: Email Capture + Platform Controls** — Landing page waitlist with position display, GCP billing safeguards, Google OAuth verification started (completed 2026-03-18)
 - [x] **Phase 22: Availability Toggle Foundation** — Uber-style live toggle, sleep timer, atomic booking RPC (completed 2026-03-19)
-- [ ] **Phase 23: Map View + Trainer Locations** — Clustered trainer pins on Google Maps, trainer location management, live pin updates
+- [x] **Phase 23: Map View + Trainer Locations** — Clustered trainer pins on Google Maps, trainer location management, live pin updates (completed 2026-03-19)
 - [ ] **Phase 24: Session Logging** — Post-session notes, structured workout logs, client progress timeline
 - [ ] **Phase 25: AI Trainer-Client Matching** — Deterministic Fitness Passport scoring, "Recommended for You" section, match explanations
 - [ ] **Phase 26: AI Discount Analytics** — Idle slot heatmap, discount recommendation cards, optimization score
@@ -116,7 +116,7 @@ Plans:
   3. Client can toggle between the map view and the existing list view without losing their search filters
   4. Elite trainer pins display a tier badge; pins reflect location type (gym, park, in-home) via icon
   5. Trainer can add a workout location with address entry, drag-to-adjust pin, location type selection, and manage multiple locations
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [ ] 23-01-PLAN.md — PostGIS migration, workout_locations table, trainers_in_view RPC, npm packages, types, test mock
 - [ ] 23-02-PLAN.md — Trainer workout location management: useWorkoutLocations hook, WorkoutLocationsManager, GoLiveLocationPicker
@@ -204,7 +204,7 @@ Plans:
 | 20. UX Polish | v3.0 | 3/3 | ✅ | 2026-03-18 |
 | 21. Email Capture + Platform Controls | v4.0 | 2/2 | ✅ | 2026-03-18 |
 | 22. Availability Toggle Foundation | v4.0 | 3/3 | ✅ | 2026-03-19 |
-| 23. Map View + Trainer Locations | 3/4 | In Progress|  | - |
+| 23. Map View + Trainer Locations | 4/4 | Complete   | 2026-03-19 | - |
 | 24. Session Logging | v4.0 | 0/TBD | Not started | - |
 | 25. AI Trainer-Client Matching | v4.0 | 0/TBD | Not started | - |
 | 26. AI Discount Analytics | v4.0 | 0/TBD | Not started | - |
