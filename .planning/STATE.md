@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: The Live Platform
 status: completed
-stopped_at: Completed 23-01-PLAN.md
-last_updated: "2026-03-19T05:37:10.910Z"
+stopped_at: Completed 23-03-PLAN.md
+last_updated: "2026-03-19T05:41:44.254Z"
 last_activity: 2026-03-18 -- Hero email capture form and GCP checklist complete
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State -- FitRush
@@ -66,6 +66,9 @@ Recent decisions relevant to v4.0:
 - [Phase 22]: [Phase 22-03]: create_booking_atomic function signature added manually to supabase.ts Types until supabase types are regenerated
 - [Phase 23-map-view-trainer-locations]: geo_point omitted from TS types — GENERATED ALWAYS column is server-side only
 - [Phase 23-map-view-trainer-locations]: trainers_in_view uses SET search_path TO '' for security — all refs fully schema-qualified
+- [Phase 23]: TrainerInfoCard rendered as AdvancedMarker (not floating div) to stay anchored to map coordinates
+- [Phase 23]: RadiusCircle uses imperative google.maps.Circle with useEffect/useRef — no JSX return, cleanup on unmount
+- [Phase 23]: Inline styles for pin internals inside AdvancedMarker — Tailwind utilities may not reliably apply in Google Maps DOM
 
 ## Blockers / Concerns
 
@@ -88,6 +91,6 @@ Recent decisions relevant to v4.0:
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:37:10.907Z
-Stopped at: Completed 23-01-PLAN.md
+Last session: 2026-03-19T05:41:44.251Z
+Stopped at: Completed 23-03-PLAN.md
 Resume file: None

@@ -10,11 +10,11 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 ### Maps (MAP)
 
 - [x] **MAP-01**: Client can view a Google Map with clustered trainer location pins
-- [ ] **MAP-02**: Client can click a pin to see trainer info card (name, specialty, rate, Book button)
+- [x] **MAP-02**: Client can click a pin to see trainer info card (name, specialty, rate, Book button)
 - [ ] **MAP-03**: Client can toggle between map view and list view on the search page
 - [x] **MAP-04**: Map shows only trainers currently marked as available (live pin visibility)
-- [ ] **MAP-05**: Trainer pins display location type icon (gym, park, in-home)
-- [ ] **MAP-06**: Elite trainer pins display tier badge on map
+- [x] **MAP-05**: Trainer pins display location type icon (gym, park, in-home)
+- [x] **MAP-06**: Elite trainer pins display tier badge on map
 
 ### Trainer Locations (LOC)
 
@@ -113,11 +113,11 @@ Requirements for the Live Platform milestone. Each maps to roadmap phases.
 | AVAIL-03 | Phase 22 | Complete |
 | AVAIL-04 | Phase 22 | Complete |
 | MAP-01 | Phase 23 | Complete |
-| MAP-02 | Phase 23 | Pending |
+| MAP-02 | Phase 23 | Complete |
 | MAP-03 | Phase 23 | Pending |
 | MAP-04 | Phase 23 | Complete |
-| MAP-05 | Phase 23 | Pending |
-| MAP-06 | Phase 23 | Pending |
+| MAP-05 | Phase 23 | Complete |
+| MAP-06 | Phase 23 | Complete |
 | LOC-01 | Phase 23 | Complete |
 | LOC-02 | Phase 23 | Complete |
 | LOC-03 | Phase 23 | Complete |
