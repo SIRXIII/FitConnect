@@ -195,8 +195,8 @@ Plans:
   5. A single trainer going online does not trigger more than one alert to the same client within 4 hours, and no client receives more than 3 location alerts per day
 **Plans:** 2 plans
 Plans:
-- [ ] 26-01-PLAN.md — DB migration (RPCs) + slotOptimization pure-TS library with TDD tests
-- [ ] 26-02-PLAN.md — OptimizationSection component + AnalyticsTab integration
+- [ ] 27-01-PLAN.md — DB migration (preferences table, notify_nearby_clients trigger, RLS), hooks (useNotificationPreferences, useLookingNow), TypeScript types
+- [ ] 27-02-PLAN.md — NotificationPreferencesSection UI, LookingNowToggle, ClientDashboard Alerts tab, SearchSection + Navbar wiring
 
 ### Phase 28: Google Calendar Bidirectional Sync
 **Goal**: Trainers can connect their Google Calendar and have FitRush bookings automatically appear as events, with external calendar blocks preventing double-booking, and iCal export remaining functional throughout
@@ -208,10 +208,9 @@ Plans:
   3. An event added to the trainer's external Google Calendar blocks the corresponding FitRush availability slot from being booked
   4. When a booking is cancelled in FitRush, the corresponding Google Calendar event is removed
   5. Trainers who have not connected Google Calendar can still subscribe to the iCal feed as before
-**Plans:** 2 plans
+**Plans:** TBD
 Plans:
-- [ ] 26-01-PLAN.md — DB migration (RPCs) + slotOptimization pure-TS library with TDD tests
-- [ ] 26-02-PLAN.md — OptimizationSection component + AnalyticsTab integration
+- TBD
 
 ---
 
@@ -243,8 +242,8 @@ Plans:
 | 24. Session Logging | 3/3 | Complete    | 2026-03-19 | - |
 | 25. AI Trainer-Client Matching | 2/2 | Complete    | 2026-03-19 | - |
 | 26. AI Discount Analytics | 2/2 | Complete    | 2026-03-19 | - |
-| 27. Location-Based Notifications | v4.0 | 0/TBD | Not started | - |
+| 27. Location-Based Notifications | v4.0 | 0/2 | Not started | - |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 26 plans created*
+*Last updated: 2026-03-19 — Phase 27 plans created*
