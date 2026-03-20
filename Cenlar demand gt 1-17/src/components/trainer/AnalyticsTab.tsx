@@ -252,7 +252,7 @@ const AnalyticsTab: React.FC = () => {
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip formatter={(v: number) => [`$${v.toFixed(2)}`, 'Revenue']} />
+              <Tooltip formatter={(v) => [`$${Number(v).toFixed(2)}`, 'Revenue']} />
               <Area
                 type="monotone"
                 dataKey="revenue"
@@ -281,7 +281,7 @@ const AnalyticsTab: React.FC = () => {
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip formatter={(v: number) => [v, 'Bookings']} />
+              <Tooltip formatter={(v) => [Number(v), 'Bookings']} />
               <Bar dataKey="bookings" fill={chartColors.stroke} opacity={0.6} />
             </BarChart>
           </ResponsiveContainer>
