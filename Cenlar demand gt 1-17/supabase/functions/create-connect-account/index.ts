@@ -58,14 +58,18 @@ Deno.serve(async (req) => {
 
     const body = (await req.json().catch(() => ({}))) as ConnectAccountRequest;
 
+    // Derive base URL from request origin, falling back to SITE_URL env var or localhost
+    const origin = req.headers.get('origin') || Deno.env.get('SITE_URL') || 'http://localhost:3000';
+    const defaultDashboard = `${origin}/trainer/dashboard`;
+
     const returnUrl =
       typeof body.return_url === 'string' && body.return_url.length > 0
         ? body.return_url
-        : 'http://localhost:3000/trainer/dashboard';
+        : defaultDashboard;
     const refreshUrl =
       typeof body.refresh_url === 'string' && body.refresh_url.length > 0
         ? body.refresh_url
-        : 'http://localhost:3000/trainer/dashboard';
+        : defaultDashboard;
 
     const { data: trainerProfile, error: trainerError } = await adminClient
       .from('trainer_profiles')
