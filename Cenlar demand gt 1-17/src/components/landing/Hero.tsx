@@ -83,13 +83,13 @@ const Hero: React.FC = () => {
                       Elite Fitness Marketplace
                     </span>
                     <h1 className="text-5xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.9] tracking-tight text-ink">
-                      Refined <br />
-                      <span className="italic">Strength.</span>
+                      Book Elite Trainers <br />
+                      <span className="italic">at Idle-Hour Prices</span>
                     </h1>
                   </div>
 
                   <p className="text-lg md:text-xl text-ink/80 md:text-ink/60 font-light leading-relaxed max-w-md">
-                    Connecting discerning individuals with certified master trainers during exclusive downtime hours.
+                    Top certified trainers, last-minute availability, up to 50% off. Your next session is waiting.
                   </p>
 
                   <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 pt-6">
