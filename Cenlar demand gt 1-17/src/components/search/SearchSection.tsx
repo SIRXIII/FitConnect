@@ -102,16 +102,16 @@ const SearchSection: React.FC = () => {
   }, [useMock, dbTrainers, location, specialty, priceRange]);
 
   return (
-    <section id="search" className="py-32 bg-paper">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12">
-        <div className="text-center mb-20">
+    <section id="search" className="py-16 md:py-32 bg-paper">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="text-center mb-10 md:mb-20">
           <h2 className="text-4xl md:text-5xl serif font-light text-ink mb-6 italic">The Collective</h2>
           <p className="text-sm uppercase tracking-[0.3em] text-ink/40">Curated certified professionals</p>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-24">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-ink/10 pb-12">
+        <div className="mb-10 md:mb-24">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 border-b border-ink/10 pb-12">
             <div className="space-y-4">
               <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">Location</label>
               <div className="relative">
@@ -157,7 +157,7 @@ const SearchSection: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex items-center sm:items-end justify-between gap-4 sm:col-span-2 md:col-span-1">
               <button className="flex-1 bg-ink text-white py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-accent transition-all duration-500">
                 Refine Search
               </button>
