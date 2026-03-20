@@ -67,6 +67,83 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 
 ---
 
+## v5.0 — App Store Ready
+
+**Goal:** Polish every user flow (client, trainer, admin), ensure mobile responsiveness, fix all UX issues, and ship a build ready for Apple App Store submission.
+
+### Phase 29: Mobile Responsive Polish
+**Goal**: Every page renders correctly on mobile (375-414px), trainer/client dashboards work on small screens, map view is mobile-optimized
+**Depends on**: v4.0
+**Requirements**: RESP-01, RESP-02, RESP-03, RESP-04, RESP-05, RESP-06, RESP-07, RESP-08
+**Success Criteria**:
+  1. Landing page, login, search, and trainer profiles render correctly at 375px
+  2. Trainer dashboard tabs are accessible on mobile (scroll or collapse)
+  3. Client dashboard and booking wizard work without horizontal overflow
+  4. Map view uses full screen on mobile with overlay filters
+**Plans:** TBD
+
+### Phase 30: Auth & Onboarding Hardening
+**Goal**: Auth flows work end-to-end — sign up, sign in, forgot password, role selection, onboarding completion — with no dead ends or raw errors
+**Depends on**: Phase 29
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
+**Success Criteria**:
+  1. Email sign-up sends confirmation, user returns and is authenticated
+  2. Forgot password sends email, user resets password and can log in
+  3. New user sees role selection and completes onboarding for their role
+  4. All auth errors show friendly messages, never raw JSON
+  5. Protected routes redirect to login with return URL preserved
+**Plans:** TBD
+
+### Phase 31: Trainer Flow End-to-End Verification
+**Goal**: A trainer can sign up, complete onboarding, set availability, go live, receive a booking, log a session, view earnings, and manage their subscription — every step works
+**Depends on**: Phase 30
+**Requirements**: TRAINER-01, TRAINER-02, TRAINER-03, TRAINER-04, TRAINER-05, TRAINER-06, TRAINER-07, TRAINER-08
+**Success Criteria**:
+  1. Trainer onboarding creates a complete profile
+  2. Availability slots can be created, edited, and deleted
+  3. Go Live toggle works and shows trainer on map
+  4. Trainer dashboard shows tagline, bookings, earnings, analytics
+  5. Session logging works after a completed booking
+**Plans:** TBD
+
+### Phase 32: Client Flow End-to-End Verification
+**Goal**: A client can sign up, set fitness passport, search trainers, book a session, pay, view bookings, cancel, leave a review, and configure notification preferences — every step works
+**Depends on**: Phase 30
+**Requirements**: CLIENT-01, CLIENT-02, CLIENT-03, CLIENT-04, CLIENT-05, CLIENT-06, CLIENT-07, CLIENT-08
+**Success Criteria**:
+  1. Client onboarding creates a complete fitness passport
+  2. Trainer search with filters returns results
+  3. Booking wizard completes with payment
+  4. Client can cancel and leave reviews
+  5. Notification preferences save and persist
+**Plans:** TBD
+
+### Phase 33: Admin & Production Polish
+**Goal**: Admin dashboard is functional, all visual polish items are addressed, mock data is removed, Terms/Privacy have real structure, no console errors in production
+**Depends on**: Phase 31, Phase 32
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, POLISH-01, POLISH-02, POLISH-03, POLISH-04, POLISH-05, POLISH-06, POLISH-07, POLISH-08, PERF-01, PERF-02, PERF-03, PERF-04
+**Success Criteria**:
+  1. Admin can view users, suspend/unsuspend, view analytics
+  2. No mock/placeholder data in production
+  3. All loading states are skeletons, all errors are actionable
+  4. Terms and Privacy pages have structured content
+  5. Lighthouse mobile > 80, all tests passing, no console errors
+**Plans:** TBD
+
+### Phase 34: Capacitor iOS Build
+**Goal**: FitRush compiles and runs as an iOS app via Capacitor, with proper splash screen, status bar, safe areas, and native keyboard handling
+**Depends on**: Phase 33
+**Requirements**: MOBILE-01, MOBILE-02, MOBILE-03, MOBILE-04, MOBILE-05
+**Success Criteria**:
+  1. `npx cap sync ios` succeeds
+  2. App launches in iOS Simulator without crashes
+  3. Safe area insets respected (notch, home indicator)
+  4. Status bar and splash screen show FitRush branding
+  5. Keyboard doesn't obscure inputs
+**Plans:** TBD
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
