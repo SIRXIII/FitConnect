@@ -82,8 +82,9 @@ const Hero: React.FC = () => {
                     <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-accent block">
                       Elite Fitness Marketplace
                     </span>
-                    <h1 className="text-5xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.9] tracking-tight text-ink">
-                      Book Elite Trainers <br />
+                    <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.95] tracking-tight text-ink">
+                      Book Elite Trainers{' '}
+                      <br className="hidden sm:block" />
                       <span className="italic">at Idle-Hour Prices</span>
                     </h1>
                   </div>
@@ -113,7 +114,7 @@ const Hero: React.FC = () => {
                     </button>
                   </form>
 
-                  <div className="grid grid-cols-3 gap-12 pt-16 border-t border-ink/5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-12 pt-16 border-t border-ink/5">
                     <div className="space-y-1">
                       <div className="text-2xl serif font-light italic">Vetted</div>
                       <div className="text-[9px] uppercase tracking-widest text-ink/40">Certified Trainers</div>
@@ -159,7 +160,7 @@ const Hero: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative hidden sm:block">
             <motion.div
               initial={{ opacity: 0, scale: 1.05 }}
               animate={{ opacity: 1, scale: 1 }}
