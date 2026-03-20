@@ -68,13 +68,25 @@ export const PlanCard: React.FC<PlanCardProps> = ({
 
   // CTA logic
   const renderCTA = () => {
-    // Free tier: show "Current Plan" label if user is on free, otherwise nothing
+    // Free tier
     if (plan.tier === 'free') {
-      if (currentTier === 'free' || currentTier === null) {
+      // Only show "Current Plan" for authenticated users actually on free tier
+      if (isAuthenticated && (currentTier === 'free' || currentTier === null)) {
         return (
           <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 text-center">
             Current Plan
           </p>
+        );
+      }
+      // Non-authenticated: show Get Started CTA
+      if (!isAuthenticated) {
+        return (
+          <Link
+            to="/login?mode=signup"
+            className={`${ctaClass} block text-center`}
+          >
+            Get Started
+          </Link>
         );
       }
       return null;
