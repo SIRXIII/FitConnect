@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, UserRound, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -64,7 +66,7 @@ const TrainerBookings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'action' | 'history'>('action');
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!trainerProfile) return;
 
     setFetchError(null);
@@ -163,11 +165,13 @@ const TrainerBookings: React.FC = () => {
 
     setBookings(enriched);
     setLoading(false);
-  };
+  }, [trainerProfile?.id]);
+
+  const { containerRef, pullDistance, refreshing, progress } = usePullToRefresh(fetchBookings);
 
   useEffect(() => {
     fetchBookings();
-  }, [trainerProfile?.id]);
+  }, [fetchBookings]);
 
   useEffect(() => {
     if (!trainerProfile) return;
@@ -280,7 +284,8 @@ const TrainerBookings: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-paper pt-32 pb-20 px-6">
+    <div ref={containerRef} className="relative min-h-screen bg-paper pt-32 pb-20 px-6 overflow-y-auto">
+      <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} progress={progress} />
       <div className="max-w-5xl mx-auto space-y-10">
         <div className="flex items-start justify-between gap-6">
           <div className="space-y-4">

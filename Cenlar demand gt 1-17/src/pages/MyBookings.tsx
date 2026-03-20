@@ -8,6 +8,8 @@ import { reviewSchema } from '@/lib/schemas';
 import { formatSpecialty } from '@/types';
 import type { Tables } from '@/types/supabase';
 import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/shared/PullToRefreshIndicator';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { mapError } from '@/lib/errorMessages';
 import SessionNotesDisplay from '@/components/session/SessionNotesDisplay';
@@ -243,6 +245,8 @@ const MyBookings: React.FC = () => {
     }
   }, [user?.id]);
 
+  const { containerRef, pullDistance, refreshing, progress } = usePullToRefresh(fetchBookings);
+
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
@@ -348,7 +352,8 @@ const MyBookings: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-paper pt-32 pb-20 px-6">
+    <div ref={containerRef} className="relative min-h-screen bg-paper pt-32 pb-20 px-6 overflow-y-auto">
+      <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} progress={progress} />
       <div className="max-w-4xl mx-auto space-y-10">
         <div className="space-y-4">
           <h1 className="text-3xl serif font-light italic text-ink">My Bookings</h1>
