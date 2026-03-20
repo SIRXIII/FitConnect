@@ -49,6 +49,7 @@ const SearchSection: React.FC = () => {
   const [priceRange, setPriceRange] = useState('');
   const [useMock, setUseMock] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Query Supabase for trainers with filters
   const { trainers: dbTrainers, loading, error, idleSlotCounts } = useTrainers({
@@ -118,7 +119,7 @@ const SearchSection: React.FC = () => {
                   type="text"
                   placeholder="City or Zip"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) => { setLocation(e.target.value); setHasSearched(true); }}
                   className="w-full py-2 bg-transparent border-none focus:ring-0 outline-none text-ink serif text-xl placeholder:text-ink/20"
                 />
               </div>
@@ -129,7 +130,7 @@ const SearchSection: React.FC = () => {
               <div className="relative">
                 <select
                   value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
+                  onChange={(e) => { setSpecialty(e.target.value); setHasSearched(true); }}
                   className="w-full py-2 bg-transparent border-none focus:ring-0 outline-none text-ink serif text-xl appearance-none cursor-pointer"
                 >
                   <option value="">All Disciplines</option>
@@ -145,7 +146,7 @@ const SearchSection: React.FC = () => {
               <div className="relative">
                 <select
                   value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
+                  onChange={(e) => { setPriceRange(e.target.value); setHasSearched(true); }}
                   className="w-full py-2 bg-transparent border-none focus:ring-0 outline-none text-ink serif text-xl appearance-none cursor-pointer"
                 >
                   <option value="">Any Range</option>
@@ -205,18 +206,31 @@ const SearchSection: React.FC = () => {
                 </div>
               ) : (
                 <div className="text-center py-32 border border-dashed border-ink/10">
-                  <h3 className="text-3xl serif font-light text-ink mb-4 italic">No matches found</h3>
-                  <p className="text-sm uppercase tracking-widest text-ink/40 mb-8">Adjust your criteria for the collective</p>
-                  <button
-                    onClick={() => {
-                      setLocation('');
-                      setSpecialty('');
-                      setPriceRange('');
-                    }}
-                    className="text-[10px] uppercase tracking-[0.2em] border-b border-ink/20 hover:border-ink transition-all pb-1"
-                  >
-                    Reset Filters
-                  </button>
+                  {hasSearched ? (
+                    <>
+                      <h3 className="text-3xl serif font-light text-ink mb-4 italic">No matches found</h3>
+                      <p className="text-sm uppercase tracking-widest text-ink/40 mb-8">Adjust your criteria for the collective</p>
+                      <button
+                        onClick={() => {
+                          setLocation('');
+                          setSpecialty('');
+                          setPriceRange('');
+                          setHasSearched(false);
+                        }}
+                        className="text-[10px] uppercase tracking-[0.2em] border-b border-ink/20 hover:border-ink transition-all pb-1"
+                      >
+                        Reset Filters
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-10 h-10 mx-auto mb-6 text-ink/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                      </svg>
+                      <h3 className="text-3xl serif font-light text-ink mb-4 italic">Find Your Trainer</h3>
+                      <p className="text-sm tracking-wide text-ink/40">Enter your city or specialty to find certified trainers near you</p>
+                    </>
+                  )}
                 </div>
               )}
             </motion.div>
