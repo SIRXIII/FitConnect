@@ -62,14 +62,39 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 - ✓ Booking wizard redesign with progress indicator + Framer Motion transitions — v3.0
 - ✓ Image optimization: lazy loading + Unsplash width params — v3.0
 
-### Active (next milestone — TBD)
+## Current Milestone: v4.0 The Live Platform
+
+**Goal:** Transform FitRush from a booking marketplace into an Uber-like real-time fitness platform with live location, AI-powered matching/analytics, and instant availability.
+
+**Target features:**
+- Google Maps integration (map view with trainer pins, clustering)
+- Trainer workout locations (address + map pin, gym/park/in-home types)
+- Trainer availability toggle (online/offline with sleep timer auto-off)
+- Location-based client notifications (saved area + live GPS opt-in)
+- AI smart matching (trainer recommendations from Fitness Passport data)
+- AI trainer analytics (historical patterns, discount recommendations for empty slots)
+- Google Calendar bidirectional OAuth sync
+- Session history and progress tracking (post-session notes, workout logs)
+- Email capture / join the list (landing page signup while features cook)
+
+### Active (v4.0)
+
+- [ ] Google Maps map view with trainer pins and clustering
+- [ ] Trainer workout location management (address entry + map preview)
+- [ ] Uber-style trainer availability toggle with sleep timer
+- [ ] Location-based notifications for clients (saved area + live GPS)
+- [ ] AI trainer-client matching based on Fitness Passport data
+- [ ] AI trainer analytics with discount recommendations
+- [ ] Google Calendar OAuth bidirectional sync
+- [ ] Session history with post-session notes and workout logs
+- [ ] Landing page email capture box
+
+### Deferred (future milestones)
 
 - [ ] Fix cascading slot deletion with soft-delete
 - [ ] Move hardcoded 8% platform fee to configurable DB setting
 - [ ] Replace console.log errors with user-facing toast notifications
 - [ ] Add GDPR capabilities (account deletion, data export)
-- [ ] Google Calendar OAuth bidirectional sync
-- [ ] AI-powered trainer-client matching based on Fitness Passport data
 - [ ] Subscription pause (CHURN-01)
 - [ ] Contextual upgrade modals at tier gates (CHURN-02)
 - [ ] Elite custom profile URL/slug (BRAND-01)
@@ -155,4 +180,4 @@ Phases 5–8 (4 phases, ~12 plans). See `.planning/MILESTONES.md`.
 </details>
 
 ---
-*Last updated: 2026-03-18 after v3.0 milestone*
+*Last updated: 2026-03-18 after v4.0 milestone start*

@@ -24,6 +24,7 @@ import Pricing from '@/pages/Pricing';
 import ClientPassport from '@/pages/ClientPassport';
 import NotFound from '@/pages/NotFound';
 import TrialBanner from '@/components/subscription/TrialBanner';
+import GoogleCalendarCallback from '@/pages/GoogleCalendarCallback';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
@@ -60,6 +61,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/google-callback" element={<GoogleCalendarCallback />} />
           <Route path="/pricing" element={<Pricing />} />
 
           {/* Onboarding (requires auth) */}

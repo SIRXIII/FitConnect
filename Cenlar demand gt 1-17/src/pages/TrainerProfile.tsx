@@ -11,6 +11,7 @@ import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import { ProfileSkeleton } from '@/components/skeleton/ProfileSkeleton';
 import { SkeletonRect } from '@/components/shared/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
+import { WorkoutLocationsManager } from '@/components/trainer/WorkoutLocationsManager';
 
 interface Review {
   id: string;
@@ -378,6 +379,13 @@ const TrainerProfile: React.FC = () => {
               <div className="space-y-4">
                 <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">About</h2>
                 <p className="text-ink/70 leading-relaxed">{trainer.bio}</p>
+              </div>
+            )}
+
+            {/* Workout Locations Manager (trainer's own profile only) */}
+            {trainerProfile?.id && trainer.user_id === user?.id && (
+              <div className="border border-ink/10 p-8">
+                <WorkoutLocationsManager trainerId={trainerProfile.id} />
               </div>
             )}
 

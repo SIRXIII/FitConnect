@@ -6,9 +6,11 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import type { Tables } from '@/types/supabase';
 import FitnessPassportCard from '@/components/booking/FitnessPassportCard';
+import ClientSummaryCard from '@/components/client/ClientSummaryCard';
 import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { mapError } from '@/lib/errorMessages';
+import SessionLogPanel from '@/components/session/SessionLogPanel';
 
 type BookingStatus = Tables<'bookings'>['status'];
 
@@ -36,6 +38,12 @@ interface TrainerBooking {
     training_frequency: string | null;
     health_notes: string | null;
     fitness_level: string | null;
+    // Phase 23.1 fields:
+    health_conditions: string[];
+    intensity_preference: string | null;
+    goals_ranked: string[];
+    age: number | null;
+    weight_lbs: number | null;
   } | null;
 }
 
@@ -54,6 +62,7 @@ const TrainerBookings: React.FC = () => {
   const [fetchError, setFetchError] = useState<unknown>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'action' | 'history'>('action');
+  const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
 
   const fetchBookings = async () => {
     if (!trainerProfile) return;
@@ -105,15 +114,29 @@ const TrainerBookings: React.FC = () => {
 
     if (clientIds.length > 0) {
       const uniqueIds = [...new Set(clientIds)];
-      const { data: cpData } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: cpData } = await (supabase as any)
         .from('client_profiles')
         .select(
-          'user_id, bio, fitness_goals, workout_types, training_frequency, health_notes, fitness_level'
+          'user_id, bio, fitness_goals, workout_types, training_frequency, health_notes, fitness_level, health_conditions, intensity_preference, goals_ranked, age, weight_lbs'
         )
         .in('user_id', uniqueIds);
 
       if (cpData) {
-        for (const cp of cpData) {
+        for (const cp of cpData as Array<{
+          user_id: string;
+          bio: string | null;
+          fitness_goals: string[];
+          workout_types: string[];
+          training_frequency: string | null;
+          health_notes: string | null;
+          fitness_level: string | null;
+          health_conditions: string[];
+          intensity_preference: string | null;
+          goals_ranked: string[];
+          age: number | null;
+          weight_lbs: number | null;
+        }>) {
           profileMap.set(cp.user_id, {
             bio: cp.bio,
             fitness_goals: cp.fitness_goals || [],
@@ -121,6 +144,11 @@ const TrainerBookings: React.FC = () => {
             training_frequency: cp.training_frequency,
             health_notes: cp.health_notes,
             fitness_level: cp.fitness_level,
+            health_conditions: cp.health_conditions || [],
+            intensity_preference: cp.intensity_preference ?? null,
+            goals_ranked: cp.goals_ranked || [],
+            age: cp.age ?? null,
+            weight_lbs: cp.weight_lbs ?? null,
           });
         }
       }
@@ -234,6 +262,17 @@ const TrainerBookings: React.FC = () => {
             }
           ).catch((err) => console.error('[TrainerBookings] referral reward error:', err));
         }
+
+        toast("Don't forget to log session notes.", {
+          duration: 6000,
+          action: {
+            label: 'Go to notes',
+            onClick: () => {
+              setExpandedLogs((prev) => new Set(prev).add(bookingId));
+              document.getElementById(`booking-${bookingId}`)?.scrollIntoView({ behavior: 'smooth' });
+            },
+          },
+        });
       }
     }
 
@@ -307,7 +346,7 @@ const TrainerBookings: React.FC = () => {
               const canManageConfirmed = booking.status === 'confirmed';
 
               return (
-                <div key={booking.id} className="border border-ink/10 p-6 space-y-4">
+                <div key={booking.id} id={`booking-${booking.id}`} className="border border-ink/10 p-6 space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
                       {booking.profiles?.avatar_url ? (
@@ -379,12 +418,46 @@ const TrainerBookings: React.FC = () => {
                     />
                   )}
 
+                  {booking.client_profiles && (
+                    <ClientSummaryCard
+                      data={{
+                        fitness_level: booking.client_profiles.fitness_level,
+                        primary_goal: booking.client_profiles.goals_ranked?.[0] ?? null,
+                        health_conditions: booking.client_profiles.health_conditions ?? [],
+                        intensity_preference: booking.client_profiles.intensity_preference,
+                        goals_ranked: booking.client_profiles.goals_ranked ?? [],
+                        health_notes: booking.client_profiles.health_notes,
+                        age: booking.client_profiles.age,
+                        weight_lbs: booking.client_profiles.weight_lbs,
+                        workout_types: booking.client_profiles.workout_types ?? [],
+                      }}
+                    />
+                  )}
+
                   {booking.cancellation_reason ? (
                     <div className="border border-red-100 bg-red-50 p-4 text-red-700 text-sm">
                       <p className="text-[10px] uppercase tracking-[0.2em] mb-1">Cancellation Reason</p>
                       <p>{booking.cancellation_reason}</p>
                     </div>
                   ) : null}
+
+                  {booking.status === 'completed' && (
+                    <SessionLogPanel
+                      bookingId={booking.id}
+                      trainerId={trainerProfile!.id}
+                      clientId={booking.profiles?.id || ''}
+                      slotEndTime={booking.availability_slots?.end_time || null}
+                      expanded={expandedLogs.has(booking.id)}
+                      onToggle={() =>
+                        setExpandedLogs((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(booking.id)) next.delete(booking.id);
+                          else next.add(booking.id);
+                          return next;
+                        })
+                      }
+                    />
+                  )}
 
                   {(canManagePending || canManageConfirmed) && (
                     <div className="flex flex-wrap gap-3 pt-2">

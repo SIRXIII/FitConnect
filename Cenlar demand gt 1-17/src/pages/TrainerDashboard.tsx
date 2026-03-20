@@ -14,6 +14,9 @@ import LockedFeatureBanner from '@/components/shared/LockedFeatureBanner';
 import SubscriptionTab from '@/components/subscription/SubscriptionTab';
 import CalendarExportCard from '@/components/calendar/CalendarExportCard';
 import BufferTimeSelector from '@/components/calendar/BufferTimeSelector';
+import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
+import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
+import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -173,7 +176,8 @@ const TrainerDashboard: React.FC = () => {
   const bookedSlots = slots.filter((s) => s.is_booked).length;
 
   return (
-    <div className="min-h-screen bg-paper pt-32 pb-20 px-6">
+    <div className="min-h-screen bg-paper pt-48 pb-20 px-6">
+      {trainerProfile && <AvailabilityHeader />}
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Header */}
         <div className="space-y-4">
@@ -345,6 +349,17 @@ const TrainerDashboard: React.FC = () => {
           )}
         </div>
 
+        {/* Booking Request Queue — shown when live and in request mode */}
+        {trainerProfile?.availability_status === 'live' && trainerProfile?.booking_mode === 'request' && (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h2 className="text-xl serif font-light text-ink italic">Booking Requests</h2>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Pending requests from clients</p>
+            </div>
+            <BookingRequestQueue />
+          </div>
+        )}
+
         {/* Referral Widget */}
         {profile?.referral_code && (
           <ReferralWidget referralCode={profile.referral_code} />
@@ -361,6 +376,7 @@ const TrainerDashboard: React.FC = () => {
         {activeTab === 'subscription' && <SubscriptionTab />}
         {activeTab === 'calendar' && (
           <div className="space-y-8">
+            <GoogleCalendarConnect trainerId={trainerProfile?.id || ''} />
             <CalendarExportCard
               token={calendarToken}
               onTokenReset={(newToken) => setCalendarToken(newToken)}

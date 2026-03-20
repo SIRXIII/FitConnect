@@ -106,6 +106,7 @@ const BookSession: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [platformFeePct, setPlatformFeePct] = useState(0.08);
   const [referralDiscountPending, setReferralDiscountPending] = useState(false);
+  const [bookedSlotIds, setBookedSlotIds] = useState<string[]>([]);
 
   const fetchSlot = useCallback(async () => {
     if (!slotId) return;
@@ -163,6 +164,34 @@ const BookSession: React.FC = () => {
     checkDiscount();
   }, [user?.id]);
 
+  // Realtime slot greying — subscribe to availability_slots updates for this trainer
+  useEffect(() => {
+    const trainerProfile = slot?.trainer_profiles;
+    if (!trainerProfile?.id) return;
+
+    const slotChannel = supabase
+      .channel(`slot-realtime-${trainerProfile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'availability_slots',
+          filter: `trainer_id=eq.${trainerProfile.id}`,
+        },
+        (payload) => {
+          if (payload.new.is_booked) {
+            setBookedSlotIds((prev) => [...new Set([...prev, payload.new.id as string])]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(slotChannel);
+    };
+  }, [slot?.trainer_profiles?.id]);
+
   // Create booking in DB -- returns booking ID or null on failure
   const handleBooking = useCallback(async (notes: string): Promise<string | null> => {
     if (!slot || !user) return null;
@@ -191,22 +220,55 @@ const BookSession: React.FC = () => {
     const platformFee = Math.round(finalRate * platformFeePct * 100) / 100;
     const trainerPayout = Math.round((finalRate - platformFee) * 100) / 100;
 
-    const { data, error: bookingError } = await supabase
-      .from('bookings')
-      .insert({
-        client_id: user.id,
+    // Request to Book mode — insert into booking_requests instead of direct booking
+    const isRequestMode = trainerProfile.booking_mode === 'request';
+    if (isRequestMode) {
+      const { error: requestError } = await supabase.from('booking_requests').insert({
         trainer_id: trainerProfile.id,
+        client_id: user.id,
         slot_id: slot.id,
-        status: 'pending',
-        rate_charged: finalRate,
-        platform_fee: platformFee,
-        trainer_payout: trainerPayout,
-        notes: notes || null,
-      })
-      .select('id')
-      .single();
+      });
+      if (requestError) {
+        toast.error('Failed to send request. Please try again.');
+        return null;
+      }
+      toast.success('Request sent! The trainer will review it shortly.');
+      navigate('/client/bookings');
+      return null;
+    }
 
-    if (bookingError) return null;
+    // Instant Book mode — atomic RPC to prevent double-booking
+    const { data, error } = await supabase.rpc('create_booking_atomic', {
+      p_slot_id: slot.id,
+      p_client_id: user.id,
+      p_trainer_id: trainerProfile.id,
+      p_rate_charged: finalRate,
+      p_platform_fee: platformFee,
+      p_trainer_payout: trainerPayout,
+      p_notes: notes || null,
+    });
+
+    if (error) {
+      toast.error('Connection lost. Check your signal and try again.');
+      return null;
+    }
+
+    // data is { booking_id: string } | { error: string } — use type narrowing
+    const rpcResult = data as { booking_id?: string; error?: string } | null;
+
+    if (rpcResult?.error === 'slot_taken') {
+      toast.error('This slot was just booked. Pick another time.');
+      fetchSlot();
+      return null;
+    }
+
+    if (rpcResult?.error === 'slot_deleted' || rpcResult?.error === 'slot_not_found') {
+      toast.error('This slot is no longer available.');
+      fetchSlot();
+      return null;
+    }
+
+    if (!rpcResult?.booking_id) return null;
 
     if (hadReferralDiscount) {
       await supabase
@@ -215,8 +277,8 @@ const BookSession: React.FC = () => {
         .eq('id', user.id);
     }
 
-    return data.id;
-  }, [slot, user, platformFeePct]);
+    return rpcResult.booking_id;
+  }, [slot, user, platformFeePct, fetchSlot]);
 
   // Create Stripe payment intent -- returns client_secret or null on failure
   const createPaymentIntent = useCallback(async (bookingId: string): Promise<string | null> => {
@@ -288,7 +350,7 @@ const BookSession: React.FC = () => {
     );
   }
 
-  if (!slot || slot.is_booked) {
+  if (!slot || slot.is_booked || bookedSlotIds.includes(slot.id)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-paper pt-32">
         <div className="text-center space-y-6">
@@ -322,6 +384,8 @@ const BookSession: React.FC = () => {
     );
   }
 
+  const isSlotGreyed = bookedSlotIds.includes(slot.id);
+
   return (
     <div className="min-h-screen bg-paper pt-28 pb-20 px-6">
       <div className="max-w-2xl mx-auto">
@@ -333,16 +397,20 @@ const BookSession: React.FC = () => {
           Back
         </button>
 
-        <BookingWizard
-          slot={slot}
-          onComplete={() => navigate('/client/bookings')}
-          stripeConfigured={STRIPE_CONFIGURED}
-          handleBooking={handleBooking}
-          createPaymentIntent={createPaymentIntent}
-          platformFeePct={platformFeePct}
-          referralDiscountPending={referralDiscountPending}
-          PaymentFormComponent={PaymentForm}
-        />
+        <div
+          className={`transition-colors duration-300 ${isSlotGreyed ? 'opacity-40 pointer-events-none' : ''}`}
+        >
+          <BookingWizard
+            slot={slot}
+            onComplete={() => navigate('/client/bookings')}
+            stripeConfigured={STRIPE_CONFIGURED}
+            handleBooking={handleBooking}
+            createPaymentIntent={createPaymentIntent}
+            platformFeePct={platformFeePct}
+            referralDiscountPending={referralDiscountPending}
+            PaymentFormComponent={PaymentForm}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,190 +1,233 @@
-# Stack Research
+# Technology Stack
 
-**Domain:** Fitness marketplace SPA — v3.0 new feature additions
-**Researched:** 2026-03-17
-**Confidence:** HIGH (core libraries), MEDIUM (Google Calendar OAuth architecture in SPA context)
+**Project:** FitRush v4.0 — The Live Platform
+**Researched:** 2026-03-18
+**Confidence:** HIGH (core libraries), MEDIUM (AI matching architecture), MEDIUM (Google Calendar OAuth server-side flow)
 
 ---
 
 ## Scope
 
-ONLY net-new stack additions for v3.0:
-1. Calendar Sync (iCal export/import + Google Calendar bidirectional)
-2. Trainee Fitness Passport (avatar upload, fitness intake forms)
-3. Security Hardening (Zod at all boundaries, RLS audit, race-condition fixes)
-4. UX Polish
+ONLY net-new stack additions for v4.0 features:
+1. Google Maps (map view, pins, clustering, Places autocomplete for address entry)
+2. Geolocation (browser API + Capacitor iOS)
+3. Location-based notifications (push/in-app)
+4. Google Calendar bidirectional OAuth sync
+5. AI trainer-client matching + AI analytics
+6. Session history / workout logging (data model only — no new UI library needed)
+7. Email capture (landing page waitlist)
 
-Existing capabilities (React 19, Supabase, Stripe, Zustand, Tailwind v4, Vitest, Zod 4.3.6, Recharts, Resend, Framer Motion, react-router-dom) are NOT re-documented.
-
-**Key existing fact:** Zod 4.3.6 is already in `package.json`. No upgrade needed. Edge Functions already use the `npm:` import specifier pattern (confirmed in `create-payment-intent/index.ts`).
-
----
-
-## Recommended Stack
-
-### Core Technologies
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `ical.js` | `^2.2.1` | Parse and generate iCalendar (.ics) RFC 5545 data | Zero npm dependencies, pure ESM — runs in both the browser (React SPA) and Deno Edge Functions via `npm:ical.js`. Used by Mozilla Calendar for years. v2.x is the actively maintained fork. Handles recurrence rules (RRULE), timezones, VEVENT/VCALENDAR structure. The only library to use for both client-side .ics import and server-side .ics generation. |
-| Google Identity Services (GIS) | Script CDN, not npm | OAuth 2.0 token grant for Google Calendar API scopes in the browser | Google's current auth library — replaces the deprecated `gapi.auth2`. Loaded via `<script src="https://accounts.google.com/gsi/client">`. The `initTokenClient()` flow requests short-lived access tokens for Calendar scopes without exposing a client secret. Actual Calendar REST calls go through a Supabase Edge Function, not the browser, to protect token handling. |
-| `react-hook-form` | `^7.71.2` | Multi-field fitness intake forms and profile editing | Fitness Passport forms have 10+ fields (goals, limitations, injuries, experience level, preferred workout types). `react-hook-form` handles field registration, dirty tracking, field arrays for dynamic goal lists, and controlled/uncontrolled inputs without re-rendering the whole form on each keystroke. The project has no form library today — adding it is justified here. |
-| `@hookform/resolvers` | `^5.2.2` | Bridge between react-hook-form and Zod 4 validation | v5.2.2 explicitly added Zod v4 support (alongside v3 compatibility) with automatic runtime detection. Required whenever using Zod schemas to validate react-hook-form inputs. Do NOT use resolvers v4.x with Zod 4 — type-level breakage was fixed in v5.2.x only. |
-| `browser-image-compression` | `^2.0.2` | Client-side avatar image compression before Supabase Storage upload | Compresses JPEG/PNG/WebP in a Web Worker (non-blocking UI). TypeScript types are bundled. Reduces avatar payloads before they hit Supabase Storage — avoids the Pro plan Image Transformation feature for the common case of "upload-then-display." Last npm publish was 2022 but 2.0.2 is stable and API-complete. 392k weekly downloads. |
-
-### Supporting Libraries
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `pgTAP` | Built into Supabase CLI | SQL-level unit tests for RLS policies | Write `.sql` test files in `supabase/tests/`. Run via `supabase test db` locally and in CI. Required for RLS audit phase — policy violations fail silently (no error thrown; rows are just missing), making pgTAP the only reliable way to assert access is correctly denied. |
-| `@types/google.accounts` | `^0.0.x` (dev) | TypeScript type declarations for the GIS script global | The GIS library loads at runtime via a `<script>` tag, giving you a `window.google` global. Without this dev package, TypeScript doesn't know the type of `google.accounts.oauth2.initTokenClient`. Install as a dev dependency only. |
-| Google Calendar REST API (raw `fetch`) | N/A — HTTP | Read/write calendar events using the GIS access token | Do NOT use the `@googleapis/calendar` npm package in the SPA or Edge Functions — it adds ~3MB and is designed for Node.js server environments. The REST API at `https://www.googleapis.com/calendar/v3/` is fully stable. Use raw `fetch` with `Authorization: Bearer <token>` header. |
-
-### Development Tools
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| `supabase test db` | Run pgTAP RLS tests against local Supabase | Requires `supabase start`. Test files in `supabase/tests/`. Already available via the existing Supabase CLI — zero new tooling needed. |
-| Supabase Dashboard — Auth — Policies | RLS policy audit starting point | Use the "Policies" view to enumerate all tables and their current policies before writing pgTAP tests. Faster to audit visually first, then automate. |
+Existing capabilities already in use — do NOT re-add:
+- React 19, TypeScript, Vite 6, Tailwind CSS, Zustand, Framer Motion, Recharts
+- Supabase (PostgreSQL, Auth, Realtime, Edge Functions/Deno)
+- Stripe Connect + Stripe Billing
+- Zod + react-hook-form, Vitest, ical.js, browser-image-compression
+- Resend.com (transactional email — already wired to Edge Functions)
+- Capacitor 8 (iOS shell — already installed)
 
 ---
 
-## Installation
+## Recommended Stack Additions
+
+### Google Maps
+
+| Library | Version | Purpose | Why |
+|---------|---------|---------|-----|
+| `@vis.gl/react-google-maps` | latest (^1.x) | Map display, AdvancedMarkers, Places Autocomplete hooks | Google's officially sponsored React library — replaces the unmaintained `@react-google-maps/api`. Provides `APIProvider`, `Map`, `AdvancedMarker`, and `useMapsLibrary` hook for loading Places library lazily. |
+| `@googlemaps/markerclusterer` | latest (^2.x) | Cluster nearby trainer pins at lower zoom levels | Google's official clustering library. Used with `@vis.gl/react-google-maps` AdvancedMarkers. Uses the supercluster algorithm internally — no need to install supercluster separately. |
+
+**What NOT to install:**
+- `@react-google-maps/api` — older community library, no longer recommended by Google
+- `react-places-autocomplete` — unmaintained, last publish 2021
+- `supercluster` / `use-supercluster` — only needed if bypassing `@googlemaps/markerclusterer`; redundant here
+
+**Google Maps APIs to enable in GCP console:**
+- Maps JavaScript API (map display)
+- Places API (New) (address autocomplete with session tokens)
+- Geocoding API (lat/lng from address string, optional fallback)
+
+**Pricing context (as of March 2025 new billing model):**
+- Maps JavaScript API: 10,000 free map loads/month (Essentials tier), $7/1,000 after
+- Places Autocomplete (New): Session-based — free autocomplete requests within a session when terminated by a Place Details call. The $200/month credit was retired March 1, 2025; free tier limits now apply per SKU.
+- At FitRush's current scale, Maps costs should remain within free tier limits for the foreseeable future. Monitor via GCP Billing dashboard.
+
+**Integration with existing stack:**
+- API key stored in `VITE_GOOGLE_MAPS_API_KEY` env var (web) + Netlify env
+- Map component lives inside the existing React SPA routing structure
+- Trainer `lat`/`lng` coordinates stored in `trainer_profiles` table (new columns via migration)
+
+---
+
+### Geolocation
+
+| Technology | Purpose | Why |
+|-----------|---------|-----|
+| `navigator.geolocation` (browser built-in) | One-shot and watched GPS position on web | Zero dependencies. Works on desktop Chrome/Safari/Firefox. Used for "notify me when trainers are near" opt-in. |
+| `@capacitor/geolocation` (already installed in Capacitor 8) | GPS on native iOS | Already available via Capacitor 8. Just needs `NSLocationWhenInUseUsageDescription` in `Info.plist`. No additional npm install required. |
+
+**What NOT to install:**
+- `capacitor-community/background-geolocation` — background tracking is overkill for the "Uber-style toggle" use case. The toggle sends a presence signal to Supabase when the trainer actively opens the app; background GPS is not required for v4.0.
+- Any third-party geolocation wrapper for web — the browser Geolocation API is sufficient.
+
+**Integration note:**
+- Write a single `useGeolocation()` hook that calls `Capacitor.isNativePlatform() ? Geolocation.getCurrentPosition() : navigator.geolocation.getCurrentPosition()` for unified cross-platform behavior.
+- Permission request on iOS: call `Geolocation.requestPermissions()` before first use; on web, permission is triggered automatically on first call.
+
+---
+
+### Location-Based Notifications
+
+| Technology | Purpose | Why |
+|-----------|---------|-----|
+| Supabase Realtime (already in use) | In-app "trainer available near you" alerts | Already wired for notifications table. No new library needed — extend existing notification system with a `location_alert` type. |
+| `firebase/messaging` (FCM) via Supabase Edge Function | Web push notifications (out-of-tab alerts) | FCM is the standard for web push. Supabase Edge Functions already support FCM webhook pattern. The Supabase docs provide an official example. Only needed if push-when-tab-closed is a v4.0 requirement. |
+| Service Worker (Workbox or manual) | Register push subscription, display notification | Required for web push. Vite PWA plugin (`vite-plugin-pwa`) can scaffold this. Adds ~2KB to bundle. |
+
+**Recommendation for v4.0 scope:**
+- Start with Supabase Realtime in-app alerts only (zero new dependencies).
+- Defer web push (FCM + service worker) to v4.1 if out-of-tab notifications are prioritized. The complexity cost (Firebase project setup, service worker lifecycle, iOS PWA push limitations) is high relative to v4.0 scope.
+- For Capacitor iOS, push notifications would use `@capacitor/push-notifications` (separate feature), also deferred.
+
+**What NOT to install now:**
+- `vite-plugin-pwa` — defer with web push
+- `firebase` package — defer with web push
+- `@capacitor/push-notifications` — defer to post-v4.0
+
+---
+
+### Google Calendar Bidirectional OAuth Sync
+
+| Technology | Purpose | Why |
+|-----------|---------|-----|
+| `googleapis` (npm, used in Supabase Edge Function) | Server-side Google Calendar API calls (read/write events) | Official Google client library. Must run server-side (Edge Function) because it requires `client_secret`. Deno 2.2+ resolves the previous gcp-metadata compatibility issue. |
+| `google-auth-library` (npm, peer dep of googleapis) | OAuth2 token exchange and refresh in Edge Function | Required alongside `googleapis` for token lifecycle management. Use `npm:googleapis` import specifier in Deno Edge Functions. |
+
+**Architecture (server-side is mandatory):**
+- Google Calendar OAuth requires `client_secret` — it cannot be safely held in the React SPA
+- Flow: React SPA initiates OAuth redirect → Supabase Edge Function `google-calendar-auth` handles the callback, exchanges code for tokens, stores `refresh_token` encrypted in `profiles` table (new column)
+- New Edge Functions needed: `google-calendar-auth` (OAuth callback + token storage), `google-calendar-sync` (bidirectional events read/write + watch channel registration)
+- Sync token stored per user in DB to enable incremental sync (only changed events fetched)
+- Watch channels (Google push to FitRush webhook) expire weekly — Edge Function must renew them via pg_cron
+
+**Known compatibility issue (resolved):**
+- January 2025: `gcp-metadata` 6.1.1 broke `googleapis` in Supabase Edge Functions. Fixed by Deno 2.2+. Confirm Supabase project is on current Edge Runtime before deploying.
+
+**What NOT to do:**
+- Do not attempt Google Calendar OAuth from the React SPA frontend — `client_secret` cannot be safely stored in browser context
+- Do not use `react-google-calendar-api` npm package — unmaintained (last publish 2 years ago), client-side only
+
+---
+
+### AI Trainer-Client Matching + AI Analytics
+
+| Technology | Purpose | Why |
+|-----------|---------|-----|
+| `pgvector` (Supabase extension, already available) | Store embedding vectors for trainer profiles + Fitness Passports | Already available on Supabase. Enable via migration: `create extension if not exists vector`. Used for cosine similarity matching. |
+| OpenAI `text-embedding-3-small` API (via Edge Function) | Generate embeddings from Fitness Passport + trainer profile text | $0.02/1M tokens — negligible cost at FitRush scale. 1536 dimensions. Best quality-to-cost ratio for semantic matching tasks. Calls made server-side from Edge Function, not from browser. |
+
+**Architecture for AI matching:**
+- New Edge Function `generate-embeddings` triggered on profile save (via Supabase webhook): embeds trainer specialty + bio + location preferences into a vector stored in `trainer_profiles.embedding vector(1536)`
+- New Edge Function `generate-embeddings` also embeds client Fitness Passport (goals, workout types, limitations) into `client_profiles.embedding vector(1536)`
+- Matching query: `SELECT trainer_id, 1 - (embedding <=> $client_embedding) AS similarity FROM trainer_profiles ORDER BY similarity DESC LIMIT 10` — runs inside an RPC function, callable from React
+- AI analytics (discount recommendations for empty slots): rule-based classification using existing booking data patterns — no embeddings needed for v4.0. Implement as SQL query + Edge Function. True ML deferred per PROJECT.md "Out of Scope."
+
+**What NOT to do:**
+- Do not use LangChain or vector database third-party services — pgvector on existing Supabase instance is sufficient and avoids new external dependencies
+- Do not train custom models — OpenAI embeddings are sufficient for semantic similarity matching without training data
+- Do not call OpenAI API from the React frontend — API key must stay server-side in Edge Function secrets
+
+**Cost estimate:**
+- Embedding generation: triggered only on profile create/update. At 1,000 trainers × avg 300 tokens/profile = 300K tokens = $0.006 total. Negligible.
+- Matching queries: pure Postgres cosine similarity after embeddings exist — no ongoing OpenAI cost per search.
+
+---
+
+### Session History + Workout Logging
+
+No new npm libraries needed. The feature is a data model + UI extension:
+
+- New Supabase tables: `session_logs` (post-session notes, exercises, duration, mood rating), `workout_templates` (optional v4.1)
+- New React components: `SessionLogForm`, `SessionHistoryList`, `ProgressChart` (using existing Recharts)
+- Zod schema for `SessionLogSchema` (using existing Zod installation)
+- Recharts already covers progress visualization (LineChart for weight/performance trends)
+
+**What NOT to add:**
+- No dedicated workout logging library (e.g., `react-workout-logger`) — overkill, Zod + Recharts + Supabase covers all needs
+- No separate chart library — Recharts is already installed and used for analytics
+
+---
+
+### Email Capture (Landing Page Waitlist)
+
+No new libraries needed. The full stack is already present:
+
+- New Supabase table: `email_captures (id, email, created_at, source)` with a public insert RLS policy (no auth required) and unique constraint on email
+- New Supabase Edge Function `capture-email`: validates email with Zod, inserts to table, sends confirmation via existing Resend integration
+- React component: simple controlled input + submit using existing react-hook-form + Zod (already installed)
+
+**What NOT to add:**
+- No Mailchimp, ConvertKit, or third-party email list service — Supabase table + Resend covers the requirement without additional vendor dependency
+- No new form library — react-hook-form is already installed
+
+---
+
+## Net-New Installation Summary
 
 ```bash
-# React SPA — new dependencies
-npm install ical.js react-hook-form @hookform/resolvers browser-image-compression
+# Google Maps (2 packages)
+npm install @vis.gl/react-google-maps @googlemaps/markerclusterer
 
-# TypeScript types for GIS script global (dev only)
-npm install -D @types/google.accounts
+# AI matching — googleapis in Edge Function only (no frontend install)
+# Add to Edge Function imports:
+# import { google } from "npm:googleapis@137";
+# import { OAuth2Client } from "npm:google-auth-library@9";
+# import OpenAI from "npm:openai@4";
 ```
 
-```html
-<!-- index.html — GIS script (NOT an npm package) -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-```
-
-```typescript
-// Deno Edge Function — import patterns (no install, inline specifiers)
-
-// ical.js in Edge Functions
-import ICAL from 'npm:ical.js';
-
-// Zod is already available via npm: (project already uses this pattern)
-import { z } from 'npm:zod';
-```
+**Total new npm packages for frontend: 2**
+All other additions are either server-side (Edge Functions) or use existing installed packages.
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| Raw `fetch` to Google Calendar REST | `@googleapis/calendar@14.2.0` npm | Only if you need service account / domain-wide delegation for admin-level calendar operations. For per-user OAuth token flows, REST + GIS is simpler and avoids ~3MB bundle. |
-| `browser-image-compression` (client-side) | Supabase Storage Image Transformations | Supabase image transforms are a Pro plan paid feature. Use Supabase transforms when you need on-the-fly *serving* at multiple sizes (e.g., thumbnails in lists rendered from CDN URLs). Use `browser-image-compression` to reduce upload payload size — it's free at all plan tiers and runs before the file ever leaves the device. Both can be used together. |
-| `react-hook-form` + `@hookform/resolvers` | Plain `useState` + manual validation | For simple 1-3 field forms (login, search). Fitness intake forms have 10+ fields, conditional visibility (e.g., "injury details" shown only if "has injuries" is checked), and dynamic field arrays for goals/limitations. `useFieldArray` and `useWatch` from RHF handle these patterns cleanly. |
-| `ical.js` (runtime-agnostic) | `node-ical` | `node-ical` has `node:http` internals — Deno-incompatible. Only choose `node-ical` if the functions runtime ever migrates to Node.js. |
-| `pgTAP` SQL tests | JavaScript integration tests impersonating JWT role | JS tests exercise the HTTP API layer; pgTAP tests exercise the Postgres policy layer. pgTAP is authoritative for RLS because it runs inside the DB transaction context with the correct `auth.uid()` value. Use both; pgTAP is the ground truth. |
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| Maps library | `@vis.gl/react-google-maps` | `@react-google-maps/api` | Community library, maintenance unclear; Google now sponsors vis.gl |
+| Clustering | `@googlemaps/markerclusterer` | `supercluster` + `use-supercluster` | Markerclusterer uses supercluster internally; no reason to bypass |
+| AI embeddings | OpenAI `text-embedding-3-small` via Edge Function | Supabase built-in `gte-small` model | `gte-small` (384 dims) is lower quality; OpenAI at $0.02/MTok is negligible cost for better results |
+| AI matching store | pgvector (existing Supabase) | Pinecone, Weaviate | No new vendor; pgvector on Supabase is production-ready for FitRush's scale |
+| Calendar sync | `googleapis` in Edge Function | `react-google-calendar-api` | Client-side library cannot hold client_secret; server-side is required |
+| Web push | Deferred | FCM + `vite-plugin-pwa` | iOS PWA push support is limited; complexity exceeds v4.0 value |
+| Email capture | Supabase table + Resend | Mailchimp, ConvertKit | Avoids new vendor; existing Resend integration covers confirmation emails |
 
 ---
 
-## What NOT to Use
+## Environment Variables (New for v4.0)
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `@googleapis/calendar` npm package in SPA | ~3MB bundle addition; designed for Node.js; requires managing OAuth refresh flow in browser JS which is a security risk. | Raw `fetch` to `https://www.googleapis.com/calendar/v3/` with GIS access token. |
-| `gapi.auth2` (legacy Google auth) | Deprecated and shut down by Google in 2023. | Google Identity Services (`accounts.google.com/gsi/client`). |
-| `compressorjs@1.2.1` | Last published 2022, not actively maintained, no native TypeScript types bundled, fewer weekly downloads than `browser-image-compression`. | `browser-image-compression@2.0.2`. |
-| `node-ical` or `ical` npm packages | Node.js-specific internals. Will not work in Deno Edge Functions. | `ical.js@2.2.1` — runtime-agnostic. |
-| Storing Google OAuth refresh tokens in `localStorage` or Supabase DB | Refresh tokens for Google Calendar are extremely sensitive — leaking one gives calendar read/write access indefinitely. Google's own guidelines say: never persist refresh tokens in browser storage for SPAs. | Use GIS token model for short-lived access tokens. Request a new access token on demand via `prompt: 'none'` (silent re-auth). For persistent sync, exchange for a refresh token server-side via an Edge Function and store encrypted in Supabase with service-role-only read access. |
-| React Big Calendar or FullCalendar | Both ship with React 18 peer dependency assumptions and add >200KB bundle. The FitRush calendar UI is a list of time slots, not a full scheduling grid. | Simple `<ul>`-based slot list styled with Tailwind v4 and animated with Framer Motion (already installed). |
-| Zod v3 syntax with existing Zod 4 install | The project is on Zod `4.3.6`. v4 moved format validators to top-level functions: `z.email()` not `z.string().email()`. v4's `z.uuid()` enforces RFC 4122. Writing v3-style validators creates silent type drift and runtime errors at validation boundaries. | Zod v4 API exclusively throughout all new code. |
-| `@hookform/resolvers@4.x` with Zod 4 | v4.x of resolvers has type incompatibilities with Zod v4's changed generic signatures. Fixed in v5.2.2. | `@hookform/resolvers@^5.2.2`. |
+```bash
+# Frontend (.env / Netlify)
+VITE_GOOGLE_MAPS_API_KEY=          # Maps JavaScript API key (restricted to your domain)
 
----
-
-## Stack Patterns by Feature
-
-**Calendar Sync — iCal Export (trainer schedule as downloadable .ics):**
-- New Edge Function `export-calendar` generates .ics using `npm:ical.js`
-- React client calls the function, receives .ics text, triggers browser download via `new Blob([icsText], { type: 'text/calendar' })` + `URL.createObjectURL`
-- No new frontend library needed for export
-
-**Calendar Sync — iCal Import (trainer uploads external .ics file):**
-- React SPA reads the uploaded file, parses with `ical.js` (frontend install)
-- Extracted VEVENT data maps to the bookings/availability schema
-- Validation with Zod 4 before any Supabase write
-
-**Calendar Sync — Google Calendar Bidirectional:**
-1. Trainer clicks "Connect Google Calendar" — GIS `initTokenClient` triggers OAuth consent
-2. Access token returned to browser — stored in React state only (never localStorage)
-3. SPA calls new Edge Function `sync-google-calendar` with the token + user_id
-4. Edge Function calls Google Calendar REST API (`fetch`) to read/write events
-5. Results written to `bookings` / `availability_slots` tables
-6. Token expiry: GIS access tokens last ~1 hour; request fresh token with `prompt: 'none'` on next sync
-
-**Trainee Fitness Passport — Avatar Upload:**
-1. User selects image file
-2. `browser-image-compression` compresses to <500KB, max 1200px wide
-3. Upload to Supabase Storage bucket `avatars/{user_id}/{uuid}.webp`
-4. RLS policy on `avatars` bucket: authenticated user can only INSERT/UPDATE their own path prefix (`storage.foldername(name)[1] = auth.uid()::text`)
-5. Display via `supabase.storage.from('avatars').getPublicUrl(path)` — no server transform needed post-compression
-
-**Trainee Fitness Passport — Intake Form:**
-- `react-hook-form` with `useFieldArray` for dynamic goals / limitations lists
-- Zod 4 schema validates on blur + on submit
-- `@hookform/resolvers@5.2.2` wires schema to form
-- Submitted data writes to `trainee_profiles` table (new migration)
-
-**Security Hardening — Zod at Edge Function Boundaries:**
-- Import `npm:zod` in Deno functions (project already uses `npm:` pattern)
-- Parse `await req.json()` through a Zod schema as the FIRST action in every function
-- Return `400` with `error.issues` on schema failure
-- Prevents downstream SQL injections from malformed JSON payloads
-- Pattern confirmed working with Deno's `npm:` specifier
-
-**Security Hardening — RLS Audit:**
-- Write pgTAP tests in `supabase/tests/` covering all 18 existing migrations
-- Test pattern for denied access: `SET local request.jwt.claims = '{"sub":"<other-user-uuid>"}'; SELECT is_empty(SELECT * FROM table WHERE ...)`
-- Test pattern for allowed access: confirm row count = expected
-- Run with `supabase test db` — integrates with existing CI workflow
-
----
-
-## Version Compatibility
-
-| Package A | Compatible With | Notes |
-|-----------|-----------------|-------|
-| `react-hook-form@7.71.2` | `react@19.2.1` | RHF v7 targets React 18+; React 19 is backward compatible. No known issues. |
-| `@hookform/resolvers@5.2.2` | `zod@4.3.6` | v5.2.2 added explicit Zod v4 support. DO NOT use v4.x resolvers with Zod 4. |
-| `ical.js@2.2.1` | Deno via `npm:ical.js` | Pure ESM, zero Node.js built-in dependencies. Deno `npm:` specifier confirmed working. Fallback: `import ICAL from 'https://esm.sh/ical.js@2.2.1'` if `npm:` causes issues. |
-| `ical.js@2.2.1` | Vite 6 (browser bundle) | Standard ESM — Vite handles it natively. No special config needed. |
-| `browser-image-compression@2.0.2` | `react@19.2.1`, `vite@6.x` | Browser-only (no SSR). Web Worker path works with Vite's default worker config. TypeScript types bundled in package. |
-| GIS script (`accounts.google.com/gsi/client`) | All SPA environments | Runtime-loaded script — no bundle impact. `@types/google.accounts` provides TS declarations. |
-| `zod@4.3.6` (already installed) | `npm:zod` in Deno | Same version imported in both environments. Use `import { z } from 'npm:zod'` in Edge Functions to match SPA's Zod v4 validation schemas. |
+# Supabase Edge Function secrets (supabase secrets set)
+GOOGLE_CLIENT_ID=                  # OAuth 2.0 Web Client ID
+GOOGLE_CLIENT_SECRET=              # OAuth 2.0 Web Client Secret
+OPENAI_API_KEY=                    # For text-embedding-3-small calls
+```
 
 ---
 
 ## Sources
 
-- [ical.js npm](https://www.npmjs.com/package/ical.js) — version 2.2.1 confirmed, zero dependencies, 102 dependents
-- [ical.js GitHub](https://github.com/kewisch/ical.js) — actively maintained, RFC 5545 + 6350 support
-- [Google Calendar API auth scopes](https://developers.google.com/workspace/calendar/api/auth) — `calendar.events` scope for read/write
-- [Google Identity Services overview](https://developers.google.com/identity/gsi/web/guides/overview) — GIS as replacement for `gapi.auth2`
-- [GIS token model](https://developers.google.com/identity/oauth2/web/guides/use-token-model) — `initTokenClient`, short-lived access tokens, SPA pattern
-- [Google OAuth2 PKCE for SPAs — client secret requirement](https://ktaka.blog.ccmp.jp/2025/07/oogle-oauth2-and-pkce-understanding.html) — Google requires secret even with PKCE for web app types; SPA token model avoids this
-- [Supabase NPM compatibility in Edge Functions](https://supabase.com/features/npm-compatibility) — `npm:` specifier confirmed in Deno
-- [Supabase Storage Image Transformations](https://supabase.com/docs/guides/storage/serving/image-transformations) — Pro plan only; justifies client-side compression for free/starter plans
-- [browser-image-compression npm](https://www.npmjs.com/package/browser-image-compression) — version 2.0.2, TypeScript types bundled, Web Worker support
-- [react-hook-form npm](https://www.npmjs.com/package/react-hook-form) — version 7.71.2 current (March 2026)
-- [@hookform/resolvers npm](https://www.npmjs.com/package/@hookform/resolvers) — version 5.2.2, Zod v4 support confirmed
-- [Zod v4 changelog](https://zod.dev/v4/changelog) — breaking changes from v3, format validators moved to top-level functions
-- [hookform/resolvers Zod v4 issue](https://github.com/react-hook-form/resolvers/issues/799) — v5.2.2 fix confirmed
-- [pgTAP Supabase testing docs](https://supabase.com/docs/guides/local-development/testing/overview) — `supabase test db` workflow, RLS test patterns
-- [Testing RLS policies with pgTAP](https://blair-devmode.medium.com/testing-row-level-security-rls-policies-in-postgresql-with-pgtap-a-supabase-example-b435c1852602) — silent failure behavior, `is_empty()` pattern
-- `Cenlar demand gt 1-17/package.json` — confirmed `zod@4.3.6` already installed, all existing deps
-- `supabase/functions/create-payment-intent/index.ts` — confirmed `npm:stripe@14.25.0` import pattern in Deno
-
----
-*Stack research for: FitConnect v3.0 — Calendar Sync, Trainee Profiles, Security Hardening, UX Polish*
-*Researched: 2026-03-17*
+- [@vis.gl/react-google-maps official docs](https://visgl.github.io/react-google-maps/) — HIGH confidence
+- [Google Maps Platform blog: React components announcement](https://mapsplatform.google.com/resources/blog/introducing-react-components-for-the-maps-javascript-api/) — HIGH confidence
+- [@googlemaps/markerclusterer clustering docs](https://developers.google.com/maps/documentation/javascript/marker-clustering) — HIGH confidence
+- [Google Maps Platform pricing (new March 2025 model)](https://developers.google.com/maps/billing-and-pricing/pricing) — HIGH confidence
+- [Places API (New) session pricing](https://developers.google.com/maps/documentation/places/web-service/session-pricing) — HIGH confidence
+- [Supabase pgvector docs](https://supabase.com/docs/guides/database/extensions/pgvector) — HIGH confidence
+- [Supabase AI embeddings guide](https://supabase.com/docs/guides/ai) — HIGH confidence
+- [OpenAI text-embedding-3-small pricing](https://openai.com/api/pricing/) — HIGH confidence ($0.02/MTok)
+- [Capacitor Geolocation plugin docs](https://capacitorjs.com/docs/apis/geolocation) — HIGH confidence
+- [Google Calendar API push notifications](https://developers.google.com/workspace/calendar/api/guides/push) — HIGH confidence
+- [googleapis + Supabase Edge Function gcp-metadata fix](https://github.com/orgs/supabase/discussions/33244) — MEDIUM confidence (community discussion, Deno 2.2 fix confirmed)
+- [Supabase push notifications example (FCM)](https://supabase.com/docs/guides/functions/examples/push-notifications) — HIGH confidence (deferral recommendation is editorial)

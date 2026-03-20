@@ -15,6 +15,7 @@ interface StepConfirmProps {
   platformFeePct: number;
   paymentError: string | null;
   stripeConfigured: boolean;
+  bookingMode?: 'instant' | 'request';
 }
 
 export const StepConfirm: React.FC<StepConfirmProps> = ({
@@ -31,6 +32,7 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
   platformFeePct,
   paymentError,
   stripeConfigured,
+  bookingMode,
 }) => {
   const platformFee = Math.round(displayRate * platformFeePct * 100) / 100;
   const trainerName = slot.trainer_profiles.profiles?.full_name || 'Trainer';
@@ -117,9 +119,11 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
         >
           {loading
             ? 'Processing...'
-            : stripeConfigured
-              ? 'Continue to Payment'
-              : 'Confirm Booking'}
+            : bookingMode === 'request'
+              ? 'Request to Book'
+              : stripeConfigured
+                ? 'Continue to Payment'
+                : 'Confirm Booking'}
         </button>
       </div>
 

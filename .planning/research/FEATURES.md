@@ -1,718 +1,543 @@
-# Feature Research
+# Feature Landscape
 
-**Domain:** Trainer-facing subscription tiers on a luxury fitness marketplace (SaaS B2B2C)
-**Researched:** 2026-03-15
-**Confidence:** HIGH (Stripe docs + verified SaaS patterns) / MEDIUM (competitive comparisons)
+**Domain:** Live fitness marketplace — Uber-style availability, maps, AI matching, calendar sync, session tracking
+**Researched:** 2026-03-18
+**Milestone:** v4.0 — The Live Platform
+**Confidence:** HIGH (Google APIs, official docs) / MEDIUM (pattern research, competitive analysis) / LOW (AI matching specifics)
 
 ---
 
-## Feature Landscape
+## Scope
 
-### Table Stakes (Users Expect These)
+This file covers only the **new** v4.0 features. All v1.0–v3.0 table stakes (auth, booking, payments, availability slots, referrals, subscriptions, Fitness Passport) are already shipped and excluded.
 
-Features trainers assume exist once a subscription tier is introduced. Missing these makes the tier feel broken or untrustworthy.
+Existing features this milestone depends on:
+- Availability slot system (create/delete, soft-delete pattern) — base for toggle visibility
+- Fitness Passport (client goals, workout types, fitness level, limitations) — feeds AI matching
+- AI scheduling MVP (slot classification: booked/blocked/buffer/idle) — feeds discount analytics
+- Trainer discount slider (0–80%) — target of AI discount recommendations
+- iCal export with calendar_export_token — existing one-way sync to replace/augment with bidirectional
+- Notifications system (Supabase Realtime + email) — foundation for location-based notifications
+- Subscription tiers (Free/Pro/Elite) — gates for some v4.0 features
+
+---
+
+## Feature 1: Google Maps — Map View with Trainer Pins
+
+### Table Stakes
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Clear tier comparison page | Users need to see what they're buying before committing | LOW | Pricing table with feature checklist; annual/monthly toggle |
-| Monthly + annual billing toggle | Industry standard; annual = 20% discount is the sweet spot | LOW | Stripe `price` objects per interval; toggle updates displayed price |
-| 30-day free trial, no card required | Removes sign-up friction; "no card" outperforms card-required for marketplace B2B | LOW | Stripe `trial_period_days` on subscription; no `payment_method` needed during trial |
-| In-app subscription status indicator | Trainers expect to see current tier + next billing date at a glance | LOW | Read from Stripe customer portal or cached DB column |
-| Self-serve upgrade path | Trainers must be able to upgrade without contacting support | MEDIUM | Stripe Checkout or Payment Element; proration handled automatically |
-| Self-serve cancel/downgrade path | FTC Click-to-Cancel rule (2025) mandates cancellation is as easy as signup | MEDIUM | Must not require email or support ticket; in-app flow required |
-| Invoice history | Trainers need receipts for tax purposes | LOW | Stripe Customer Portal covers this out of the box |
-| Slot gate enforcement at display layer | Free-tier trainers must never show more than 3 slots to clients | MEDIUM | Query-level enforcement in trainer search RPC; not just UI hide |
-| Trial expiry email sequence | Users forget trial ends; 3-day and 1-day warning emails are expected | MEDIUM | Edge Function + Resend; Stripe `customer.subscription.trial_will_end` webhook |
-| Grace period on failed payment | Involuntary churn via card decline is common; brief retry window is industry norm | MEDIUM | Stripe `dunning` settings; Stripe retries 3-4x by default over ~7 days |
+| Map view with trainer location pins | Users expect map-based discovery once locations are shown — it's industry standard for local services | MEDIUM | @vis.gl/react-google-maps v1.7.1 (Google-endorsed, actively maintained) |
+| Trainer address entry on profile | Trainers must declare where they work (gym, park, client home area) before pins can display | LOW | Address field + optional lat/lng geocoding on save |
+| Marker clustering at zoom-out | Without clustering, 50+ pins on one city block renders unreadable | MEDIUM | @googlemaps/markerclusterer (official Google library) |
+| InfoWindow on pin click | Users expect to tap a pin and see trainer name, rate, specialty before navigating away | LOW | Built into @vis.gl/react-google-maps |
+| Map/list toggle | Users switch between map discovery and list browsing based on preference | LOW | State toggle; no architectural change — same data source |
+| Mobile-responsive map | Map must work on mobile; fixed-height containers with touch handling | LOW | Maps JS API handles touch natively |
 
-### Differentiators (Competitive Advantage)
-
-Features that justify the upgrade cost and are specific to FitRush's positioning as a luxury marketplace.
+### Differentiators
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Priority search placement (Pro) | Directly converts to more bookings; tangible ROI | MEDIUM | Add `tier_rank` column to profiles; weight into existing search query ORDER BY |
-| Advanced analytics tab (Pro) | Trainers can optimize their idle-hour strategy with trend data | LOW | Already built; gate visibility by tier in frontend check + DB policy |
-| Featured section on landing page (Elite) | Maximum client acquisition surface; exclusive and visible | MEDIUM | Curated section above trainer grid; query Elite trainers only; rotate or static |
-| Custom bio (Pro/Elite) | Differentiation vs free generic bio; luxury brand signal | LOW | Character limit increase or rich text; simple schema change |
-| Custom branded URL (Elite) | `/trainer/jane-doe` vs `/trainer/uuid`; professionalism signal | MEDIUM | Requires slug field on profiles + routing logic; slug uniqueness constraint |
-| Priority support (Elite) | Perceived value for $29/mo even if rarely used | LOW | Separate support email/tag; no infrastructure change; SLA commitment only |
-| Pause subscription (all paid tiers) | Reduces cancellations by ~30%; pause 1-3 months beats losing trainer entirely | MEDIUM | Stripe pause collection; feature gates revert to Free during pause |
-| Upgrade prompt with booking-impact message | Show "You'd appear to 3x more clients on Pro" at slot limit hit | LOW | Upsell modal triggered on gated action; contextual copy beats generic |
+| Real-time pin visibility tied to availability toggle | Only online trainers show as pins — reinforces "available now" urgency (Uber model) | MEDIUM | Supabase Realtime subscription on trainer availability status; pin add/remove on state change |
+| Location type icons (gym vs park vs in-home) | Visual differentiation on map speeds discovery for clients with location preferences | LOW | Custom AdvancedMarker icons; 3 SVG variants |
+| Trainer tier badge on pin | Gold star or badge for Elite trainers on the map pin; visible premium signal | LOW | CSS overlay on AdvancedMarker |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-Features
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Hard slot deletion on downgrade | "Enforce the limit cleanly" | Destroys trainer data; causes support escalations and rage churn | Soft-hide excess slots from client view; flag in dashboard "3 of 8 slots visible — upgrade to show all" |
-| Immediate feature removal on cancel | "Stop giving access once cancelled" | Trainers have paid through the billing period; removing access mid-cycle is a trust violation | Schedule removal for billing period end; show countdown in UI |
-| Card-required free trial | Higher-intent signups | Significantly reduces trial starts; marketplace trainers are acquisition-sensitive | No-card trial; collect card at trial-end conversion prompt |
-| Per-booking percentage fee on top of tier | "Extra monetization lever" | Stacks with existing 8% platform fee; trainers will feel double-taxed; erodes trust | Keep flat tier pricing; platform fee stays 8% regardless of tier |
-| Automatic upgrade when slot limit hit | "Frictionless revenue" | Dark pattern; causes chargebacks and support issues; potentially illegal in some jurisdictions | Gate action, show upgrade modal, require explicit confirmation |
-| Annual-only pricing for Elite | "Lock in high-value users" | Limits adoption; $29/mo already high for early-stage marketplace | Offer both; annual discount incentivizes without mandating |
-| Public tier badge on trainer card | "Social proof for Elite trainers" | Reveals business model to clients who don't care; may feel pay-to-win | Keep tier signals internal to trainer dashboard only |
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Live GPS tracking of trainer movement | Creepy for trainers; Uber-style live tracking only makes sense for in-transit service, not fitness booking | Show static workout location address; live tracking only for "currently available" toggle state |
+| Street View integration | Scope creep; adds API cost and build complexity for minimal fitness value | Static map pin + address text is sufficient |
+| Route/directions from map | Fitness sessions are planned in advance; turn-by-turn is unnecessary | Link to Google Maps deep link for directions when confirmed booking |
 
----
+### User Flow
 
-## Feature Dependencies
+1. Client opens "Find a Trainer" — sees list view by default (preserves existing UX).
+2. Client taps "Map" toggle — map renders with clustered pins for available trainers.
+3. Client zooms into neighborhood — clusters expand to individual pins.
+4. Client taps a pin — InfoWindow shows trainer name, specialty, rate, "Book" button.
+5. "Book" navigates to existing trainer detail page and booking wizard.
 
-```
-[Stripe Billing integration]
-    └──required by──> [Subscription create/upgrade/downgrade UI]
-    └──required by──> [Trial with no card]
-    └──required by──> [Invoice history]
-    └──required by──> [Grace period dunning]
-    └──required by──> [Annual billing toggle]
+### Dependencies on Existing Features
 
-[trainer_subscriptions DB table (tier + status + Stripe IDs)]
-    └──required by──> [Slot gate enforcement]
-    └──required by──> [Priority search placement]
-    └──required by──> [Advanced analytics gate]
-    └──required by──> [Featured section query]
-    └──required by──> [Admin tier status view]
-    └──required by──> [Manual tier override]
+- Trainer profiles (location field added) — needs DB migration for `workout_location_address`, `workout_location_lat`, `workout_location_lng`, `workout_location_type`
+- Availability toggle (Feature 2) — determines which pins are visible
+- Existing trainer search RPC — add location coords to response
 
-[Stripe webhook handler (subscription events)]
-    └──required by──> [Trial expiry emails]
-    └──required by──> [Tier sync on upgrade/downgrade]
-    └──required by──> [Grace period enforcement]
-    └──required by──> [MRR calculation]
+### Complexity Notes
 
-[Slot gate enforcement]
-    └──enhances──> [Upgrade prompt with booking-impact message]
-
-[Custom branded URL (slug)]
-    └──requires──> [Profile slug field + uniqueness constraint]
-    └──requires──> [Router change for /trainer/:slug]
-
-[Advanced analytics tab]
-    └──already built──> [gate visibility only; no new analytics work needed]
-
-[Priority search placement]
-    └──depends on──> [Discount-based weighted ranking (deferred in PROJECT.md)]
-    └──note──> [Tier rank is independent weight; can ship without discount weighting]
-
-[Featured section on landing page]
-    └──conflicts with──> [Referral leaderboard layout] (both compete for landing page real estate)
-    └──resolve──> [Featured trainers section above leaderboard; distinct visual treatment]
-```
-
-### Dependency Notes
-
-- **Stripe Billing is the foundational dependency.** Everything else — gating, trials, invoices, admin MRR — flows from subscription state managed in Stripe.
-- **trainer_subscriptions table is the enforcement source of truth.** Client-facing queries must read from this table, not from a frontend prop, to prevent gate bypass.
-- **Custom branded URL has routing implications.** Must handle slug collisions, slug changes (redirect old URL), and reserved slugs (admin, login, etc.).
-- **Advanced analytics is already built.** This is a gating task only — show/hide the tab based on tier. No new analytics development needed.
-- **Featured section conflicts with landing page layout.** The referral leaderboard is already placed on the landing page. Featured trainers section needs deliberate placement to avoid visual competition.
+Google Maps JavaScript API billing: Static Maps = $2/1000 loads; Dynamic Maps = $7/1000 loads. At <10K MAU, Maps costs are negligible (<$70/month). Require Maps API key with domain restriction. MEDIUM overall due to Supabase Realtime integration for pin visibility, not due to mapping library itself.
 
 ---
 
-## MVP Definition
+## Feature 2: Uber-Style Availability Toggle with Sleep Timer
 
-This is a subsequent milestone (v2.1), not a greenfield product. "MVP" here means the minimum to make the tier system real and trustworthy.
+### Table Stakes
 
-### Launch With (v2.1 core)
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Online/offline toggle on trainer dashboard | Core mechanic of the Uber model — trainers must control when they appear as available | LOW | Boolean column `is_live` on `trainer_profiles`; toggle updates via PATCH |
+| Toggle persists across sessions | Trainers should not need to re-enable every time they open the app | LOW | DB-persisted state, not session storage |
+| Offline = hidden from map and "available now" list | The toggle must have visible consequence — being offline means clients cannot see or book you | MEDIUM | RLS + query filter on trainer search; Realtime broadcast on change |
+| Clear visual state indicator | Prominent online (green) / offline (gray) status visible at all times on trainer dashboard | LOW | Header badge or persistent status bar |
 
-- [ ] Stripe Billing integration — subscriptions, webhooks, plan sync to DB
-- [ ] trainer_subscriptions table — tier, status, stripe_subscription_id, trial_end, billing_interval
-- [ ] Slot gate enforcement — query-level, not UI-only; Free = 3, Pro = 10, Elite = unlimited
-- [ ] Subscription management UI — pricing page, upgrade flow, cancel/downgrade flow
-- [ ] Trial start flow — no card required; 30 days; converts on card entry at trial end
-- [ ] Trial expiry emails — 3-day warning + 1-day warning via existing Resend integration
-- [ ] Priority search placement (Pro) — tier_rank weight in trainer search ORDER BY
-- [ ] Advanced analytics gate — hide analytics tab for Free tier (already built; just gate it)
-- [ ] Featured trainers section (Elite) — landing page section querying Elite trainers
-- [ ] Annual billing toggle — 20% discount; Stripe yearly price objects
-- [ ] Admin: tier status per trainer — visible in existing user management table
-- [ ] Admin: MRR + subscriber count — new metrics in existing admin analytics tab
+### Differentiators
 
-### Add After Validation (v2.1.x)
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Sleep timer auto-off (1hr, 2hr, 4hr, end of day) | Trainers forget to go offline; auto-off prevents false availability signals and protects trainer privacy | MEDIUM | `is_live_until` timestamp column; server-side pg_cron or Edge Function checks expiry; client polls or Realtime listens |
+| "Active window" scheduling (auto-on at set time) | Power users want to set "go live at 7am" rather than manually toggling each morning | HIGH | Cron-per-trainer complexity; defer to v4.1 unless trivial |
+| Last seen timestamp | Clients see "Online 2 hrs ago" — adds credibility and urgency | LOW | `last_seen_at` timestamp updated on toggle-on |
 
-- [ ] Custom branded URL (slug) — routing complexity warrants its own slice after core ships
-- [ ] Pause subscription — reduces churn; lower priority than initial tier launch
-- [ ] Upgrade prompt contextual modals — polish layer; add after gating is stable
-- [ ] Invoice history via Stripe Customer Portal — low effort, add when trainers request it
+### Anti-Features
 
-### Future Consideration (v2.2+)
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Auto-off triggered by inactivity/no bookings | Too aggressive; trainers go online to signal availability, not to guarantee bookings | Use sleep timer with explicit duration only — trainer chooses when to go offline |
+| Mandatory reason for going offline | Adds friction with no client-facing value | Silent toggle — no reason required |
+| "Busy" intermediate state | Unnecessary complexity for MVP; booking conflicts handled by slot availability | Binary online/offline is sufficient |
 
-- [ ] Per-tier slot notification preferences — Fine-grained control; wait for trainer feedback
-- [ ] Tier-based client messaging limits — Would require message infrastructure changes
-- [ ] White-label coach page (beyond custom URL) — Significant design/infra investment
+### User Flow
 
----
+**Going Online:**
+1. Trainer opens dashboard — sees "Go Live" button (gray/offline state).
+2. Trainer taps "Go Live" — modal offers: "Stay online until: [1hr] [2hr] [4hr] [End of Day] [Manually turn off]".
+3. Trainer selects duration — status flips to green "Live", timer countdown shown in header.
+4. Trainer pin appears on map; clients in saved area get push notification (Feature 3).
+5. Timer reaches zero — status auto-flips to offline; trainer pin removed from map.
 
-## Feature Prioritization Matrix
+**Going Offline:**
+1. Trainer taps green "Live" badge — one-tap confirmation toggles offline immediately.
+2. Pin removed from map in real time via Supabase Realtime broadcast.
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Stripe Billing + DB table | HIGH | MEDIUM | P1 |
-| Slot gate enforcement (query level) | HIGH | MEDIUM | P1 |
-| Subscription management UI | HIGH | MEDIUM | P1 |
-| Trial flow (no card) | HIGH | LOW | P1 |
-| Trial expiry emails | HIGH | LOW | P1 |
-| Priority search placement | HIGH | LOW | P1 |
-| Advanced analytics gate | HIGH | LOW | P1 |
-| Annual billing toggle | MEDIUM | LOW | P1 |
-| Admin tier status + MRR | MEDIUM | LOW | P1 |
-| Featured trainers section | HIGH | MEDIUM | P1 |
-| Custom branded URL | MEDIUM | MEDIUM | P2 |
-| Pause subscription | MEDIUM | MEDIUM | P2 |
-| Upgrade prompt modals | MEDIUM | LOW | P2 |
-| Stripe Customer Portal (invoices) | LOW | LOW | P2 |
+### Implementation Notes
 
----
+- `trainer_profiles` columns: `is_live BOOLEAN DEFAULT false`, `is_live_until TIMESTAMPTZ NULL`
+- pg_cron job every 5 minutes: `UPDATE trainer_profiles SET is_live = false WHERE is_live_until < NOW() AND is_live = true`
+- Supabase Realtime broadcast on `is_live` change — clients subscribed to map view receive delta updates
+- Sleep timer options drive `is_live_until` calculation on client; server only needs to honor the timestamp
 
-## Behavior Specifications
+### Dependencies
 
-### Trial Expiry Behavior
-
-1. Trainer signs up → Stripe subscription created with `trial_period_days: 30`, no `default_payment_method`
-2. At day 27 → `customer.subscription.trial_will_end` webhook fires → send 3-day warning email
-3. At day 29 → send 1-day warning email
-4. At day 30 (trial end) with no card → subscription status becomes `past_due` or `canceled` depending on Stripe config
-   - **Recommended:** Use `trial_settings.end_behavior.missing_payment_method: cancel` so subscription cancels cleanly rather than entering dunning
-5. After trial ends without converting → trainer reverts to Free tier immediately; no grace period on intentional non-conversion
-6. If trainer adds card before trial ends → subscription activates on trial end; pro-rated charge for first partial month applies
-
-### Slot Gate Enforcement Behavior
-
-- Slot count is enforced at **query time in the trainer search RPC**, not at UI render time
-- Free tier: `LIMIT 3` on visible slots ordered by `created_at ASC` (oldest = most reliable signals)
-- Pro tier: `LIMIT 10`
-- Elite tier: no limit
-- On downgrade from Pro to Free: excess slots (slots 4–10) remain in DB but are hidden from client-facing queries
-  - Trainer dashboard shows: "3 of 8 slots visible — upgrade to show all"
-  - No slots are deleted
-- On upgrade from Free to Pro: hidden slots become visible immediately (no re-creation needed)
-- **New slot creation** is also gated: Free trainer cannot create a 4th slot; show upgrade prompt
-
-### Upgrade Behavior
-
-- Upgrades take effect immediately
-- Proration applied: trainer charged only for remaining days at new tier price
-- Stripe `proration_behavior: create_prorations` (default) — proration line item on next invoice
-- Feature access granted immediately on Stripe webhook `customer.subscription.updated` with new tier
-- Do not wait for next billing cycle to grant access
-
-### Downgrade Behavior
-
-- Downgrades are **scheduled to the end of current billing period** (Zoom/GitHub model)
-- Trainer retains current tier features until billing period ends
-- UI shows: "Your [tier] access ends on [date]. After that, you'll move to [lower tier]."
-- On billing period end: webhook fires → update DB tier → enforce new gates
-- Excess slots become hidden (not deleted) on downgrade effective date
-- Custom URL/slug: retained in DB but no longer resolves if trainer downgrades from Elite (redirect to standard URL); reactivates on re-upgrade
-
-### Cancellation Behavior
-
-- Cancel schedules for end of billing period (never immediate mid-cycle removal)
-- Cancellation flow must include: reason survey (optional), pause offer, downgrade-to-Free offer
-- After cancel effective date: trainer reverts to Free tier automatically; no account deletion
-- Failed payment / involuntary churn: Stripe retries 4x over 7 days (configure in Stripe dashboard); after exhaustion → cancel and revert to Free; send notification email
-- Stripe `cancel_at_period_end: true` is the correct API behavior for end-of-period cancel
-
-### Featured Placement Behavior
-
-- Elite trainers are queried for the featured section on the landing page
-- If > N Elite trainers exist, rotate daily (deterministic: `ORDER BY trainer_id, date_trunc('day', now())` hash) to ensure fairness
-- If 0 Elite trainers exist, section is hidden (do not show empty section or fall back to Pro trainers — that dilutes the Elite value proposition)
-- Admin can manually pin specific Elite trainers to featured (override rotation)
-
-### Annual Billing Behavior
-
-- Annual plan = 12 months prepaid at 20% discount (~$7.20/mo Pro, ~$23.20/mo Elite)
-- Stripe: separate `price` objects for monthly and annual intervals on each product
-- Downgrade from annual to monthly: takes effect at annual period end; trainer gets full annual period at lower price
-- Upgrade from monthly to annual: proration calculated; trainer charged difference for remainder of year
-- No refund on annual plans — clearly stated at checkout
-
-### Admin Manual Override Behavior
-
-- Admin can grant any tier (Free/Pro/Elite) to any trainer, bypassing billing
-- Override stored as `manual_override: true` + `override_tier: 'pro'` on trainer record
-- Manual override does not create or modify Stripe subscription
-- Override persists until admin removes it or trainer subscribes normally (subscription supersedes override)
-- Admin overrides are audited (who granted, when, reason)
+- Maps Feature 1 — toggle controls pin visibility
+- Notifications Feature 3 — toggle-on triggers location-based push
+- pg_cron already in use for weekly-payouts — same pattern applies here
 
 ---
 
-## Competitor Feature Analysis
+## Feature 3: Location-Based Notifications for Clients
 
-| Feature | Trainerize | Fyt | FitRush Approach |
-|---------|------------|-----|-----------------|
-| Subscription tiers for trainers | Yes (Free/Pro/Studio) — client count limits | No trainer tiers (platform fee model) | Slot visibility + search placement; aligns with idle-hour model |
-| Free tier | 1 active client (very restrictive) | N/A | 3 slots visible; usable but clearly limited |
-| Slot/client hard limit enforcement | Excess clients auto-deactivated | N/A | Soft-hide (preserve data); show upgrade prompt |
-| Featured placement | No | No | Elite-exclusive; high perceived value |
-| Custom URL/branding | Yes (paid tiers) | No | Elite only; slug-based routing |
-| Annual discount | ~16% | N/A | 20% (slightly above industry median to drive annual commits) |
-| No-card trial | No (card required) | N/A | Yes; reduces friction for trainer acquisition |
+### Table Stakes
 
----
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| "Trainer nearby is now available" in-app notification | Clients who opt in to an area expect to be alerted when a trainer goes live — this is the core value of the real-time model | MEDIUM | Edge Function triggered on `is_live` change; query clients with matching saved area |
+| Saved location area preference | Clients need to specify their geographic interest area before notifications can be targeted | LOW | `client_profiles` column: `notification_area_geom` (PostGIS geometry) or city/zip preference |
+| Notification opt-in/opt-out controls | Users must be able to control which notifications they receive | LOW | Existing notifications preferences; add location notification type |
+| Notification badge count and read state | Standard mobile notification UX — unread badge drives re-engagement | LOW | Already exists in FitRush notification system — extend with new type |
 
-## Implementation Patterns: Deep Dives
+### Differentiators
 
-This section provides opinionated implementation specifics for the 10 highest-complexity patterns in v2.1. These supersede general guidance where the two conflict.
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Live GPS opt-in for "trainers near me right now" | Highest-intent notification — client shares current location, gets alerted when trainer within X miles goes live | HIGH | Browser Geolocation API + PostGIS `ST_DWithin` query; requires HTTPS; user permission required each session |
+| "Your saved trainer just went online" priority alert | Clients who have previously booked or favorited a trainer get a priority notification over generic area alerts | MEDIUM | `saved_trainers` junction table needed; priority queue logic in Edge Function |
+| Discount-specific notifications ("Trainer offering 30% off in your area") | Combines availability toggle + discount slider to surface deals — reinforces FitRush's value prop | MEDIUM | Include discount_pct in notification payload; filter for clients who have opted into deal alerts |
 
----
+### Anti-Features
 
-### Pattern 1: Upgrade Flow UX
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| SMS notifications | Costs money per message; adds TCPA compliance complexity | In-app + email via existing Resend integration is sufficient for MVP |
+| Browser push notifications (Web Push API) | Requires service worker, VAPID keys, complex permission UX — PWA scope; iOS support was broken until recently | Start with in-app + email; add Web Push in v5.0 with PWA/Capacitor |
+| Real-time location tracking of client | Privacy concern; clients share location only momentarily for match, not continuously | Point-in-time geolocation check only; don't store client GPS coordinates persistently |
 
-**Recommended: Feature-access triggered modals, not proactive interruption.**
+### User Flow
 
-Allow full navigation and read access at every tier. Trigger the upgrade modal only when a trainer attempts a gated write or action — not on page load, not after a timer.
+**Saved Area Setup (client):**
+1. Client opens notification settings — sees "Location Alerts" section.
+2. Client types city/neighborhood or taps "Use my location" — area saved as preference.
+3. Client toggles "Alert me when trainers go live nearby".
 
-Trigger points:
-- Clicking "Add Slot" when at the Free tier slot ceiling (3)
-- Clicking "View Full Analytics" when on Free tier
-- Editing the "Custom URL" field when not on Elite
-- The upgrade prompt is one modal per session per gate — after dismissal, revert to an inline banner for the rest of the session
+**Notification Trigger (server):**
+1. Trainer toggles `is_live = true` — Supabase database webhook or Realtime triggers Edge Function.
+2. Edge Function queries: clients with `notification_area` overlapping trainer's `workout_location`, who have opted in, who haven't been notified in last 30 minutes (rate limit).
+3. For each matching client: create `notifications` row (existing table) + send email via Resend if email alerts enabled.
+4. Client sees in-app notification bell badge + toast.
 
-Frame prompts as discovery, not restriction. "You've found a Pro feature" outperforms "Upgrade required." The gold `#C5A059` accent on the CTA is the single focal point — no competing CTAs in the upgrade modal.
+### Implementation Notes
 
-Persistent non-blocking banners live at the top of gated pages (e.g., the Analytics page shows a gold bar for Free trainers). They do not appear on every page — only on pages where the primary content is gated.
+- Simplest viable version: store city/zip on client profile, match by trainer city/zip (no PostGIS required for MVP).
+- Upgraded version: PostGIS `ST_DWithin` for radius-based matching (requires enabling PostGIS extension in Supabase — it's available but needs enabling).
+- Rate limit notifications per client per trainer: 1 per 30-minute window to avoid spam.
+- Edge Function reuse: extend `send-notification-email` with location alert type.
 
-**Confidence:** HIGH — sourced from Appcues freemium upgrade case study, Sankalpjonna paywall trigger analysis, Userpilot modal UX guide.
+### Dependencies
 
----
-
-### Pattern 2: Trial-to-Paid Conversion Flow
-
-**Trial countdown banner schedule:**
-
-| Days Remaining | Banner Style | Copy |
-|---|---|---|
-| 30–8 | Subtle gold bar | "Trial active — X days remaining. Upgrade anytime." |
-| 7 | Amber warning | "7 days left on your trial. Choose a plan to keep Pro access." |
-| 3 | Orange with date | "3 days left — your visible slots drop to 3 on [exact date]." |
-| 1 | Red with inline CTA | "Last day. Add a card to keep Pro access — 30 seconds." |
-| 0 | Modal on next login | "Your trial ended. Choose a plan or continue on Free." |
-
-Specificity converts. "Your visible slots drop to 3 on March 22" outperforms "trial ends soon" because it attaches a concrete cost to inaction.
-
-**No-card trial means payment is collected at trial end, not before.** The upgrade CTA during trial routes to: billing period selector (annual/monthly toggle) → Stripe Checkout → card capture. Do not collect card mid-trial unless trainer initiates upgrade.
-
-**Activation milestone trigger (supplementary):** If a trainer receives their first booking during trial, fire a contextual upgrade nudge: "You got your first booking! Upgrade to Pro to show 10 slots and book more." This is a behavioral trigger, not calendar-based, and converts at higher rates than countdown-only approaches.
-
-**Confidence:** HIGH — sourced from 1Capture SaaS conversion benchmarks (10,000+ companies), Demogo 2025 trial optimization guide.
+- Availability Toggle (Feature 2) — notification trigger source
+- Existing notifications table + in-app notification system
+- Existing `send-notification-email` Edge Function
 
 ---
 
-### Pattern 3: React Feature Gate Implementation
+## Feature 4: AI Trainer-Client Matching
 
-**Use a hook + feature registry. Not HOC, not inline tier string comparisons.**
+### Table Stakes
 
-The codebase uses Zustand for auth state. Extend the same pattern with a `useTier` hook that reads from `trainerProfile` (once `trainer_subscriptions` table exists, it reads from there via a subscription field on `trainerProfile`).
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| "Recommended for you" trainer section on search page | Clients with completed Fitness Passports expect the platform to use that data | MEDIUM | Rule-based matching using Fitness Passport fields against trainer specialties |
+| Match score display | Clients need to understand WHY a trainer is recommended — score or explanation increases trust | LOW | "95% match" label or 2-3 matched attributes ("Specializes in weight loss, flexible schedule") |
+| Fallback to popularity when no passport | New clients without Fitness Passport should not see empty state | LOW | Fallback to existing tier-ranked search when match data unavailable |
 
-```typescript
-// src/lib/tierGates.ts
-export type Tier = 'free' | 'pro' | 'elite';
+### Differentiators
 
-export type TierFeature =
-  | 'slots_ten'
-  | 'slots_unlimited'
-  | 'custom_bio'
-  | 'custom_url'
-  | 'analytics_advanced'
-  | 'priority_search'
-  | 'featured_landing';
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Multi-factor compatibility scoring | Score based on: specialty vs. client goals (primary), fitness level fit, location proximity, availability overlap, price range preference, past booking history | MEDIUM | Deterministic scoring function in Postgres RPC — no ML required, uses existing data |
+| Fitness Passport → specialty matching | "Client wants weight loss + HIIT → surface trainers with those specialties at top" — obvious but must be explicit | LOW | JSON overlap query between `client_profiles.fitness_goals` and `trainer_profiles.specialties` |
+| "Clients like you also trained with" | Social proof + collaborative signal without ML: find trainers frequently booked by clients with similar Fitness Passport profiles | HIGH | Requires booking volume data to be meaningful; defer until 6+ months of data |
+| AI-generated match explanation | LLM generates a 1-sentence explanation: "Matches your strength training goals and works near Downtown" — increases perceived intelligence | MEDIUM | Simple prompt + Supabase Edge Function calling OpenAI or Claude API; deterministic data fed as context |
 
-// Single source of truth for what each tier unlocks.
-// Adding a new feature or moving a feature between tiers = one line change here.
-export const TIER_GATES: Record<TierFeature, Tier[]> = {
-  slots_ten:          ['pro', 'elite'],
-  slots_unlimited:    ['elite'],
-  custom_bio:         ['pro', 'elite'],
-  custom_url:         ['elite'],
-  analytics_advanced: ['pro', 'elite'],
-  priority_search:    ['pro', 'elite'],
-  featured_landing:   ['elite'],
-};
-```
+### Anti-Features
 
-```typescript
-// src/hooks/useTier.ts
-export function useTier() {
-  const { trainerProfile } = useAuthStore();
-  // trainerProfile will gain a `subscription_tier` field once the DB table is added
-  const tier: Tier = (trainerProfile?.subscription_tier as Tier) ?? 'free';
-  const isTrialing: boolean = trainerProfile?.subscription_status === 'trialing';
-  const trialEndsAt: string | null = trainerProfile?.trial_ends_at ?? null;
-  return { tier, isTrialing, trialEndsAt };
-}
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| ML model trained on FitRush data | Platform has insufficient booking history for meaningful model training (per PROJECT.md: Predictive AI/ML out of scope) | Rule-based scoring using Fitness Passport fields; revisit in v6.0 |
+| Real-time ranking recalculation on every search | Expensive; over-engineering for MVP matching | Pre-compute match scores daily via pg_cron; re-run on Fitness Passport update |
+| "Magic AI" black box with no explanation | Users distrust unexplained recommendations | Always show 2-3 specific matched attributes as the reason |
 
-export function useCan(feature: TierFeature): boolean {
-  const { tier, isTrialing } = useTier();
-  // During trial, all features are accessible regardless of tier
-  if (isTrialing) return true;
-  return TIER_GATES[feature].includes(tier);
-}
-```
+### User Flow
 
-Component usage stays clean and never contains string comparisons:
+1. Client opens trainer search — "Recommended for You" section appears above regular search results (only if Fitness Passport is complete, >50% filled).
+2. Trainer cards show a "95% match" chip with tooltip: "Matches your goal: weight loss, specialty: HIIT, near your area".
+3. Client who has not filled Fitness Passport sees CTA: "Complete your Fitness Passport to get personalized recommendations".
+4. Client books a recommended trainer — booking experience unchanged.
 
-```tsx
-const canAdvancedAnalytics = useCan('analytics_advanced');
+### Implementation Notes
 
-return canAdvancedAnalytics
-  ? <AdvancedAnalyticsDashboard />
-  : <LockedFeaturePlaceholder feature="analytics_advanced" />;
-```
+**Scoring function (deterministic, no ML):**
+- Goal match: +30 points if trainer specialty overlaps client fitness goals
+- Workout type match: +20 points if trainer specialties include client preferred workout types
+- Fitness level appropriateness: +15 points if trainer bio/tags indicate experience with client's fitness level
+- Location proximity: +20 points if trainer workout_location within client's preferred area
+- Availability overlap: +10 points if trainer has available slots in client's preferred time windows
+- Price fit: +5 points if trainer rate within client's budget range (if budget field added later)
 
-`LockedFeaturePlaceholder` is a reusable component that takes `feature` and knows how to render the lock icon, tooltip, and upgrade CTA for that specific gate. This keeps upgrade prompt copy co-located with the gate rather than scattered.
+Total score 0–100, threshold 60+ for "Recommended" section.
 
-**Confidence:** HIGH — hook pattern matches PostHog, Unleash, Reflag SDK shapes. Feature registry is industry-standard for maintainability (Octopus Deploy feature flag best practices).
+**Infrastructure:** Postgres RPC function `get_trainer_recommendations(client_id)` — computable at query time, no pre-computation needed for small trainer catalogs (<500 trainers).
+
+### Dependencies
+
+- Fitness Passport (v3.0) — primary data source for matching
+- Trainer specialty/location data on `trainer_profiles`
+- Availability slots system — optional overlap scoring
 
 ---
 
-### Pattern 4: Slot Visibility Gating
+## Feature 5: AI Trainer Analytics — Discount Recommendations
 
-**Enforce at the Postgres RPC layer, not the frontend.**
+### Table Stakes
 
-Frontend `LIMIT` or filter is not enforcement — it is trivially bypassed via direct API calls. RLS policies control row-level access but cannot enforce row count limits based on another table's value. The correct layer is a Postgres function called via Supabase RPC.
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| "When to offer discounts" insights in trainer dashboard | Trainers already have the discount slider; they need guidance on when and how much to discount idle slots | MEDIUM | Pattern analysis on existing `availability_slots` classification data (idle/buffer/booked) |
+| Slot utilization rate over time | Trainers need a baseline metric before discount recommendations make sense | LOW | Aggregate query: booked slots / total slots per week, visualized in existing analytics dashboard |
+| Actionable recommendation card (not just data) | "You have 5 idle slots on Tuesday afternoons — try offering 20% off" is more valuable than raw charts | MEDIUM | Rule-based recommendation engine using slot history + time-of-week patterns |
 
-```sql
--- Called by the client search page; replaces direct availability_slots query
-CREATE OR REPLACE FUNCTION get_trainer_public_slots(p_trainer_id UUID)
-RETURNS SETOF availability_slots AS $$
-DECLARE
-  v_tier TEXT;
-  v_limit INT;
-BEGIN
-  -- Read the trainer's current active tier from the subscriptions table.
-  -- Falls back to 'free' if no active subscription found.
-  SELECT COALESCE(ts.tier, 'free') INTO v_tier
-  FROM trainer_subscriptions ts
-  WHERE ts.trainer_id = p_trainer_id
-    AND ts.status IN ('active', 'trialing')
-  LIMIT 1;
+### Differentiators
 
-  v_limit := CASE v_tier
-    WHEN 'elite' THEN NULL   -- NULL = no LIMIT applied
-    WHEN 'pro'   THEN 10
-    ELSE              3      -- free or missing subscription
-  END;
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Day-of-week idle pattern detection | Identify which days/hours consistently go unbooked and surface discount recommendation specifically for those windows | MEDIUM | GROUP BY day_of_week, hour aggregation on slot history; compare idle_count to total_count |
+| Discount effectiveness tracking | Show trainer: "Last month you offered 25% off Tuesdays — bookings on Tuesdays increased 40%" | HIGH | Requires storing discount_pct on bookings at time of booking, not just current trainer slider; needs schema change |
+| Optimal discount suggestion | Suggest specific discount percentage based on comparable trainers' booking rates (if trainer consent) | HIGH | Requires cross-trainer aggregate data; privacy sensitive; defer unless trainer opt-in |
+| "Seasonal demand" alerts | Alert trainers when platform-wide booking demand spikes (e.g., "January resolution season — lower your discount, demand is high") | LOW | Admin-triggered broadcast; simple notification type |
 
-  RETURN QUERY
-  SELECT *
-  FROM availability_slots
-  WHERE trainer_id = p_trainer_id
-    AND is_booked = false
-    AND deleted_at IS NULL
-    AND start_time > NOW()
-  ORDER BY start_time ASC
-  LIMIT v_limit;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
+### Anti-Features
 
-The trainer's own dashboard query is separate — it shows all slots (not limited), with a visual indicator of which ones are "hidden from clients" due to their current tier. The trainer needs to see their full slot inventory; only the client-facing query is limited.
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Fully automated dynamic pricing | Removes trainer agency; violates the luxury brand positioning where trainers control rates | Recommendations only, never automatic; trainer must apply discount manually |
+| Predictive ML model | Insufficient data; per PROJECT.md this is explicitly out of scope | Rule-based pattern recognition using existing slot classification data |
+| Per-slot granular discount pricing | Complex UX and Stripe integration; individual slot prices require new payment flow | Keep single discount slider; recommendations indicate WHEN to apply the trainer's chosen discount |
 
-**Confidence:** MEDIUM-HIGH — pattern is correct for Supabase/Postgres. `trainer_subscriptions` table schema is not yet defined; the RPC will need updating once that schema is finalized.
+### User Flow
 
----
+1. Trainer opens earnings analytics dashboard — new "Optimization" tab added.
+2. Tab shows: slot utilization rate (this week / last 4 weeks / all time).
+3. Pattern section: heat-map-style day/hour grid showing idle vs. booked history.
+4. Recommendation cards: "Idle pattern detected: Tuesday 2–5 PM has 0% booking rate over 4 weeks. Consider offering 20–30% discount for this window."
+5. Trainer taps "Apply 25% to Tuesday slots" — navigates to availability management (discount slider is trainer-level, not slot-level; recommendation is informational for now).
 
-### Pattern 5: Priority Search Ranking
+### Implementation Notes
 
-**Use `ORDER BY CASE` on a denormalized tier column. No separate ranking job or re-sort trigger.**
+- Data source: existing `availability_slots` table with `slot_type` enum (booked/blocked/buffer/idle)
+- New Postgres RPC: `get_trainer_slot_patterns(trainer_id, weeks_back)` — GROUP BY day_of_week, EXTRACT(hour FROM slot_start)
+- Recommendation threshold: flag day+hour combinations with idle_rate > 70% over last 4 weeks
+- Existing analytics dashboard already has Recharts — add new tab, no new chart library needed
+- Confidence: MEDIUM — rule-based, deterministic, requires adequate slot history (trainers need 4+ weeks of data)
 
-The tier column should be denormalized onto `trainer_profiles` (or `profiles`) so the search query does not require a join to `trainer_subscriptions` on every search. Sync it via the Stripe webhook handler.
+### Dependencies
 
-```sql
-SELECT
-  tp.*,
-  CASE tp.subscription_tier   -- denormalized column, not a join
-    WHEN 'elite' THEN 1
-    WHEN 'pro'   THEN 2
-    ELSE              3        -- free
-  END AS tier_rank
-FROM trainer_profiles tp
-WHERE tp.location_city = $1
-  -- other filter conditions
-ORDER BY
-  tier_rank ASC,               -- Elite first, Pro second, Free third
-  tp.rating DESC,              -- within same tier: higher rated appears first
-  tp.review_count DESC         -- tiebreak: more reviewed trainers rank higher
-LIMIT 20 OFFSET $2;
-```
-
-This is evaluated per-row during sort on an already-filtered result set — it does not require scanning the full table. Adding `CREATE INDEX ON trainer_profiles(subscription_tier)` helps the planner but the `CASE` expression in `ORDER BY` works correctly without it.
-
-**Why not a numeric `search_priority` column:** A `search_priority` number gets stale when tier definitions change. The `CASE` on a tier string always reflects current tier logic and is changed in one place (the SQL function) when requirements evolve.
-
-**Confidence:** HIGH — `ORDER BY CASE` is a standard and well-documented Postgres pattern. Denormalized tier column is the recommended approach for Stripe+Supabase (avoids join on search hot path).
+- Existing AI scheduling slot classification system (v3.0)
+- Existing discount slider (trainer profile)
+- Existing earnings analytics dashboard with Recharts
 
 ---
 
-### Pattern 6: Featured Section on Landing Page
+## Feature 6: Google Calendar Bidirectional OAuth Sync
 
-**Two independent queries. Graceful fallback. Never show an empty featured section.**
+### Table Stakes
 
-```typescript
-// Featured trainers — aggressive caching, rarely changes
-const { data: featuredTrainers } = useQuery({
-  queryKey: ['trainers', 'featured'],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from('trainer_profiles')
-      .select('id, user_id, specialty, rating, review_count, ...')
-      .eq('subscription_tier', 'elite')
-      .eq('verified', true)
-      .order('rating', { ascending: false })
-      .limit(6);
-    return data ?? [];
-  },
-  staleTime: 5 * 60 * 1000,  // 5 minutes — Elite membership changes are low-frequency
-});
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| OAuth 2.0 "Connect Google Calendar" flow | Industry standard for calendar sync; users expect OAuth not password | MEDIUM | Google OAuth scopes: `https://www.googleapis.com/auth/calendar.events`; store `access_token` + `refresh_token` in `trainer_profiles` |
+| Push confirmed bookings to Google Calendar | Trainers want bookings to appear in their Google Calendar automatically | MEDIUM | Create GCal event on booking confirmation; store `google_event_id` on booking row for later sync |
+| Delete/update GCal event on booking cancellation | Bidirectional: when booking cancelled in FitRush, remove from Google Calendar | MEDIUM | Cancel webhook triggers GCal event deletion using stored `google_event_id` |
+| Block FitRush slots when GCal event exists | When trainer has external meeting in Google Calendar, FitRush should mark that slot as blocked | HIGH | Google Calendar push notifications (watch channel) → webhook → slot blocking logic |
+| Disconnect / revoke integration | Users must be able to unlink Google Calendar without losing their FitRush data | LOW | Revoke OAuth token, clear stored tokens, remove GCal event IDs |
 
-// Top-rated fallback — used when no Elite trainers exist
-const { data: topTrainers } = useQuery({
-  queryKey: ['trainers', 'top-rated'],
-  queryFn: () => supabase.rpc('get_top_rated_trainers', { limit: 6 }),
-  staleTime: 2 * 60 * 1000,
-});
-```
+### Differentiators
 
-```tsx
-// Landing page rendering
-{featuredTrainers && featuredTrainers.length > 0 ? (
-  <FeaturedTrainersSection
-    trainers={featuredTrainers}
-    heading="Elite Trainers"
-  />
-) : (
-  // Falls back silently — client never sees an empty section
-  <FeaturedTrainersSection
-    trainers={topTrainers ?? []}
-    heading="Top Rated Trainers"
-  />
-)}
-```
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| "Conflicts blocked automatically" | Trainer's personal appointments in Google Calendar automatically block corresponding FitRush slots — eliminates double-booking | HIGH | Requires watch channel (push notifications from Google) + webhook endpoint; watch channels expire every 7 days and must be renewed |
+| Event description includes client Fitness Passport summary | Calendar event includes client name, goals, limitations — trainer has session context without opening FitRush | LOW | Populate GCal event description field on booking write |
+| Availability slots auto-created from GCal "Free" time | Parse trainer's free windows from GCal and suggest as FitRush availability | HIGH | Complex; misinterprets trainer intent; defer |
 
-**Do not UNION the queries** — merging featured + regular into one query makes the component layout rigid and couples the rendering logic to the query shape unnecessarily.
+### Anti-Features
 
-**Add a `featured_eligible` boolean to `trainer_profiles`** that admins can toggle independently of tier. Some Elite trainers may not want to appear on the landing page. The query becomes `eq('subscription_tier', 'elite').eq('featured_eligible', true)`.
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| iCal replacement | The existing iCal feed already serves clients who sync one-way; don't remove it | Keep iCal export as-is; GCal OAuth is an additive trainer-facing feature |
+| Bidirectional sync for clients | Client calendars are lower-priority; iCal already covers client one-way export | Trainer-side bidirectional only for v4.0; client sync via iCal feed |
+| Recurring event sync from GCal to FitRush slots | Complex deduplication; recurrence IDs create sync loop risks | Block individual event occurrences only; recurring handling deferred |
 
-**Confidence:** HIGH — standard TanStack Query pattern. Separate queries with conditional rendering is the documented approach.
+### User Flow
 
----
+1. Trainer opens profile settings — sees "Calendar Integrations" section.
+2. Trainer clicks "Connect Google Calendar" — OAuth consent flow (standard Google sign-in consent screen).
+3. FitRush stores `access_token`, `refresh_token`, `token_expiry` on `trainer_profiles`.
+4. FitRush creates a GCal watch channel for trainer's primary calendar — webhook URL points to new Edge Function `google-calendar-webhook`.
+5. Confirmed bookings: `create-payment-intent` success → also calls GCal Events.insert → stores `google_event_id` on booking.
+6. External event added in GCal → Google pings webhook → Edge Function checks for FitRush slot overlap → marks slot as blocked.
+7. Booking cancelled in FitRush → `cancel-booking` Edge Function also calls GCal Events.delete.
 
-### Pattern 7: Annual vs Monthly Plan Switcher UI
+### Implementation Notes
 
-**Toggle switch at top of pricing page. Default to Annual. Show monthly equivalent for annual pricing.**
+- **New Edge Function needed:** `google-calendar-webhook` (receives watch channel pings, fetches changed events, maps to FitRush slots)
+- **New Edge Function needed:** `google-calendar-sync` (handles OAuth token exchange + initial setup)
+- **Token refresh:** GCal `access_token` expires in 1 hour; refresh logic must run before every API call
+- **Watch channel renewal:** expire in 7 days max; pg_cron job renews before expiry
+- **Scope:** `calendar.events` (read/write specific events) — do NOT request `calendar` (full calendar management) — users are more willing to grant narrower scopes
+- **Conflict detection:** `calendar_sync_mappings` table: `booking_id`, `google_event_id`, `external_event_id`, `sync_version`, `synced_at`
+- **Loop prevention:** Track event origin; do not re-sync changes that originated from FitRush itself
+- **OAuth app verification:** Google requires domain verification + privacy policy URL; app may show "unverified" warning to users until submitted for review
 
-The standard pattern used by Canva, Linear, Jasper:
+### Dependencies
 
-```
-[Monthly]  ●────  [Annual  Save 20%]
-```
-
-- A two-button toggle or styled checkbox, not a dropdown
-- "Annual" carries a `Save 20%` badge inline
-- Default state: **Annual** — anchors the comparison to the better deal
-- Annual price displays as the monthly equivalent: `$7.20/mo` with a subscript `billed $86.40 annually` — not just the lump sum
-- Price values update instantly in React state with no network call
-
-```tsx
-const [billing, setBilling] = useState<'monthly' | 'annual'>('annual');
-
-const PRICES = {
-  pro:   { monthly: 9.00,  annual: 7.20  },  // annual = 9 * 12 * 0.8 / 12
-  elite: { monthly: 29.00, annual: 23.20 },
-};
-
-const price = PRICES[selectedPlan][billing];
-```
-
-**Routing to checkout:** Pass billing period as a query param. The checkout page maps it to the correct Stripe Price ID from a central config — never hardcode Price IDs in components.
-
-```typescript
-// src/lib/stripePrices.ts
-export const STRIPE_PRICE_IDS = {
-  pro_monthly:    import.meta.env.VITE_STRIPE_PRICE_PRO_MONTHLY,
-  pro_annual:     import.meta.env.VITE_STRIPE_PRICE_PRO_ANNUAL,
-  elite_monthly:  import.meta.env.VITE_STRIPE_PRICE_ELITE_MONTHLY,
-  elite_annual:   import.meta.env.VITE_STRIPE_PRICE_ELITE_ANNUAL,
-} as const;
-```
-
-**Confidence:** HIGH — pattern verified against Cruip implementation tutorial, Canva and Jasper documented examples, 9 Best Practices for SaaS Pricing Pages guide.
+- Existing iCal export system (calendar_export_token pattern — keep as-is)
+- `cancel-booking` Edge Function (extend to include GCal delete)
+- pg_cron (already used for weekly-payouts — reuse for watch channel renewal)
 
 ---
 
-### Pattern 8: Invoice History Display
+## Feature 7: Session History and Workout Logging
 
-**Mirror to DB via webhook. Read from DB in UI. Never call Stripe API from the client.**
+### Table Stakes
 
-| Concern | Mirror to DB (recommended) | Direct Stripe API |
-|---|---|---|
-| Latency | Fast (local Supabase read) | Slow (external round-trip) |
-| Rate limits | None | Stripe allows 100 req/s; fine for most loads but adds latency |
-| Offline / degraded Stripe | Still works | Fails |
-| Implementation | Webhook handler + table insert | `stripe.invoices.list()` call |
-| Stripe PDF link | Stored as `hosted_invoice_url` | Same — Stripe generates the PDF |
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Post-session notes by trainer | Trainers need to record what was done in a session for continuity | LOW | `session_notes` table: `booking_id`, `trainer_id`, `notes TEXT`, `created_at`; accessible from completed booking detail |
+| Post-session notes visible to client | Client should be able to read their session notes — builds value and retention | LOW | RLS: clients read own session notes; trainers read/write for their bookings |
+| Session history list (client-facing) | Clients expect a "My workout history" view — list of completed sessions with notes | LOW | Query completed bookings + JOIN session_notes; new page `/sessions` or extend existing booking history |
+| Session count and streak metrics | Simple engagement metrics: "12 sessions completed", "3-session streak" | LOW | Aggregate query over completed bookings; displayed on client profile/dashboard |
 
-Recommended `trainer_invoices` table:
+### Differentiators
 
-```sql
-CREATE TABLE trainer_invoices (
-  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  trainer_id          UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  stripe_invoice_id   TEXT UNIQUE NOT NULL,
-  amount_paid         INT NOT NULL,          -- stored in cents
-  currency            TEXT NOT NULL DEFAULT 'usd',
-  status              TEXT NOT NULL,         -- 'paid', 'void', 'uncollectible'
-  period_start        TIMESTAMPTZ NOT NULL,
-  period_end          TIMESTAMPTZ NOT NULL,
-  hosted_invoice_url  TEXT,                  -- Stripe-hosted PDF link
-  created_at          TIMESTAMPTZ DEFAULT NOW()
-);
-```
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Structured workout log template | Post-session form with structured fields: exercises performed, sets/reps, perceived effort (RPE), focus area — not just a freeform note | MEDIUM | JSONB column `workout_log JSONB` on session_notes; structured UI with optional fields |
+| Progress charts over time | "Average session intensity over 12 weeks", RPE trend — motivates continued training | MEDIUM | Recharts already in use; aggregate JSONB workout_log fields over time |
+| Trainer session prep notes (pre-session) | Trainers review client Fitness Passport + prior session notes before the appointment — adds professionalism | LOW | Link to Fitness Passport + prior notes from trainer's upcoming booking detail view |
+| Client-written post-session reflection | Client can also add their own note: how they felt, what they want to work on next — creates dialogue | LOW | Second `client_notes TEXT` column on session_notes; or separate `client_session_reflections` table |
+| "Send session summary" email to client | Trainer taps "Send summary" — Resend email with session notes delivered to client | MEDIUM | Extend `send-notification-email` Edge Function with session_summary type |
 
-Webhook event: `invoice.payment_succeeded` → upsert to `trainer_invoices`. Use `ON CONFLICT (stripe_invoice_id) DO UPDATE` to handle duplicate webhook delivery safely.
+### Anti-Features
 
-The UI renders a simple table: date, plan name, amount, and a "View Invoice" link to `hosted_invoice_url`. Stripe hosts and generates the PDF — no PDF generation needed on the FitRush side.
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| In-app exercise database with search | Full exercise library is a dedicated product (Hevy, Strong); out of scope for a booking marketplace | Free-text exercise names in workout log; no search, no taxonomy |
+| Photo/video upload per session | Expensive storage, content moderation risk, scope creep | Text-only session notes for v4.0 |
+| Wearable integration (Apple Health, Fitbit) | Significant complexity; different platform; different value prop | FitRush is a booking marketplace, not a fitness tracker; mention it as future vision only |
+| Mandatory session logging | Forcing trainers to log before booking closes creates friction and churn risk | Optional; prompt with reminder notification if no note added 24hrs after session |
 
-**Note on Stripe Customer Portal:** An alternative that eliminates this table entirely is to redirect trainers to the Stripe Customer Portal for invoice history. This is lower effort but gives a non-FitRush UX. Recommended as a fast follow (v2.1.x) rather than v2.1 launch if the in-app table is too time-consuming.
+### User Flow
 
-**Confidence:** HIGH — aligns with Stripe's documented recommendation: "treat Stripe as source of truth via webhooks; API for gap-filling." Stripe explicitly recommends `invoice.paid` (equivalent to `invoice.payment_succeeded`) as the primary event for SaaS billing history.
+**Trainer flow:**
+1. Completed session appears in trainer dashboard "Recent Sessions" list (existing).
+2. New "Add Session Notes" button on completed booking detail.
+3. Trainer opens form: freeform notes + optional structured fields (exercises, focus area).
+4. Trainer saves — client sees notes in their session history.
+5. Optional: Trainer taps "Send Summary to Client" — email sent.
 
----
+**Client flow:**
+1. Client opens new "My Progress" tab on dashboard.
+2. Sees list of completed sessions with trainer name, date, session notes.
+3. Progress metrics at top: total sessions, sessions this month, current streak.
+4. Client can add their own reflection to any session.
 
-### Pattern 9: Admin MRR Calculation
+### Dependencies
 
-**Formula for mixed monthly/annual subscriptions. Exclude trials.**
-
-```
-MRR = (Pro Monthly subscribers × $9.00)
-    + (Pro Annual subscribers × $7.20)      ← annual price / 12
-    + (Elite Monthly subscribers × $29.00)
-    + (Elite Annual subscribers × $23.20)   ← annual price / 12
-```
-
-Trials are excluded. A trainer in trial is not paying. Report trial count separately as a conversion pipeline metric.
-
-Postgres query for the admin dashboard:
-
-```sql
-SELECT
-  -- Subscriber counts by tier and billing period
-  COUNT(*) FILTER (WHERE tier = 'pro'   AND billing_interval = 'month') AS pro_monthly_count,
-  COUNT(*) FILTER (WHERE tier = 'pro'   AND billing_interval = 'year')  AS pro_annual_count,
-  COUNT(*) FILTER (WHERE tier = 'elite' AND billing_interval = 'month') AS elite_monthly_count,
-  COUNT(*) FILTER (WHERE tier = 'elite' AND billing_interval = 'year')  AS elite_annual_count,
-
-  -- Trial pipeline (excluded from MRR, reported separately)
-  COUNT(*) FILTER (WHERE status = 'trialing') AS active_trials,
-
-  -- MRR in dollars (annual subscribers normalized to monthly)
-  ROUND(
-      COUNT(*) FILTER (WHERE tier = 'pro'   AND billing_interval = 'month' AND status = 'active') * 9.00
-    + COUNT(*) FILTER (WHERE tier = 'pro'   AND billing_interval = 'year'  AND status = 'active') * 7.20
-    + COUNT(*) FILTER (WHERE tier = 'elite' AND billing_interval = 'month' AND status = 'active') * 29.00
-    + COUNT(*) FILTER (WHERE tier = 'elite' AND billing_interval = 'year'  AND status = 'active') * 23.20
-  , 2) AS mrr_usd
-
-FROM trainer_subscriptions
-WHERE status IN ('active', 'trialing');
-```
-
-The `WHERE status = 'active'` inside the `FILTER` clauses is intentional — the outer `WHERE` returns both `active` and `trialing` rows (to get the trial count), but MRR only counts `active` rows.
-
-**What to exclude from MRR:**
-- `status = 'trialing'` — not paying yet
-- `status = 'past_due'` — payment failed; include in a separate "at-risk MRR" metric
-- `status = 'canceled'` — churned
-- Discounted subscriptions (referral promo codes) contribute discounted amount, not sticker price — Stripe stores `plan.amount` which reflects the actual charge
-
-**Confidence:** HIGH — formula consistent across Baremetrics, Cobloom, Wall Street Prep, Paddle MRR guides.
+- Existing `bookings` table (completed status)
+- Fitness Passport (v3.0) — session notes should reference client passport context
+- Existing `send-notification-email` Edge Function
+- Recharts (v2.0+) — already in use for earnings analytics
 
 ---
 
-### Pattern 10: Manual Tier Override for Admin
+## Feature 8: Email Capture / Join the List
 
-**Two scenarios require different implementations. Never directly edit DB for active Stripe subscribers.**
+### Table Stakes
 
-**Scenario A: Complimentary access (no active Stripe subscription)**
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Email input on landing page | Simplest possible waitlist/interest capture; expected on any pre-launch or feature-announcing product | LOW | Single field, submit button, success state |
+| Immediate thank-you feedback | User must know their email was received — success message or confirmation screen | LOW | Inline success state on same page; no redirect needed |
+| Email deduplication | Don't store or email the same address twice | LOW | Unique constraint on `email_captures` table |
+| Admin visibility into captures | Product team needs to see who signed up | LOW | Supabase dashboard + simple admin query; no UI needed for MVP |
 
-A beta partner trainer, a contest winner, an admin granting courtesy Elite access. No Stripe subscription exists or is desired.
+### Differentiators
 
-Write directly to `trainer_subscriptions`:
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Social proof counter ("Join 847 others") | Psychological trigger — real-time or cached count of signups displayed near the form | LOW | COUNT query on `email_captures` table; cache in KV or revalidate every hour |
+| Position-in-line (waitlist number) | "You're #342 on the list" — creates anticipation and virality | LOW | Use insert order / row number as position; display in thank-you state |
+| Referral mechanic on waitlist | "Share your link to move up the list" — viral growth loop | HIGH | Full referral mechanic for waitlist is a product in itself; defer unless v4.0 explicitly needs growth push |
+| Targeted CTA based on role | Two CTAs: "I'm a trainer" / "I'm a client" — capture intent alongside email | LOW | Add `intended_role ENUM('trainer', 'client', 'unknown')` to `email_captures`; drives segmented email campaigns |
 
-```sql
-INSERT INTO trainer_subscriptions (
-  trainer_id, tier, status, billing_interval,
-  stripe_subscription_id,
-  override_by_admin, override_reason, override_granted_by,
-  override_expires_at
-) VALUES (
-  $trainer_id, 'elite', 'active', NULL,
-  NULL,   -- no Stripe subscription
-  true, 'beta partner', $admin_id,
-  NOW() + INTERVAL '90 days'
-);
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Modal pop-up on page load | Universally disliked; hurts first impression for a luxury brand | Inline section in landing page hero or footer; exit-intent popup is acceptable but not entry |
+| Multi-field form (name + phone + email) | Every additional field reduces conversion; email-only converts best | Email-only; optionally add role toggle (single click, not typed field) |
+| Third-party waitlist service (Waitlist.ly, etc.) | Adds external dependency; FitRush can store emails in Supabase with a single table | Simple Supabase `email_captures` table + Edge Function for Resend welcome email |
+| Double opt-in confirmation flow | Adds friction for a waitlist; appropriate for marketing lists but overkill here | Single opt-in; add GDPR note "We'll only email you about FitRush" |
+
+### User Flow
+
+1. Visitor lands on FitRush landing page — sees email capture section ("Be first to know when new features arrive").
+2. Visitor optionally selects "I'm a trainer" or "I'm a client" toggle.
+3. Visitor enters email, taps "Get Early Access".
+4. Edge Function validates email format, checks for duplicate, inserts into `email_captures`, sends welcome email via Resend.
+5. Inline success state: "You're #342! We'll be in touch."
+6. Admin queries `email_captures` from Supabase dashboard for outreach.
+
+### Implementation Notes
+
+- Table: `email_captures(id, email UNIQUE, intended_role, created_at, source TEXT DEFAULT 'landing_page')`
+- Edge Function: extend `send-notification-email` or create lightweight `capture-email` function
+- Welcome email: simple Resend template; one-time send on capture
+- No marketing automation platform needed at this scale
+
+---
+
+## Feature Dependencies Map
+
+```
+Feature 2 (Availability Toggle)
+  └── Feature 1 (Map Pins) — toggle controls pin visibility
+  └── Feature 3 (Location Notifications) — toggle-on triggers notification
+
+Feature 3 (Location Notifications)
+  └── Feature 2 (Availability Toggle) — trigger source
+  └── Existing notifications system (v1.0)
+
+Feature 4 (AI Matching)
+  └── Fitness Passport (v3.0) — primary data source
+  └── Feature 2 (Availability Toggle) — optional: surface only online trainers in recommendations
+
+Feature 5 (AI Analytics)
+  └── Existing AI slot classification (v3.0)
+  └── Existing discount slider (v3.0)
+  └── Feature 2 (Availability Toggle) — online/offline patterns feed utilization analysis
+
+Feature 6 (Google Calendar Sync)
+  └── Existing iCal system (v3.0) — keep as-is, GCal is additive
+  └── cancel-booking Edge Function — extend for GCal delete
+  └── Feature 2 (Availability Toggle) — GCal blocking should respect online/offline state
+
+Feature 7 (Session Logging)
+  └── Existing bookings table (all versions)
+  └── Fitness Passport (v3.0) — context for session notes
+  └── Existing send-notification-email Edge Function
+
+Feature 8 (Email Capture)
+  └── No dependencies on other v4.0 features — can ship independently first
 ```
 
-The application reads from `trainer_subscriptions` for feature access, so this takes effect immediately. Stripe is not touched. A scheduled job should check `override_expires_at` to auto-expire complimentary access.
+---
 
-**Scenario B: Modify an existing paying subscriber's tier**
+## MVP Recommendation (Phase Priority Order)
 
-A Pro trainer should be moved to Elite for retention purposes. They have an active Stripe subscription.
+**Highest value, lowest risk first:**
 
-Use the Stripe API — do not write to the DB directly:
+1. **Feature 8 — Email Capture** — Ship immediately. Zero dependencies, maximum business value, 1-2 hours to build.
 
-```typescript
-// In an Edge Function called by the admin UI
-await stripe.subscriptions.update(stripeSubscriptionId, {
-  items: [{
-    id: currentItemId,
-    price: STRIPE_PRICE_IDS.elite_monthly,  // or elite_annual
-  }],
-  proration_behavior: 'none',  // admin override = no surprise charge
-});
-// The customer.subscription.updated webhook fires → webhook handler updates DB
-```
+2. **Feature 2 — Availability Toggle** — Foundation for map pins and notifications. Single DB column + pg_cron job. Unblocks Features 1 and 3.
 
-**Why not direct DB write for active subscribers:** Stripe still holds the old Price ID. On the next renewal, Stripe charges the old price and fires `customer.subscription.updated`, which the webhook handler will use to overwrite your manual DB change. The DB and Stripe will be out of sync silently until next renewal, then snap back — breaking the override.
+3. **Feature 1 — Maps View** — Visual payoff of the toggle. @vis.gl/react-google-maps is well-documented, marker clustering is official library. Maps API cost is low at current scale.
 
-**Admin UI flow:**
+4. **Feature 7 — Session Logging** — High client retention value, low complexity. Builds on existing booking infrastructure. No new external services needed.
 
-1. Admin views trainer → sees current tier, subscription status, any active override
-2. "Override Tier" button → modal: [Free | Pro | Elite | Complimentary Elite (90 days)]
-3. If active Stripe subscription: Edge Function calls Stripe API → webhook syncs DB
-4. If no subscription (or Complimentary selected): Edge Function writes directly to DB with `override_by_admin: true`
-5. All overrides logged to `admin_override_audit` table: who, when, reason, previous tier, new tier
+5. **Feature 4 — AI Matching** — Deterministic scoring function; no ML required. Immediate value from existing Fitness Passport data. Requires thoughtful RPC design.
 
-**Confidence:** MEDIUM-HIGH — Stripe documentation confirms subscriptions must be modified via API for billing to remain correct. Direct DB approach is only safe when no Stripe subscription exists.
+6. **Feature 5 — AI Discount Analytics** — Requires adequate slot history data (4+ weeks). Can ship the UI framework early; recommendations improve as data accumulates.
+
+7. **Feature 3 — Location Notifications** — Depends on Feature 2 (toggle) being live and having real usage data. PostGIS adds infrastructure complexity; ship with city/zip matching first.
+
+8. **Feature 6 — Google Calendar Sync** — Highest complexity, most external dependencies (OAuth app verification, watch channel renewal, loop prevention). Ship last to avoid blocking other features.
+
+**Defer to v4.1:**
+- Auto-on scheduling (Feature 2 enhancement)
+- "Clients like you also trained with" collaborative filtering (Feature 4 enhancement)
+- Discount effectiveness tracking with historical snapshot (Feature 5 enhancement)
+- Web Push / browser notifications (Feature 3 enhancement)
+- Wearable integration (Feature 7 future)
+- Waitlist referral mechanic (Feature 8 growth)
+
+---
+
+## Complexity Summary
+
+| Feature | Complexity | Primary Risk | External Service |
+|---------|------------|--------------|-----------------|
+| Email Capture | LOW | None | Resend (existing) |
+| Availability Toggle | LOW | pg_cron timing precision | None |
+| Maps View | MEDIUM | API key security, billing | Google Maps JS API |
+| Session Logging | LOW-MEDIUM | Schema design for JSONB workout log | None |
+| AI Matching | MEDIUM | Cold start (empty Fitness Passport) | None (deterministic) |
+| AI Discount Analytics | MEDIUM | Insufficient historical data for recommendations | None (deterministic) |
+| Location Notifications | MEDIUM-HIGH | PostGIS setup, notification rate limiting | None (extends Resend) |
+| Google Calendar Sync | HIGH | OAuth verification, watch channel expiry, loop prevention | Google Calendar API |
 
 ---
 
 ## Sources
 
-- [Stripe Prorations Documentation](https://docs.stripe.com/billing/subscriptions/prorations) — HIGH confidence; authoritative on proration behavior
-- [Stripe Modify Subscriptions](https://docs.stripe.com/billing/subscriptions/change) — HIGH confidence; upgrade/downgrade API behaviors
-- [Build a Subscriptions Integration — Stripe Docs](https://docs.stripe.com/billing/subscriptions/build-subscriptions) — HIGH confidence; webhook-driven access provisioning
-- [Using Webhooks with Subscriptions — Stripe Docs](https://docs.stripe.com/billing/subscriptions/webhooks) — HIGH confidence; `invoice.payment_succeeded` as primary event
-- [Invoices API Reference — Stripe](https://docs.stripe.com/api/invoices) — HIGH confidence
-- [Finding the Right Point to Trigger a Paywall](https://www.sankalpjonna.com/posts/finding-the-right-point-in-your-ux-to-trigger-a-paywall) — HIGH confidence; read vs write trigger pattern
-- [How Freemium SaaS Products Convert with Upgrade Prompts — Appcues](https://www.appcues.com/blog/best-freemium-upgrade-prompts) — HIGH confidence; framing and copy patterns
-- [Modal UX Design for SaaS — Userpilot](https://userpilot.com/blog/modal-ux-design/) — HIGH confidence; single-modal-per-session rule
-- [Optimizing SaaS Trial-to-Paid Conversion 2025 — Demogo](https://demogo.com/2025/08/29/optimizing-saas-trial-to-paid-conversion-strategies-for-2025/) — MEDIUM confidence; behavioral triggers
-- [Free Trial Conversion Benchmarks 2025 — 1Capture](https://www.1capture.io/blog/free-trial-conversion-benchmarks-2025) — HIGH confidence; 10,000+ company dataset
-- [How to (Properly) Calculate ARR and MRR — Cobloom](https://www.cobloom.com/blog/how-to-calculate-saas-arr-mrr) — HIGH confidence
-- [MRR Academy — Baremetrics](https://baremetrics.com/academy/saas-calculate-mrr) — HIGH confidence; trial exclusion rule
-- [How to Create a Pricing Table with Monthly/Yearly Toggle — Cruip](https://cruip.com/how-to-create-a-pricing-table-with-a-monthly-yearly-toggle-in-tailwind-css-and-next-js/) — HIGH confidence; React implementation
-- [9 Best Practices for a High-Converting SaaS Pricing Page](https://www.thespotonagency.com/blog/the-architects-guide-9-best-practices-for-a-high-converting-saas-pricing-page) — MEDIUM confidence; default-to-annual pattern
-- [PostgreSQL Custom Sort ORDER BY — CommandPrompt](https://www.commandprompt.com/education/how-to-custom-sort-in-postgresql-order-by-clause/) — HIGH confidence
-- [Top 5 React Feature Flag Libraries 2025 — Featbit](https://www.featbit.co/articles2025/top-5-react-feature-flags-hooks-2025) — MEDIUM confidence; hook pattern shapes
-- [Feature Flag Best Practices for JavaScript — Octopus Deploy](https://octopus.com/devops/feature-flags/feature-flag-javascript-best-practices/) — HIGH confidence; registry pattern
-- [Row Level Security — Supabase Docs](https://supabase.com/docs/guides/database/postgres/row-level-security) — HIGH confidence
-- [Stigg: Upgrade & Downgrade Flows Guide](https://www.stigg.io/blog-posts/the-only-guide-youll-ever-need-to-implement-upgrade-downgrade-flows-part-2) — MEDIUM confidence; verified against Stripe docs
-- [SaaStr: Pause is Better Than Cancel](https://www.saastr.com/as-a-saas-company-do-you-allow-customers-to-pause-their-account/) — MEDIUM confidence; industry consensus
-- [Chargebee: Trial Strategy Guide](https://www.chargebee.com/resources/guides/subscription-pricing-trial-strategy/saas-trial-plans/) — MEDIUM confidence; trial conversion benchmarks
-- [Trainerize Pricing](https://www.trainerize.com/pricing/) — MEDIUM confidence; direct competitor; slot/client limit patterns
-
----
-
-*Feature research for: FitRush v2.1 — Trainer Subscription Tiers*
-*Researched: 2026-03-15*
+- [@vis.gl/react-google-maps npm package](https://www.npmjs.com/package/@vis.gl/react-google-maps) — v1.7.1, Google-endorsed, actively maintained
+- [Google Maps Marker Clustering](https://developers.google.com/maps/documentation/javascript/marker-clustering) — official documentation
+- [Google Calendar API Incremental Sync](https://developers.google.com/workspace/calendar/api/guides/sync) — sync token pattern
+- [Google Calendar Push Notifications](https://developers.google.com/workspace/calendar/api/guides/push) — watch channel documentation
+- [Google Calendar API Scopes](https://developers.google.com/calendar/api/auth) — scope selection guidance
+- [Bidirectional Calendar Sync Implementation Guide 2025](https://calendhub.com/blog/implement-bidirectional-calendar-sync-2025/) — MEDIUM confidence
+- [Location-Based Push Notifications Best Practices](https://www.moengage.com/learn/location-based-push-notifications/) — MEDIUM confidence
+- [Uber Driver App Stay Online](https://help.uber.com/en/driving-and-delivering/article/stay-online-with-driver-app) — availability toggle behavior reference
+- [AI in Personalized Fitness Apps 2025](https://www.kitlabs.us/ai-personalized-fitness-apps/) — matching patterns, MEDIUM confidence
+- [Waitlist Landing Page Optimization Guide](https://waitlister.me/growth-hub/guides/waitlist-landing-page-optimization-guide) — email capture best practices
+- [Fitness App UX Design Principles](https://stormotion.io/blog/fitness-app-ux/) — session logging UX patterns
+- [AI Fitness App Recommendation Systems](https://indatalabs.com/resources/ai-fitness-app) — matching algorithm patterns, MEDIUM confidence

@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import Stripe from 'npm:stripe@14.25.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { requireEnv } from '../_shared/env.ts';
+import { getValidAccessToken, deleteGcalEvent } from '../_shared/gcal-helpers.ts';
 
 interface CancelBookingRequest {
   booking_id?: string;
@@ -67,6 +68,7 @@ Deno.serve(async (req) => {
         client_id,
         trainer_id,
         status,
+        gcal_event_id,
         availability_slots!bookings_slot_id_fkey (
           start_time
         ),
@@ -167,6 +169,26 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Best-effort GCal event deletion (non-blocking per locked decision)
+    if (booking.gcal_event_id) {
+      try {
+        const { data: gcalConn } = await adminClient
+          .from('google_calendar_connections')
+          .select('*')
+          .eq('trainer_id', booking.trainer_id)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (gcalConn) {
+          const accessToken = await getValidAccessToken(gcalConn, adminClient);
+          await deleteGcalEvent(accessToken, booking.gcal_event_id);
+        }
+      } catch (gcalErr) {
+        console.error('GCal event deletion failed (non-blocking):', gcalErr);
+        // Per locked decision: GCal deletion failure MUST NOT block the cancellation
+      }
     }
 
     return new Response(

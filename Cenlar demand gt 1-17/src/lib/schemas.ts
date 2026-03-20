@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { INTENSITY_LEVEL_VALUES } from '@/lib/profileConstants';
 
 // --- Existing Schemas ---
 
@@ -127,3 +128,27 @@ export type AdminTierOverrideInput = z.infer<typeof adminTierOverrideSchema>;
 export type PlatformSettingsInput = z.infer<typeof platformSettingsSchema>;
 export type BookingInput = z.infer<typeof bookingSchema>;
 export type BufferTimeInput = z.infer<typeof bufferTimeSchema>;
+
+// --- Phase 21: Waitlist ---
+
+export const waitlistSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .max(320, 'Email is too long')
+    .email('Please enter a valid email address'),
+});
+
+export type WaitlistInput = z.infer<typeof waitlistSchema>;
+
+// --- Phase 23.1: Client Profile Enhancement ---
+
+export const healthConditionsSchema = z.array(z.string()).default([]);
+
+export const intensityPreferenceSchema = z.enum(INTENSITY_LEVEL_VALUES).optional();
+
+export const goalsRankedSchema = z.array(z.string()).max(3, 'Rank up to 3 goals').default([]);
+
+export type HealthConditionsInput = z.infer<typeof healthConditionsSchema>;
+export type IntensityPreferenceInput = z.infer<typeof intensityPreferenceSchema>;
+export type GoalsRankedInput = z.infer<typeof goalsRankedSchema>;
