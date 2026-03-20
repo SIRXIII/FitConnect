@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: -- The Live Platform
 status: unknown
-stopped_at: Completed 33-01 admin-production-polish
-last_updated: "2026-03-20T07:35:01.425Z"
+stopped_at: Completed 34-01 capacitor-ios-build
+last_updated: "2026-03-20T07:42:13.601Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 0
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State -- FitRush
@@ -52,6 +52,7 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [Phase 30]: ProtectedRoute uses useLocation to preserve full path+search as ?redirect= param when redirecting to /login
 - [Phase 32]: Sub-ratings (punctuality/expertise/communication) added to review modal — they were in the DB schema and displayed on TrainerProfile but were never collected or saved
 - [Phase 33]: Admin dashboard retains demo data preview mode (clearly labeled) — intentional for new platform with no live data yet
+- [Phase 34]: Pull-to-refresh uses pure touch events (no Capacitor plugin); notification dropdown gets manual refresh button instead of swipe gesture
 
 ## Blockers / Concerns
 
@@ -66,6 +67,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:35:01.423Z
-Stopped at: Completed 33-01 admin-production-polish
+Last session: 2026-03-20T07:42:13.599Z
+Stopped at: Completed 34-01 capacitor-ios-build
 Resume file: None
