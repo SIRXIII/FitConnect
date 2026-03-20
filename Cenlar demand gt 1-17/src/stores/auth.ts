@@ -81,12 +81,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signInWithProvider: async (provider) => {
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      throw err instanceof Error ? err : new Error(`Sign in with ${provider} failed`);
+    }
   },
 
   signInWithEmail: async (email, password) => {

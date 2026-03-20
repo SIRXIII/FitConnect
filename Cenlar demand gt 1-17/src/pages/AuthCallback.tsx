@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth';
+import { toast } from 'sonner';
 
 const AuthCallback: React.FC = () => {
   const { user, profile, loading, initialized, initialize } = useAuthStore();
@@ -11,6 +12,25 @@ const AuthCallback: React.FC = () => {
       initialize();
     }
   }, [initialized, initialize]);
+
+  // Check for OAuth error in URL hash or query params
+  useEffect(() => {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(window.location.search);
+
+    // Supabase returns errors in hash fragment: #error=...&error_description=...
+    const hashParams = new URLSearchParams(hash.replace('#', ''));
+    const error = hashParams.get('error') || params.get('error');
+    const errorDescription = hashParams.get('error_description') || params.get('error_description');
+
+    if (error) {
+      const message = errorDescription
+        ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+        : 'Authentication failed. Please try again.';
+      toast.error(message);
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     if (loading || !initialized) return;
@@ -25,7 +45,7 @@ const AuthCallback: React.FC = () => {
       if (!profile?.role) {
         navigate('/onboarding/role', { replace: true });
       } else if (!profile.onboarding_complete) {
-        // Role set but onboarding not finished — resume it
+        // Role set but onboarding not finished -- resume it
         navigate(
           profile.role === 'trainer' ? '/onboarding/trainer' : '/onboarding/client',
           { replace: true },
