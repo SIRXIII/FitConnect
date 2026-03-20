@@ -41,20 +41,52 @@ const STATUS_STYLES: Record<string, string> = {
   no_show: 'bg-red-50 text-red-600 border-red-200',
 };
 
+interface SubRatings {
+  punctuality: number;
+  expertise: number;
+  communication: number;
+}
+
+const StarPicker: React.FC<{ value: number; onChange: (v: number) => void }> = ({ value, onChange }) => {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+          onClick={() => onChange(star)}
+          className="transition-transform hover:scale-110"
+        >
+          <Star
+            size={16}
+            className={`transition-colors ${
+              star <= (hovered || value) ? 'text-accent fill-accent' : 'text-ink/15'
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+};
+
 const ReviewModal: React.FC<{
   booking: BookingWithDetails;
   onClose: () => void;
-  onSubmit: (bookingId: string, trainerId: string, rating: number, comment: string) => Promise<void>;
+  onSubmit: (bookingId: string, trainerId: string, rating: number, comment: string, subRatings: SubRatings) => Promise<void>;
 }> = ({ booking, onClose, onSubmit }) => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [subRatings, setSubRatings] = useState<SubRatings>({ punctuality: 0, expertise: 0, communication: 0 });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     if (rating === 0) return;
     setSubmitting(true);
-    await onSubmit(booking.id, booking.trainer_profiles.id, rating, comment);
+    await onSubmit(booking.id, booking.trainer_profiles.id, rating, comment, subRatings);
     setSubmitting(false);
   };
 
@@ -62,13 +94,13 @@ const ReviewModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={onClose}>
-      <div className="bg-paper max-w-md w-full p-8 space-y-6 border border-ink/10" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-paper max-w-md w-full p-8 space-y-6 border border-ink/10 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-2">
           <h3 className="text-xl serif font-light italic text-ink">Rate your session</h3>
           <p className="text-sm text-ink/40">How was your session with {trainerName}?</p>
         </div>
 
-        {/* Star rating */}
+        {/* Overall star rating */}
         <div className="flex gap-2 justify-center py-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
@@ -94,6 +126,26 @@ const ReviewModal: React.FC<{
             {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][rating]}
           </p>
         )}
+
+        {/* Sub-ratings */}
+        <div className="space-y-3 border border-ink/8 p-4">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">Detailed Ratings (optional)</p>
+          {(
+            [
+              { key: 'punctuality', label: 'Punctuality' },
+              { key: 'expertise', label: 'Expertise' },
+              { key: 'communication', label: 'Communication' },
+            ] as Array<{ key: keyof SubRatings; label: string }>
+          ).map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between">
+              <span className="text-xs text-ink/50">{label}</span>
+              <StarPicker
+                value={subRatings[key]}
+                onChange={(v) => setSubRatings((prev) => ({ ...prev, [key]: v }))}
+              />
+            </div>
+          ))}
+        </div>
 
         {/* Comment */}
         <textarea
@@ -219,7 +271,7 @@ const MyBookings: React.FC = () => {
     };
   }, [user?.id, fetchBookings]);
 
-  const handleReviewSubmit = async (bookingId: string, trainerId: string, rating: number, comment: string) => {
+  const handleReviewSubmit = async (bookingId: string, trainerId: string, rating: number, comment: string, subRatings: SubRatings) => {
     if (!user) return;
 
     const validation = reviewSchema.safeParse({ rating, comment: comment || undefined });
@@ -234,6 +286,9 @@ const MyBookings: React.FC = () => {
       trainer_id: trainerId,
       rating,
       comment: comment || null,
+      rating_punctuality: subRatings.punctuality > 0 ? subRatings.punctuality : null,
+      rating_expertise: subRatings.expertise > 0 ? subRatings.expertise : null,
+      rating_communication: subRatings.communication > 0 ? subRatings.communication : null,
     });
 
     if (error) {
