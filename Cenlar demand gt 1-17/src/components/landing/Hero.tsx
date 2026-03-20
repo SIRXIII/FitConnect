@@ -115,16 +115,16 @@ const Hero: React.FC = () => {
 
                   <div className="grid grid-cols-3 gap-12 pt-16 border-t border-ink/5">
                     <div className="space-y-1">
-                      <div className="text-2xl serif font-light italic">2,000+</div>
-                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Professionals</div>
+                      <div className="text-2xl serif font-light italic">Vetted</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Certified Trainers</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl serif font-light italic">Smart</div>
-                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Pricing</div>
+                      <div className="text-2xl serif font-light italic">Up to 40%</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Off Idle Hours</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl serif font-light italic">4.9</div>
-                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Excellence Score</div>
+                      <div className="text-2xl serif font-light italic">Verified</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Client Reviews</div>
                     </div>
                   </div>
                 </motion.div>
