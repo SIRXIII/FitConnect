@@ -124,8 +124,8 @@ const Login: React.FC = () => {
               Join as a client to find trainers, or as a trainer to fill your idle hours
             </p>
           ) : (
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
-              Elite fitness, optimized
+            <p className="text-xs tracking-wide text-ink/40">
+              Sign in to book discounted sessions with certified trainers
             </p>
           )}
         </div>
