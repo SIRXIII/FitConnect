@@ -48,9 +48,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({ loading: false });
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
       const user = session?.user ?? null;
       set({ session, user });
+
+      // Password recovery: redirect to the reset-password page
+      if (event === 'PASSWORD_RECOVERY') {
+        window.location.replace('/auth/reset-password');
+        return;
+      }
 
       if (user) {
         await get().fetchProfile(user.id);
