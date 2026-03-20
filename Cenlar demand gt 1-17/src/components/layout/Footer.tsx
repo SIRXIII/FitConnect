@@ -14,13 +14,13 @@ const Footer: React.FC = () => {
               Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
             </p>
             <div className="flex space-x-8">
-              <a href="#" className="text-paper/40 hover:text-accent transition-colors" aria-label="Instagram">
+              <a href="#" target="_blank" rel="noopener noreferrer" title="Coming soon" className="text-paper/40 hover:text-accent transition-colors" aria-label="Instagram">
                 <Instagram size={18} strokeWidth={1.5} />
               </a>
-              <a href="#" className="text-paper/40 hover:text-accent transition-colors" aria-label="Twitter">
+              <a href="#" target="_blank" rel="noopener noreferrer" title="Coming soon" className="text-paper/40 hover:text-accent transition-colors" aria-label="Twitter">
                 <Twitter size={18} strokeWidth={1.5} />
               </a>
-              <a href="#" className="text-paper/40 hover:text-accent transition-colors" aria-label="LinkedIn">
+              <a href="#" target="_blank" rel="noopener noreferrer" title="Coming soon" className="text-paper/40 hover:text-accent transition-colors" aria-label="LinkedIn">
                 <Linkedin size={18} strokeWidth={1.5} />
               </a>
             </div>
@@ -39,10 +39,9 @@ const Footer: React.FC = () => {
           <div className="md:col-span-3 space-y-8">
             <h4 className="text-[10px] uppercase tracking-[0.3em] font-semibold text-accent">Partnership</h4>
             <ul className="space-y-4 text-xs tracking-widest font-light text-paper/60">
-              <li><Link to="/login" className="hover:text-paper transition-colors">Join the Collective</Link></li>
-              <li><Link to="/#safety" className="hover:text-paper transition-colors">Professional Standards</Link></li>
-              <li><Link to="/#safety" className="hover:text-paper transition-colors">Insurance & Safety</Link></li>
-              <li><Link to="/login" className="hover:text-paper transition-colors">Partner Portal</Link></li>
+              <li><Link to="/login?mode=signup&role=trainer" className="hover:text-paper transition-colors">Join the Collective</Link></li>
+              <li><Link to="/#safety" className="hover:text-paper transition-colors">Standards & Safety</Link></li>
+              <li><Link to="/login?mode=signup&role=trainer" className="hover:text-paper transition-colors">Partner Portal</Link></li>
             </ul>
           </div>
         </div>
@@ -50,8 +49,8 @@ const Footer: React.FC = () => {
         <div className="pt-12 border-t border-paper/5 flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           <p className="text-paper/20 text-[10px] uppercase tracking-[0.2em]">&copy; 2026 FitRush. All rights reserved.</p>
           <div className="flex space-x-10 text-[10px] uppercase tracking-[0.2em] text-paper/20">
-            <span className="cursor-default">Privacy</span>
-            <span className="cursor-default">Terms</span>
+            <Link to="/privacy" className="hover:text-paper/60 transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-paper/60 transition-colors">Terms</Link>
             <span className="cursor-default">Cookies</span>
           </div>
         </div>

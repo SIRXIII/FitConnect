@@ -23,6 +23,8 @@ import Messages from '@/pages/Messages';
 import Pricing from '@/pages/Pricing';
 import ClientPassport from '@/pages/ClientPassport';
 import NotFound from '@/pages/NotFound';
+import Terms from '@/pages/Terms';
+import Privacy from '@/pages/Privacy';
 import TrialBanner from '@/components/subscription/TrialBanner';
 import GoogleCalendarCallback from '@/pages/GoogleCalendarCallback';
 
@@ -63,6 +65,8 @@ const App: React.FC = () => {
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/auth/google-callback" element={<GoogleCalendarCallback />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* Onboarding (requires auth) */}
           <Route path="/onboarding/role" element={<ProtectedRoute skipRoleCheck><RoleSelect /></ProtectedRoute>} />
