@@ -106,11 +106,11 @@ const AnalyticsTab: React.FC = () => {
         return;
       }
 
-      const analyticsData = analyticsResult.data as {
+      const analyticsData = analyticsResult.data as unknown as {
         metrics: Metrics;
         trend: Array<{ bucket: string; gross: string; net: string; count: string }>;
       };
-      const peakData = peakResult.data as HeatmapPoint[];
+      const peakData = peakResult.data as unknown as HeatmapPoint[];
 
       setMetrics(analyticsData.metrics);
 
