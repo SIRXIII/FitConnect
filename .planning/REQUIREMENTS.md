@@ -1,170 +1,84 @@
-# Requirements: FitRush v4.0 -- The Live Platform
+# v5.0 Requirements — App Store Ready
 
-**Defined:** 2026-03-18
-**Core Value:** Trainers monetize idle hours, clients get premium training at below-market prices -- now with real-time Uber-style availability, map discovery, and AI-powered matching.
-
-## v4.0 Requirements
-
-Requirements for the Live Platform milestone. Each maps to roadmap phases.
-
-### Maps (MAP)
-
-- [x] **MAP-01**: Client can view a Google Map with clustered trainer location pins
-- [x] **MAP-02**: Client can click a pin to see trainer info card (name, specialty, rate, Book button)
-- [x] **MAP-03**: Client can toggle between map view and list view on the search page
-- [x] **MAP-04**: Map shows only trainers currently marked as available (live pin visibility)
-- [x] **MAP-05**: Trainer pins display location type icon (gym, park, in-home)
-- [x] **MAP-06**: Elite trainer pins display tier badge on map
-
-### Trainer Locations (LOC)
-
-- [x] **LOC-01**: Trainer can add workout locations with address entry and Google Maps preview
-- [x] **LOC-02**: Trainer can adjust pin position on map after address entry
-- [x] **LOC-03**: Trainer can select location type (gym, park, in-home) for each workout spot
-- [x] **LOC-04**: Trainer can manage multiple workout locations
-
-### Availability Toggle (AVAIL)
-
-- [x] **AVAIL-01**: Trainer can toggle online/offline availability (Uber-style live switch)
-- [x] **AVAIL-02**: Trainer can set sleep timer to auto-disable availability at a chosen time
-- [x] **AVAIL-03**: System auto-expires stale availability sessions via pg_cron
-- [x] **AVAIL-04**: Booking creation uses atomic PostgreSQL RPC to prevent double-booking race conditions
-
-### Location Notifications (NOTIF)
-
-- [x] **NOTIF-01**: Client can set preferred area/neighborhood for trainer availability alerts
-- [x] **NOTIF-02**: Client can opt into live GPS mode when activating "looking now" toggle
-- [x] **NOTIF-03**: Client receives in-app alert when a nearby trainer goes live at a great rate
-- [x] **NOTIF-04**: Client can toggle location-based notifications on/off
-- [x] **NOTIF-05**: Notifications are frequency-capped (max 3/day per client, 4hr cooldown per trainer)
-- [x] **NOTIF-06**: Client can configure notification preferences before alerts begin
-
-### AI Matching (AIMATCH)
-
-- [x] **AIMATCH-01**: Client sees "Recommended for You" trainers based on Fitness Passport data
-- [x] **AIMATCH-02**: Match score displays with 2-3 attribute explanation (e.g. "matches your HIIT goals")
-- [x] **AIMATCH-03**: Client prompted to complete Fitness Passport if data is below matching threshold
-- [x] **AIMATCH-04**: Match results cached for 24 hours to reduce computation
-
-### AI Trainer Analytics (AIANALYTICS)
-
-- [x] **AIANALYTICS-01**: Trainer sees idle slot pattern analysis as a day/hour heatmap
-- [x] **AIANALYTICS-02**: Trainer receives actionable discount recommendation cards for empty slots
-- [x] **AIANALYTICS-03**: Trainer sees an optimization score based on slot utilization
-
-### Google Calendar Sync (CALSYNC)
-
-- [x] **CALSYNC-01**: Trainer can connect Google Calendar via OAuth from settings
-- [x] **CALSYNC-02**: FitRush bookings automatically push to Google Calendar as events
-- [x] **CALSYNC-03**: External Google Calendar events block FitRush availability slots
-- [x] **CALSYNC-04**: Booking cancellation removes the corresponding Google Calendar event
-- [x] **CALSYNC-05**: Existing iCal export continues working as fallback during OAuth verification
-
-### Client Profile (CPROFILE)
-
-- [x] **CPROFILE-01**: Client can upload profile photos (avatar + gallery)
-- [x] **CPROFILE-02**: Client can enter personal stats (age, weight, height)
-- [x] **CPROFILE-03**: Client can set fitness/strength level (beginner, intermediate, advanced)
-- [x] **CPROFILE-04**: Client can log health conditions and medical notes (injuries, allergies, limitations)
-- [x] **CPROFILE-05**: Client can set workout intensity preference (light, moderate, intense) via toggle/slider
-- [x] **CPROFILE-06**: Client profile data is visible to booked trainers for session preparation
-
-### Session History (SESSION)
-
-- [x] **SESSION-01**: Trainer can write post-session notes for a completed booking
-- [x] **SESSION-02**: Client can view session notes written by trainers
-- [x] **SESSION-03**: Trainer can log structured workout data (exercises, sets, reps)
-- [x] **SESSION-04**: Client sees a progress timeline with session history and workout trends
-
-### Email Capture (WAITLIST)
-
-- [x] **WAITLIST-01**: Visitor can enter email on landing page to join the waitlist
-- [x] **WAITLIST-02**: Visitor receives confirmation email after signup via Resend
-- [x] **WAITLIST-03**: Visitor sees their position in the waitlist after signup
-
-## Future Requirements (v4.1+)
-
-### AI Marketing Tier for Trainers
-
-- **MKTG-01**: Trainer can link social media profiles (Instagram, TikTok, YouTube) to FitRush
-- **MKTG-02**: AI generates marketing content and analytics for trainer social media
-- **MKTG-03**: Social media posts sync to trainer's FitRush profile
-- **MKTG-04**: Upgraded subscription tier with marketing tools included
-
-### Deferred from Research
-
-- **COLLAB-01**: "Clients like you also booked" collaborative filtering (needs 6+ months booking data)
-- **DISCOUNT-01**: Discount effectiveness tracking with historical snapshots at booking time
-- **PUSH-01**: Web Push / browser notifications via FCM (iOS PWA limitations)
-- **WEARABLE-01**: Apple Health / Fitbit wearable integrations
-- **AUTO-01**: Auto-on scheduling for trainer availability (complex per-trainer cron)
-
-## Out of Scope
-
-| Feature | Reason |
-|---------|--------|
-| Live GPS tracking of trainer movement | Creepy for trainers; static workout location sufficient |
-| Street View integration | API cost + scope creep for minimal fitness value |
-| Route/directions from map | Link to Google Maps deep link instead |
-| Background location "Always" mode | iOS App Store rejection risk + battery drain |
-| ML model training | No training data yet; deterministic scoring sufficient |
-| Waitlist referral mechanic | Full growth product, not needed for v4.0 |
-
-## Traceability
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| WAITLIST-01 | Phase 21 | Complete |
-| WAITLIST-02 | Phase 21 | Complete |
-| WAITLIST-03 | Phase 21 | Complete |
-| AVAIL-01 | Phase 22 | Complete |
-| AVAIL-02 | Phase 22 | Complete |
-| AVAIL-03 | Phase 22 | Complete |
-| AVAIL-04 | Phase 22 | Complete |
-| MAP-01 | Phase 23 | Complete |
-| MAP-02 | Phase 23 | Complete |
-| MAP-03 | Phase 23 | Complete |
-| MAP-04 | Phase 23 | Complete |
-| MAP-05 | Phase 23 | Complete |
-| MAP-06 | Phase 23 | Complete |
-| LOC-01 | Phase 23 | Complete |
-| LOC-02 | Phase 23 | Complete |
-| LOC-03 | Phase 23 | Complete |
-| LOC-04 | Phase 23 | Complete |
-| CPROFILE-01 | Phase 23.1 | Complete |
-| CPROFILE-02 | Phase 23.1 | Complete |
-| CPROFILE-03 | Phase 23.1 | Complete |
-| CPROFILE-04 | Phase 23.1 | Complete |
-| CPROFILE-05 | Phase 23.1 | Complete |
-| CPROFILE-06 | Phase 23.1 | Complete |
-| SESSION-01 | Phase 24 | Complete |
-| SESSION-02 | Phase 24 | Complete |
-| SESSION-03 | Phase 24 | Complete |
-| SESSION-04 | Phase 24 | Complete |
-| AIMATCH-01 | Phase 25 | Complete |
-| AIMATCH-02 | Phase 25 | Complete |
-| AIMATCH-03 | Phase 25 | Complete |
-| AIMATCH-04 | Phase 25 | Complete |
-| AIANALYTICS-01 | Phase 26 | Complete |
-| AIANALYTICS-02 | Phase 26 | Complete |
-| AIANALYTICS-03 | Phase 26 | Complete |
-| NOTIF-01 | Phase 27 | Complete |
-| NOTIF-02 | Phase 27 | Complete |
-| NOTIF-03 | Phase 27 | Complete |
-| NOTIF-04 | Phase 27 | Complete |
-| NOTIF-05 | Phase 27 | Complete |
-| NOTIF-06 | Phase 27 | Complete |
-| CALSYNC-01 | Phase 28 | Complete |
-| CALSYNC-02 | Phase 28 | Complete |
-| CALSYNC-03 | Phase 28 | Complete |
-| CALSYNC-04 | Phase 28 | Complete |
-| CALSYNC-05 | Phase 28 | Complete |
-
-**Coverage:**
-- v4.0 requirements: 44 total
-- Mapped to phases: 44
-- Unmapped: 0 ✓
+**Milestone:** v5.0 "App Store Ready"
+**Goal:** FitRush is polished, fully functional, and ready for Apple App Store submission. All critical UX flows work end-to-end for clients, trainers, and admins.
 
 ---
-*Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 — traceability confirmed after roadmap creation*
+
+## MOBILE — Capacitor iOS Polish
+
+- [ ] MOBILE-01: App launches on iOS simulator without crashes
+- [ ] MOBILE-02: All navigation works with safe area insets (notch, home indicator)
+- [ ] MOBILE-03: Capacitor status bar and splash screen configured with FitRush branding
+- [ ] MOBILE-04: Native keyboard handling — inputs don't get obscured
+- [ ] MOBILE-05: Pull-to-refresh on key list screens (bookings, trainer search, notifications)
+
+## RESPONSIVE — Mobile-First Responsive Design
+
+- [ ] RESP-01: Landing page renders correctly at 375px, 390px, 414px widths
+- [ ] RESP-02: Trainer search filters collapse to stacked layout on mobile
+- [ ] RESP-03: Trainer cards are full-width single column on mobile
+- [ ] RESP-04: Login/signup form is centered and usable on mobile
+- [ ] RESP-05: Trainer dashboard tabs work on mobile (horizontal scroll or dropdown)
+- [ ] RESP-06: Client dashboard responsive at all breakpoints
+- [ ] RESP-07: Booking wizard steps are mobile-friendly (no horizontal overflow)
+- [ ] RESP-08: Map view is full-screen on mobile with floating filter chips
+
+## AUTH — Authentication Hardening
+
+- [ ] AUTH-01: Email sign-in and sign-up work end-to-end (confirmation email, redirect back)
+- [ ] AUTH-02: Forgot password flow works (reset email sent, password updated)
+- [ ] AUTH-03: Role selection (client/trainer) works after first sign-up
+- [ ] AUTH-04: Auth errors show user-friendly messages (never raw JSON)
+- [ ] AUTH-05: Protected routes redirect to login with return URL
+
+## TRAINER — Trainer Dashboard Completeness
+
+- [ ] TRAINER-01: Trainer can complete onboarding (profile, specialty, rate, photo, certifications)
+- [ ] TRAINER-02: Trainer can create/edit/delete availability slots
+- [ ] TRAINER-03: Trainer can view bookings (upcoming, past, cancelled)
+- [ ] TRAINER-04: Trainer can toggle Go Live / Sleep with timer
+- [ ] TRAINER-05: Trainer can view earnings analytics and request payouts
+- [ ] TRAINER-06: Trainer can manage subscription (upgrade, downgrade, cancel)
+- [ ] TRAINER-07: Trainer dashboard shows motivational tagline on entry
+- [ ] TRAINER-08: Trainer can log session notes and exercises after a booking
+
+## CLIENT — Client Experience Completeness
+
+- [ ] CLIENT-01: Client can search trainers by location, specialty, price
+- [ ] CLIENT-02: Client can view trainer profiles with reviews, availability
+- [ ] CLIENT-03: Client can book a session through the booking wizard
+- [ ] CLIENT-04: Client can view their bookings (upcoming, past)
+- [ ] CLIENT-05: Client can cancel a booking (within 24hr policy)
+- [ ] CLIENT-06: Client can leave a review after a completed session
+- [ ] CLIENT-07: Client Fitness Passport is complete and visible to trainers
+- [ ] CLIENT-08: Client can configure notification preferences
+
+## ADMIN — Admin Dashboard Verification
+
+- [ ] ADMIN-01: Admin can view all users with role badges
+- [ ] ADMIN-02: Admin can suspend/unsuspend users
+- [ ] ADMIN-03: Admin can view platform revenue and booking analytics
+- [ ] ADMIN-04: Admin can manage subscription tiers and override
+
+## POLISH — Visual & Copy Polish
+
+- [ ] POLISH-01: Trainer dashboard tagline — motivational idle-hours messaging
+- [ ] POLISH-02: No placeholder/mock data visible in production (remove MOCK_TRAINERS fallback)
+- [ ] POLISH-03: All images optimized and loading (no broken images)
+- [ ] POLISH-04: Consistent loading states (skeletons, not spinners) across all pages
+- [ ] POLISH-05: Error states are actionable everywhere (retry buttons, clear messages)
+- [ ] POLISH-06: 404 page is polished with search
+- [ ] POLISH-07: Terms of Service page has real content structure
+- [ ] POLISH-08: Privacy Policy page has real content structure
+
+## PERF — Performance & Build
+
+- [ ] PERF-01: Bundle size under 1MB gzipped (currently 418KB — good)
+- [ ] PERF-02: Lighthouse mobile score > 80
+- [ ] PERF-03: No console errors in production build
+- [ ] PERF-04: All 140+ tests passing
+
+---
+
+*v5.0 — 42 requirements across 7 categories*

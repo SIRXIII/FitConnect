@@ -9,13 +9,10 @@ import { trainerProfileSchema } from '@/lib/schemas';
 const CERT_BODIES = ['NASM', 'ACE', 'NSCA', 'ISSA', 'ACSM', 'NCSF', 'NFPT', 'Other'];
 const SPECIALTIES = [
   { value: 'strength_training', label: 'Strength Training' },
-  { value: 'cardio', label: 'Cardio & Endurance' },
-  { value: 'hiit', label: 'HIIT' },
-  { value: 'yoga', label: 'Yoga / Pilates' },
-  { value: 'boxing', label: 'Boxing / Kickboxing' },
-  { value: 'sport_specific', label: 'Sport-Specific' },
-  { value: 'rehabilitation', label: 'Rehab & Recovery' },
-  { value: 'nutrition', label: 'Nutrition Coaching' },
+  { value: 'cardio_hiit', label: 'Cardio & HIIT' },
+  { value: 'yoga_pilates', label: 'Yoga / Pilates' },
+  { value: 'nutrition_coaching', label: 'Nutrition Coaching' },
+  { value: 'injury_rehabilitation', label: 'Rehab & Recovery' },
 ];
 
 interface FormData {
@@ -143,7 +140,7 @@ const TrainerOnboarding: React.FC = () => {
       });
 
       if (!validation.success) {
-        const firstError = validation.error.errors[0];
+        const firstError = validation.error.issues[0];
         toast.error(firstError.message);
         setSaving(false);
         return;

@@ -26,11 +26,9 @@ export const BillingToggle: React.FC<BillingToggleProps> = ({ interval, onToggle
           Annual
         </button>
       </div>
-      {interval === 'year' && (
-        <span className="text-accent text-[10px] uppercase tracking-[0.2em] font-medium">
-          Save 20%
-        </span>
-      )}
+      <span className={`text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${interval === 'year' ? 'text-accent' : 'text-ink/30'}`}>
+        Save 20%
+      </span>
     </div>
   );
 };

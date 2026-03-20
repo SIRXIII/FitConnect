@@ -547,11 +547,11 @@ export type Database = {
         Returns: Json;
       };
       get_trainer_analytics: {
-        Args: { p_trainer_id: string; p_period?: string };
+        Args: { p_trainer_id: string; p_start?: string; p_end?: string; p_bucket?: string; p_period?: string };
         Returns: Json;
       };
       get_trainer_peak_hours: {
-        Args: { p_trainer_id: string; p_period?: string };
+        Args: { p_trainer_id: string; p_start?: string; p_end?: string; p_period?: string };
         Returns: Json;
       };
       get_admin_analytics: {

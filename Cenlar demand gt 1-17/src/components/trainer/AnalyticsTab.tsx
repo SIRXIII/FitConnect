@@ -106,11 +106,11 @@ const AnalyticsTab: React.FC = () => {
         return;
       }
 
-      const analyticsData = analyticsResult.data as {
+      const analyticsData = analyticsResult.data as unknown as {
         metrics: Metrics;
         trend: Array<{ bucket: string; gross: string; net: string; count: string }>;
       };
-      const peakData = peakResult.data as HeatmapPoint[];
+      const peakData = peakResult.data as unknown as HeatmapPoint[];
 
       setMetrics(analyticsData.metrics);
 
@@ -252,7 +252,7 @@ const AnalyticsTab: React.FC = () => {
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip formatter={(v: number) => [`$${v.toFixed(2)}`, 'Revenue']} />
+              <Tooltip formatter={(v) => [`$${Number(v).toFixed(2)}`, 'Revenue']} />
               <Area
                 type="monotone"
                 dataKey="revenue"
@@ -281,7 +281,7 @@ const AnalyticsTab: React.FC = () => {
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip formatter={(v: number) => [v, 'Bookings']} />
+              <Tooltip formatter={(v) => [Number(v), 'Bookings']} />
               <Bar dataKey="bookings" fill={chartColors.stroke} opacity={0.6} />
             </BarChart>
           </ResponsiveContainer>

@@ -2,7 +2,12 @@
 
 ## What This Is
 
-A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives. Features a premium UX with skeleton loading, animated booking wizard, calendar sync, and rich client profiles ("Fitness Passport").
+A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Features real-time Uber-style trainer availability, Google Maps discovery with PostGIS spatial queries, AI-powered trainer-client matching, AI discount analytics, location-based notifications, session logging with progress tracking, and Google Calendar bidirectional sync. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives.
+
+**App Name:** FitRush
+**Live URL:** https://fitconnect-2sn.pages.dev
+**Version:** v4.0 complete
+**Next:** v5.0
 
 ## Core Value
 
@@ -62,80 +67,71 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 - ✓ Booking wizard redesign with progress indicator + Framer Motion transitions — v3.0
 - ✓ Image optimization: lazy loading + Unsplash width params — v3.0
 
-## Current Milestone: v4.0 The Live Platform
+### Validated (v4.0)
 
-**Goal:** Transform FitRush from a booking marketplace into an Uber-like real-time fitness platform with live location, AI-powered matching/analytics, and instant availability.
+- ✓ Google Maps map view with trainer pins, clustering, and PostGIS spatial queries — v4.0
+- ✓ Trainer workout location management (address entry + map preview, gym/park/in-home) — v4.0
+- ✓ Uber-style trainer availability toggle with sleep timer auto-off — v4.0
+- ✓ Location-based notifications for clients (saved area + live GPS "Looking Now" mode) — v4.0
+- ✓ AI trainer-client matching based on Fitness Passport data (deterministic scoring) — v4.0
+- ✓ AI trainer analytics with idle slot heatmap and discount recommendations — v4.0
+- ✓ Google Calendar OAuth bidirectional sync (push bookings, block external events) — v4.0
+- ✓ Session logging with trainer notes, exercise data, and client progress timeline — v4.0
+- ✓ Landing page email capture with Resend confirmation — v4.0
+- ✓ Client fitness profile enhancement (health conditions, intensity, goals, progress ring) — v4.0
 
-**Target features:**
-- Google Maps integration (map view with trainer pins, clustering)
-- Trainer workout locations (address + map pin, gym/park/in-home types)
-- Trainer availability toggle (online/offline with sleep timer auto-off)
-- Location-based client notifications (saved area + live GPS opt-in)
-- AI smart matching (trainer recommendations from Fitness Passport data)
-- AI trainer analytics (historical patterns, discount recommendations for empty slots)
-- Google Calendar bidirectional OAuth sync
-- Session history and progress tracking (post-session notes, workout logs)
-- Email capture / join the list (landing page signup while features cook)
+### Active (v5.0 — next milestone)
 
-### Active (v4.0)
-
-- [ ] Google Maps map view with trainer pins and clustering
-- [ ] Trainer workout location management (address entry + map preview)
-- [ ] Uber-style trainer availability toggle with sleep timer
-- [ ] Location-based notifications for clients (saved area + live GPS)
-- [ ] AI trainer-client matching based on Fitness Passport data
-- [ ] AI trainer analytics with discount recommendations
-- [ ] Google Calendar OAuth bidirectional sync
-- [ ] Session history with post-session notes and workout logs
-- [ ] Landing page email capture box
-
-### Deferred (future milestones)
-
+- [ ] AI Marketing Tier — social media content tools for trainers
+- [ ] Push notifications (FCM/APNs) — real mobile push
+- [ ] Group sessions — multiple clients per time slot
 - [ ] Fix cascading slot deletion with soft-delete
 - [ ] Move hardcoded 8% platform fee to configurable DB setting
-- [ ] Replace console.log errors with user-facing toast notifications
-- [ ] Add GDPR capabilities (account deletion, data export)
 - [ ] Subscription pause (CHURN-01)
 - [ ] Contextual upgrade modals at tier gates (CHURN-02)
 - [ ] Elite custom profile URL/slug (BRAND-01)
-- [ ] Proration preview before mid-cycle upgrade (UX-01)
-- [ ] In-app invoice history (UX-02)
 
 ### Out of Scope
 
 - Predictive AI / ML models — Requires 6-12 months of booking data to train
 - Dynamic auto-pricing — Complex, defer until demand data exists
-- Mobile native apps — Web-first, PWA later
 - Video sessions / virtual training — Focus on in-person marketplace first
 - Multi-language / i18n — US market first
+- Background location tracking — iOS App Store rejection risk
 
 ## Context
 
-**Current state (v3.0 shipped — 2026-03-18):**
-- React 19 + TypeScript + Vite 6 SPA — ~17,700 LOC
-- Supabase PostgreSQL backend — 22 migrations deployed
-- 14 Edge Functions: create-payment-intent, stripe-webhook, create-connect-account, send-notification-email, create-payout, weekly-payouts, process-referral-reward, create-setup-intent, cancel-booking, export-user-data, create-subscription, manage-subscription, admin-set-tier-override, calendar-export
+**Current state (v4.0 complete -- 2026-03-20):**
+- React 19 + TypeScript + Vite 6 SPA -- ~31,000 LOC (+13,300 in v4.0)
+- Supabase PostgreSQL backend -- 31 migrations (11 new in v4.0), PostGIS enabled
+- 17 Edge Functions (+3 in v4.0): google-calendar-connect, sync-booking-to-gcal, sync-gcal-events
 - Stripe Connect Express + Stripe Billing (subscriptions, trials, dunning, Customer Portal)
-- Calendar system: RFC 5545 iCal export with token-based auth, buffer time enforcement
-- Fitness Passport: client profile intake with avatar upload, trainer-visible summary
-- UX layer: skeleton loading, ErrorState + mapError, booking wizard with AnimatePresence
-- 86 TS/TSX files, 14+ test files (Vitest)
-- Supabase project: qecwxvvlpvrnrqyrdxrj (fitrush-app.netlify.app)
+- Google Maps integration with @vis.gl/react-google-maps, marker clustering, PostGIS spatial queries
+- Google Calendar OAuth bidirectional sync (push + poll + cancellation)
+- AI matching: deterministic scoring (price 40%, goals 35%, specialty 15%, rating 10%)
+- AI analytics: idle slot heatmap, discount recommendation engine, utilization score
+- Location notifications: PostGIS trigger, 3/day cap, 4hr cooldown, "Looking Now" GPS mode
+- Session logging: trainer notes, exercise data, client progress timeline
+- 139/140 tests passing (Vitest)
+- Supabase project: qecwxvvlpvrnrqyrdxrj
+
+**Key features shipped in v4.0:**
+Waitlist, live availability toggle, Google Maps trainer discovery, client profile enhancement, session logging, AI trainer-client matching, AI discount analytics, location-based notifications, Google Calendar bidirectional sync
 
 **Codebase health:**
-- All critical security issues resolved (RLS verified, Zod validation on all forms, audit log active)
-- Automated test coverage growing (Vitest configured, skeleton/error/image/booking tests)
-- Known tech debt: TypeScript `as unknown as X` casts for Supabase RPC types, hardcoded 8% platform fee
+- All critical security issues resolved (RLS verified, Zod validation, audit log)
+- 139 automated tests passing, 1 pre-existing admin grid test needs update
+- Known tech debt: TypeScript `as unknown as X` casts for Supabase RPC types, hardcoded 8% platform fee, Google OAuth in test mode (100-user cap until verification approved)
 
 **Competitive landscape:**
 - Fyt (primary competitor): dumps full calendar to clients, no idle hour optimization
-- FitRush differentiator: only show genuinely idle slots, AI-driven scheduling insights, referral flywheel, rich client profiles
+- FitRush differentiators: real-time availability with map view, AI matching from fitness profiles, location-based alerts, Google Calendar sync, referral flywheel, discount analytics
 
 ## Constraints
 
 - **Tech Stack**: React 19, Supabase, Stripe, Vite 6 — established, don't change
 - **Design System**: Cormorant Garamond + Inter + #C5A059 gold — luxury brand identity locked
-- **Database**: Supabase PostgreSQL with 22 migrations — additive changes only
+- **Database**: Supabase PostgreSQL with 31 migrations + PostGIS — additive changes only
 - **Payments**: Stripe Connect Express + Stripe Billing — existing integration
 - **Budget**: Supabase free/pro tier, Stripe standard pricing
 
@@ -152,8 +148,20 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 | Opaque calendar_export_token (not trainer UUID) | Prevents ID enumeration; resettable | ✓ Good — v3.0 |
 | BookingWizard PaymentForm as component prop | Preserves Stripe Elements context boundary | ✓ Good — v3.0 |
 | Skeleton screens only for content-loading | Transient spinners preserved on submit buttons for action feedback | ✓ Good — v3.0 |
+| PostGIS for spatial queries | ST_DWithin radius matching, trainers_in_view RPC | ✓ Good — v4.0 |
+| PG trigger for location notifications | Zero-latency, free-tier safe, no pg_net needed | ✓ Good — v4.0 |
+| Deterministic AI matching (no ML) | Price/goals/specialty/rating weights, explainable results | ✓ Good — v4.0 |
+| GCal polling (15 min) over push notifications | Push channels expire in 7 days, require domain verification | ✓ Good — v4.0 |
+| OAuth popup (not redirect) for GCal | Trainer stays in FitRush during connection | ✓ Good — v4.0 |
+| Separate client_notification_preferences table | Keeps preferences private from trainers (RLS) | ✓ Good — v4.0 |
 
 ## Completed Milestones
+
+<details>
+<summary>v4.0 — The Live Platform (shipped 2026-03-20)</summary>
+
+Phases 21–28 + 23.1 (9 phases, 24 plans, 44 requirements). See `.planning/MILESTONES.md`.
+</details>
 
 <details>
 <summary>v3.0 — The Premium Experience & Trust Update (shipped 2026-03-18)</summary>
@@ -180,4 +188,4 @@ Phases 5–8 (4 phases, ~12 plans). See `.planning/MILESTONES.md`.
 </details>
 
 ---
-*Last updated: 2026-03-18 after v4.0 milestone start*
+*Last updated: 2026-03-20 after v4.0 milestone*

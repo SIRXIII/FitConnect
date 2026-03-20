@@ -1,5 +1,14 @@
 # Project Milestones — FitConnect
 
+## v4.0 The Live Platform (Shipped: 2026-03-20)
+
+**Phases completed:** 9 phases, 24 plans, 9 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## Milestone v3.0 — The Premium Experience & Trust Update ✅
 
 **Status:** Complete

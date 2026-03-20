@@ -176,7 +176,7 @@ const TrainerDashboard: React.FC = () => {
   const bookedSlots = slots.filter((s) => s.is_booked).length;
 
   return (
-    <div className="min-h-screen bg-paper pt-48 pb-20 px-6">
+    <div className="min-h-screen bg-paper pt-24 md:pt-48 pb-20 px-4 sm:px-6">
       {trainerProfile && <AvailabilityHeader />}
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Header */}
@@ -185,38 +185,40 @@ const TrainerDashboard: React.FC = () => {
             {isFirstVisit ? 'Welcome' : 'Welcome back'}{profile?.full_name ? `, ${profile.full_name}` : ''}
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
-            Trainer Dashboard
+            Every idle hour is untapped revenue.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-ink/10">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors ${
-                activeTab === tab
-                  ? 'border-b-2 border-ink text-ink -mb-px'
-                  : 'text-ink/40 hover:text-ink'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="flex border-b border-ink/10 min-w-max sm:min-w-0 px-4 sm:px-0">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 sm:px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors whitespace-nowrap ${
+                  activeTab === tab
+                    ? 'border-b-2 border-ink text-ink -mb-px'
+                    : 'text-ink/40 hover:text-ink'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
 
         {activeTab === 'overview' && (<>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="border border-ink/10 p-8 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Upcoming Bookings</p>
-            <p className="text-3xl serif font-light text-ink">{upcomingCount}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Upcoming Bookings</p>
+            <p className="text-2xl sm:text-3xl serif font-light text-ink">{upcomingCount}</p>
           </div>
-          <div className="border border-ink/10 p-8 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Available Slots</p>
-            <p className="text-3xl serif font-light text-accent">{availableSlots}</p>
+          <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Available Slots</p>
+            <p className="text-2xl sm:text-3xl serif font-light text-accent">{availableSlots}</p>
             {tier === 'free' && availableSlots > 3 && (
               <p className="text-[10px] uppercase tracking-[0.2em] text-amber-600/70 font-medium">
                 3 of {availableSlots} visible to clients
@@ -228,13 +230,13 @@ const TrainerDashboard: React.FC = () => {
               </p>
             )}
           </div>
-          <div className="border border-ink/10 p-8 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Booked Slots</p>
-            <p className="text-3xl serif font-light text-ink">{bookedSlots}</p>
+          <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Booked Slots</p>
+            <p className="text-2xl sm:text-3xl serif font-light text-ink">{bookedSlots}</p>
           </div>
-          <div className="border border-ink/10 p-8 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Rating</p>
-            <p className="text-3xl serif font-light text-ink">
+          <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Rating</p>
+            <p className="text-2xl sm:text-3xl serif font-light text-ink">
               {trainerProfile?.rating && trainerProfile.rating > 0
                 ? Number(trainerProfile.rating).toFixed(1)
                 : '—'}
@@ -287,7 +289,7 @@ const TrainerDashboard: React.FC = () => {
 
         {/* Stripe Connect */}
         <div className="border border-ink/10 p-8 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Payment Setup</p>
               {trainerProfile?.stripe_account_id ? (

@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore, type UserRole } from '@/stores/auth';
 
 interface ProtectedRouteProps {
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole, skipRoleCheck }) => {
   const { user, profile, loading } = useAuthStore();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -19,7 +20,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole,
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const destination = location.pathname + location.search;
+    const loginUrl = `/login?redirect=${encodeURIComponent(destination)}`;
+    return <Navigate to={loginUrl} replace />;
   }
 
   // For onboarding routes, skip role/redirect checks — user just needs to be authenticated

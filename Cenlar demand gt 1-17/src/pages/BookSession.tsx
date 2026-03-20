@@ -71,12 +71,12 @@ const PaymentForm: React.FC<{
         </div>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <button
           type="button"
           onClick={onBack}
           disabled={processing}
-          className="border border-ink/20 px-8 py-4 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink/5 transition-all duration-300 disabled:opacity-50"
+          className="border border-ink/20 px-8 py-4 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink/5 transition-all duration-300 disabled:opacity-50 sm:w-auto w-full"
         >
           Back
         </button>
@@ -387,7 +387,7 @@ const BookSession: React.FC = () => {
   const isSlotGreyed = bookedSlotIds.includes(slot.id);
 
   return (
-    <div className="min-h-screen bg-paper pt-28 pb-20 px-6">
+    <div className="min-h-screen bg-paper pt-20 sm:pt-28 pb-20 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto">
         <button
           onClick={() => navigate(-1)}

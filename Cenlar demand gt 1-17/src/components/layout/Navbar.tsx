@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard, Bell, MessageSquare, MapPin } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Bell, MessageSquare, MapPin, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
@@ -11,7 +11,7 @@ const Navbar: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
   const { user, profile, signOut } = useAuthStore();
-  const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllRead, refetch: refetchNotifications } = useNotifications();
   const { unreadCount: unreadMessages } = useUnreadMessages();
   const navigate = useNavigate();
 
@@ -104,14 +104,23 @@ const Navbar: React.FC = () => {
                     <div className="absolute right-0 top-full mt-3 w-80 bg-paper border border-ink/10 shadow-lg max-h-96 overflow-hidden flex flex-col">
                       <div className="px-4 py-3 border-b border-ink/5 flex items-center justify-between">
                         <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/40">Notifications</p>
-                        {unreadCount > 0 && (
+                        <div className="flex items-center gap-3">
                           <button
-                            onClick={(e) => { e.stopPropagation(); markAllRead(); }}
-                            className="text-[9px] uppercase tracking-wider text-accent hover:text-accent/70 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); refetchNotifications(); }}
+                            className="text-ink/30 hover:text-accent transition-colors"
+                            title="Refresh notifications"
                           >
-                            Mark all read
+                            <RefreshCw size={11} strokeWidth={1.5} />
                           </button>
-                        )}
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); markAllRead(); }}
+                              className="text-[9px] uppercase tracking-wider text-accent hover:text-accent/70 transition-colors"
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div className="overflow-y-auto flex-1">
                         {notifications.length === 0 ? (

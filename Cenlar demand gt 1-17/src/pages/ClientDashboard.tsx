@@ -37,7 +37,7 @@ const ClientDashboard: React.FC = () => {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-paper pt-32 pb-20 px-6">
+    <div className="min-h-screen bg-paper pt-24 md:pt-32 pb-20 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-12">
         <div className="space-y-4">
           <h1 className="text-3xl serif font-light italic text-ink">
@@ -47,7 +47,8 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         {/* Tab navigation */}
-        <div className="flex gap-6 border-b border-ink/10">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+        <div className="flex gap-4 sm:gap-6 border-b border-ink/10 min-w-max sm:min-w-0 px-4 sm:px-0">
           <button
             onClick={() => setActiveTab('overview')}
             className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${
@@ -74,11 +75,12 @@ const ClientDashboard: React.FC = () => {
             Alerts
           </button>
         </div>
+        </div>
 
         {activeTab === 'overview' ? (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               <div className="border border-ink/10 p-8 space-y-3">
                 <div className="flex items-center gap-2">
                   <Calendar size={14} className="text-accent" />
