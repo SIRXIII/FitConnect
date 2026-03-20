@@ -2,7 +2,12 @@
 
 ## What This Is
 
-A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates — now featuring real-time trainer availability, Google Maps discovery, AI-powered trainer matching, and Google Calendar sync. Trainers earn from sessions that would otherwise go unfilled with AI analytics showing which slots need attention. Clients access premium personal training below market rate with location-based alerts when nearby trainers go live. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives.
+A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Features real-time Uber-style trainer availability, Google Maps discovery with PostGIS spatial queries, AI-powered trainer-client matching, AI discount analytics, location-based notifications, session logging with progress tracking, and Google Calendar bidirectional sync. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives.
+
+**App Name:** FitRush
+**Live URL:** https://fitconnect-2sn.pages.dev
+**Version:** v4.0 complete
+**Next:** v5.0
 
 ## Core Value
 
@@ -96,9 +101,9 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 
 ## Context
 
-**Current state (v4.0 shipped — 2026-03-20):**
-- React 19 + TypeScript + Vite 6 SPA — ~31,000 LOC (+13,300 in v4.0)
-- Supabase PostgreSQL backend — 31 migrations (11 new in v4.0), PostGIS enabled
+**Current state (v4.0 complete -- 2026-03-20):**
+- React 19 + TypeScript + Vite 6 SPA -- ~31,000 LOC (+13,300 in v4.0)
+- Supabase PostgreSQL backend -- 31 migrations (11 new in v4.0), PostGIS enabled
 - 17 Edge Functions (+3 in v4.0): google-calendar-connect, sync-booking-to-gcal, sync-gcal-events
 - Stripe Connect Express + Stripe Billing (subscriptions, trials, dunning, Customer Portal)
 - Google Maps integration with @vis.gl/react-google-maps, marker clustering, PostGIS spatial queries
@@ -108,7 +113,10 @@ Trainers monetize their idle hours at optimized rates while clients access certi
 - Location notifications: PostGIS trigger, 3/day cap, 4hr cooldown, "Looking Now" GPS mode
 - Session logging: trainer notes, exercise data, client progress timeline
 - 139/140 tests passing (Vitest)
-- Supabase project: qecwxvvlpvrnrqyrdxrj (fitrush-app.netlify.app)
+- Supabase project: qecwxvvlpvrnrqyrdxrj
+
+**Key features shipped in v4.0:**
+Waitlist, live availability toggle, Google Maps trainer discovery, client profile enhancement, session logging, AI trainer-client matching, AI discount analytics, location-based notifications, Google Calendar bidirectional sync
 
 **Codebase health:**
 - All critical security issues resolved (RLS verified, Zod validation, audit log)
