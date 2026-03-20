@@ -112,11 +112,11 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-paper px-6">
-      <div className="w-full max-w-md space-y-12 text-center">
+      <div className="w-full max-w-sm sm:max-w-md space-y-8 sm:space-y-12 text-center">
 
         {/* Brand */}
         <div className="space-y-4">
-          <h1 className="text-4xl serif font-light tracking-[0.15em] uppercase">
+          <h1 className="text-3xl sm:text-4xl serif font-light tracking-[0.1em] sm:tracking-[0.15em] uppercase">
             {isSignUp ? 'Create Your Account' : 'Welcome Back'}
           </h1>
           {isSignUp ? (
