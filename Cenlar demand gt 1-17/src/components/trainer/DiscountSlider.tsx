@@ -54,7 +54,15 @@ const DiscountSlider: React.FC<DiscountSliderProps> = ({ currentDiscount, optimi
 
       const { error } = await Promise.race([queryPromise, timeoutPromise]);
 
-      if (error) throw error;
+      if (error) {
+        // Surface actionable message for common RLS/migration issues
+        const hint = error.code === '42501'
+          ? 'Permission denied — check RLS policies on trainer_profiles.'
+          : error.code === '42703'
+            ? 'Column not found — run pending Supabase migrations.'
+            : error.message;
+        throw new Error(hint);
+      }
 
       prevSaved.current = value;
       setDirty(false);
