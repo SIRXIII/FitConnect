@@ -27,6 +27,7 @@ import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
 import TrialBanner from '@/components/subscription/TrialBanner';
 import GoogleCalendarCallback from '@/pages/GoogleCalendarCallback';
+import ResetPassword from '@/pages/ResetPassword';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
@@ -63,6 +64,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/auth/google-callback" element={<GoogleCalendarCallback />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/terms" element={<Terms />} />

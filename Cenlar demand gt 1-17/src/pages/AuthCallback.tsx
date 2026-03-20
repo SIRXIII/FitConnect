@@ -13,7 +13,7 @@ const AuthCallback: React.FC = () => {
     }
   }, [initialized, initialize]);
 
-  // Check for OAuth error in URL hash or query params
+  // Check for errors or password recovery type in URL hash/query params
   useEffect(() => {
     const hash = window.location.hash;
     const params = new URLSearchParams(window.location.search);
@@ -22,6 +22,7 @@ const AuthCallback: React.FC = () => {
     const hashParams = new URLSearchParams(hash.replace('#', ''));
     const error = hashParams.get('error') || params.get('error');
     const errorDescription = hashParams.get('error_description') || params.get('error_description');
+    const type = hashParams.get('type') || params.get('type');
 
     if (error) {
       const message = errorDescription
@@ -29,6 +30,12 @@ const AuthCallback: React.FC = () => {
         : 'Authentication failed. Please try again.';
       toast.error(message);
       navigate('/login', { replace: true });
+      return;
+    }
+
+    // Password recovery flow: redirect to the reset password page
+    if (type === 'recovery') {
+      navigate('/auth/reset-password', { replace: true });
     }
   }, [navigate]);
 
