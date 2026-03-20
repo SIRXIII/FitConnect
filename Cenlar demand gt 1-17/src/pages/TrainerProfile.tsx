@@ -383,9 +383,9 @@ const TrainerProfile: React.FC = () => {
             )}
 
             {/* Workout Locations Manager (trainer's own profile only) */}
-            {trainerProfile?.id && trainer.user_id === user?.id && (
+            {trainer?.id && trainer.user_id === user?.id && (
               <div className="border border-ink/10 p-8">
-                <WorkoutLocationsManager trainerId={trainerProfile.id} />
+                <WorkoutLocationsManager trainerId={trainer.id} />
               </div>
             )}
 
