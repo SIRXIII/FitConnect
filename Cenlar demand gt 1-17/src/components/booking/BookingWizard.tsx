@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 import { StepReview } from './StepReview';
 import { StepConfirm } from './StepConfirm';
 import { StepPayment } from './StepPayment';
@@ -122,6 +123,11 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     }
 
     setBookingId(newBookingId);
+
+    // Fire-and-forget: push booking to trainer's Google Calendar (if connected)
+    supabase.functions.invoke('sync-booking-to-gcal', {
+      body: { booking_id: newBookingId },
+    }).catch(() => { /* GCal sync is best-effort — never block booking */ });
 
     if (stripeConfigured) {
       const secret = await createPaymentIntent(newBookingId);

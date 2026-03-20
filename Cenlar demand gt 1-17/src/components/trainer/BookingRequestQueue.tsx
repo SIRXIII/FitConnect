@@ -134,7 +134,7 @@ const BookingRequestQueue: React.FC = () => {
     }
 
     // Create the actual booking via atomic RPC
-    const { error: rpcError } = await supabase.rpc('create_booking_atomic', {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('create_booking_atomic', {
       p_slot_id: request.slot_id,
       p_client_id: request.client_id,
       p_trainer_id: trainerProfile.id,
@@ -147,6 +147,14 @@ const BookingRequestQueue: React.FC = () => {
     if (rpcError) {
       toast.error('Request accepted but booking creation failed. Please contact support.');
       return;
+    }
+
+    // Fire-and-forget: push booking to trainer's Google Calendar (if connected)
+    const result = rpcData as { booking_id?: string } | null;
+    if (result?.booking_id) {
+      supabase.functions.invoke('sync-booking-to-gcal', {
+        body: { booking_id: result.booking_id },
+      }).catch(() => { /* GCal sync is best-effort */ });
     }
 
     const clientName = request.client?.full_name || 'client';
