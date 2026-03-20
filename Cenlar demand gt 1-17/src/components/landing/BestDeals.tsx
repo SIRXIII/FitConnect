@@ -4,7 +4,6 @@ import { Zap, Clock, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { buildIdleSlotCounts } from '@/lib/scheduling';
 import { formatSpecialty } from '@/types';
-import { MOCK_TRAINERS } from '@/lib/constants';
 import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
 import { useAuthStore } from '@/stores/auth';
 import { toast } from 'sonner';
@@ -37,23 +36,8 @@ const BestDeals: React.FC = () => {
         .gt('discount_percentage', 0);
 
       if (!trainers?.length) {
-        // Fall back to mock deals when DB has no data
-        const mockDeals = MOCK_TRAINERS
-          .filter((t) => t.discountPercentage > 0 && t.idleSlotCount > 0)
-          .sort((a, b) => b.discountPercentage - a.discountPercentage)
-          .slice(0, 3)
-          .map((t) => ({
-            id: t.id,
-            name: t.name,
-            avatarUrl: t.imageUrl,
-            specialty: t.specialty,
-            optimizedRate: t.optimizedRate,
-            discountPercentage: t.discountPercentage,
-            discountedRate: t.discountedRate,
-            rating: t.rating,
-            idleSlotCount: t.idleSlotCount,
-          }));
-        setDeals(mockDeals);
+        // No trainers with discounts yet — section will be hidden
+        setDeals([]);
         setLoading(false);
         return;
       }
@@ -90,24 +74,9 @@ const BestDeals: React.FC = () => {
           };
         });
 
-      // If DB trainers exist but none have idle slots, fall back to mock data
+      // If no trainers have idle slots yet, hide the section
       if (withIdle.length === 0) {
-        const mockDeals = MOCK_TRAINERS
-          .filter((t) => t.discountPercentage > 0 && t.idleSlotCount > 0)
-          .sort((a, b) => b.discountPercentage - a.discountPercentage)
-          .slice(0, 3)
-          .map((t) => ({
-            id: t.id,
-            name: t.name,
-            avatarUrl: t.imageUrl,
-            specialty: t.specialty,
-            optimizedRate: t.optimizedRate,
-            discountPercentage: t.discountPercentage,
-            discountedRate: t.discountedRate,
-            rating: t.rating,
-            idleSlotCount: t.idleSlotCount,
-          }));
-        setDeals(mockDeals);
+        setDeals([]);
         setLoading(false);
         return;
       }
