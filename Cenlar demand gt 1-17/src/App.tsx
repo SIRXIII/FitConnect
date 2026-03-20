@@ -70,7 +70,7 @@ const App: React.FC = () => {
           <Route path="/onboarding/trainer" element={<ProtectedRoute skipRoleCheck><TrainerOnboarding /></ProtectedRoute>} />
 
           {/* Redirect legacy routes */}
-          <Route path="/signup" element={<Navigate to="/login" replace />} />
+          <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />
           <Route path="/role-select" element={<Navigate to="/login" replace />} />
           <Route path="/onboarding" element={<Navigate to="/login" replace />} />
