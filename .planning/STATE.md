@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: -- The Live Platform
 status: unknown
-stopped_at: Completed Phase 29 mobile responsive polish
-last_updated: "2026-03-20T07:10:23.931Z"
+stopped_at: Completed Phase 30 auth onboarding hardening
+last_updated: "2026-03-20T07:15:24.307Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 0
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State -- FitRush
@@ -48,6 +48,8 @@ v5.0 -- not yet planned. See PROJECT.md "Active (v5.0)" section for candidate fe
 ## Decisions
 
 See `.planning/PROJECT.md` Key Decisions table for full history.
+- [Phase 30]: Password reset routes through /auth/callback with type=recovery, then to dedicated /auth/reset-password page
+- [Phase 30]: ProtectedRoute uses useLocation to preserve full path+search as ?redirect= param when redirecting to /login
 
 ## Blockers / Concerns
 
@@ -62,6 +64,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:10:23.928Z
-Stopped at: Completed Phase 29 mobile responsive polish
+Last session: 2026-03-20T07:15:18.537Z
+Stopped at: Completed Phase 30 auth onboarding hardening
 Resume file: None
