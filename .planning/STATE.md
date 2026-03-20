@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: -- The Live Platform
 status: unknown
-stopped_at: Completed 31-01-PLAN trainer flow e2e verification
-last_updated: "2026-03-20T07:24:12.173Z"
+stopped_at: Completed 32-01 client flow e2e verification
+last_updated: "2026-03-20T07:29:49.778Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 0
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State -- FitRush
@@ -50,6 +50,7 @@ v5.0 -- not yet planned. See PROJECT.md "Active (v5.0)" section for candidate fe
 See `.planning/PROJECT.md` Key Decisions table for full history.
 - [Phase 30]: Password reset routes through /auth/callback with type=recovery, then to dedicated /auth/reset-password page
 - [Phase 30]: ProtectedRoute uses useLocation to preserve full path+search as ?redirect= param when redirecting to /login
+- [Phase 32]: Sub-ratings (punctuality/expertise/communication) added to review modal — they were in the DB schema and displayed on TrainerProfile but were never collected or saved
 
 ## Blockers / Concerns
 
@@ -64,6 +65,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:24:12.171Z
-Stopped at: Completed 31-01-PLAN trainer flow e2e verification
+Last session: 2026-03-20T07:29:49.776Z
+Stopped at: Completed 32-01 client flow e2e verification
 Resume file: None
