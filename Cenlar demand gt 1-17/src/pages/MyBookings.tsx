@@ -224,7 +224,7 @@ const MyBookings: React.FC = () => {
 
     const validation = reviewSchema.safeParse({ rating, comment: comment || undefined });
     if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
+      toast.error(validation.error.issues[0].message);
       return;
     }
 
