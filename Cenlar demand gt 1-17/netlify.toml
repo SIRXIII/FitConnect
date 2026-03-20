@@ -1,3 +1,10 @@
+# Google Search Console verification — serve file directly (skip SPA routing)
+[[redirects]]
+  from = "/google732aa57f167a748a.html"
+  to = "/google732aa57f167a748a.html"
+  status = 200
+
+# SPA catch-all — must come AFTER specific file rules
 [[redirects]]
   from = "/*"
   to = "/index.html"
