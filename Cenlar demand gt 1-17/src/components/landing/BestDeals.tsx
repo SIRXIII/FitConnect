@@ -6,6 +6,8 @@ import { buildIdleSlotCounts } from '@/lib/scheduling';
 import { formatSpecialty } from '@/types';
 import { MOCK_TRAINERS } from '@/lib/constants';
 import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
+import { useAuthStore } from '@/stores/auth';
+import { toast } from 'sonner';
 
 interface DealTrainer {
   id: string;
@@ -164,6 +166,17 @@ const BestDeals: React.FC = () => {
 
 const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
   const initials = deal.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+  const user = useAuthStore((s) => s.user);
+
+  const bookUrl = user
+    ? `/trainers/${deal.id}?book=true`
+    : `/login?redirect=${encodeURIComponent(`/trainers/${deal.id}?book=true`)}`;
+
+  const handleBookClick = () => {
+    if (!user) {
+      toast('Sign in to book this session', { duration: 3000 });
+    }
+  };
 
   return (
     <div className="border border-white/10 p-8 space-y-6 hover:border-white/25 transition-colors duration-500">
@@ -218,7 +231,8 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
       </div>
 
       <Link
-        to={`/trainers/${deal.id}?book=true`}
+        to={bookUrl}
+        onClick={handleBookClick}
         className="block w-full text-center border border-white/20 py-3.5 text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-ink transition-all duration-500"
       >
         Book This Deal
