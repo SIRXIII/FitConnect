@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield } from 'lucide-react';
+import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import ReferralWidget from '@/components/shared/ReferralWidget';
 import ProgressTab from '@/components/client/ProgressTab';
 import { NotificationPreferencesSection } from '@/components/client/NotificationPreferencesSection';
 import ProfileProgressRing from '@/components/client/ProfileProgressRing';
+import ClientSettingsTab from '@/components/client/ClientSettingsTab';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
 // ─── Profile completion calculation (mirrors ClientPassport logic) ─────────────
@@ -63,12 +64,12 @@ const QuickActionCard: React.FC<QuickActionProps> = ({ to, icon, title, descript
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-type TabId = 'overview' | 'profile' | 'progress' | 'alerts';
+type TabId = 'overview' | 'profile' | 'progress' | 'alerts' | 'settings';
 
 const ClientDashboard: React.FC = () => {
   const { profile, user } = useAuthStore();
   const [upcomingCount, setUpcomingCount] = useState(0);
-  const [pastCount, setPastCount] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [clientProfile, setClientProfile] = useState<Record<string, unknown> | null>(null);
 
@@ -83,14 +84,14 @@ const ClientDashboard: React.FC = () => {
         .eq('client_id', user.id)
         .in('status', ['pending', 'confirmed']);
 
-      const { count: past } = await supabase
+      const { count: completed } = await supabase
         .from('bookings')
         .select('*', { count: 'exact', head: true })
         .eq('client_id', user.id)
-        .in('status', ['completed', 'cancelled']);
+        .eq('status', 'completed');
 
       setUpcomingCount(upcoming ?? 0);
-      setPastCount(past ?? 0);
+      setCompletedCount(completed ?? 0);
 
       // Client profile for completion ring
       try {
@@ -117,7 +118,8 @@ const ClientDashboard: React.FC = () => {
 
   const TABS: { id: TabId; label: string; icon?: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview' },
-    { id: 'profile', label: 'Profile' },
+    { id: 'profile', label: 'Fitness Profile' },
+    { id: 'settings', label: 'Settings', icon: <User size={11} /> },
     { id: 'progress', label: 'Progress' },
     { id: 'alerts', label: 'Alerts', icon: <Bell size={11} /> },
   ];
@@ -235,10 +237,10 @@ const ClientDashboard: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <Clock size={14} className="text-accent" />
                   <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
-                    Past Sessions
+                    Sessions Completed
                   </p>
                 </div>
-                <p className="text-3xl serif font-light text-ink">{pastCount}</p>
+                <p className="text-3xl serif font-light text-ink">{completedCount}</p>
               </div>
               <div className="border border-ink/10 p-8 space-y-3">
                 <div className="flex items-center gap-2">
@@ -424,6 +426,10 @@ const ClientDashboard: React.FC = () => {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <ClientSettingsTab />
         )}
 
         {activeTab === 'progress' && (
