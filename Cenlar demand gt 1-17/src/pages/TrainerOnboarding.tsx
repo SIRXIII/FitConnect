@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { trainerProfileSchema } from '@/lib/schemas';
+import CertificationUpload from '@/components/trainer/CertificationUpload';
+import { VERIFIABLE_CODES } from '@/lib/certifications';
 
 const CERT_BODIES = ['NASM', 'ACE', 'NSCA', 'ISSA', 'ACSM', 'NCSF', 'NFPT', 'Other'];
 const SPECIALTIES = [
@@ -33,10 +35,11 @@ interface FormData {
 }
 
 const TrainerOnboarding: React.FC = () => {
-  const { user, profile, updateProfile } = useAuthStore();
+  const { user, profile, trainerProfile, updateProfile } = useAuthStore();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = 5;
+  const [certUploaded, setCertUploaded] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const certFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,6 +72,7 @@ const TrainerOnboarding: React.FC = () => {
     if (step === 1) return form.full_name.trim().length > 0;
     if (step === 2) return form.cert_body !== '' && form.cert_confirmed;
     if (step === 3) return form.location.trim().length > 0;
+    if (step === 5) return certUploaded;
     return true;
   };
 
@@ -166,8 +170,8 @@ const TrainerOnboarding: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Profile complete! Welcome to FitRush.');
-      navigate('/trainer/dashboard?welcome=true', { replace: true });
+      toast.success('Profile saved!');
+      setStep(5);
     } catch (err) {
       console.error('[TrainerOnboarding] save error:', err);
       toast.error('Failed to save profile. Please try again.');
@@ -176,7 +180,7 @@ const TrainerOnboarding: React.FC = () => {
     }
   };
 
-  const stepLabels = ['Name', 'Certification', 'Profile', 'Rates'];
+  const stepLabels = ['Name', 'Certification', 'Profile', 'Rates', 'Upload Cert'];
   const initials = form.full_name.trim()
     ? form.full_name.trim().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : '?';
@@ -450,6 +454,49 @@ const TrainerOnboarding: React.FC = () => {
           </div>
         )}
 
+        {/* ── Step 5: Upload Certification ── */}
+        {step === 5 && (
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={20} className="text-accent" strokeWidth={1.5} />
+                <h2 className="text-3xl serif font-light italic">Upload Your Certification</h2>
+              </div>
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+                FitRush only accepts NCCA-accredited certifications to ensure client safety
+              </p>
+            </div>
+
+            <div className="p-5 border border-amber-200 bg-amber-50 space-y-1">
+              <p className="text-[11px] font-semibold text-amber-800 uppercase tracking-[0.1em]">
+                Certification Required
+              </p>
+              <p className="text-sm font-light text-amber-700">
+                You must upload at least one Tier 1 (NCCA) or Tier 2 (DEAC/NBFE) certification
+                before you can accept bookings. CPR/AED is highly recommended but not required.
+              </p>
+            </div>
+
+            {trainerProfile?.id ? (
+              <CertificationUpload
+                trainerId={trainerProfile.id}
+                onCertUploaded={() => setCertUploaded(true)}
+              />
+            ) : (
+              <p className="text-sm text-ink/40 font-light">Loading profile…</p>
+            )}
+
+            {certUploaded && (
+              <div className="flex items-center gap-2 p-4 border border-green-200 bg-green-50">
+                <Check size={16} className="text-green-600" strokeWidth={2.5} />
+                <p className="text-sm text-green-700 font-light">
+                  Certification submitted — our team will review it within 1–2 business days.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Navigation */}
         <div className="flex items-center justify-between pt-4">
           <button
@@ -460,7 +507,13 @@ const TrainerOnboarding: React.FC = () => {
             Back
           </button>
           <button
-            onClick={step < TOTAL_STEPS ? () => setStep(s => s + 1) : handleFinish}
+            onClick={
+              step === 4
+                ? async () => { await handleFinish(); }
+                : step < TOTAL_STEPS
+                ? () => setStep(s => s + 1)
+                : () => navigate('/trainer/dashboard?welcome=true', { replace: true })
+            }
             disabled={!canProceed() || saving}
             className="px-10 py-3 bg-ink text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
@@ -469,7 +522,7 @@ const TrainerOnboarding: React.FC = () => {
                 <span className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
                 Saving…
               </span>
-            ) : step === TOTAL_STEPS ? 'Go to Dashboard' : 'Continue'}
+            ) : step === TOTAL_STEPS ? 'Go to Dashboard' : step === 4 ? 'Save & Continue' : 'Continue'}
           </button>
         </div>
       </div>
