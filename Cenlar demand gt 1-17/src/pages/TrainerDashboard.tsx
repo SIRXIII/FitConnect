@@ -18,6 +18,7 @@ import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
+import SettingsTab from '@/components/trainer/SettingsTab';
 import type { TrainerCertification } from '@/lib/certifications';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -29,7 +30,7 @@ const TrainerDashboard: React.FC = () => {
   const canAnalytics = useCan('analytics_advanced');
   const [searchParams] = useSearchParams();
   const navigateTo = useNavigate();
-  const tabs = ['overview', 'payouts', 'analytics', 'subscription', 'calendar'] as const;
+  const tabs = ['overview', 'payouts', 'analytics', 'subscription', 'calendar', 'settings'] as const;
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>(() => {
     const tabParam = searchParams.get('tab');
     return tabs.includes(tabParam as typeof tabs[number])
@@ -474,6 +475,7 @@ const TrainerDashboard: React.FC = () => {
             />
           </div>
         )}
+        {activeTab === 'settings' && <SettingsTab />}
 
       </div>
     </div>
