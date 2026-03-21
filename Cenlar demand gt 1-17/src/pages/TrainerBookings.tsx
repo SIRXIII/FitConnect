@@ -16,8 +16,21 @@ import SessionLogPanel from '@/components/session/SessionLogPanel';
 
 type BookingStatus = Tables<'bookings'>['status'];
 
+interface GroupParticipant {
+  id: string;
+  client_id: string;
+  profiles: {
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+  client_profiles: {
+    fitness_goals: string[];
+  } | null;
+}
+
 interface TrainerBooking {
   id: string;
+  slot_id: string | null;
   status: BookingStatus;
   rate_charged: number;
   notes: string | null;
@@ -27,6 +40,8 @@ interface TrainerBooking {
     id: string;
     start_time: string;
     end_time: string;
+    slot_type: string;
+    max_capacity: number | null;
   } | null;
   profiles: {
     id: string;
@@ -65,6 +80,9 @@ const TrainerBookings: React.FC = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'action' | 'history'>('action');
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
+  // Map of slot_id -> participants (lazy-loaded for group sessions)
+  const [groupParticipants, setGroupParticipants] = useState<Record<string, GroupParticipant[]>>({});
+  const [loadingParticipants, setLoadingParticipants] = useState<Set<string>>(new Set());
 
   const fetchBookings = useCallback(async () => {
     if (!trainerProfile) return;
@@ -81,10 +99,13 @@ const TrainerBookings: React.FC = () => {
           notes,
           cancellation_reason,
           created_at,
+          slot_id,
           availability_slots!bookings_slot_id_fkey (
             id,
             start_time,
-            end_time
+            end_time,
+            slot_type,
+            max_capacity
           ),
           profiles!bookings_client_id_fkey (
             id,
@@ -283,6 +304,33 @@ const TrainerBookings: React.FC = () => {
     setUpdatingId(null);
   };
 
+  const fetchGroupParticipants = useCallback(async (slotId: string) => {
+    if (groupParticipants[slotId] || loadingParticipants.has(slotId)) return;
+
+    setLoadingParticipants(prev => new Set(prev).add(slotId));
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from('bookings')
+        .select(`
+          id,
+          client_id,
+          profiles:client_id (full_name, avatar_url),
+          client_profiles:client_id (fitness_goals)
+        `)
+        .eq('slot_id', slotId)
+        .in('status', ['confirmed', 'pending']);
+
+      setGroupParticipants(prev => ({ ...prev, [slotId]: (data as GroupParticipant[]) ?? [] }));
+    } finally {
+      setLoadingParticipants(prev => {
+        const next = new Set(prev);
+        next.delete(slotId);
+        return next;
+      });
+    }
+  }, [groupParticipants, loadingParticipants]);
+
   return (
     <div ref={containerRef} className="relative min-h-screen bg-paper pt-32 pb-20 px-6 overflow-y-auto">
       <PullToRefreshIndicator pullDistance={pullDistance} refreshing={refreshing} progress={progress} />
@@ -437,6 +485,66 @@ const TrainerBookings: React.FC = () => {
                         workout_types: booking.client_profiles.workout_types ?? [],
                       }}
                     />
+                  )}
+
+                  {/* Group session participant list */}
+                  {booking.availability_slots?.slot_type === 'group' && booking.slot_id && (
+                    <div className="border border-blue-400/20 bg-blue-900/5 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-blue-400/80 font-medium flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                          Group Session — Participants
+                        </p>
+                        {!groupParticipants[booking.slot_id] && (
+                          <button
+                            type="button"
+                            onClick={() => fetchGroupParticipants(booking.slot_id!)}
+                            disabled={loadingParticipants.has(booking.slot_id)}
+                            className="text-[10px] uppercase tracking-[0.15em] text-blue-400/70 hover:text-blue-400 transition-colors disabled:opacity-50"
+                          >
+                            {loadingParticipants.has(booking.slot_id) ? 'Loading…' : 'Load Participants'}
+                          </button>
+                        )}
+                        {groupParticipants[booking.slot_id] && (
+                          <span className="text-[10px] text-blue-400/60">
+                            {groupParticipants[booking.slot_id].length}/{booking.availability_slots.max_capacity ?? '?'} booked
+                          </span>
+                        )}
+                      </div>
+                      {groupParticipants[booking.slot_id] && (
+                        <div className="space-y-2">
+                          {groupParticipants[booking.slot_id].map((p) => (
+                            <div key={p.id} className="flex items-center gap-3 p-2 rounded bg-white/5">
+                              {p.profiles?.avatar_url ? (
+                                <img
+                                  src={p.profiles.avatar_url}
+                                  alt={p.profiles.full_name}
+                                  referrerPolicy="no-referrer"
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-xs text-ink/40">
+                                  {p.profiles?.full_name?.charAt(0) || '?'}
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm text-ink/80">{p.profiles?.full_name || 'Client'}</p>
+                                {p.client_profiles?.fitness_goals?.length ? (
+                                  <p className="text-[10px] text-ink/40">
+                                    {p.client_profiles.fitness_goals.slice(0, 2).join(', ')}
+                                  </p>
+                                ) : null}
+                              </div>
+                            </div>
+                          ))}
+                          {groupParticipants[booking.slot_id].length === 0 && (
+                            <p className="text-xs text-ink/30 italic">No participants yet</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {booking.cancellation_reason ? (
