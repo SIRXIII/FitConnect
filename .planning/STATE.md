@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: -- Growth Engine
 status: in-progress
-stopped_at: "Completed 37-01-PLAN.md and 37-02-PLAN.md (Group Sessions)"
-last_updated: "2026-03-20T00:00:00Z"
+stopped_at: "Completed 35-01-PLAN.md and 35-02-PLAN.md (Push Notifications)"
+last_updated: "2026-03-20T00:40:00Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 6
 ---
 
 # Project State -- FitRush
@@ -23,13 +23,13 @@ See: `.planning/PROJECT.md` (updated 2026-03-20)
 
 ## Current Position
 
-Milestone: v6.0 Growth Engine -- PLANNED
+Milestone: v6.0 Growth Engine -- IN PROGRESS
 All 3 phases planned, 6 plans total, 16 requirements.
 
 ```
-v6.0 Progress: [######----] 67% (4/6 plans)
+v6.0 Progress: [##########] 100% (6/6 plans)
 
-Phase 35: Push Notifications        [ ] 0/2 plans
+Phase 35: Push Notifications        [x] 2/2 plans
 Phase 36: Trainer Video Intros      [x] 2/2 plans
 Phase 37: Group Sessions            [x] 2/2 plans
 ```
@@ -65,7 +65,7 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 ## Blockers / Concerns
 
 - **Phase 28**: Google OAuth verification must complete before GCal sync feature reaches production users (4-8 week external timeline, started Phase 21)
-- **Phase 35**: Requires Firebase project setup and APNs key upload (human setup step — documented in 35-01-PLAN.md user_setup)
+- **Phase 35**: Firebase project setup and APNs key upload required. Run `npm install` once disk space freed (firebase + @capacitor/push-notifications not yet installed). Until then, push gracefully no-ops.
 
 ## Accumulated Context
 
@@ -76,6 +76,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-20T00:00:00Z
-Stopped at: Completed Phase 37 Group Sessions (both plans)
+Last session: 2026-03-20T00:40:00Z
+Stopped at: Completed Phase 35 Push Notifications (both plans)
 Resume file: None
