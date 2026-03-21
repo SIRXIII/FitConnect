@@ -1,0 +1,2 @@
+[    1371ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://m.stripe.com/6:0
+[   36064ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0

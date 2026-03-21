@@ -1,0 +1,149 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - button [ref=e94]:
+          - img [ref=e95]
+        - button [ref=e98]:
+          - img [ref=e99]
+        - button "Host CA" [ref=e103]:
+          - img "Host CA" [ref=e104]
+  - generic [ref=e105]:
+    - generic [ref=e107]:
+      - button "Go offline" [pressed] [ref=e110] [cursor=pointer]:
+        - generic [ref=e114]: LIVE
+      - generic [ref=e115]:
+        - generic [ref=e116]: Request to Book
+        - button "1h 44m remaining" [ref=e117] [cursor=pointer]
+      - group "Sleep timer duration" [ref=e118]:
+        - button "1hr" [ref=e119]
+        - button "2hr" [ref=e120]
+        - button "4hr" [ref=e121]
+        - button "EOD" [ref=e122]
+    - generic [ref=e123]:
+      - generic [ref=e124]:
+        - heading "Welcome back, Host CA" [level=1] [ref=e125]
+        - paragraph [ref=e126]: Trainer Dashboard
+      - generic [ref=e127]:
+        - button "overview" [ref=e128]
+        - button "payouts" [ref=e129]
+        - button "analytics" [ref=e130]
+        - button "subscription" [ref=e131]
+        - button "calendar" [ref=e132]
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - paragraph [ref=e135]: Upcoming Bookings
+          - paragraph [ref=e136]: "0"
+        - generic [ref=e137]:
+          - paragraph [ref=e138]: Available Slots
+          - paragraph [ref=e139]: "0"
+        - generic [ref=e140]:
+          - paragraph [ref=e141]: Booked Slots
+          - paragraph [ref=e142]: "0"
+        - generic [ref=e143]:
+          - paragraph [ref=e144]: Rating
+          - paragraph [ref=e145]: —
+      - generic [ref=e146]:
+        - generic [ref=e147]:
+          - paragraph [ref=e148]: Standard Rate
+          - paragraph [ref=e149]: $50/hr
+        - generic [ref=e150]:
+          - paragraph [ref=e151]: Optimized Rate
+          - paragraph [ref=e152]: $20/hr
+        - generic [ref=e153]:
+          - paragraph [ref=e154]: Specialty
+          - paragraph [ref=e155]: Strength Training
+      - generic [ref=e157]:
+        - generic [ref=e158]:
+          - generic [ref=e159]:
+            - generic [ref=e160]:
+              - img [ref=e161]
+              - paragraph [ref=e164]: Session Discount
+            - paragraph [ref=e165]: No discount — full optimized rate applied
+          - paragraph [ref=e167]: —
+        - generic [ref=e168]:
+          - slider [ref=e170] [cursor=pointer]: "0"
+          - generic [ref=e171]:
+            - generic [ref=e172]: None
+            - generic [ref=e173]: 20%
+            - generic [ref=e174]: 40%
+            - generic [ref=e175]: 60%
+            - generic [ref=e176]: 80%
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - paragraph [ref=e180]: Payment Setup
+          - paragraph [ref=e181]: Connect your Stripe account to receive payouts from bookings
+        - button "Set Up Payments" [ref=e182]
+      - generic [ref=e184]:
+        - button "Manage Availability" [ref=e185]
+        - link "Manage Bookings" [ref=e186] [cursor=pointer]:
+          - /url: /trainer/bookings
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - heading "Booking Requests" [level=2] [ref=e189]
+          - paragraph [ref=e190]: Pending requests from clients
+        - generic [ref=e191]:
+          - heading "No pending requests" [level=3] [ref=e192]
+          - paragraph [ref=e193]: Booking requests from clients will appear here.
+  - contentinfo [ref=e38]:
+    - generic [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - heading "FitRush" [level=3] [ref=e42]
+          - paragraph [ref=e43]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e44]:
+            - link "Instagram" [ref=e45] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e46]
+            - link "Twitter" [ref=e49] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e50]
+            - link "LinkedIn" [ref=e52] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e53]
+        - generic [ref=e57]:
+          - heading "The Collective" [level=4] [ref=e58]
+          - list [ref=e59]:
+            - listitem [ref=e60]:
+              - link "Find a Professional" [ref=e61] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e62]:
+              - link "The Experience" [ref=e63] [cursor=pointer]:
+                - /url: /#how-it-works
+            - listitem [ref=e64]:
+              - link "Browse Trainers" [ref=e65] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e66]:
+              - link "Pricing" [ref=e67] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e68]:
+          - heading "Partnership" [level=4] [ref=e69]
+          - list [ref=e70]:
+            - listitem [ref=e71]:
+              - link "Join the Collective" [ref=e72] [cursor=pointer]:
+                - /url: /login
+            - listitem [ref=e73]:
+              - link "Professional Standards" [ref=e74] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e75]:
+              - link "Insurance & Safety" [ref=e76] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e77]:
+              - link "Partner Portal" [ref=e78] [cursor=pointer]:
+                - /url: /login
+      - generic [ref=e79]:
+        - paragraph [ref=e80]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e81]:
+          - generic [ref=e82]: Privacy
+          - generic [ref=e83]: Terms
+          - generic [ref=e84]: Cookies

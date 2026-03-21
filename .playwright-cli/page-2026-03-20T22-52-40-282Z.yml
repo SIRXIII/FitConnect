@@ -1,0 +1,93 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - link "Sign In" [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - heading "Terms of Service" [level=1] [ref=e17]
+      - paragraph [ref=e18]: "Last updated: March 19, 2026"
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - heading "1. Acceptance of Terms" [level=2] [ref=e21]
+        - paragraph [ref=e22]: By accessing or using FitRush, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform.
+      - generic [ref=e23]:
+        - heading "2. User Accounts" [level=2] [ref=e24]
+        - paragraph [ref=e25]: You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must provide accurate and complete information when creating an account.
+      - generic [ref=e26]:
+        - heading "3. Booking & Cancellation" [level=2] [ref=e27]
+        - paragraph [ref=e28]: Sessions booked through FitRush are subject to our cancellation policy. Cancellations made more than 24 hours before a scheduled session are eligible for a full refund. Cancellations within 24 hours may be subject to a cancellation fee.
+      - generic [ref=e29]:
+        - heading "4. Payments" [level=2] [ref=e30]
+        - paragraph [ref=e31]: All payments are processed securely through Stripe. By making a payment, you agree to Stripe's terms of service. Trainers receive payouts on a weekly basis for completed sessions, minus applicable platform fees.
+      - generic [ref=e32]:
+        - heading "5. Trainer Responsibilities" [level=2] [ref=e33]
+        - paragraph [ref=e34]: Trainers on FitRush are independent professionals. They are responsible for maintaining appropriate certifications, insurance, and professional standards. FitRush does not employ trainers directly.
+      - generic [ref=e35]:
+        - heading "6. Limitation of Liability" [level=2] [ref=e36]
+        - paragraph [ref=e37]: FitRush provides a platform connecting clients with trainers. We are not liable for injuries, damages, or losses arising from training sessions. Users participate in all fitness activities at their own risk.
+      - generic [ref=e38]:
+        - heading "7. Changes to Terms" [level=2] [ref=e39]
+        - paragraph [ref=e40]: We reserve the right to modify these terms at any time. Continued use of FitRush after changes constitutes acceptance of the updated terms.
+  - contentinfo [ref=e41]:
+    - generic [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - heading "FitRush" [level=3] [ref=e45]
+          - paragraph [ref=e46]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e47]:
+            - link "Instagram" [ref=e48] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e49]
+            - link "Twitter" [ref=e52] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e53]
+            - link "LinkedIn" [ref=e55] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e56]
+        - generic [ref=e60]:
+          - heading "The Collective" [level=4] [ref=e61]
+          - list [ref=e62]:
+            - listitem [ref=e63]:
+              - link "Find a Professional" [ref=e64] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e65]:
+              - link "The Experience" [ref=e66] [cursor=pointer]:
+                - /url: /#how-it-works
+            - listitem [ref=e67]:
+              - link "Browse Trainers" [ref=e68] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e69]:
+              - link "Pricing" [ref=e70] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e71]:
+          - heading "Partnership" [level=4] [ref=e72]
+          - list [ref=e73]:
+            - listitem [ref=e74]:
+              - link "Join the Collective" [ref=e75] [cursor=pointer]:
+                - /url: /login?mode=signup&role=trainer
+            - listitem [ref=e76]:
+              - link "Standards & Safety" [ref=e77] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e78]:
+              - link "Partner Portal" [ref=e79] [cursor=pointer]:
+                - /url: /login?mode=signup&role=trainer
+      - generic [ref=e80]:
+        - paragraph [ref=e81]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e82]:
+          - link "Privacy" [ref=e83] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms" [ref=e84] [cursor=pointer]:
+            - /url: /terms
+          - generic [ref=e85]: Cookies

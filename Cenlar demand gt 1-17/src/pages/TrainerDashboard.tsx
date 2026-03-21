@@ -19,6 +19,7 @@ import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
 import WorkoutLocationsManager from '@/components/trainer/WorkoutLocationsManager';
+import SettingsTab from '@/components/trainer/SettingsTab';
 import type { TrainerCertification } from '@/lib/certifications';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -30,7 +31,7 @@ const TrainerDashboard: React.FC = () => {
   const canAnalytics = useCan('analytics_advanced');
   const [searchParams] = useSearchParams();
   const navigateTo = useNavigate();
-  const tabs = ['overview', 'payouts', 'analytics', 'subscription', 'calendar'] as const;
+  const tabs = ['overview', 'payouts', 'analytics', 'subscription', 'calendar', 'profile'] as const;
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>(() => {
     const tabParam = searchParams.get('tab');
     return tabs.includes(tabParam as typeof tabs[number])
@@ -482,6 +483,7 @@ const TrainerDashboard: React.FC = () => {
             />
           </div>
         )}
+        {activeTab === 'profile' && <SettingsTab />}
 
       </div>
     </div>

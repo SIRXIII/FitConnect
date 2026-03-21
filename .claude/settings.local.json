@@ -34,7 +34,12 @@
       "mcp__1660d180-c04b-4a2b-b54a-ebb1d8dd139d__get_advisors",
       "Skill(gsd:plan-phase)",
       "Skill(gsd:discuss-phase)",
-      "Skill(gsd:discuss-phase:*)"
+      "Skill(gsd:discuss-phase:*)",
+      "Skill(gsd:new-milestone)",
+      "Skill(gsd:new-milestone:*)",
+      "Bash(node \"/Users/xfiles/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs: start milestone v4.0 The Live Platform\" --files .planning/PROJECT.md .planning/STATE.md)",
+      "Bash(node \"/Users/xfiles/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs: define milestone v4.0 requirements \\(38 requirements, 9 categories\\)\" --files .planning/REQUIREMENTS.md)",
+      "Bash(node \"/Users/xfiles/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs: create milestone v4.0 roadmap \\(8 phases, 38 requirements\\)\" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md)"
     ]
   }
 }

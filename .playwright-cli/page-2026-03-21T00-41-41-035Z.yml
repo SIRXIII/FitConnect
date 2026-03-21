@@ -1,0 +1,176 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - link "Sign In" [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - generic [ref=e14]:
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]: Elite Fitness Marketplace
+          - heading "Book Elite Trainers at Idle-Hour Prices" [level=1] [ref=e22]:
+            - text: Book Elite Trainers
+            - text: at Idle-Hour Prices
+        - paragraph [ref=e23]: Top certified trainers, last-minute availability, up to 50% off. Your next session is waiting.
+        - generic [ref=e24]:
+          - textbox "Enter your email" [ref=e26]
+          - button "Get Early Access" [ref=e27]
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: Vetted
+            - generic [ref=e31]: Certified Trainers
+          - generic [ref=e32]:
+            - generic [ref=e33]: Up to 40%
+            - generic [ref=e34]: Off Idle Hours
+          - generic [ref=e35]:
+            - generic [ref=e36]: Verified
+            - generic [ref=e37]: Client Reviews
+      - generic [ref=e38]:
+        - img "Luxury Fitness" [ref=e40]
+        - generic [ref=e42]:
+          - paragraph [ref=e44]: "\"The most seamless way to access world-class coaching without the premium overhead.\""
+          - paragraph [ref=e45]: — Architectural Fitness
+    - main [ref=e47]:
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - heading "The Collective" [level=2] [ref=e51]
+          - paragraph [ref=e52]: Curated certified professionals
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - generic [ref=e56]: Location
+            - textbox "City or Zip" [ref=e58]
+          - generic [ref=e59]:
+            - generic [ref=e60]: Specialty
+            - combobox [ref=e62] [cursor=pointer]:
+              - option "All Disciplines" [selected]
+              - option "Strength Training"
+              - option "Cardio & HIIT"
+              - option "Yoga & Pilates"
+              - option "Nutrition Coaching"
+              - option "Injury Rehabilitation"
+          - generic [ref=e63]:
+            - generic [ref=e64]: Investment
+            - combobox [ref=e66] [cursor=pointer]:
+              - option "Any Range" [selected]
+              - option "Essential ($30-50)"
+              - option "Elevated ($50-80)"
+              - option "Mastery ($80+)"
+          - generic [ref=e67]:
+            - button "Refine Search" [ref=e68]
+            - generic [ref=e70]:
+              - button "List" [ref=e71]
+              - button "Map" [ref=e72]
+      - generic [ref=e131]:
+        - generic [ref=e132]:
+          - generic [ref=e133]:
+            - img [ref=e134]
+            - paragraph [ref=e136]: AI-Classified Idle Hours
+          - heading "Best Deals Now" [level=2] [ref=e137]
+          - paragraph [ref=e138]: Trainers with open idle hours offering discounts — classified by our scheduling engine in real time.
+        - link "See all trainers" [ref=e139] [cursor=pointer]:
+          - /url: /#search
+      - generic [ref=e170]:
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - heading "The Philosophy" [level=2] [ref=e173]
+            - paragraph [ref=e174]: Optimized excellence
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - generic [ref=e177]: "01"
+              - generic [ref=e178]:
+                - heading "Curation" [level=3] [ref=e179]
+                - paragraph [ref=e180]: Browse our collective of certified master trainers. Discover exclusive downtime slots—our "Signature Hours"—available at optimized rates.
+            - generic [ref=e181]:
+              - generic [ref=e182]: "02"
+              - generic [ref=e183]:
+                - heading "Engagement" [level=3] [ref=e184]
+                - paragraph [ref=e185]: Secure your session through our seamless booking interface. We handle the logistics, ensuring a focused and professional experience from the start.
+            - generic [ref=e186]:
+              - generic [ref=e187]: "03"
+              - generic [ref=e188]:
+                - heading "Transformation" [level=3] [ref=e189]
+                - paragraph [ref=e190]: Experience world-class coaching tailored to your unique objectives. Refine your strength and elevate your standard of fitness.
+        - img "Training Experience" [ref=e192]
+      - generic [ref=e196]:
+        - generic [ref=e197]:
+          - img [ref=e199]
+          - generic [ref=e202]:
+            - heading "Vetted" [level=3] [ref=e203]
+            - paragraph [ref=e204]: Rigorous background checks for every professional.
+        - generic [ref=e205]:
+          - img [ref=e207]
+          - generic [ref=e210]:
+            - heading "Certified" [level=3] [ref=e211]
+            - paragraph [ref=e212]: Verified credentials from elite global bodies.
+        - generic [ref=e213]:
+          - img [ref=e215]
+          - generic [ref=e219]:
+            - heading "Protected" [level=3] [ref=e220]
+            - paragraph [ref=e221]: Comprehensive liability coverage for every session.
+        - generic [ref=e222]:
+          - img [ref=e224]
+          - generic [ref=e226]:
+            - heading "Authentic" [level=3] [ref=e227]
+            - paragraph [ref=e228]: Transparent reviews from our verified community.
+  - contentinfo [ref=e229]:
+    - generic [ref=e230]:
+      - generic [ref=e231]:
+        - generic [ref=e232]:
+          - heading "FitRush" [level=3] [ref=e233]
+          - paragraph [ref=e234]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e235]:
+            - link "Instagram" [ref=e236] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e237]
+            - link "Twitter" [ref=e240] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e241]
+            - link "LinkedIn" [ref=e243] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e244]
+        - generic [ref=e248]:
+          - heading "The Collective" [level=4] [ref=e249]
+          - list [ref=e250]:
+            - listitem [ref=e251]:
+              - link "Find a Professional" [ref=e252] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e253]:
+              - link "The Experience" [ref=e254] [cursor=pointer]:
+                - /url: /#how-it-works
+            - listitem [ref=e255]:
+              - link "Browse Trainers" [ref=e256] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e257]:
+              - link "Pricing" [ref=e258] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e259]:
+          - heading "Partnership" [level=4] [ref=e260]
+          - list [ref=e261]:
+            - listitem [ref=e262]:
+              - link "Join the Collective" [ref=e263] [cursor=pointer]:
+                - /url: /login?mode=signup&role=trainer
+            - listitem [ref=e264]:
+              - link "Standards & Safety" [ref=e265] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e266]:
+              - link "Partner Portal" [ref=e267] [cursor=pointer]:
+                - /url: /login?mode=signup&role=trainer
+      - generic [ref=e268]:
+        - paragraph [ref=e269]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e270]:
+          - link "Privacy" [ref=e271] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms" [ref=e272] [cursor=pointer]:
+            - /url: /terms
+          - generic [ref=e273]: Cookies

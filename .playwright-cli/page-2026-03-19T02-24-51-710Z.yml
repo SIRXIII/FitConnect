@@ -1,0 +1,90 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - button [ref=e94]:
+          - img [ref=e95]
+        - button [ref=e98]:
+          - img [ref=e99]
+        - button "Host CA" [ref=e103]:
+          - img "Host CA" [ref=e104]
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - heading "Join as a trainer or trainee?" [level=1] [ref=e108]
+      - paragraph [ref=e109]: This sets up your experience on FitRush
+    - generic [ref=e110]:
+      - button "Certified Personal Trainer Fill your idle hours with optimized-rate sessions. Keep 92% of every booking. Set your own rates and availability. Requires valid CPT certification" [ref=e111]:
+        - img [ref=e113]
+        - generic [ref=e119]:
+          - heading "Certified Personal Trainer" [level=3] [ref=e120]
+          - paragraph [ref=e121]: Fill your idle hours with optimized-rate sessions. Keep 92% of every booking. Set your own rates and availability.
+          - paragraph [ref=e122]: Requires valid CPT certification
+      - button "I'm a Trainee Access elite certified trainers at optimized rates during their available hours. World-class coaching, smart pricing. Open to everyone" [ref=e123]:
+        - img [ref=e125]
+        - generic [ref=e128]:
+          - heading "I'm a Trainee" [level=3] [ref=e129]
+          - paragraph [ref=e130]: Access elite certified trainers at optimized rates during their available hours. World-class coaching, smart pricing.
+          - paragraph [ref=e131]: Open to everyone
+    - button "Continue" [disabled] [ref=e133]
+  - contentinfo [ref=e38]:
+    - generic [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - heading "FitRush" [level=3] [ref=e42]
+          - paragraph [ref=e43]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e44]:
+            - link "Instagram" [ref=e45] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e46]
+            - link "Twitter" [ref=e49] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e50]
+            - link "LinkedIn" [ref=e52] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e53]
+        - generic [ref=e57]:
+          - heading "The Collective" [level=4] [ref=e58]
+          - list [ref=e59]:
+            - listitem [ref=e60]:
+              - link "Find a Professional" [ref=e61] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e62]:
+              - link "The Experience" [ref=e63] [cursor=pointer]:
+                - /url: /#how-it-works
+            - listitem [ref=e64]:
+              - link "Browse Trainers" [ref=e65] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e66]:
+              - link "Pricing" [ref=e67] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e68]:
+          - heading "Partnership" [level=4] [ref=e69]
+          - list [ref=e70]:
+            - listitem [ref=e71]:
+              - link "Join the Collective" [ref=e72] [cursor=pointer]:
+                - /url: /login
+            - listitem [ref=e73]:
+              - link "Professional Standards" [ref=e74] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e75]:
+              - link "Insurance & Safety" [ref=e76] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e77]:
+              - link "Partner Portal" [ref=e78] [cursor=pointer]:
+                - /url: /login
+      - generic [ref=e79]:
+        - paragraph [ref=e80]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e81]:
+          - generic [ref=e82]: Privacy
+          - generic [ref=e83]: Terms
+          - generic [ref=e84]: Cookies

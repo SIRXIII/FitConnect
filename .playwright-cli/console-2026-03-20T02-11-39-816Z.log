@@ -1,0 +1,3 @@
+[    1371ms] Error: Missing Supabase environment variables. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env.local
+    at https://fitrush-app.netlify.app/assets/index-D09I6Wqq.js:102:44108
+[    1464ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://fitrush-app.netlify.app/favicon.ico:0

@@ -1,0 +1,16 @@
+Total messages: 19 (Errors: 11, Warnings: 0)
+Returning 13 messages for level "info"
+
+[INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/node_modules/.vite/deps/react-dom_client.js?v=70498100:20102
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://m.stripe.com/6:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/trainer_profiles?id=eq.1fca740c-3b46-4750-8648-cf76d9f63050:0
+[INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/node_modules/.vite/deps/react-dom_client.js?v=70498100:20102
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://m.stripe.com/6:0
