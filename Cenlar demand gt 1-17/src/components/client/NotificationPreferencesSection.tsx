@@ -1,10 +1,16 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
+import { useAuthStore } from '@/stores/auth';
+import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushNotifications';
+import { supabase } from '@/lib/supabase';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
 
 const NotificationPreferencesSectionInner: React.FC = () => {
   const { preferences, loading, savePreferences, toggleEnabled, isConfigured } = useNotificationPreferences();
+  const { user } = useAuthStore();
 
   const [areaLabel, setAreaLabel] = useState<string>(preferences?.area_label ?? '');
   const [areaCoords, setAreaCoords] = useState<{ lat: number; lng: number } | null>(
@@ -16,6 +22,44 @@ const NotificationPreferencesSectionInner: React.FC = () => {
   const [enabled, setEnabled] = useState<boolean>(preferences?.notif_enabled ?? false);
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompleteSuggestion[]>([]);
   const [saving, setSaving] = useState(false);
+
+  // ── Push toggle state ─────────────────────────────────────────────────────
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    db
+      .from('push_subscriptions')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }: { data: { id: string } | null }) => setPushEnabled(!!data));
+  }, [user]);
+
+  const handlePushToggle = async (value: boolean) => {
+    if (!user) return;
+    setPushLoading(true);
+    try {
+      if (value) {
+        const ok = await subscribeToPush(user.id);
+        if (ok) {
+          setPushEnabled(true);
+          toast.success('Push notifications enabled');
+        } else {
+          toast.error('Could not enable push notifications — check browser permissions');
+        }
+      } else {
+        await unsubscribeFromPush(user.id);
+        setPushEnabled(false);
+        toast.success('Push notifications disabled');
+      }
+    } catch {
+      toast.error('Failed to update push notification settings');
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const placesLib = useMapsLibrary('places');
@@ -107,6 +151,35 @@ const NotificationPreferencesSectionInner: React.FC = () => {
         <p className="text-sm text-ink/50">
           Get notified when trainers go live near your area
         </p>
+      </div>
+
+      {/* Push Notifications toggle */}
+      <div className="border border-ink/10 p-6 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] font-medium text-ink">
+              Push Notifications
+            </p>
+            <p className="text-[11px] text-ink/40 mt-1">
+              Receive alerts on this device
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => { void handlePushToggle(!pushEnabled); }}
+            disabled={pushLoading}
+            className={`relative w-12 h-6 rounded-full transition-colors duration-200 flex-shrink-0 disabled:opacity-50 ${
+              pushEnabled ? 'bg-accent' : 'bg-ink/20'
+            }`}
+            aria-label={pushEnabled ? 'Disable push notifications' : 'Enable push notifications'}
+          >
+            <span
+              className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                pushEnabled ? 'translate-x-7' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Master toggle */}

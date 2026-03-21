@@ -7,6 +7,7 @@ import ReferralWidget from '@/components/shared/ReferralWidget';
 import ProgressTab from '@/components/client/ProgressTab';
 import { NotificationPreferencesSection } from '@/components/client/NotificationPreferencesSection';
 import ProfileProgressRing from '@/components/client/ProfileProgressRing';
+import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
 // ─── Profile completion calculation (mirrors ClientPassport logic) ─────────────
 function computeCompletion(clientProfile: Record<string, unknown> | null, avatarUrl: string | null | undefined) {
@@ -130,6 +131,8 @@ const ClientDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-paper pt-24 md:pt-32 pb-20 px-4 sm:px-6">
+      {/* Push notification permission prompt — manages its own visibility */}
+      {user && <NotificationPermissionPrompt userId={user.id} />}
       <div className="max-w-5xl mx-auto space-y-10">
 
         {/* ── Profile Header Card ───────────────────────────────────── */}

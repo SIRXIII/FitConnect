@@ -20,6 +20,7 @@ import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
 import SettingsTab from '@/components/trainer/SettingsTab';
 import VideoUploader from '@/components/trainer/VideoUploader';
+import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 import type { TrainerCertification } from '@/lib/certifications';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -195,6 +196,8 @@ const TrainerDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-paper pt-24 md:pt-48 pb-20 px-4 sm:px-6">
       {trainerProfile && <AvailabilityHeader />}
+      {/* Push notification permission prompt — manages its own visibility */}
+      {user && <NotificationPermissionPrompt userId={user.id} />}
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Header */}
         <div className="space-y-4">

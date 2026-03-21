@@ -6,6 +6,11 @@
 
 import { supabase } from '@/lib/supabase';
 
+// push_subscriptions is a new table not yet reflected in the generated types.
+// Cast to any to bypass type constraint until types are regenerated.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
+
 function hasFirebaseConfig(): boolean {
   return !!(
     import.meta.env.VITE_FIREBASE_API_KEY &&
@@ -53,7 +58,7 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
     if (isCapacitorNative()) {
       const token = await getIOSDeviceToken();
       if (!token) return false;
-      await supabase.from('push_subscriptions').upsert(
+      await db.from('push_subscriptions').upsert(
         { user_id: userId, endpoint: token, platform: 'ios', device_token: token },
         { onConflict: 'user_id,endpoint' }
       );
@@ -76,8 +81,8 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
       await sendConfigToServiceWorker();
     }
 
-    const { initializeApp, getApps } = await import('firebase/app');
-    const { getMessaging, getToken } = await import('firebase/messaging');
+    const { initializeApp, getApps } = await import(/* @vite-ignore */ 'firebase/app');
+    const { getMessaging, getToken } = await import(/* @vite-ignore */ 'firebase/messaging');
 
     const app = getApps().length ? getApps()[0] : initializeApp(getFirebaseConfig());
     const token = await getToken(getMessaging(app), {
@@ -85,7 +90,7 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
     });
     if (!token) return false;
 
-    await supabase.from('push_subscriptions').upsert(
+    await db.from('push_subscriptions').upsert(
       { user_id: userId, endpoint: token, platform: 'web', device_token: token },
       { onConflict: 'user_id,endpoint' }
     );
@@ -101,14 +106,14 @@ export async function unsubscribeFromPush(userId: string): Promise<void> {
   try {
     if (!isCapacitorNative() && hasFirebaseConfig()) {
       try {
-        const { getApps } = await import('firebase/app');
-        const { getMessaging, deleteToken } = await import('firebase/messaging');
+        const { getApps } = await import(/* @vite-ignore */ 'firebase/app');
+        const { getMessaging, deleteToken } = await import(/* @vite-ignore */ 'firebase/messaging');
         if (getApps().length) await deleteToken(getMessaging(getApps()[0]));
       } catch {
         // Best-effort
       }
     }
-    await supabase.from('push_subscriptions').delete().eq('user_id', userId);
+    await db.from('push_subscriptions').delete().eq('user_id', userId);
   } catch (err) {
     console.error('[pushNotifications] unsubscribeFromPush failed:', err);
   }
@@ -122,7 +127,7 @@ export async function getIOSDeviceToken(): Promise<string | null> {
   try {
     if (!isCapacitorNative()) return null;
     // Dynamic import — package may not exist in web bundle
-    const { PushNotifications } = await import('@capacitor/push-notifications');
+    const { PushNotifications } = await import(/* @vite-ignore */ '@capacitor/push-notifications');
     const result = await PushNotifications.requestPermissions();
     if (result.receive !== 'granted') return null;
 
