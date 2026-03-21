@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield, User } from 'lucide-react';
+import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield, User, LifeBuoy } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import ReferralWidget from '@/components/shared/ReferralWidget';
@@ -8,6 +8,7 @@ import ProgressTab from '@/components/client/ProgressTab';
 import { NotificationPreferencesSection } from '@/components/client/NotificationPreferencesSection';
 import ProfileProgressRing from '@/components/client/ProfileProgressRing';
 import ClientSettingsTab from '@/components/client/ClientSettingsTab';
+import ClientSupportTab from '@/components/support/ClientSupportTab';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
 // ─── Profile completion calculation (mirrors ClientPassport logic) ─────────────
@@ -64,7 +65,7 @@ const QuickActionCard: React.FC<QuickActionProps> = ({ to, icon, title, descript
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-type TabId = 'overview' | 'profile' | 'progress' | 'alerts' | 'settings';
+type TabId = 'overview' | 'profile' | 'progress' | 'alerts' | 'settings' | 'support';
 
 const ClientDashboard: React.FC = () => {
   const { profile, user } = useAuthStore();
@@ -122,6 +123,7 @@ const ClientDashboard: React.FC = () => {
     { id: 'settings', label: 'Settings', icon: <User size={11} /> },
     { id: 'progress', label: 'Progress' },
     { id: 'alerts', label: 'Alerts', icon: <Bell size={11} /> },
+    { id: 'support', label: 'Support', icon: <LifeBuoy size={11} /> },
   ];
 
   // Passport summary values
@@ -438,6 +440,10 @@ const ClientDashboard: React.FC = () => {
 
         {activeTab === 'alerts' && (
           <NotificationPreferencesSection />
+        )}
+
+        {activeTab === 'support' && (
+          <ClientSupportTab />
         )}
 
       </div>
