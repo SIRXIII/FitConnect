@@ -60,17 +60,19 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // Fetch booking with slot time and payment info
+    // Fetch booking with slot time, slot type, and payment info
     const { data: booking, error: bookingError } = await adminClient
       .from('bookings')
       .select(`
         id,
         client_id,
         trainer_id,
+        slot_id,
         status,
         gcal_event_id,
         availability_slots!bookings_slot_id_fkey (
-          start_time
+          start_time,
+          slot_type
         ),
         payments!inner (
           id,
@@ -108,9 +110,11 @@ Deno.serve(async (req) => {
     }
 
     // Enforce 24-hour cancellation policy
-    const slotStart = Array.isArray(booking.availability_slots)
-      ? booking.availability_slots[0]?.start_time
-      : (booking.availability_slots as { start_time: string } | null)?.start_time;
+    const slotData = Array.isArray(booking.availability_slots)
+      ? booking.availability_slots[0]
+      : (booking.availability_slots as { start_time: string; slot_type: string } | null);
+    const slotStart = slotData?.start_time;
+    const slotType = slotData?.slot_type ?? 'individual';
 
     if (slotStart) {
       const hoursUntilSession = (new Date(slotStart).getTime() - Date.now()) / (1000 * 60 * 60);

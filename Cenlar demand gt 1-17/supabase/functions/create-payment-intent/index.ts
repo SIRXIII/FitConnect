@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
           id,
           client_id,
           trainer_id,
+          slot_id,
           status,
           rate_charged,
           platform_fee,
@@ -99,6 +100,35 @@ Deno.serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // For group slots: verify the slot still has capacity (race-condition guard)
+    if (booking.slot_id) {
+      const { data: slot } = await adminClient
+        .from('availability_slots')
+        .select('slot_type, max_capacity, group_rate, is_available')
+        .eq('id', booking.slot_id)
+        .single();
+
+      if (slot?.slot_type === 'group') {
+        if (!slot.is_available) {
+          return new Response(JSON.stringify({ error: 'Slot is no longer available' }), {
+            status: 409,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        // Check current booking count for this slot (excluding this booking)
+        const { data: countResult } = await adminClient
+          .rpc('get_slot_booking_count', { p_slot_id: booking.slot_id });
+        const bookingCount = (countResult as number) ?? 0;
+        // Allow if count <= max_capacity (this booking is already included in count)
+        if (bookingCount > (slot.max_capacity ?? 0)) {
+          return new Response(JSON.stringify({ error: 'Group session is full' }), {
+            status: 409,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
     }
 
     if (!['pending', 'confirmed'].includes(booking.status)) {

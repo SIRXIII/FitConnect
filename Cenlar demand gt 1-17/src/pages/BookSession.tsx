@@ -197,9 +197,14 @@ const BookSession: React.FC = () => {
     if (!slot || !user) return null;
 
     const trainerProfile = slot.trainer_profiles;
-    const baseRate = Number(trainerProfile.optimized_rate);
-    const discountPct = trainerProfile.discount_percentage ?? 0;
-    const rate = discountPct > 0
+    const isGroup = slot.slot_type === 'group';
+
+    // For group slots, use group_rate; for individual, use optimized_rate with discount
+    const baseRate = isGroup
+      ? Number(slot.group_rate ?? 0)
+      : Number(trainerProfile.optimized_rate);
+    const discountPct = isGroup ? 0 : (trainerProfile.discount_percentage ?? 0);
+    const rate = !isGroup && discountPct > 0
       ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
       : baseRate;
 
@@ -257,7 +262,7 @@ const BookSession: React.FC = () => {
     const rpcResult = data as { booking_id?: string; error?: string } | null;
 
     if (rpcResult?.error === 'slot_taken') {
-      toast.error('This slot was just booked. Pick another time.');
+      toast.error(slot.slot_type === 'group' ? 'This group session is now full.' : 'This slot was just booked. Pick another time.');
       fetchSlot();
       return null;
     }
@@ -350,7 +355,10 @@ const BookSession: React.FC = () => {
     );
   }
 
-  if (!slot || slot.is_booked || bookedSlotIds.includes(slot.id)) {
+  const isGroupSlot = slot?.slot_type === 'group';
+  const isSlotUnavailable = !slot || (slot.is_booked && !isGroupSlot) || bookedSlotIds.includes(slot.id);
+
+  if (isSlotUnavailable) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-paper pt-32">
         <div className="text-center space-y-6">
