@@ -78,6 +78,13 @@ Deno.serve(async (req) => {
           id,
           stripe_payment_intent_id,
           status
+        ),
+        trainer_profiles!bookings_trainer_id_fkey (
+          user_id,
+          display_name
+        ),
+        profiles!bookings_client_id_fkey (
+          full_name
         )
       `)
       .eq('id', bookingId)
@@ -173,6 +180,32 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Fire-and-forget push notification to trainer (client cancelled their booking)
+    const trainerUserIdForPush = Array.isArray(booking.trainer_profiles)
+      ? booking.trainer_profiles[0]?.user_id
+      : (booking.trainer_profiles as { user_id?: string; display_name?: string } | null)?.user_id;
+    const clientNameForPush = Array.isArray(booking.profiles)
+      ? booking.profiles[0]?.full_name
+      : (booking.profiles as { full_name?: string } | null)?.full_name;
+
+    if (trainerUserIdForPush) {
+      fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceRoleKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_ids: [trainerUserIdForPush],
+          title: 'Booking Cancelled',
+          body: clientNameForPush
+            ? `${clientNameForPush} cancelled their booking`
+            : 'A booking was cancelled by a client',
+          data: { type: 'booking_cancelled', booking_id: bookingId, cancelled_by: 'client' },
+        }),
+      }).catch(() => {});
     }
 
     // Best-effort GCal event deletion (non-blocking per locked decision)

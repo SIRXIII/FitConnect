@@ -81,7 +81,11 @@ Deno.serve(async (req) => {
           trainer_payout,
           trainer_profiles!bookings_trainer_id_fkey (
             id,
+            user_id,
             stripe_account_id
+          ),
+          profiles!bookings_client_id_fkey (
+            full_name
           )
         `
       )
@@ -250,6 +254,32 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Fire-and-forget push notification to trainer on new booking
+    const trainerUserIdForPush = Array.isArray(booking.trainer_profiles)
+      ? booking.trainer_profiles[0]?.user_id
+      : (booking.trainer_profiles as { user_id?: string } | null)?.user_id;
+    const clientNameForPush = Array.isArray(booking.profiles)
+      ? booking.profiles[0]?.full_name
+      : (booking.profiles as { full_name?: string } | null)?.full_name;
+
+    if (trainerUserIdForPush) {
+      fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceRoleKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_ids: [trainerUserIdForPush],
+          title: 'New Booking',
+          body: clientNameForPush
+            ? `${clientNameForPush} booked a session with you`
+            : 'A client booked a session with you',
+          data: { type: 'new_booking', booking_id: bookingId },
+        }),
+      }).catch(() => {});
     }
 
     return new Response(
