@@ -19,6 +19,7 @@ import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
 import SettingsTab from '@/components/trainer/SettingsTab';
+import VideoUploader from '@/components/trainer/VideoUploader';
 import type { TrainerCertification } from '@/lib/certifications';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -475,7 +476,23 @@ const TrainerDashboard: React.FC = () => {
             />
           </div>
         )}
-        {activeTab === 'profile' && <SettingsTab />}
+        {activeTab === 'profile' && (
+          <div className="space-y-8">
+            {trainerProfile && user && (
+              <div className="border border-ink/10 p-8">
+                <VideoUploader
+                  userId={user.id}
+                  existingVideoUrl={trainerProfile.intro_video_url ?? undefined}
+                  existingThumbnailUrl={trainerProfile.intro_video_thumbnail_url ?? undefined}
+                  onUploadComplete={() => {
+                    if (user) fetchProfile(user.id);
+                  }}
+                />
+              </div>
+            )}
+            <SettingsTab />
+          </div>
+        )}
 
       </div>
     </div>
