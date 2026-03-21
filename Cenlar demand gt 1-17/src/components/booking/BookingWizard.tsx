@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { supabase } from '@/lib/supabase';
 import { StepReview } from './StepReview';
 import { StepConfirm } from './StepConfirm';
 import { StepPayment } from './StepPayment';
@@ -45,13 +46,13 @@ interface ProgressIndicatorProps {
 }
 
 const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ steps, currentIndex }) => (
-  <div className="flex items-center justify-between mb-12">
+  <div className="flex items-center justify-between mb-8 sm:mb-12">
     {steps.map((label, i) => (
       <div key={label} className="flex items-center">
         <div className="flex flex-col items-center">
           <div
             data-testid="step-circle"
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${
               i <= currentIndex
                 ? 'bg-accent text-white'
                 : 'border border-ink/20 text-ink/30'
@@ -59,13 +60,13 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ steps, currentInd
           >
             {i + 1}
           </div>
-          <span className="text-[9px] uppercase tracking-[0.2em] text-ink/40 mt-2">
+          <span className="text-[8px] sm:text-[9px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-ink/40 mt-1.5 sm:mt-2">
             {label}
           </span>
         </div>
         {i < steps.length - 1 && (
           <div
-            className={`h-px w-12 md:w-24 mx-2 transition-colors duration-300 ${
+            className={`h-px w-6 sm:w-12 md:w-24 mx-1 sm:mx-2 transition-colors duration-300 ${
               i < currentIndex ? 'bg-accent' : 'bg-ink/10'
             }`}
           />
@@ -122,6 +123,11 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     }
 
     setBookingId(newBookingId);
+
+    // Fire-and-forget: push booking to trainer's Google Calendar (if connected)
+    supabase.functions.invoke('sync-booking-to-gcal', {
+      body: { booking_id: newBookingId },
+    }).catch(() => { /* GCal sync is best-effort — never block booking */ });
 
     if (stripeConfigured) {
       const secret = await createPaymentIntent(newBookingId);

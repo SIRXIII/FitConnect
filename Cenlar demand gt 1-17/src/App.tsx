@@ -23,8 +23,11 @@ import Messages from '@/pages/Messages';
 import Pricing from '@/pages/Pricing';
 import ClientPassport from '@/pages/ClientPassport';
 import NotFound from '@/pages/NotFound';
+import Terms from '@/pages/Terms';
+import Privacy from '@/pages/Privacy';
 import TrialBanner from '@/components/subscription/TrialBanner';
 import GoogleCalendarCallback from '@/pages/GoogleCalendarCallback';
+import ResetPassword from '@/pages/ResetPassword';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
@@ -61,8 +64,11 @@ const App: React.FC = () => {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/auth/google-callback" element={<GoogleCalendarCallback />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* Onboarding (requires auth) */}
           <Route path="/onboarding/role" element={<ProtectedRoute skipRoleCheck><RoleSelect /></ProtectedRoute>} />
@@ -70,7 +76,7 @@ const App: React.FC = () => {
           <Route path="/onboarding/trainer" element={<ProtectedRoute skipRoleCheck><TrainerOnboarding /></ProtectedRoute>} />
 
           {/* Redirect legacy routes */}
-          <Route path="/signup" element={<Navigate to="/login" replace />} />
+          <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />
           <Route path="/role-select" element={<Navigate to="/login" replace />} />
           <Route path="/onboarding" element={<Navigate to="/login" replace />} />

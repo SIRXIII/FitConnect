@@ -70,11 +70,11 @@ const GoLiveLocationPicker: React.FC<GoLiveLocationPickerProps> = ({
             <div className="space-y-2 py-4 text-center">
               <p className="text-sm text-ink/60">Add a workout location first</p>
               <Link
-                to="/trainer/profile"
+                to="/trainer/dashboard"
                 onClick={onClose}
                 className="text-[10px] uppercase tracking-[0.15em] text-accent hover:underline"
               >
-                Go to Profile Settings
+                Go to Dashboard
               </Link>
             </div>
           )}

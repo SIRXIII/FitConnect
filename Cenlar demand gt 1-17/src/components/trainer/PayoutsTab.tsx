@@ -85,7 +85,7 @@ const PayoutsTab: React.FC = () => {
       // 2. Fetch payment rows (available + pending balance + transaction history)
       const { data: paymentRows, error: paymentError } = await supabase
         .from('payments')
-        .select('id, booking_id, trainer_payout, status, created_at, payout_transaction_id')
+        .select('id, booking_id, trainer_payout, status, created_at')
         .in('booking_id', bookingIds)
         .order('created_at', { ascending: false });
 
@@ -97,12 +97,11 @@ const PayoutsTab: React.FC = () => {
         trainer_payout: number;
         status: string;
         created_at: string;
-        payout_transaction_id: string | null;
       }>;
 
-      // 3. Available balance: succeeded payments not yet swept into a payout
+      // 3. Available balance: succeeded payments
       const available = payments
-        .filter((p) => p.status === 'succeeded' && !p.payout_transaction_id)
+        .filter((p) => p.status === 'succeeded')
         .reduce((sum, p) => sum + Number(p.trainer_payout), 0);
 
       // 4. Pending balance: pending/processing payments
@@ -136,16 +135,20 @@ const PayoutsTab: React.FC = () => {
         type: 'payment',
       }));
 
-      // 6. Fetch payout_transactions for this trainer
-      const { data: payoutData, error: payoutError } = await supabase
+      // 6. Fetch payout_transactions for this trainer (table may not exist yet — treat errors as empty)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: payoutData } = await (supabase as any)
         .from('payout_transactions')
         .select('id, amount, status, created_at')
         .eq('trainer_id', trainerProfile.id)
         .order('created_at', { ascending: false });
 
-      if (payoutError) throw payoutError;
-
-      const payoutTxRows: TransactionRow[] = (payoutData ?? []).map((pt) => ({
+      const payoutTxRows: TransactionRow[] = ((payoutData ?? []) as Array<{
+        id: string;
+        amount: number;
+        status: string;
+        created_at: string;
+      }>).map((pt) => ({
         id: `payout-${pt.id}`,
         date: pt.created_at,
         client: 'Payout Transfer',

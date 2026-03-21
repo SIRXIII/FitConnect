@@ -315,11 +315,16 @@ export function MapView({ filters }: MapViewProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Location type chips above map */}
-      <LocationTypeChips selected={locationTypeFilter} onSelect={setLocationTypeFilter} />
+      {/* Location type chips — hidden on mobile (shown as floating overlay inside map) */}
+      <div className="hidden sm:block">
+        <LocationTypeChips selected={locationTypeFilter} onSelect={setLocationTypeFilter} />
+      </div>
 
-      {/* Map container */}
-      <div className="relative w-full rounded-xl overflow-hidden border border-ink/10" style={{ height: '520px' }}>
+      {/* Map container — taller on mobile for better usability */}
+      <div
+        className="relative w-full rounded-xl overflow-hidden border border-ink/10"
+        style={{ height: 'clamp(400px, 70vh, 600px)' }}
+      >
         <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
           <GoogleMap
             defaultCenter={initialCenter}
@@ -415,6 +420,20 @@ export function MapView({ filters }: MapViewProps) {
             <p className="text-[11px] uppercase tracking-[0.2em] text-ink/60">Loading trainers...</p>
           </div>
         )}
+
+        {/* Mobile floating filter chips overlay — visible only on mobile */}
+        <div
+          className="sm:hidden"
+          style={{
+            position: 'absolute',
+            top: '12px',
+            left: '12px',
+            right: '12px',
+            zIndex: 10,
+          }}
+        >
+          <LocationTypeChips selected={locationTypeFilter} onSelect={setLocationTypeFilter} />
+        </div>
 
         {/* Mobile bottom sheet — returns null on desktop */}
         <MobileTrainerSheet

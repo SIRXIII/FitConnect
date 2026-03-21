@@ -4,8 +4,9 @@ import { Zap, Clock, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { buildIdleSlotCounts } from '@/lib/scheduling';
 import { formatSpecialty } from '@/types';
-import { MOCK_TRAINERS } from '@/lib/constants';
 import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
+import { useAuthStore } from '@/stores/auth';
+import { toast } from 'sonner';
 
 interface DealTrainer {
   id: string;
@@ -35,23 +36,8 @@ const BestDeals: React.FC = () => {
         .gt('discount_percentage', 0);
 
       if (!trainers?.length) {
-        // Fall back to mock deals when DB has no data
-        const mockDeals = MOCK_TRAINERS
-          .filter((t) => t.discountPercentage > 0 && t.idleSlotCount > 0)
-          .sort((a, b) => b.discountPercentage - a.discountPercentage)
-          .slice(0, 3)
-          .map((t) => ({
-            id: t.id,
-            name: t.name,
-            avatarUrl: t.imageUrl,
-            specialty: t.specialty,
-            optimizedRate: t.optimizedRate,
-            discountPercentage: t.discountPercentage,
-            discountedRate: t.discountedRate,
-            rating: t.rating,
-            idleSlotCount: t.idleSlotCount,
-          }));
-        setDeals(mockDeals);
+        // No trainers with discounts yet — section will be hidden
+        setDeals([]);
         setLoading(false);
         return;
       }
@@ -88,24 +74,9 @@ const BestDeals: React.FC = () => {
           };
         });
 
-      // If DB trainers exist but none have idle slots, fall back to mock data
+      // If no trainers have idle slots yet, hide the section
       if (withIdle.length === 0) {
-        const mockDeals = MOCK_TRAINERS
-          .filter((t) => t.discountPercentage > 0 && t.idleSlotCount > 0)
-          .sort((a, b) => b.discountPercentage - a.discountPercentage)
-          .slice(0, 3)
-          .map((t) => ({
-            id: t.id,
-            name: t.name,
-            avatarUrl: t.imageUrl,
-            specialty: t.specialty,
-            optimizedRate: t.optimizedRate,
-            discountPercentage: t.discountPercentage,
-            discountedRate: t.discountedRate,
-            rating: t.rating,
-            idleSlotCount: t.idleSlotCount,
-          }));
-        setDeals(mockDeals);
+        setDeals([]);
         setLoading(false);
         return;
       }
@@ -164,6 +135,17 @@ const BestDeals: React.FC = () => {
 
 const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
   const initials = deal.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+  const user = useAuthStore((s) => s.user);
+
+  const bookUrl = user
+    ? `/trainers/${deal.id}?book=true`
+    : `/login?redirect=${encodeURIComponent(`/trainers/${deal.id}?book=true`)}`;
+
+  const handleBookClick = () => {
+    if (!user) {
+      toast('Sign in to book this session', { duration: 3000 });
+    }
+  };
 
   return (
     <div className="border border-white/10 p-8 space-y-6 hover:border-white/25 transition-colors duration-500">
@@ -218,7 +200,8 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
       </div>
 
       <Link
-        to={`/trainers/${deal.id}?book=true`}
+        to={bookUrl}
+        onClick={handleBookClick}
         className="block w-full text-center border border-white/20 py-3.5 text-[10px] uppercase tracking-[0.3em] hover:bg-white hover:text-ink transition-all duration-500"
       >
         Book This Deal

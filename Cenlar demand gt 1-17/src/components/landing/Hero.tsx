@@ -82,14 +82,15 @@ const Hero: React.FC = () => {
                     <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-accent block">
                       Elite Fitness Marketplace
                     </span>
-                    <h1 className="text-5xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.9] tracking-tight text-ink">
-                      Refined <br />
-                      <span className="italic">Strength.</span>
+                    <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.95] tracking-tight text-ink">
+                      Book Elite Trainers{' '}
+                      <br className="hidden sm:block" />
+                      <span className="italic">at Idle-Hour Prices</span>
                     </h1>
                   </div>
 
                   <p className="text-lg md:text-xl text-ink/80 md:text-ink/60 font-light leading-relaxed max-w-md">
-                    Connecting discerning individuals with certified master trainers during exclusive downtime hours.
+                    Top certified trainers, last-minute availability, up to 50% off. Your next session is waiting.
                   </p>
 
                   <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 pt-6">
@@ -113,18 +114,18 @@ const Hero: React.FC = () => {
                     </button>
                   </form>
 
-                  <div className="grid grid-cols-3 gap-12 pt-16 border-t border-ink/5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-12 pt-16 border-t border-ink/5">
                     <div className="space-y-1">
-                      <div className="text-2xl serif font-light italic">2,000+</div>
-                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Professionals</div>
+                      <div className="text-2xl serif font-light italic">Vetted</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Certified Trainers</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl serif font-light italic">Smart</div>
-                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Pricing</div>
+                      <div className="text-2xl serif font-light italic">Up to 40%</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Off Idle Hours</div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-2xl serif font-light italic">4.9</div>
-                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Excellence Score</div>
+                      <div className="text-2xl serif font-light italic">Verified</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Client Reviews</div>
                     </div>
                   </div>
                 </motion.div>
@@ -159,7 +160,7 @@ const Hero: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative hidden sm:block">
             <motion.div
               initial={{ opacity: 0, scale: 1.05 }}
               animate={{ opacity: 1, scale: 1 }}
