@@ -144,6 +144,54 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 
 ---
 
+## v6.0 — Growth Engine
+
+**Goal:** Features that drive trainer acquisition and client bookings in a local market. Real mobile push notifications, trainer video intros for trust-building, and group sessions to expand booking capacity and reduce per-client cost.
+
+### Phase 35: Push Notifications
+**Goal**: Trainers get instant push notifications when someone books, cancels, or messages. Clients get booking confirmations and trainer-live alerts on their phone.
+**Depends on**: Phase 34
+**Requirements**: PUSH-01, PUSH-02, PUSH-03, PUSH-04, PUSH-05
+**Success Criteria**:
+  1. Trainer receives a push notification on their phone when a client books a session
+  2. Client receives push when their booking is confirmed or a nearby trainer goes live
+  3. Push notifications work on both web (FCM) and iOS (APNs via Capacitor)
+  4. User can enable/disable push from settings
+**Plans:** 2 plans
+Plans:
+- [ ] 35-01-PLAN.md — FCM infrastructure: push_subscriptions table, service worker, send-push-notification edge function, client subscription utility
+- [ ] 35-02-PLAN.md — Wire triggers: booking/cancel edge functions call push, permission prompt on dashboard, settings toggle
+
+### Phase 36: Trainer Video Intros
+**Goal**: Trainers can upload a 30-second intro video to their profile. Clients see it on the trainer card and profile page.
+**Depends on**: Phase 34
+**Requirements**: VIDEO-01, VIDEO-02, VIDEO-03, VIDEO-04, VIDEO-05
+**Success Criteria**:
+  1. Trainer can upload a video from their dashboard
+  2. Video appears on their public profile page with play button
+  3. Trainer cards show a "Video" badge if the trainer has an intro
+  4. Videos are compressed client-side before upload
+**Plans:** 2 plans
+Plans:
+- [ ] 36-01-PLAN.md — Upload path: schema migration, videoUtils (duration check + thumbnail capture), VideoUploader component in trainer dashboard
+- [ ] 36-02-PLAN.md — Client display: inline video player on trainer profile, Video badge on trainer cards
+
+### Phase 37: Group Sessions
+**Goal**: Trainers can create group session slots with max capacity. Multiple clients book the same slot at a lower per-person rate. Clients see remaining spots.
+**Depends on**: Phase 34
+**Requirements**: GROUP-01, GROUP-02, GROUP-03, GROUP-04, GROUP-05, GROUP-06
+**Success Criteria**:
+  1. Trainer can create a group slot with capacity and per-person rate
+  2. Client sees "3/5 spots left" and books at the group rate
+  3. Multiple clients can book the same slot
+  4. Trainer dashboard shows all participants for group sessions
+**Plans:** 2 plans
+Plans:
+- [ ] 37-01-PLAN.md — Schema + trainer creation UI: slot_type/max_capacity/group_rate migration, group slot form fields, RPCs
+- [ ] 37-02-PLAN.md — Booking flow + client display: capacity enforcement, spots-remaining badge, participant list in trainer dashboard, group-safe cancellation
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -174,6 +222,9 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
 | 26. AI Discount Analytics | v4.0 | 2/2 | done | 2026-03-19 |
 | 27. Location-Based Notifications | v4.0 | 2/2 | done | 2026-03-19 |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 3/3 | done | 2026-03-19 |
+| 35. Push Notifications | v6.0 | 0/2 | planned | — |
+| 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
+| 37. Group Sessions | v6.0 | 0/2 | planned | — |
 
 ---
-*Last updated: 2026-03-20 -- v4.0 archived*
+*Last updated: 2026-03-20 -- v6.0 Growth Engine planned*

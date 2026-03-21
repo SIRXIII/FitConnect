@@ -82,3 +82,41 @@
 ---
 
 *v5.0 — 42 requirements across 7 categories*
+
+---
+
+# v6.0 Requirements — Growth Engine
+
+**Milestone:** v6.0 "Growth Engine"
+**Goal:** Features that drive trainer acquisition and client bookings in a local market. Push notifications for real-time engagement, video intros to build trainer trust, and group sessions to expand booking capacity.
+
+---
+
+## PUSH — Push Notifications
+
+- [ ] PUSH-01: Firebase Cloud Messaging (FCM) integration for web push (VAPID keys, service worker, push subscription stored in DB)
+- [ ] PUSH-02: Capacitor Push Notifications plugin for iOS (APNs certificate/key registered, device token stored per user)
+- [ ] PUSH-03: Notification permission prompt appears on first trainer or client dashboard visit (one-time, dismissible)
+- [ ] PUSH-04: Push sent on: new booking (trainer), booking cancelled (trainer + client), new message (recipient), trainer goes live nearby (clients with saved area)
+- [ ] PUSH-05: User can toggle push notifications on/off from notification settings page
+
+## VIDEO — Trainer Video Intros
+
+- [ ] VIDEO-01: Trainer can upload an intro video from their dashboard (max 30 sec, max 50MB, mp4/webm/mov accepted)
+- [ ] VIDEO-02: Video stored in Supabase Storage `trainer-videos` bucket with public URL saved to `trainer_profiles.intro_video_url`
+- [ ] VIDEO-03: Video thumbnail is captured client-side (first frame via canvas) and stored as `intro_video_thumbnail_url`
+- [ ] VIDEO-04: Video plays inline on the trainer public profile page (HTML5 video, muted autoplay preview on hover)
+- [ ] VIDEO-05: Trainer cards in search results show a "Video" badge when `intro_video_url` is set
+
+## GROUP — Group Sessions
+
+- [ ] GROUP-01: `availability_slots` table gains `slot_type` enum ('individual','group'), `max_capacity` int (2–10), `group_rate` numeric — additive migration, no breaking changes
+- [ ] GROUP-02: Group slot displays "X/Y spots remaining" on trainer profile, derived from `max_capacity` minus confirmed booking count
+- [ ] GROUP-03: Trainer sets a separate per-person group rate when creating a group slot (distinct from their `hourly_rate`)
+- [ ] GROUP-04: Booking flow handles group slots — multiple clients can book the same slot_id until capacity is reached; slot is not marked unavailable until full
+- [ ] GROUP-05: Trainer dashboard "session detail" view lists all participants for a group session (names + fitness passport summaries)
+- [ ] GROUP-06: Cancelling a group booking removes only that client's booking record; slot remains open for other participants
+
+---
+
+*v6.0 — 16 requirements across 3 categories*
