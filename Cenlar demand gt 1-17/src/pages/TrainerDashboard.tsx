@@ -18,6 +18,7 @@ import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
+import WorkoutLocationsManager from '@/components/trainer/WorkoutLocationsManager';
 import type { TrainerCertification } from '@/lib/certifications';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -380,6 +381,13 @@ const TrainerDashboard: React.FC = () => {
         {/* Referral Widget */}
         {profile?.referral_code && (
           <ReferralWidget referralCode={profile.referral_code} />
+        )}
+
+        {/* Workout Locations */}
+        {trainerProfile && (
+          <div className="border border-ink/10 p-8">
+            <WorkoutLocationsManager trainerId={trainerProfile.id} />
+          </div>
         )}
 
         {/* Certifications */}
