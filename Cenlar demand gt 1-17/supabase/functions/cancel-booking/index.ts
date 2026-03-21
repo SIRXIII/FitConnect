@@ -60,22 +60,31 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // Fetch booking with slot time and payment info
+    // Fetch booking with slot time, slot type, and payment info
     const { data: booking, error: bookingError } = await adminClient
       .from('bookings')
       .select(`
         id,
         client_id,
         trainer_id,
+        slot_id,
         status,
         gcal_event_id,
         availability_slots!bookings_slot_id_fkey (
-          start_time
+          start_time,
+          slot_type
         ),
         payments!inner (
           id,
           stripe_payment_intent_id,
           status
+        ),
+        trainer_profiles!bookings_trainer_id_fkey (
+          user_id,
+          display_name
+        ),
+        profiles!bookings_client_id_fkey (
+          full_name
         )
       `)
       .eq('id', bookingId)
@@ -108,9 +117,11 @@ Deno.serve(async (req) => {
     }
 
     // Enforce 24-hour cancellation policy
-    const slotStart = Array.isArray(booking.availability_slots)
-      ? booking.availability_slots[0]?.start_time
-      : (booking.availability_slots as { start_time: string } | null)?.start_time;
+    const slotData = Array.isArray(booking.availability_slots)
+      ? booking.availability_slots[0]
+      : (booking.availability_slots as { start_time: string; slot_type: string } | null);
+    const slotStart = slotData?.start_time;
+    const slotType = slotData?.slot_type ?? 'individual';
 
     if (slotStart) {
       const hoursUntilSession = (new Date(slotStart).getTime() - Date.now()) / (1000 * 60 * 60);
@@ -169,6 +180,32 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Fire-and-forget push notification to trainer (client cancelled their booking)
+    const trainerUserIdForPush = Array.isArray(booking.trainer_profiles)
+      ? booking.trainer_profiles[0]?.user_id
+      : (booking.trainer_profiles as { user_id?: string; display_name?: string } | null)?.user_id;
+    const clientNameForPush = Array.isArray(booking.profiles)
+      ? booking.profiles[0]?.full_name
+      : (booking.profiles as { full_name?: string } | null)?.full_name;
+
+    if (trainerUserIdForPush) {
+      fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceRoleKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_ids: [trainerUserIdForPush],
+          title: 'Booking Cancelled',
+          body: clientNameForPush
+            ? `${clientNameForPush} cancelled their booking`
+            : 'A booking was cancelled by a client',
+          data: { type: 'booking_cancelled', booking_id: bookingId, cancelled_by: 'client' },
+        }),
+      }).catch(() => {});
     }
 
     // Best-effort GCal event deletion (non-blocking per locked decision)

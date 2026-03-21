@@ -49,6 +49,8 @@ const TrainerProfile: React.FC = () => {
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseText, setResponseText] = useState('');
   const [submittingResponse, setSubmittingResponse] = useState(false);
+  // Map of slot_id -> current booking count (for group slots)
+  const [groupBookingCounts, setGroupBookingCounts] = useState<Record<string, number>>({});
 
   const handleMessageTrainer = async () => {
     if (!user || !trainer) return;
@@ -121,7 +123,23 @@ const TrainerProfile: React.FC = () => {
       const { data } = await (supabase as any)
         .rpc('get_visible_slots', { p_trainer_id: id });
 
-      setAvailableSlots((data as AvailabilitySlot[]) || []);
+      const slots = (data as AvailabilitySlot[]) || [];
+      setAvailableSlots(slots);
+
+      // For group slots, fetch current booking counts
+      const groupSlots = slots.filter((s: AvailabilitySlot) => s.slot_type === 'group');
+      if (groupSlots.length > 0) {
+        const counts: Record<string, number> = {};
+        await Promise.all(
+          groupSlots.map(async (s: AvailabilitySlot) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: count } = await (supabase as any)
+              .rpc('get_slot_booking_count', { p_slot_id: s.id });
+            counts[s.id] = count ?? 0;
+          })
+        );
+        setGroupBookingCounts(counts);
+      }
     } catch {
       setAvailableSlots([]);
     } finally {
@@ -382,6 +400,25 @@ const TrainerProfile: React.FC = () => {
               </div>
             )}
 
+            {/* Intro Video */}
+            {trainer.intro_video_url && (
+              <section className="mb-8">
+                <h3 className="font-cormorant text-xl text-white mb-3">Meet {name}</h3>
+                <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-w-lg">
+                  <video
+                    src={trainer.intro_video_url}
+                    poster={trainer.intro_video_thumbnail_url ?? undefined}
+                    controls
+                    preload="metadata"
+                    playsInline
+                    className="w-full h-full object-cover"
+                    onMouseEnter={(e) => { e.currentTarget.muted = true; e.currentTarget.play().catch(() => {}); }}
+                    onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                  />
+                </div>
+              </section>
+            )}
+
             {/* Workout Locations Manager (trainer's own profile only) */}
             {trainer?.id && trainer.user_id === user?.id && (
               <div className="border border-ink/10 p-8">
@@ -448,22 +485,47 @@ const TrainerProfile: React.FC = () => {
 
                           const slotClass = classifySlot(slot);
                           const isBuffer = slotClass === 'buffer';
+                          const isGroup = slot.slot_type === 'group';
+                          const bookingCount = isGroup ? (groupBookingCounts[slot.id] ?? 0) : 0;
+                          const spotsLeft = isGroup ? ((slot.max_capacity ?? 0) - bookingCount) : null;
+                          const isFull = isGroup && spotsLeft !== null && spotsLeft <= 0;
+                          const displayRate = isGroup ? slot.group_rate : null;
 
                           return (
                             <Link
                               key={slot.id}
-                              to={isMockTrainer ? '#' : `/book/${slot.id}`}
-                              onClick={isMockTrainer ? (e) => { e.preventDefault(); } : undefined}
-                              className={`inline-flex items-center gap-2 px-4 py-2.5 text-[11px] uppercase tracking-[0.15em] hover:bg-accent hover:text-white transition-all duration-300 ${
-                                isBuffer
-                                  ? 'border border-amber-400/40 text-amber-700/70'
-                                  : 'border border-accent/20 text-ink/70'
+                              to={isMockTrainer || isFull ? '#' : `/book/${slot.id}`}
+                              onClick={isMockTrainer || isFull ? (e) => { e.preventDefault(); } : undefined}
+                              className={`inline-flex flex-col items-start gap-1 px-4 py-2.5 text-[11px] uppercase tracking-[0.15em] transition-all duration-300 ${
+                                isFull
+                                  ? 'border border-ink/10 text-ink/30 cursor-not-allowed'
+                                  : isBuffer
+                                  ? 'border border-amber-400/40 text-amber-700/70 hover:bg-accent hover:text-white'
+                                  : isGroup
+                                  ? 'border border-blue-400/30 text-ink/70 hover:bg-blue-500 hover:text-white'
+                                  : 'border border-accent/20 text-ink/70 hover:bg-accent hover:text-white'
                               }`}
                             >
-                              <Clock size={12} />
-                              {timeStr}
-                              {isBuffer && (
-                                <span className="text-[8px] uppercase tracking-widest text-amber-600/60">Soon</span>
+                              <div className="flex items-center gap-2">
+                                <Clock size={12} />
+                                {timeStr}
+                                {isBuffer && !isGroup && (
+                                  <span className="text-[8px] uppercase tracking-widest text-amber-600/60">Soon</span>
+                                )}
+                              </div>
+                              {isGroup && (
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                                    isFull
+                                      ? 'bg-red-900/30 text-red-400'
+                                      : 'bg-green-900/30 text-green-400'
+                                  }`}>
+                                    {isFull ? 'Full' : `${spotsLeft}/${slot.max_capacity} spots left`}
+                                  </span>
+                                  {displayRate != null && (
+                                    <span className="text-[9px] text-blue-400/80">${displayRate}/person</span>
+                                  )}
+                                </div>
                               )}
                             </Link>
                           );

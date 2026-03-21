@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: -- Growth Engine
-status: planned
-stopped_at: v6.0 planning complete — phases 35, 36, 37 ready to execute
-last_updated: "2026-03-20T08:00:00.000Z"
+status: in-progress
+stopped_at: "Completed 35-01-PLAN.md and 35-02-PLAN.md (Push Notifications)"
+last_updated: "2026-03-20T00:40:00Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 0
+  completed_plans: 6
 ---
 
 # Project State -- FitRush
@@ -23,15 +23,15 @@ See: `.planning/PROJECT.md` (updated 2026-03-20)
 
 ## Current Position
 
-Milestone: v6.0 Growth Engine -- PLANNED
+Milestone: v6.0 Growth Engine -- IN PROGRESS
 All 3 phases planned, 6 plans total, 16 requirements.
 
 ```
-v6.0 Progress: [----------] 0% (0/6 plans)
+v6.0 Progress: [##########] 100% (6/6 plans)
 
-Phase 35: Push Notifications        [ ] 0/2 plans
-Phase 36: Trainer Video Intros      [ ] 0/2 plans
-Phase 37: Group Sessions            [ ] 0/2 plans
+Phase 35: Push Notifications        [x] 2/2 plans
+Phase 36: Trainer Video Intros      [x] 2/2 plans
+Phase 37: Group Sessions            [x] 2/2 plans
 ```
 
 ## Next Steps
@@ -56,11 +56,16 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [v6.0 Planning]: Push notifications use Firebase Admin SDK in edge function (unifies web FCM + iOS APNs routing)
 - [v6.0 Planning]: Group session capacity managed via RPC + booking count query, not a separate counter column
 - [v6.0 Planning]: Video thumbnail captured client-side via canvas (same pattern as avatar compression in Phase 18)
+- [Phase 36]: VideoUploader placed in TrainerDashboard profile tab above SettingsTab; fetchProfile(user.id) called on upload completion to refresh auth store
+- [Phase 36]: intro_video_url added to legacy Trainer interface + mapped in dbTrainerToCardData — avoids refactoring TrainerCard to accept TrainerWithProfile directly
+- [Phase 37]: Group slot creation uses dedicated form section in AvailabilityManager (not grid click) — capacity/rate params require more input than a single cell click can express
+- [Phase 37]: create_booking_atomic updated to check capacity count for group slots instead of is_booked flag — group slots keep is_booked=false until truly full (DB trigger handles restoration)
+- [Phase 37]: Participant list placed in TrainerBookings.tsx (not TrainerDashboard.tsx) — that's where booking detail views exist
 
 ## Blockers / Concerns
 
 - **Phase 28**: Google OAuth verification must complete before GCal sync feature reaches production users (4-8 week external timeline, started Phase 21)
-- **Phase 35**: Requires Firebase project setup and APNs key upload (human setup step — documented in 35-01-PLAN.md user_setup)
+- **Phase 35**: Firebase project setup and APNs key upload required. Run `npm install` once disk space freed (firebase + @capacitor/push-notifications not yet installed). Until then, push gracefully no-ops.
 
 ## Accumulated Context
 
@@ -71,6 +76,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:00:00.000Z
-Stopped at: v6.0 Growth Engine planning complete
+Last session: 2026-03-20T00:40:00Z
+Stopped at: Completed Phase 35 Push Notifications (both plans)
 Resume file: None

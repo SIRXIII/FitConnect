@@ -19,6 +19,15 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, './src'),
       },
     },
+    build: {
+      rollupOptions: {
+        // firebase and @capacitor/push-notifications are optional dependencies
+        // that may not be installed yet (requires npm install after disk space freed).
+        // Mark as external so builds pass; they will be bundled once installed.
+        external: (id) =>
+          id.startsWith('firebase/') || id === '@capacitor/push-notifications',
+      },
+    },
     test: {
       globals: true,
       environment: 'jsdom',

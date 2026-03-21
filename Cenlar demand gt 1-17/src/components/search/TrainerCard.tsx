@@ -27,6 +27,14 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
             Available
           </div>
         )}
+        {trainer.intro_video_url && (
+          <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#C5A059] text-black text-xs font-semibold px-2 py-0.5 rounded-full">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M6.3 2.84A1.5 1.5 0 0 0 4 4.11v11.78a1.5 1.5 0 0 0 2.3 1.27l9.344-5.891a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
+            </svg>
+            Video
+          </span>
+        )}
         <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/5 transition-colors duration-500" />
       </Link>
 

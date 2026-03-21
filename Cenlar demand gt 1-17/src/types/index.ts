@@ -22,6 +22,7 @@ export interface Trainer {
   idleSlotCount: number;
   isLive?: boolean;
   bookingMode?: 'instant' | 'request';
+  intro_video_url?: string | null;
 }
 
 // DB specialty enum values

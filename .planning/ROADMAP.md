@@ -185,7 +185,7 @@ Plans:
   2. Client sees "3/5 spots left" and books at the group rate
   3. Multiple clients can book the same slot
   4. Trainer dashboard shows all participants for group sessions
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 37-01-PLAN.md — Schema + trainer creation UI: slot_type/max_capacity/group_rate migration, group slot form fields, RPCs
 - [ ] 37-02-PLAN.md — Booking flow + client display: capacity enforcement, spots-remaining badge, participant list in trainer dashboard, group-safe cancellation
@@ -224,7 +224,7 @@ Plans:
 | 28. Google Calendar Bidirectional Sync | v4.0 | 3/3 | done | 2026-03-19 |
 | 35. Push Notifications | v6.0 | 0/2 | planned | — |
 | 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
-| 37. Group Sessions | v6.0 | 0/2 | planned | — |
+| 37. Group Sessions | 2/2 | Complete   | 2026-03-21 | — |
 
 ---
 *Last updated: 2026-03-20 -- v6.0 Growth Engine planned*

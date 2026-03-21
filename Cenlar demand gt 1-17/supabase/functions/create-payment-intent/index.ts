@@ -74,13 +74,18 @@ Deno.serve(async (req) => {
           id,
           client_id,
           trainer_id,
+          slot_id,
           status,
           rate_charged,
           platform_fee,
           trainer_payout,
           trainer_profiles!bookings_trainer_id_fkey (
             id,
+            user_id,
             stripe_account_id
+          ),
+          profiles!bookings_client_id_fkey (
+            full_name
           )
         `
       )
@@ -99,6 +104,35 @@ Deno.serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // For group slots: verify the slot still has capacity (race-condition guard)
+    if (booking.slot_id) {
+      const { data: slot } = await adminClient
+        .from('availability_slots')
+        .select('slot_type, max_capacity, group_rate, is_available')
+        .eq('id', booking.slot_id)
+        .single();
+
+      if (slot?.slot_type === 'group') {
+        if (!slot.is_available) {
+          return new Response(JSON.stringify({ error: 'Slot is no longer available' }), {
+            status: 409,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        // Check current booking count for this slot (excluding this booking)
+        const { data: countResult } = await adminClient
+          .rpc('get_slot_booking_count', { p_slot_id: booking.slot_id });
+        const bookingCount = (countResult as number) ?? 0;
+        // Allow if count <= max_capacity (this booking is already included in count)
+        if (bookingCount > (slot.max_capacity ?? 0)) {
+          return new Response(JSON.stringify({ error: 'Group session is full' }), {
+            status: 409,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
     }
 
     if (!['pending', 'confirmed'].includes(booking.status)) {
@@ -220,6 +254,32 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Fire-and-forget push notification to trainer on new booking
+    const trainerUserIdForPush = Array.isArray(booking.trainer_profiles)
+      ? booking.trainer_profiles[0]?.user_id
+      : (booking.trainer_profiles as { user_id?: string } | null)?.user_id;
+    const clientNameForPush = Array.isArray(booking.profiles)
+      ? booking.profiles[0]?.full_name
+      : (booking.profiles as { full_name?: string } | null)?.full_name;
+
+    if (trainerUserIdForPush) {
+      fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseServiceRoleKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_ids: [trainerUserIdForPush],
+          title: 'New Booking',
+          body: clientNameForPush
+            ? `${clientNameForPush} booked a session with you`
+            : 'A client booked a session with you',
+          data: { type: 'new_booking', booking_id: bookingId },
+        }),
+      }).catch(() => {});
     }
 
     return new Response(
