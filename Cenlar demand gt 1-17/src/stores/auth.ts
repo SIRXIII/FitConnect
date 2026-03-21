@@ -141,13 +141,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (role === 'trainer') {
       const { error: trainerError } = await supabase
         .from('trainer_profiles')
-        .insert({
+        .upsert({
           user_id: user.id,
           specialty: 'strength_training',
           hourly_rate: 100,
           optimized_rate: 60,
           location: '',
-        });
+        }, { onConflict: 'user_id', ignoreDuplicates: true });
 
       if (trainerError) throw trainerError;
     }
