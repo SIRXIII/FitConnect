@@ -30,8 +30,18 @@ export function useAvailability() {
     fetchSlots();
   }, [fetchSlots]);
 
-  const addSlot = async (startTime: Date, endTime: Date) => {
+  const addSlot = async (
+    startTime: Date,
+    endTime: Date,
+    options?: {
+      slot_type?: 'individual' | 'group';
+      max_capacity?: number | null;
+      group_rate?: number | null;
+    }
+  ) => {
     if (!trainerProfile) return;
+
+    const slotType = options?.slot_type ?? 'individual';
 
     const { error } = await supabase
       .from('availability_slots')
@@ -39,6 +49,9 @@ export function useAvailability() {
         trainer_id: trainerProfile.id,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
+        slot_type: slotType,
+        max_capacity: slotType === 'group' ? (options?.max_capacity ?? null) : null,
+        group_rate: slotType === 'group' ? (options?.group_rate ?? null) : null,
       });
 
     if (error) throw error;

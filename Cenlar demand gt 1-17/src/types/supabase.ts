@@ -92,6 +92,8 @@ export type Database = {
           sleep_timer_expires_at: string | null;
           availability_session_started_at: string | null;
           active_location_id: string | null;
+          intro_video_url: string | null;
+          intro_video_thumbnail_url: string | null;
         };
         Insert: {
           id?: string;
@@ -130,6 +132,8 @@ export type Database = {
           sleep_timer_expires_at?: string | null;
           availability_session_started_at?: string | null;
           active_location_id?: string | null;
+          intro_video_url?: string | null;
+          intro_video_thumbnail_url?: string | null;
         };
         Update: {
           id?: string;
@@ -168,6 +172,8 @@ export type Database = {
           sleep_timer_expires_at?: string | null;
           availability_session_started_at?: string | null;
           active_location_id?: string | null;
+          intro_video_url?: string | null;
+          intro_video_thumbnail_url?: string | null;
         };
         Relationships: [];
       };
@@ -208,6 +214,9 @@ export type Database = {
           deleted_at: string | null;
           created_at: string;
           updated_at: string;
+          slot_type: 'individual' | 'group';
+          max_capacity: number | null;
+          group_rate: number | null;
         };
         Insert: {
           id?: string;
@@ -218,6 +227,9 @@ export type Database = {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          slot_type?: 'individual' | 'group';
+          max_capacity?: number | null;
+          group_rate?: number | null;
         };
         Update: {
           id?: string;
@@ -228,6 +240,9 @@ export type Database = {
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          slot_type?: 'individual' | 'group';
+          max_capacity?: number | null;
+          group_rate?: number | null;
         };
         Relationships: [];
       };
