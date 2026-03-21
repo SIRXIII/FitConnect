@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
 import { setAdminTierOverride } from '@/lib/subscription';
-import { CERTIFICATION_TIERS } from '@/lib/certifications';
+import { CERTIFICATION_TIERS, getCertificationByCode } from '@/lib/certifications';
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -886,16 +886,21 @@ const AdminDashboard: React.FC = () => {
             {pendingCerts.map((cert) => {
               const trainerName = (cert.trainer as any)?.profiles?.full_name ?? 'Unknown Trainer';
               const avatarUrl = (cert.trainer as any)?.profiles?.avatar_url ?? null;
-              const tierLabel = (() => {
-                for (const [key, tier] of Object.entries(CERTIFICATION_TIERS)) {
-                  if (tier.certs.some(c => c.code === cert.cert_code)) {
-                    return key === 'tier1_gold' ? 'Gold (NCCA)'
-                         : key === 'tier2_silver' ? 'Silver (DEAC/NBFE)'
-                         : 'Specialty';
+              const certDef = getCertificationByCode(cert.cert_code);
+              const tierLabel = certDef
+                ? certDef.tier === 'gold' ? 'Gold (NCCA)'
+                : certDef.tier === 'silver' ? 'Silver (Recognized)'
+                : 'Specialty'
+                : (() => {
+                  for (const [key, tier] of Object.entries(CERTIFICATION_TIERS)) {
+                    if (tier.certs.some(c => c.code === cert.cert_code)) {
+                      return key === 'tier1_gold' ? 'Gold (NCCA)'
+                           : key === 'tier2_silver' ? 'Silver (DEAC/NBFE)'
+                           : 'Specialty';
+                    }
                   }
-                }
-                return 'Unknown';
-              })();
+                  return 'Unknown';
+                })();
 
               const checklist = certChecklist[cert.id] ?? {};
               const checkItems = [
@@ -939,10 +944,29 @@ const AdminDashboard: React.FC = () => {
                     <div className="flex-1 space-y-1 min-w-0">
                       <p className="text-sm font-semibold text-ink">{trainerName}</p>
                       <p className="text-sm font-light text-ink/70">{cert.cert_name}</p>
-                      <div className="flex flex-wrap gap-3 mt-2">
-                        <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-accent border border-accent/30 px-2 py-0.5">
+                      {certDef && (
+                        <p className="text-[11px] text-ink/50 font-light">{certDef.issuer}</p>
+                      )}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <span className={`text-[10px] uppercase tracking-[0.15em] font-semibold border px-2 py-0.5 ${
+                          certDef?.tier === 'gold'
+                            ? 'text-amber-700 border-amber-300 bg-amber-50'
+                            : certDef?.tier === 'silver'
+                            ? 'text-sky-700 border-sky-300 bg-sky-50'
+                            : 'text-ink/60 border-ink/20 bg-ink/[0.03]'
+                        }`}>
                           {tierLabel}
                         </span>
+                        {certDef?.ncca_accredited && (
+                          <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-green-700 border border-green-300 bg-green-50 px-2 py-0.5">
+                            NCCA Accredited
+                          </span>
+                        )}
+                        {certDef?.category && (
+                          <span className="text-[10px] uppercase tracking-[0.12em] text-ink/40 border border-ink/15 px-2 py-0.5">
+                            {certDef.category}
+                          </span>
+                        )}
                         <span className="text-[10px] text-ink/40 uppercase tracking-[0.1em]">
                           {cert.cert_code}
                         </span>
@@ -957,15 +981,27 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Document link */}
-                    <a
-                      href={cert.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all"
-                    >
-                      View Doc
-                    </a>
+                    {/* Document + verify links */}
+                    <div className="shrink-0 flex flex-col gap-2">
+                      <a
+                        href={cert.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all text-center"
+                      >
+                        View Doc
+                      </a>
+                      {certDef?.verification_url && (
+                        <a
+                          href={certDef.verification_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="border border-green-200 text-green-700 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-green-50 transition-all text-center"
+                        >
+                          Verify
+                        </a>
+                      )}
+                    </div>
                   </div>
 
                   {/* Admin checklist */}
