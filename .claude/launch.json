@@ -5,7 +5,7 @@
       "name": "fitconnect-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "Cenlar demand gt 1-17"],
-      "port": 3000
+      "port": 3001
     },
     {
       "name": "fitconnect-preview",

@@ -1,0 +1,137 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - button [ref=e13]:
+          - img [ref=e14]
+        - button [ref=e17]:
+          - img [ref=e18]
+        - button "Host CA" [ref=e73]:
+          - img "Host CA" [ref=e74]
+  - generic [ref=e75]:
+    - generic [ref=e78]:
+      - generic [ref=e79]:
+        - button "Instant Book" [ref=e80]
+        - button "Request" [ref=e81]
+      - button "Go live" [ref=e83] [cursor=pointer]:
+        - generic [ref=e86]: OFFLINE
+    - generic [ref=e87]:
+      - generic [ref=e88]:
+        - heading "Welcome back, Host CA" [level=1] [ref=e89]
+        - paragraph [ref=e90]: Trainer Dashboard
+      - generic [ref=e91]:
+        - button "overview" [ref=e92]
+        - button "payouts" [ref=e93]
+        - button "analytics" [ref=e94]
+        - button "subscription" [ref=e95]
+        - button "calendar" [ref=e96]
+      - generic [ref=e97]:
+        - generic [ref=e98]:
+          - paragraph [ref=e99]: Upcoming Bookings
+          - paragraph [ref=e100]: "0"
+        - generic [ref=e101]:
+          - paragraph [ref=e102]: Available Slots
+          - paragraph [ref=e103]: "0"
+        - generic [ref=e104]:
+          - paragraph [ref=e105]: Booked Slots
+          - paragraph [ref=e106]: "0"
+        - generic [ref=e107]:
+          - paragraph [ref=e108]: Rating
+          - paragraph [ref=e109]: —
+      - generic [ref=e110]:
+        - generic [ref=e111]:
+          - paragraph [ref=e112]: Standard Rate
+          - paragraph [ref=e113]: $50/hr
+        - generic [ref=e114]:
+          - paragraph [ref=e115]: Optimized Rate
+          - paragraph [ref=e116]: $20/hr
+        - generic [ref=e117]:
+          - paragraph [ref=e118]: Specialty
+          - paragraph [ref=e119]: Strength Training
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - img [ref=e125]
+              - paragraph [ref=e128]: Session Discount
+            - paragraph [ref=e129]: No discount — full optimized rate applied
+          - paragraph [ref=e131]: —
+        - generic [ref=e132]:
+          - slider [ref=e134] [cursor=pointer]: "0"
+          - generic [ref=e135]:
+            - generic [ref=e136]: None
+            - generic [ref=e137]: 20%
+            - generic [ref=e138]: 40%
+            - generic [ref=e139]: 60%
+            - generic [ref=e140]: 80%
+      - generic [ref=e142]:
+        - generic [ref=e143]:
+          - paragraph [ref=e144]: Payment Setup
+          - paragraph [ref=e145]: Connect your Stripe account to receive payouts from bookings
+        - button "Set Up Payments" [ref=e146]
+      - generic [ref=e148]:
+        - button "Manage Availability" [ref=e149]
+        - link "Manage Bookings" [ref=e150] [cursor=pointer]:
+          - /url: /trainer/bookings
+  - contentinfo [ref=e26]:
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - heading "FitRush" [level=3] [ref=e30]
+          - paragraph [ref=e31]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e32]:
+            - link "Instagram" [ref=e33] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e34]
+            - link "Twitter" [ref=e37] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e38]
+            - link "LinkedIn" [ref=e40] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e41]
+        - generic [ref=e45]:
+          - heading "The Collective" [level=4] [ref=e46]
+          - list [ref=e47]:
+            - listitem [ref=e48]:
+              - link "Find a Professional" [ref=e49] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e50]:
+              - link "The Experience" [ref=e51] [cursor=pointer]:
+                - /url: /#how-it-works
+            - listitem [ref=e52]:
+              - link "Browse Trainers" [ref=e53] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e54]:
+              - link "Pricing" [ref=e55] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e56]:
+          - heading "Partnership" [level=4] [ref=e57]
+          - list [ref=e58]:
+            - listitem [ref=e59]:
+              - link "Join the Collective" [ref=e60] [cursor=pointer]:
+                - /url: /login
+            - listitem [ref=e61]:
+              - link "Professional Standards" [ref=e62] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e63]:
+              - link "Insurance & Safety" [ref=e64] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e65]:
+              - link "Partner Portal" [ref=e66] [cursor=pointer]:
+                - /url: /login
+      - generic [ref=e67]:
+        - paragraph [ref=e68]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e69]:
+          - generic [ref=e70]: Privacy
+          - generic [ref=e71]: Terms
+          - generic [ref=e72]: Cookies

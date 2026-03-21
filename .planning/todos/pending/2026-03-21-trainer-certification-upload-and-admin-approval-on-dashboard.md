@@ -21,9 +21,11 @@ This is a trust/safety requirement — a fitness marketplace MUST verify trainer
 
 ## Solution
 
-1. Add a "Certifications" section to TrainerDashboard (Overview tab) showing current certs + upload button
-2. Supabase Storage bucket `trainer-certifications` for document uploads
-3. `trainer_certifications` table: id, trainer_id, name, file_url, status (pending/approved/rejected), submitted_at, reviewed_at, admin_notes
-4. Admin Dashboard gets a "Certification Review" tab with pending submissions
-5. Trainer profile shows "Verified" badge only after admin approves at least one certification
-6. Consider making this a v6.0 or v7.0 phase depending on priority
+1. **Onboarding step (REQUIRED)**: Add a "Upload Certifications" step to TrainerOnboarding — trainer must upload at least one cert document (PDF/image) before completing onboarding
+2. **Dashboard section**: "Certifications" section on TrainerDashboard for viewing status and uploading updates
+3. Supabase Storage bucket `trainer-certifications` for document uploads
+4. `trainer_certifications` table: id, trainer_id, name, file_url, status (pending/approved/rejected), submitted_at, reviewed_at, admin_notes
+5. Admin Dashboard gets a "Certification Review" tab with pending submissions
+6. Trainer profile shows "Verified" badge only after admin approves at least one certification
+7. Trainer can't go fully "live" until at least one cert is approved (soft gate — can set up profile but bookings blocked)
+8. HIGH PRIORITY — should be built before going to market in Corona

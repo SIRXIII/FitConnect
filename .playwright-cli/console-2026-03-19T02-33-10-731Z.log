@@ -1,0 +1,14 @@
+Total messages: 14 (Errors: 11, Warnings: 0)
+Returning 11 messages for level "error"
+
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 404 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/conversations?select=id&or=%28trainer_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%2Cclient_id.eq.cff3c407-c0cf-478b-8197-372dd07180bc%29:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/availability_slots?select=*&trainer_id=eq.1fca740c-3b46-4750-8648-cf76d9f63050&deleted_at=is.null&start_time=gte.2026-03-19T02%3A32%3A22.046Z&order=start_time.asc:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/availability_slots?select=*&trainer_id=eq.1fca740c-3b46-4750-8648-cf76d9f63050&deleted_at=is.null&start_time=gte.2026-03-19T02%3A32%3A22.197Z&order=start_time.asc:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/availability_slots?select=*&trainer_id=eq.1fca740c-3b46-4750-8648-cf76d9f63050&deleted_at=is.null&start_time=gte.2026-03-19T02%3A32%3A22.046Z&order=start_time.asc:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/availability_slots?select=*&trainer_id=eq.1fca740c-3b46-4750-8648-cf76d9f63050&deleted_at=is.null&start_time=gte.2026-03-19T02%3A32%3A22.501Z&order=start_time.asc:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/availability_slots?select=*&trainer_id=eq.1fca740c-3b46-4750-8648-cf76d9f63050&deleted_at=is.null&start_time=gte.2026-03-19T02%3A32%3A22.617Z&order=start_time.asc:0
+[ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://m.stripe.com/6:0
+[ERROR] Failed to load resource: the server responded with a status of 400 () @ https://qecwxvvlpvrnrqyrdxrj.supabase.co/rest/v1/trainer_profiles?id=eq.1fca740c-3b46-4750-8648-cf76d9f63050:0

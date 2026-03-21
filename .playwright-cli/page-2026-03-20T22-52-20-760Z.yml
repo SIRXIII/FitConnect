@@ -1,0 +1,146 @@
+- generic [ref=e3]:
+  - region "Notifications alt+T"
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "FitRush" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: FitRush
+      - generic [ref=e9]:
+        - link "Trainers" [ref=e10] [cursor=pointer]:
+          - /url: /#search
+        - link "Experience" [ref=e11] [cursor=pointer]:
+          - /url: /#how-it-works
+        - link "Safety" [ref=e12] [cursor=pointer]:
+          - /url: /#safety
+        - link "Sign In" [ref=e13] [cursor=pointer]:
+          - /url: /login
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - heading "Choose Your Plan" [level=1] [ref=e17]
+      - paragraph [ref=e18]: Start with a 30-day free trial. No credit card required.
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - button "Monthly" [ref=e22]
+        - button "Annual" [ref=e23]
+      - generic [ref=e24]: Save 20%
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - heading "Free" [level=3] [ref=e27]
+        - generic [ref=e28]:
+          - text: $0
+          - paragraph [ref=e29]: Free forever
+        - list [ref=e30]:
+          - listitem [ref=e31]:
+            - img [ref=e32]
+            - generic [ref=e34]: Up to 3 visible availability slots
+          - listitem [ref=e35]:
+            - img [ref=e36]
+            - generic [ref=e38]: Basic trainer profile
+          - listitem [ref=e39]:
+            - img [ref=e40]
+            - generic [ref=e42]: Standard bio (280 characters)
+          - listitem [ref=e43]:
+            - img [ref=e44]
+            - generic [ref=e46]: Standard search ranking
+        - link "Get Started" [ref=e48] [cursor=pointer]:
+          - /url: /login?mode=signup
+      - generic [ref=e49]:
+        - heading "Pro" [level=3] [ref=e50]
+        - generic [ref=e51]:
+          - generic [ref=e52]: $9
+          - text: /mo
+        - list [ref=e53]:
+          - listitem [ref=e54]:
+            - img [ref=e55]
+            - generic [ref=e57]: Up to 10 visible availability slots
+          - listitem [ref=e58]:
+            - img [ref=e59]
+            - generic [ref=e61]: Extended bio (1,000 characters)
+          - listitem [ref=e62]:
+            - img [ref=e63]
+            - generic [ref=e65]: Advanced analytics dashboard
+          - listitem [ref=e66]:
+            - img [ref=e67]
+            - generic [ref=e69]: Priority search ranking
+          - listitem [ref=e70]:
+            - img [ref=e71]
+            - generic [ref=e73]: 30-day free trial
+        - link "Start Free Trial" [ref=e75] [cursor=pointer]:
+          - /url: /login?redirect=/pricing
+      - generic [ref=e76]:
+        - heading "Elite" [level=3] [ref=e77]
+        - generic [ref=e78]:
+          - generic [ref=e79]: $29
+          - text: /mo
+        - list [ref=e80]:
+          - listitem [ref=e81]:
+            - img [ref=e82]
+            - generic [ref=e84]: Unlimited visible availability slots
+          - listitem [ref=e85]:
+            - img [ref=e86]
+            - generic [ref=e88]: Extended bio (1,000 characters)
+          - listitem [ref=e89]:
+            - img [ref=e90]
+            - generic [ref=e92]: Advanced analytics dashboard
+          - listitem [ref=e93]:
+            - img [ref=e94]
+            - generic [ref=e96]: Priority search ranking
+          - listitem [ref=e97]:
+            - img [ref=e98]
+            - generic [ref=e100]: Featured on landing page
+          - listitem [ref=e101]:
+            - img [ref=e102]
+            - generic [ref=e104]: 30-day free trial
+        - link "Start Free Trial" [ref=e106] [cursor=pointer]:
+          - /url: /login?redirect=/pricing
+  - contentinfo [ref=e107]:
+    - generic [ref=e108]:
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - heading "FitRush" [level=3] [ref=e111]
+          - paragraph [ref=e112]: Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
+          - generic [ref=e113]:
+            - link "Instagram" [ref=e114] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e115]
+            - link "Twitter" [ref=e118] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e119]
+            - link "LinkedIn" [ref=e121] [cursor=pointer]:
+              - /url: "#"
+              - img [ref=e122]
+        - generic [ref=e126]:
+          - heading "The Collective" [level=4] [ref=e127]
+          - list [ref=e128]:
+            - listitem [ref=e129]:
+              - link "Find a Professional" [ref=e130] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e131]:
+              - link "The Experience" [ref=e132] [cursor=pointer]:
+                - /url: /#how-it-works
+            - listitem [ref=e133]:
+              - link "Browse Trainers" [ref=e134] [cursor=pointer]:
+                - /url: /#search
+            - listitem [ref=e135]:
+              - link "Pricing" [ref=e136] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e137]:
+          - heading "Partnership" [level=4] [ref=e138]
+          - list [ref=e139]:
+            - listitem [ref=e140]:
+              - link "Join the Collective" [ref=e141] [cursor=pointer]:
+                - /url: /login?mode=signup&role=trainer
+            - listitem [ref=e142]:
+              - link "Standards & Safety" [ref=e143] [cursor=pointer]:
+                - /url: /#safety
+            - listitem [ref=e144]:
+              - link "Partner Portal" [ref=e145] [cursor=pointer]:
+                - /url: /login?mode=signup&role=trainer
+      - generic [ref=e146]:
+        - paragraph [ref=e147]: © 2026 FitRush. All rights reserved.
+        - generic [ref=e148]:
+          - link "Privacy" [ref=e149] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms" [ref=e150] [cursor=pointer]:
+            - /url: /terms
+          - generic [ref=e151]: Cookies
