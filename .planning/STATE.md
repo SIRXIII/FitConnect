@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: -- Growth Engine
-status: planned
-stopped_at: v6.0 planning complete — phases 35, 36, 37 ready to execute
-last_updated: "2026-03-20T08:00:00.000Z"
+status: in-progress
+stopped_at: "Completed 36-01-PLAN.md and 36-02-PLAN.md (Trainer Video Intros)"
+last_updated: "2026-03-21T02:44:15Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 6
-  completed_plans: 0
+  completed_plans: 2
 ---
 
 # Project State -- FitRush
@@ -27,10 +27,10 @@ Milestone: v6.0 Growth Engine -- PLANNED
 All 3 phases planned, 6 plans total, 16 requirements.
 
 ```
-v6.0 Progress: [----------] 0% (0/6 plans)
+v6.0 Progress: [###-------] 33% (2/6 plans)
 
 Phase 35: Push Notifications        [ ] 0/2 plans
-Phase 36: Trainer Video Intros      [ ] 0/2 plans
+Phase 36: Trainer Video Intros      [x] 2/2 plans
 Phase 37: Group Sessions            [ ] 0/2 plans
 ```
 
@@ -56,6 +56,8 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [v6.0 Planning]: Push notifications use Firebase Admin SDK in edge function (unifies web FCM + iOS APNs routing)
 - [v6.0 Planning]: Group session capacity managed via RPC + booking count query, not a separate counter column
 - [v6.0 Planning]: Video thumbnail captured client-side via canvas (same pattern as avatar compression in Phase 18)
+- [Phase 36]: VideoUploader placed in TrainerDashboard profile tab above SettingsTab; fetchProfile(user.id) called on upload completion to refresh auth store
+- [Phase 36]: intro_video_url added to legacy Trainer interface + mapped in dbTrainerToCardData — avoids refactoring TrainerCard to accept TrainerWithProfile directly
 
 ## Blockers / Concerns
 
