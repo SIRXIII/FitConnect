@@ -540,6 +540,135 @@ export type Database = {
         };
         Relationships: [];
       };
+      support_tickets: {
+        Row: {
+          id: string;
+          user_id: string;
+          category: 'payment' | 'booking' | 'account' | 'technical' | 'dispute' | 'report_user' | 'other';
+          subject: string;
+          description: string;
+          status: 'open' | 'in_progress' | 'waiting_on_user' | 'resolved' | 'closed';
+          priority: 'low' | 'normal' | 'high' | 'urgent';
+          related_booking_id: string | null;
+          related_user_id: string | null;
+          admin_notes: string | null;
+          resolved_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          category: 'payment' | 'booking' | 'account' | 'technical' | 'dispute' | 'report_user' | 'other';
+          subject: string;
+          description: string;
+          status?: 'open' | 'in_progress' | 'waiting_on_user' | 'resolved' | 'closed';
+          priority?: 'low' | 'normal' | 'high' | 'urgent';
+          related_booking_id?: string | null;
+          related_user_id?: string | null;
+          admin_notes?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          category?: 'payment' | 'booking' | 'account' | 'technical' | 'dispute' | 'report_user' | 'other';
+          subject?: string;
+          description?: string;
+          status?: 'open' | 'in_progress' | 'waiting_on_user' | 'resolved' | 'closed';
+          priority?: 'low' | 'normal' | 'high' | 'urgent';
+          related_booking_id?: string | null;
+          related_user_id?: string | null;
+          admin_notes?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      support_messages: {
+        Row: {
+          id: string;
+          ticket_id: string;
+          sender_id: string;
+          is_admin: boolean;
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          ticket_id: string;
+          sender_id: string;
+          is_admin?: boolean;
+          message: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          ticket_id?: string;
+          sender_id?: string;
+          is_admin?: boolean;
+          message?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      platform_settings: {
+        Row: {
+          id: string;
+          key: string;
+          value: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          value: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          value?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      audit_log: {
+        Row: {
+          id: string;
+          actor_id: string | null;
+          action: string;
+          table_name: string;
+          record_id: string | null;
+          old_values: Record<string, unknown> | null;
+          new_values: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id?: string | null;
+          action: string;
+          table_name: string;
+          record_id?: string | null;
+          old_values?: Record<string, unknown> | null;
+          new_values?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_id?: string | null;
+          action?: string;
+          table_name?: string;
+          record_id?: string | null;
+          old_values?: Record<string, unknown> | null;
+          new_values?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -570,7 +699,7 @@ export type Database = {
         Returns: Json;
       };
       get_admin_analytics: {
-        Args: { p_period?: string };
+        Args: { p_period?: string; p_start?: string; p_end?: string; p_bucket?: string };
         Returns: Json;
       };
       reset_calendar_export_token: {
