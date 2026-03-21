@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.fitrush.app',
+  appId: 'com.SIRXIII.FitRush-Reserve',
   appName: 'FitRush',
   webDir: 'dist',
   server: {
@@ -33,6 +33,9 @@ const config: CapacitorConfig = {
     Keyboard: {
       resize: 'body',
       resizeOnFullScreen: true,
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
 };
