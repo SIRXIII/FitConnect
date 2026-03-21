@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText } from 'lucide-react';
+import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
 import { setAdminTierOverride } from '@/lib/subscription';
+import { CERTIFICATION_TIERS } from '@/lib/certifications';
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -72,6 +73,25 @@ interface UserRow {
   } | null;
 }
 
+interface CertReviewItem {
+  id: string;
+  trainer_id: string;
+  cert_code: string;
+  cert_name: string;
+  file_url: string;
+  expiry_date: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  admin_notes: string | null;
+  submitted_at: string;
+  reviewed_at: string | null;
+  trainer?: {
+    id: string;
+    user_id: string;
+    avatar_url?: string | null;
+    profiles?: { full_name: string; avatar_url?: string | null } | null;
+  } | null;
+}
+
 interface AuditLogEntry {
   id: string;
   actor_id: string | null;
@@ -98,7 +118,12 @@ const AdminDashboard: React.FC = () => {
   const [platformFee, setPlatformFee] = useState('0.08');
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'reviews' | 'audit' | 'settings'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings'>('analytics');
+  const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
+  const [loadingCerts, setLoadingCerts] = useState(false);
+  const [certRejectNotes, setCertRejectNotes] = useState<Record<string, string>>({});
+  const [certChecklist, setCertChecklist] = useState<Record<string, Record<string, boolean>>>({});
+  const [processingCertId, setProcessingCertId] = useState<string | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
@@ -207,6 +232,63 @@ const AdminDashboard: React.FC = () => {
     }
   }, [search]);
 
+  const fetchPendingCerts = useCallback(async () => {
+    setLoadingCerts(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('trainer_certifications')
+        .select('*, trainer:trainer_id(id, user_id, profiles:user_id(full_name, avatar_url))')
+        .eq('status', 'pending')
+        .order('submitted_at', { ascending: false });
+      if (error) throw error;
+      setPendingCerts(data ?? []);
+    } catch {
+      // table may not exist in dev
+    } finally {
+      setLoadingCerts(false);
+    }
+  }, []);
+
+  const handleCertApprove = async (certId: string) => {
+    setProcessingCertId(certId);
+    try {
+      const { error } = await (supabase as any)
+        .from('trainer_certifications')
+        .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+        .eq('id', certId);
+      if (error) throw error;
+      toast.success('Certification approved.');
+      await fetchPendingCerts();
+    } catch {
+      toast.error('Failed to approve certification.');
+    } finally {
+      setProcessingCertId(null);
+    }
+  };
+
+  const handleCertReject = async (certId: string) => {
+    const notes = certRejectNotes[certId]?.trim();
+    if (!notes) {
+      toast.error('Please add notes explaining the rejection reason.');
+      return;
+    }
+    setProcessingCertId(certId);
+    try {
+      const { error } = await (supabase as any)
+        .from('trainer_certifications')
+        .update({ status: 'rejected', admin_notes: notes, reviewed_at: new Date().toISOString() })
+        .eq('id', certId);
+      if (error) throw error;
+      toast.success('Certification rejected.');
+      setCertRejectNotes(n => { const copy = { ...n }; delete copy[certId]; return copy; });
+      await fetchPendingCerts();
+    } catch {
+      toast.error('Failed to reject certification.');
+    } finally {
+      setProcessingCertId(null);
+    }
+  };
+
   const fetchFlaggedReviews = useCallback(async () => {
     setLoadingReviews(true);
     try {
@@ -252,6 +334,7 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
   useEffect(() => { fetchFlaggedReviews(); }, [fetchFlaggedReviews]);
   useEffect(() => { fetchAuditLogs(); }, [fetchAuditLogs]);
+  useEffect(() => { fetchPendingCerts(); }, [fetchPendingCerts]);
 
   useEffect(() => {
     const fetchAdminAnalytics = async () => {
@@ -385,7 +468,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Tabs */}
         <div className="flex border-b border-ink/10">
-          {(['analytics', 'users', 'reviews', 'audit', 'settings'] as const).map((tab) => (
+          {(['analytics', 'users', 'reviews', 'certifications', 'audit', 'settings'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -775,6 +858,177 @@ const AdminDashboard: React.FC = () => {
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Certifications Tab */}
+        {activeTab === 'certifications' && (
+          <div className="space-y-8">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={16} strokeWidth={1.5} className="text-accent" />
+                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">
+                  Pending Certifications
+                </p>
+              </div>
+              <p className="text-sm font-light text-ink/50">
+                {loadingCerts ? 'Loading…' : `${pendingCerts.length} certification${pendingCerts.length !== 1 ? 's' : ''} awaiting review`}
+              </p>
+            </div>
+
+            {!loadingCerts && pendingCerts.length === 0 && (
+              <div className="border border-ink/10 p-12 text-center">
+                <ShieldCheck size={32} strokeWidth={1} className="text-green-400 mx-auto mb-3" />
+                <p className="text-sm text-ink/40 font-light">All certifications reviewed — queue is empty.</p>
+              </div>
+            )}
+
+            {pendingCerts.map((cert) => {
+              const trainerName = (cert.trainer as any)?.profiles?.full_name ?? 'Unknown Trainer';
+              const avatarUrl = (cert.trainer as any)?.profiles?.avatar_url ?? null;
+              const tierLabel = (() => {
+                for (const [key, tier] of Object.entries(CERTIFICATION_TIERS)) {
+                  if (tier.certs.some(c => c.code === cert.cert_code)) {
+                    return key === 'tier1_gold' ? 'Gold (NCCA)'
+                         : key === 'tier2_silver' ? 'Silver (DEAC/NBFE)'
+                         : 'Specialty';
+                  }
+                }
+                return 'Unknown';
+              })();
+
+              const checklist = certChecklist[cert.id] ?? {};
+              const checkItems = [
+                { key: 'legible', label: 'Document is legible and not expired' },
+                { key: 'matches_type', label: 'Certification matches the selected type' },
+                { key: 'name_matches', label: "Trainer name on cert matches profile name" },
+                { key: 'photo_ok', label: 'High-resolution profile photo uploaded' },
+              ];
+              const allChecked = checkItems.every(item => checklist[item.key]);
+
+              const setCheck = (key: string, val: boolean) => {
+                setCertChecklist(prev => ({
+                  ...prev,
+                  [cert.id]: { ...(prev[cert.id] ?? {}), [key]: val },
+                }));
+              };
+
+              return (
+                <div key={cert.id} className="border border-ink/10 p-8 space-y-6">
+                  {/* Header row */}
+                  <div className="flex items-start gap-6">
+                    {/* Profile photo */}
+                    <div className="shrink-0">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt={trainerName}
+                          className="w-16 h-16 object-cover border border-ink/10"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 border border-red-200 bg-red-50 flex items-center justify-center">
+                          <AlertTriangle size={20} className="text-red-400" strokeWidth={1.5} />
+                        </div>
+                      )}
+                      {!avatarUrl && (
+                        <p className="text-[9px] text-red-500 mt-1 uppercase tracking-wide">No photo</p>
+                      )}
+                    </div>
+
+                    {/* Cert info */}
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <p className="text-sm font-semibold text-ink">{trainerName}</p>
+                      <p className="text-sm font-light text-ink/70">{cert.cert_name}</p>
+                      <div className="flex flex-wrap gap-3 mt-2">
+                        <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-accent border border-accent/30 px-2 py-0.5">
+                          {tierLabel}
+                        </span>
+                        <span className="text-[10px] text-ink/40 uppercase tracking-[0.1em]">
+                          {cert.cert_code}
+                        </span>
+                        {cert.expiry_date && (
+                          <span className="text-[10px] text-ink/40 uppercase tracking-[0.1em]">
+                            Expires {new Date(cert.expiry_date).toLocaleDateString()}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-ink/30">
+                          Submitted {new Date(cert.submitted_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Document link */}
+                    <a
+                      href={cert.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all"
+                    >
+                      View Doc
+                    </a>
+                  </div>
+
+                  {/* Admin checklist */}
+                  <div className="space-y-2 border-t border-ink/5 pt-5">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-3">Review Checklist</p>
+                    {checkItems.map(item => (
+                      <label key={item.key} className="flex items-center gap-3 cursor-pointer group">
+                        <div
+                          onClick={() => setCheck(item.key, !checklist[item.key])}
+                          className={`w-4 h-4 border flex-shrink-0 flex items-center justify-center transition-all cursor-pointer ${
+                            checklist[item.key] ? 'border-accent bg-accent' : 'border-ink/30 group-hover:border-ink/50'
+                          }`}
+                        >
+                          {checklist[item.key] && (
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                              <path d="M2 5L4 7L8 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`text-sm font-light transition-colors ${checklist[item.key] ? 'text-ink' : 'text-ink/50'}`}>
+                          {item.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex flex-col sm:flex-row gap-4 pt-2 border-t border-ink/5">
+                    <div className="flex-1 space-y-2">
+                      <textarea
+                        value={certRejectNotes[cert.id] ?? ''}
+                        onChange={e => setCertRejectNotes(n => ({ ...n, [cert.id]: e.target.value }))}
+                        placeholder="Rejection reason (required if rejecting)…"
+                        rows={2}
+                        className="w-full border border-ink/10 bg-transparent px-4 py-2.5 text-sm font-light outline-none focus:border-red-300 transition-colors placeholder:text-ink/20 resize-none"
+                      />
+                    </div>
+                    <div className="flex gap-3 sm:flex-col sm:w-36">
+                      <button
+                        onClick={() => handleCertApprove(cert.id)}
+                        disabled={!allChecked || processingCertId === cert.id}
+                        className="flex-1 sm:flex-none py-2.5 bg-green-600 text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        {processingCertId === cert.id ? '…' : 'Approve'}
+                      </button>
+                      <button
+                        onClick={() => handleCertReject(cert.id)}
+                        disabled={processingCertId === cert.id}
+                        className="flex-1 sm:flex-none py-2.5 border border-red-200 text-red-700 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30"
+                      >
+                        {processingCertId === cert.id ? '…' : 'Reject'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {!allChecked && (
+                    <p className="text-[10px] text-ink/30 italic">
+                      Complete all checklist items before approving.
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
