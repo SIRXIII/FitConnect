@@ -17,6 +17,8 @@ import BufferTimeSelector from '@/components/calendar/BufferTimeSelector';
 import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
+import CertificationUpload from '@/components/trainer/CertificationUpload';
+import type { TrainerCertification } from '@/lib/certifications';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -42,6 +44,8 @@ const TrainerDashboard: React.FC = () => {
   const [isFirstVisit] = useState(() => searchParams.get('welcome') === 'true');
   const [calendarToken, setCalendarToken] = useState(trainerProfile?.calendar_export_token || '');
   const [bufferMinutes, setBufferMinutes] = useState(trainerProfile?.buffer_minutes || 0);
+  const [showCertUpload, setShowCertUpload] = useState(false);
+  const [certSummary, setCertSummary] = useState<TrainerCertification[]>([]);
 
   // Remove ?welcome=true from URL after reading it so a refresh shows "Welcome back"
   useEffect(() => {
@@ -106,6 +110,17 @@ const TrainerDashboard: React.FC = () => {
       supabase.removeChannel(slotChannel);
     };
   }, [trainerProfile?.id, refetchAvailability]);
+
+  useEffect(() => {
+    if (!trainerProfile?.id) return;
+    (supabase as any)
+      .from('trainer_certifications')
+      .select('id, status, cert_name')
+      .eq('trainer_id', trainerProfile.id)
+      .then(({ data }: { data: TrainerCertification[] | null }) => {
+        if (data) setCertSummary(data);
+      });
+  }, [trainerProfile?.id]);
 
   const handleStripeConnect = async () => {
     if (!user) return;
@@ -365,6 +380,75 @@ const TrainerDashboard: React.FC = () => {
         {/* Referral Widget */}
         {profile?.referral_code && (
           <ReferralWidget referralCode={profile.referral_code} />
+        )}
+
+        {/* Certifications */}
+        {trainerProfile && (
+          <div className="border border-ink/10 p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Certifications</p>
+                {certSummary.some(c => c.status === 'approved') ? (
+                  <p className="text-sm text-green-700 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                    Verified Trainer
+                  </p>
+                ) : (
+                  <p className="text-sm text-amber-700 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                    {certSummary.length === 0
+                      ? 'No certifications uploaded'
+                      : 'Under review — bookings enabled once approved'}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setShowCertUpload(v => !v)}
+                className="border border-ink/20 px-6 py-2.5 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300"
+              >
+                {showCertUpload ? 'Hide' : 'Add Certification'}
+              </button>
+            </div>
+
+            {certSummary.length > 0 && !showCertUpload && (
+              <div className="space-y-2">
+                {certSummary.map(cert => (
+                  <div key={cert.id} className="flex items-center justify-between py-2 border-b border-ink/5 last:border-0">
+                    <span className="text-sm font-light text-ink">{cert.cert_name}</span>
+                    <span className={`text-[10px] uppercase tracking-[0.12em] font-semibold ${
+                      cert.status === 'approved' ? 'text-green-600' :
+                      cert.status === 'rejected' ? 'text-red-600' : 'text-amber-600'
+                    }`}>
+                      {cert.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!certSummary.some(c => c.status === 'approved') && certSummary.length > 0 && !showCertUpload && (
+              <div className="p-4 border border-amber-200 bg-amber-50">
+                <p className="text-xs text-amber-800 font-light">
+                  Your certifications are under review — you'll be able to accept bookings once approved.
+                </p>
+              </div>
+            )}
+
+            {showCertUpload && (
+              <CertificationUpload
+                trainerId={trainerProfile.id}
+                onCertUploaded={() => {
+                  (supabase as any)
+                    .from('trainer_certifications')
+                    .select('id, status, cert_name')
+                    .eq('trainer_id', trainerProfile.id)
+                    .then(({ data }: { data: TrainerCertification[] | null }) => {
+                      if (data) setCertSummary(data);
+                    });
+                }}
+              />
+            )}
+          </div>
         )}
 
         </>)}
