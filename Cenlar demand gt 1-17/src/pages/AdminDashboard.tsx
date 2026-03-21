@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
 import { setAdminTierOverride } from '@/lib/subscription';
 import { CERTIFICATION_TIERS, getCertificationByCode } from '@/lib/certifications';
+import AdminSupportQueue from '@/components/support/AdminSupportQueue';
+import { useSupportTickets } from '@/hooks/useSupportTickets';
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -118,7 +120,9 @@ const AdminDashboard: React.FC = () => {
   const [platformFee, setPlatformFee] = useState('0.08');
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support'>('analytics');
+  const { tickets: supportTickets } = useSupportTickets(true);
+  const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
   const [loadingCerts, setLoadingCerts] = useState(false);
   const [certRejectNotes, setCertRejectNotes] = useState<Record<string, string>>({});
@@ -467,7 +471,7 @@ const AdminDashboard: React.FC = () => {
         )}
 
         {/* Tabs */}
-        <div className="flex border-b border-ink/10">
+        <div className="flex flex-wrap border-b border-ink/10">
           {(['analytics', 'users', 'reviews', 'certifications', 'audit', 'settings'] as const).map((tab) => (
             <button
               key={tab}
@@ -481,6 +485,21 @@ const AdminDashboard: React.FC = () => {
               {tab}
             </button>
           ))}
+          <button
+            onClick={() => setActiveTab('support')}
+            className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors relative ${
+              activeTab === 'support'
+                ? 'border-b-2 border-ink text-ink -mb-px'
+                : 'text-ink/40 hover:text-ink'
+            }`}
+          >
+            support
+            {openSupportCount > 0 && (
+              <span className="absolute top-2 right-3 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-accent text-white rounded-full">
+                {openSupportCount}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Analytics Tab */}
@@ -1120,6 +1139,11 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Support Tab */}
+        {activeTab === 'support' && (
+          <AdminSupportQueue />
         )}
       </div>
     </div>
