@@ -44,8 +44,11 @@
 - Weekly auto-payouts triggered via pg_cron for trainers with ≥$50 balance
 - GDPR data export available via `export-user-data` edge function
 
+## Writing Rules
+- **NO em-dashes** (the long dash character). Use commas, periods, or rewrite the sentence instead.
+
 ## Notes for Claude
 - Always check `.planning/` for phase context before starting new work
-- Prefer minimal, focused changes — don't refactor broadly unless asked
+- Prefer minimal, focused changes, don't refactor broadly unless asked
 - Run `npm run dev` to start local dev server (Vite on default port)
 - Run `supabase functions serve` to test edge functions locally
