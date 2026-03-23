@@ -118,16 +118,17 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
   5. Notification preferences save and persist
 **Plans:** TBD
 
-### Phase 33: Admin & Production Polish
-**Goal**: Admin dashboard is functional, all visual polish items are addressed, mock data is removed, Terms/Privacy have real structure, no console errors in production
+### Phase 33: Admin Dashboard Live Data & Controls
+**Goal**: Wire admin dashboard to real Supabase data — live analytics (revenue, bookings, users from DB), transaction list with payment status, payout approval/reject/hold per trainer, full user management with active/inactive filtering. Remove all demo/hardcoded data.
 **Depends on**: Phase 31, Phase 32
-**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, POLISH-01, POLISH-02, POLISH-03, POLISH-04, POLISH-05, POLISH-06, POLISH-07, POLISH-08, PERF-01, PERF-02, PERF-03, PERF-04
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06
 **Success Criteria**:
-  1. Admin can view users, suspend/unsuspend, view analytics
-  2. No mock/placeholder data in production
-  3. All loading states are skeletons, all errors are actionable
-  4. Terms and Privacy pages have structured content
-  5. Lighthouse mobile > 80, all tests passing, no console errors
+  1. Analytics tab shows real revenue, booking counts, active users, and platform fees from Supabase
+  2. Transactions tab lists all payments with client, trainer, amount, status, date
+  3. Payouts tab lets admin approve/reject/hold individual trainer payouts
+  4. Users tab shows all users with role, status (active/suspended), last login, filterable
+  5. No demo/mock data anywhere in admin dashboard
+  6. Cert approval button works without freezing
 **Plans:** TBD
 
 ### Phase 34: Capacitor iOS Build
