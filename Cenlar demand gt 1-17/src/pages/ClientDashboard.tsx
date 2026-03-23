@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield, User, LifeBuoy } from 'lucide-react';
+import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield, User, LifeBuoy, Dumbbell } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import ReferralWidget from '@/components/shared/ReferralWidget';
@@ -10,6 +10,7 @@ import ProfileProgressRing from '@/components/client/ProfileProgressRing';
 import ClientSettingsTab from '@/components/client/ClientSettingsTab';
 import ClientSupportTab from '@/components/support/ClientSupportTab';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
+import WorkoutTab from '@/components/client/WorkoutTab';
 
 // ─── Profile completion calculation (mirrors ClientPassport logic) ─────────────
 function computeCompletion(clientProfile: Record<string, unknown> | null, avatarUrl: string | null | undefined) {
@@ -64,7 +65,7 @@ const QuickActionCard: React.FC<QuickActionProps> = ({ to, icon, title, descript
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-type TabId = 'overview' | 'profile' | 'progress' | 'alerts' | 'settings' | 'support';
+type TabId = 'overview' | 'profile' | 'workouts' | 'progress' | 'alerts' | 'settings' | 'support';
 
 const ClientDashboard: React.FC = () => {
   const { profile, user } = useAuthStore();
@@ -119,6 +120,7 @@ const ClientDashboard: React.FC = () => {
   const TABS: { id: TabId; label: string; icon?: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'profile', label: 'Fitness Profile' },
+    { id: 'workouts', label: 'Workouts', icon: <Dumbbell size={11} /> },
     { id: 'settings', label: 'Settings', icon: <User size={11} /> },
     { id: 'progress', label: 'Progress' },
     { id: 'alerts', label: 'Alerts', icon: <Bell size={11} /> },
@@ -427,6 +429,10 @@ const ClientDashboard: React.FC = () => {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'workouts' && (
+          <WorkoutTab userId={user!.id} />
         )}
 
         {activeTab === 'settings' && (
