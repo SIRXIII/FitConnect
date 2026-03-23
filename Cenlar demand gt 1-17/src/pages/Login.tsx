@@ -59,7 +59,13 @@ const Login: React.FC = () => {
     try {
       if (isSignUp) {
         await signUpWithEmail(email, password);
-        toast.success('Account created -- check your email to confirm, or log in directly.');
+        // If auto-confirmed (session exists), navigate immediately
+        const { user: newUser, profile: newProfile } = useAuthStore.getState();
+        if (newUser) {
+          navigateAfterAuth(newProfile);
+          return;
+        }
+        toast.success('Account created — check your email to confirm, then sign in.');
       } else {
         await signInWithEmail(email, password);
         // signInWithEmail awaits fetchProfile, so profile is ready now
