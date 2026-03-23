@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: -- The Live Platform
 status: unknown
-stopped_at: Completed 33-03-PLAN.md (Admin Dashboard - Payouts Tab and Users Tab Live Data)
-last_updated: "2026-03-23T08:13:58.080Z"
+stopped_at: Completed 38-01-PLAN.md (Client Workout Log - Data Foundation)
+last_updated: "2026-03-23T20:33:15.092Z"
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 15
+  total_plans: 12
+  completed_plans: 16
 ---
 
 # Project State -- FitRush
@@ -68,6 +68,9 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [Phase 33-admin-dashboard-live-data]: MRR/subscriber counts read from top-level RPC response keys (data.mrr) not nested data.totals.mrr
 - [Phase Phase 33-admin-dashboard-live-data]: Payouts tab approve calls create-payout edge function with trainer_user_id (not profile ID) matching the edge function's existing user_id lookup
 - [Phase Phase 33-admin-dashboard-live-data]: Users tab uses client-side filtering after full get_admin_user_list fetch for instant filter responsiveness without extra RPC calls
+- [Phase 38-client-workout-log-exercise-diagrams]: workout.ts kept separate from session.ts -- client-owned logs must not conflict with trainer-owned types from Phase 24
+- [Phase 38-client-workout-log-exercise-diagrams]: exercise_key is nullable -- custom exercises have no key and fall back to muscle group SVG
+- [Phase 38-client-workout-log-exercise-diagrams]: ExerciseDiagram SVG fallback via React useState + onError rather than CSS background-image
 
 ## Blockers / Concerns
 
@@ -83,6 +86,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-23T08:13:45.747Z
-Stopped at: Completed 33-03-PLAN.md (Admin Dashboard - Payouts Tab and Users Tab Live Data)
+Last session: 2026-03-23T20:33:15.089Z
+Stopped at: Completed 38-01-PLAN.md (Client Workout Log - Data Foundation)
 Resume file: None
