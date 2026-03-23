@@ -11,45 +11,6 @@ import { useSupportTickets } from '@/hooks/useSupportTickets';
 
 type ProfileRow = Tables<'profiles'>;
 
-// ─── Demo data for empty/error states ───────────────────────────────────
-const DEMO_TOTALS = {
-  total_revenue: 45280.00,
-  total_platform_fee: 3622.40,
-  total_payouts: 41657.60,
-  booking_volume: 1847,
-  mrr: 2187.00,
-  pro_subscriber_count: 42,
-  elite_subscriber_count: 18,
-  active_trial_count: 7,
-};
-
-const DEMO_TOP_EARNERS = [
-  { trainer_name: 'Marcus Rivera', gross: 8420.00, net: 7746.40, bookings_count: 312 },
-  { trainer_name: 'Aisha Thompson', gross: 6890.00, net: 6338.80, bookings_count: 248 },
-  { trainer_name: 'James Kowalski', gross: 5215.00, net: 4797.80, bookings_count: 196 },
-  { trainer_name: 'Priya Sharma', gross: 4780.00, net: 4397.60, bookings_count: 178 },
-  { trainer_name: 'Elena Vasquez', gross: 4130.00, net: 3799.60, bookings_count: 162 },
-  { trainer_name: 'David Okonkwo', gross: 3650.00, net: 3358.00, bookings_count: 134 },
-  { trainer_name: 'Sofia Petrov', gross: 3420.00, net: 3146.40, bookings_count: 121 },
-  { trainer_name: 'Tyler Chen', gross: 2980.00, net: 2741.60, bookings_count: 108 },
-];
-
-const DEMO_USERS: UserRow[] = [
-  { id: 'demo-1', full_name: 'Marcus Rivera', role: 'trainer', is_suspended: false, created_at: '2025-11-04T10:00:00Z', trainer_profiles: { subscription_tier: 'elite', subscription_status: 'active', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-2', full_name: 'Aisha Thompson', role: 'trainer', is_suspended: false, created_at: '2025-11-18T14:30:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'active', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-3', full_name: 'James Kowalski', role: 'trainer', is_suspended: false, created_at: '2025-12-02T09:15:00Z', trainer_profiles: { subscription_tier: 'elite', subscription_status: 'trialing', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-4', full_name: 'Sarah Mitchell', role: 'client', is_suspended: false, created_at: '2026-01-10T11:00:00Z' },
-  { id: 'demo-5', full_name: 'Priya Sharma', role: 'trainer', is_suspended: false, created_at: '2026-01-15T16:45:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'trialing', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-6', full_name: 'David Okonkwo', role: 'trainer', is_suspended: false, created_at: '2026-01-22T08:30:00Z', trainer_profiles: { subscription_tier: 'free', subscription_status: 'inactive', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-7', full_name: 'Elena Vasquez', role: 'trainer', is_suspended: false, created_at: '2026-02-05T13:20:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'past_due', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-8', full_name: 'Tyler Chen', role: 'trainer', is_suspended: false, created_at: '2026-02-14T10:00:00Z', trainer_profiles: { subscription_tier: 'elite', subscription_status: 'active', tier_overridden_by: 'admin-1', tier_overridden_at: '2026-03-10T09:00:00Z' } },
-  { id: 'demo-9', full_name: 'Jordan Williams', role: 'client', is_suspended: false, created_at: '2026-02-20T15:00:00Z' },
-  { id: 'demo-10', full_name: 'Sofia Petrov', role: 'trainer', is_suspended: true, created_at: '2026-03-01T12:00:00Z', trainer_profiles: { subscription_tier: 'free', subscription_status: 'canceled', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-11', full_name: 'Alex Nakamura', role: 'client', is_suspended: false, created_at: '2026-03-08T09:30:00Z' },
-  { id: 'demo-12', full_name: 'Rachel Green', role: 'trainer', is_suspended: false, created_at: '2026-03-12T14:10:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'active', tier_overridden_by: null, tier_overridden_at: null } },
-];
-// ─────────────────────────────────────────────────────────────────────────
-
 interface FlaggedReview {
   id: string;
   rating: number;
@@ -120,7 +81,7 @@ const AdminDashboard: React.FC = () => {
   const [platformFee, setPlatformFee] = useState('0.08');
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support'>('analytics');
   const { tickets: supportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
@@ -155,7 +116,6 @@ const AdminDashboard: React.FC = () => {
   }>>([]);
   const [loadingAdminAnalytics, setLoadingAdminAnalytics] = useState(false);
   const [overridingUserId, setOverridingUserId] = useState<string | null>(null);
-  const [usingDemoData, setUsingDemoData] = useState(false);
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -176,26 +136,20 @@ const AdminDashboard: React.FC = () => {
         ? Math.round(discounts.reduce((sum, t) => sum + t.discount_percentage, 0) / discounts.length)
         : 0;
 
-      const hasData = (bookingResult.count ?? 0) > 0 || totalRevenue > 0 || (userResult.count ?? 0) > 0;
-      if (!hasData) {
-        setStats({ totalBookings: 1847, totalRevenue: 45280, activeUsers: 284, avgDiscount: 15 });
-        setUsingDemoData(true);
-      } else {
-        setStats({
-          totalBookings: bookingResult.count ?? 0,
-          totalRevenue,
-          activeUsers: userResult.count ?? 0,
-          avgDiscount,
-        });
-      }
+      setStats({
+        totalBookings: bookingResult.count ?? 0,
+        totalRevenue,
+        activeUsers: userResult.count ?? 0,
+        avgDiscount,
+      });
 
       if (feeResult.data?.value) {
         setPlatformFee(feeResult.data.value);
         setSavedFee(feeResult.data.value);
       }
     } catch {
-      setStats({ totalBookings: 1847, totalRevenue: 45280, activeUsers: 284, avgDiscount: 15 });
-      setUsingDemoData(true);
+      setStats({ totalBookings: 0, totalRevenue: 0, activeUsers: 0, avgDiscount: 0 });
+      toast.error('Failed to load platform stats');
     } finally {
       setLoadingStats(false);
     }
@@ -217,20 +171,10 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await query;
       if (error) throw error;
       const rows = (data ?? []) as unknown as UserRow[];
-      if (rows.length === 0) {
-        // Fallback to demo users for empty databases
-        const filtered = search.trim()
-          ? DEMO_USERS.filter((u) => u.full_name.toLowerCase().includes(search.trim().toLowerCase()))
-          : DEMO_USERS;
-        setUsers(filtered);
-        setUsingDemoData(true);
-      } else {
-        setUsers(rows);
-      }
+      setUsers(rows);
     } catch {
-      // On error, show demo data instead of error toast
-      setUsers(DEMO_USERS);
-      setUsingDemoData(true);
+      setUsers([]);
+      toast.error('Failed to load users');
     } finally {
       setLoadingUsers(false);
     }
@@ -344,43 +288,34 @@ const AdminDashboard: React.FC = () => {
     const fetchAdminAnalytics = async () => {
       setLoadingAdminAnalytics(true);
       const bounds = getDateBounds(adminRange);
-      const { data, error } = await supabase.rpc('get_admin_analytics', {
+      const { data: rawData, error } = await supabase.rpc('get_admin_analytics', {
         p_start: bounds.start,
         p_end: bounds.end,
         p_bucket: getBucketParam(adminRange),
       });
+      const data = rawData as any;
       if (error || !data?.totals) {
-        // Fallback to demo data so dashboard looks populated
-        setAdminTotals(DEMO_TOTALS);
-        setTopEarners(DEMO_TOP_EARNERS);
-        setUsingDemoData(true);
+        setAdminTotals(null);
+        setTopEarners([]);
         setLoadingAdminAnalytics(false);
         return;
       }
-      const hasRealData = Number(data.totals.total_revenue) > 0 || Number(data.totals.booking_volume) > 0;
-      if (!hasRealData) {
-        setAdminTotals(DEMO_TOTALS);
-        setTopEarners(DEMO_TOP_EARNERS);
-        setUsingDemoData(true);
-      } else {
-        setAdminTotals({
-          total_revenue: Number(data.totals.total_revenue),
-          total_platform_fee: Number(data.totals.total_platform_fee),
-          total_payouts: Number(data.totals.total_payouts),
-          booking_volume: Number(data.totals.booking_volume),
-          mrr: Number(data.totals.mrr ?? 0),
-          pro_subscriber_count: Number(data.totals.pro_subscriber_count ?? 0),
-          elite_subscriber_count: Number(data.totals.elite_subscriber_count ?? 0),
-          active_trial_count: Number(data.totals.active_trial_count ?? 0),
-        });
-        setTopEarners((data.top_earners ?? []).map((r: { trainer_name: string; gross: string; net: string; bookings_count: string }) => ({
-          trainer_name: r.trainer_name,
-          gross: Number(r.gross),
-          net: Number(r.net),
-          bookings_count: Number(r.bookings_count),
-        })));
-        setUsingDemoData(false);
-      }
+      setAdminTotals({
+        total_revenue: Number(data.totals.total_revenue),
+        total_platform_fee: Number(data.totals.total_platform_fee),
+        total_payouts: Number(data.totals.total_payouts),
+        booking_volume: Number(data.totals.booking_volume),
+        mrr: Number(data.mrr ?? 0),
+        pro_subscriber_count: Number(data.pro_subscriber_count ?? 0),
+        elite_subscriber_count: Number(data.elite_subscriber_count ?? 0),
+        active_trial_count: Number(data.active_trial_count ?? 0),
+      });
+      setTopEarners((data.top_earners ?? []).map((r: { trainer_name: string; gross: string; net: string; bookings_count: string }) => ({
+        trainer_name: r.trainer_name,
+        gross: Number(r.gross),
+        net: Number(r.net),
+        bookings_count: Number(r.bookings_count),
+      })));
       setLoadingAdminAnalytics(false);
     };
     fetchAdminAnalytics();
@@ -460,19 +395,9 @@ const AdminDashboard: React.FC = () => {
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">Platform Control</p>
         </div>
 
-        {/* Demo data indicator */}
-        {usingDemoData && (
-          <div className="border border-accent/20 bg-accent/5 px-6 py-3 flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-accent font-medium">
-              Showing demo data — connect live data to replace
-            </p>
-            <span className="text-[9px] uppercase tracking-widest text-accent/50">Preview Mode</span>
-          </div>
-        )}
-
         {/* Tabs */}
         <div className="flex flex-wrap border-b border-ink/10">
-          {(['analytics', 'users', 'reviews', 'certifications', 'audit', 'settings'] as const).map((tab) => (
+          {(['analytics', 'transactions', 'payouts', 'users', 'reviews', 'certifications', 'audit', 'settings'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
