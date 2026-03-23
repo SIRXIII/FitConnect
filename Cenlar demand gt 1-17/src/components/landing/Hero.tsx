@@ -13,6 +13,7 @@ const stepVariants = {
 
 const Hero: React.FC = () => {
   const [heroState, setHeroState] = useState<HeroState>('idle');
+  const [intent, setIntent] = useState<'client' | 'trainer' | null>(null);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +45,7 @@ const Hero: React.FC = () => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
-          body: JSON.stringify({ email: result.data.email }),
+          body: JSON.stringify({ email: result.data.email, intent }),
         }
       );
       if (!res.ok) {
@@ -94,7 +95,33 @@ const Hero: React.FC = () => {
                     Certified trainers with open availability. Off-peak hours, preferred rates.
                   </p>
 
-                  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 pt-6">
+                  {/* Intent selector */}
+                  <div className="flex gap-3 pt-6">
+                    <button
+                      type="button"
+                      onClick={() => setIntent('client')}
+                      className={`px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] font-medium border transition-all duration-300 ${
+                        intent === 'client'
+                          ? 'bg-ink text-white border-ink'
+                          : 'bg-transparent text-ink/60 border-ink/20 hover:border-ink/40'
+                      }`}
+                    >
+                      I'm looking for a trainer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIntent('trainer')}
+                      className={`px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] font-medium border transition-all duration-300 ${
+                        intent === 'trainer'
+                          ? 'bg-ink text-white border-ink'
+                          : 'bg-transparent text-ink/60 border-ink/20 hover:border-ink/40'
+                      }`}
+                    >
+                      I'm a trainer
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className={`flex flex-col sm:flex-row gap-4 pt-4 transition-opacity duration-300 ${intent ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
                     <div className="flex-1">
                       <input
                         type="text"
