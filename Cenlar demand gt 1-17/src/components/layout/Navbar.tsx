@@ -56,7 +56,8 @@ const Navbar: React.FC = () => {
     <nav className={`fixed w-full top-0 z-50 transition-all duration-500 ${scrolled ? 'bg-paper/80 backdrop-blur-md py-4 border-b border-ink/5' : 'bg-transparent py-8'}`}>
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/assets/logo.png" alt="FitRush" className="h-8 w-8 object-contain" />
             <span className="text-2xl font-light tracking-[0.2em] uppercase serif cursor-pointer">
               FitRush
             </span>
