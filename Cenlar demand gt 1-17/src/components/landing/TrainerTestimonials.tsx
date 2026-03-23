@@ -12,7 +12,7 @@ const testimonials = [
   {
     name: 'Jennifer Park',
     specialty: 'HIIT & Functional Training',
-    photo: 'https://images.unsplash.com/photo-1609899464726-209befab8e0c?auto=format&fit=crop&w=400&q=80',
+    photo: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=400&q=80',
     quote:
       'As a newly certified trainer, building a client base felt impossible. FitRush connected me with clients during my open hours. Now my peak slots are full too — FitRush was the launchpad.',
   },
