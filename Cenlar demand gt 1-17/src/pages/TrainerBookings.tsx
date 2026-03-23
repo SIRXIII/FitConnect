@@ -13,6 +13,7 @@ import { BookingCardSkeleton } from '@/components/skeleton/BookingCardSkeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { mapError } from '@/lib/errorMessages';
 import SessionLogPanel from '@/components/session/SessionLogPanel';
+import ClientWorkoutSummary from '@/components/shared/ClientWorkoutSummary';
 
 type BookingStatus = Tables<'bookings'>['status'];
 
@@ -546,6 +547,13 @@ const TrainerBookings: React.FC = () => {
                       )}
                     </div>
                   )}
+
+                  <div className="mb-4">
+                    <ClientWorkoutSummary
+                      clientId={booking.profiles?.id || ''}
+                      title="Client's Recent Workouts"
+                    />
+                  </div>
 
                   {booking.cancellation_reason ? (
                     <div className="border border-red-100 bg-red-50 p-4 text-red-700 text-sm">

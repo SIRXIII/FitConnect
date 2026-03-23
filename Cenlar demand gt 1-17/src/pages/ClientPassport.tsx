@@ -11,6 +11,7 @@ import HealthConditionsChecklist from '@/components/client/HealthConditionsCheck
 import IntensitySlider from '@/components/client/IntensitySlider';
 import GoalRankPicker from '@/components/client/GoalRankPicker';
 import { clearMatchCache } from '@/lib/matchScoring';
+import ClientWorkoutSummary from '@/components/shared/ClientWorkoutSummary';
 
 // --- Image compression ---
 
@@ -547,6 +548,11 @@ const ClientPassport: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* SECTION: Workout History */}
+        <div className="border-t border-ink/10 pt-6 mt-6">
+          <ClientWorkoutSummary clientId={user!.id} title="My Workout History" />
+        </div>
 
       </div>
     </div>
