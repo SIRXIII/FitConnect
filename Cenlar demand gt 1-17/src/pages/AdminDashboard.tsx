@@ -49,9 +49,9 @@ interface PayoutHistoryRow {
   id: string;
   amount: number;
   status: string;
-  initiated_by: string;
+  trainer_id: string;
   created_at: string;
-  completed_at: string | null;
+  updated_at: string | null;
 }
 
 interface CertReviewItem {
@@ -234,13 +234,11 @@ const AdminDashboard: React.FC = () => {
     setLoadingTransactions(true);
     try {
       let query = (supabase as any)
-        .from('payments')
+        .from('bookings')
         .select(`
-          id, amount, platform_fee, trainer_payout, status, created_at,
-          bookings!inner(
-            client:client_id(full_name),
-            trainer:trainer_id(full_name)
-          )
+          id, rate_charged, platform_fee, trainer_payout, status, stripe_payment_intent_id, created_at,
+          client:client_id(full_name),
+          trainer_profile:trainer_id(user_id, profiles:user_id(full_name))
         `)
         .order('created_at', { ascending: false })
         .range(offset, offset + TX_PAGE_SIZE - 1);
@@ -252,15 +250,15 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await query;
       if (error) throw error;
 
-      const rows: TransactionRow[] = (data ?? []).map((p: any) => ({
-        id: p.id,
-        amount: Number(p.amount),
-        platform_fee: Number(p.platform_fee),
-        trainer_payout: Number(p.trainer_payout),
-        status: p.status,
-        created_at: p.created_at,
-        client_name: p.bookings?.client?.full_name ?? '—',
-        trainer_name: p.bookings?.trainer?.full_name ?? '—',
+      const rows: TransactionRow[] = (data ?? []).map((b: any) => ({
+        id: b.id,
+        amount: Number(b.rate_charged || 0),
+        platform_fee: Number(b.platform_fee || 0),
+        trainer_payout: Number(b.trainer_payout || 0),
+        status: b.status,
+        created_at: b.created_at,
+        client_name: b.client?.full_name ?? '—',
+        trainer_name: b.trainer_profile?.profiles?.full_name ?? '—',
       }));
 
       if (append) {
@@ -278,7 +276,7 @@ const AdminDashboard: React.FC = () => {
     }
   }, [txStatusFilter]);
 
-  useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
+  useEffect(() => { if (activeTab === 'transactions') fetchTransactions(); }, [activeTab, fetchTransactions]);
 
   const fetchPayoutBalances = useCallback(async () => {
     setLoadingPayouts(true);
@@ -299,7 +297,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const { data, error } = await (supabase as any)
         .from('payout_transactions')
-        .select('id, amount, status, initiated_by, created_at, completed_at')
+        .select('id, amount, status, trainer_id, created_at, updated_at')
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -345,8 +343,6 @@ const AdminDashboard: React.FC = () => {
           trainer_id: balance.trainer_profile_id,
           amount: balance.pending_balance,
           status: 'held',
-          initiated_by: 'admin',
-          currency: 'usd',
         });
       if (error) throw error;
       toast.success(`Payout held for ${balance.trainer_name}`);
@@ -359,8 +355,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  useEffect(() => { fetchPayoutBalances(); }, [fetchPayoutBalances]);
-  useEffect(() => { fetchPayoutHistory(); }, [fetchPayoutHistory]);
+  useEffect(() => { if (activeTab === 'payouts') { fetchPayoutBalances(); fetchPayoutHistory(); } }, [activeTab, fetchPayoutBalances, fetchPayoutHistory]);
 
   const fetchPendingCerts = useCallback(async () => {
     setLoadingCerts(true);
@@ -891,7 +886,7 @@ const AdminDashboard: React.FC = () => {
                       }`}>
                         {ph.status}
                       </span>
-                      <p className="text-xs text-ink/40">{ph.initiated_by}</p>
+                      <p className="text-xs text-ink/40">admin</p>
                       <p className="text-xs text-ink/40">{new Date(ph.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
                   ))
