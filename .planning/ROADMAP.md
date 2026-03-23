@@ -129,7 +129,7 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
   4. Users tab shows all users with role, status (active/suspended), last login, filterable
   5. No demo/mock data anywhere in admin dashboard
   6. Cert approval button works without freezing
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 33-01-PLAN.md — Migration: admin RLS on payout_transactions, get_admin_user_list + get_admin_payout_balances RPCs, create-payout admin bypass
 - [ ] 33-02-PLAN.md — Remove all demo data, fix MRR mapping bug, add Transactions tab with status filter + pagination
@@ -227,7 +227,7 @@ Plans:
 | 26. AI Discount Analytics | v4.0 | 2/2 | done | 2026-03-19 |
 | 27. Location-Based Notifications | v4.0 | 2/2 | done | 2026-03-19 |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 3/3 | done | 2026-03-19 |
-| 33. Admin Dashboard Live Data | 2/3 | In Progress|  | — |
+| 33. Admin Dashboard Live Data | 3/3 | Complete   | 2026-03-23 | — |
 | 35. Push Notifications | v6.0 | 0/2 | planned | — |
 | 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
 | 37. Group Sessions | 2/2 | Complete   | 2026-03-21 | — |

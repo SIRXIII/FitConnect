@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: -- The Live Platform
 status: unknown
-stopped_at: Completed 33-02-PLAN.md (Admin Dashboard Live Data - UI Layer)
-last_updated: "2026-03-23T08:06:09.463Z"
+stopped_at: Completed 33-03-PLAN.md (Admin Dashboard - Payouts Tab and Users Tab Live Data)
+last_updated: "2026-03-23T08:13:58.080Z"
 progress:
   total_phases: 10
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State -- FitRush
@@ -66,6 +66,8 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [Phase 33-admin-dashboard-live-data]: held status added to payout_transactions check constraint to support future admin hold workflow
 - [Phase 33-admin-dashboard-live-data]: Demo data removed from AdminDashboard — real zeros preferred over misleading mock data for new platform
 - [Phase 33-admin-dashboard-live-data]: MRR/subscriber counts read from top-level RPC response keys (data.mrr) not nested data.totals.mrr
+- [Phase Phase 33-admin-dashboard-live-data]: Payouts tab approve calls create-payout edge function with trainer_user_id (not profile ID) matching the edge function's existing user_id lookup
+- [Phase Phase 33-admin-dashboard-live-data]: Users tab uses client-side filtering after full get_admin_user_list fetch for instant filter responsiveness without extra RPC calls
 
 ## Blockers / Concerns
 
@@ -81,6 +83,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-23T08:06:09.461Z
-Stopped at: Completed 33-02-PLAN.md (Admin Dashboard Live Data - UI Layer)
+Last session: 2026-03-23T08:13:45.747Z
+Stopped at: Completed 33-03-PLAN.md (Admin Dashboard - Payouts Tab and Users Tab Live Data)
 Resume file: None
