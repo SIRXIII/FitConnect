@@ -67,6 +67,17 @@ interface AuditLogEntry {
   actor?: { full_name: string } | null;
 }
 
+interface TransactionRow {
+  id: string;
+  amount: number;
+  platform_fee: number;
+  trainer_payout: number;
+  status: string;
+  created_at: string;
+  client_name: string;
+  trainer_name: string;
+}
+
 interface Stats {
   totalBookings: number;
   totalRevenue: number;
@@ -116,6 +127,12 @@ const AdminDashboard: React.FC = () => {
   }>>([]);
   const [loadingAdminAnalytics, setLoadingAdminAnalytics] = useState(false);
   const [overridingUserId, setOverridingUserId] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<TransactionRow[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [txStatusFilter, setTxStatusFilter] = useState<string>('all');
+  const [txOffset, setTxOffset] = useState(0);
+  const [hasMoreTx, setHasMoreTx] = useState(true);
+  const TX_PAGE_SIZE = 25;
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -179,6 +196,56 @@ const AdminDashboard: React.FC = () => {
       setLoadingUsers(false);
     }
   }, [search]);
+
+  const fetchTransactions = useCallback(async (offset = 0, append = false) => {
+    setLoadingTransactions(true);
+    try {
+      let query = (supabase as any)
+        .from('payments')
+        .select(`
+          id, amount, platform_fee, trainer_payout, status, created_at,
+          bookings!inner(
+            client:client_id(full_name),
+            trainer:trainer_id(full_name)
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + TX_PAGE_SIZE - 1);
+
+      if (txStatusFilter !== 'all') {
+        query = query.eq('status', txStatusFilter);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const rows: TransactionRow[] = (data ?? []).map((p: any) => ({
+        id: p.id,
+        amount: Number(p.amount),
+        platform_fee: Number(p.platform_fee),
+        trainer_payout: Number(p.trainer_payout),
+        status: p.status,
+        created_at: p.created_at,
+        client_name: p.bookings?.client?.full_name ?? '—',
+        trainer_name: p.bookings?.trainer?.full_name ?? '—',
+      }));
+
+      if (append) {
+        setTransactions(prev => [...prev, ...rows]);
+      } else {
+        setTransactions(rows);
+      }
+      setHasMoreTx(rows.length === TX_PAGE_SIZE);
+      setTxOffset(offset + rows.length);
+    } catch {
+      toast.error('Failed to load transactions');
+      if (!append) setTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  }, [txStatusFilter]);
+
+  useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
 
   const fetchPendingCerts = useCallback(async () => {
     setLoadingCerts(true);
@@ -533,6 +600,87 @@ const AdminDashboard: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Transactions Tab */}
+        {activeTab === 'transactions' && (
+          <div className="space-y-6">
+            {/* Status filter */}
+            <div className="flex items-center gap-4">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Filter:</p>
+              {['all', 'succeeded', 'pending', 'processing', 'failed', 'refunded'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setTxStatusFilter(s); setTxOffset(0); }}
+                  className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
+                    txStatusFilter === s
+                      ? 'border-ink text-ink bg-ink/5'
+                      : 'border-ink/10 text-ink/40 hover:text-ink hover:border-ink/30'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {/* Transaction table */}
+            <div className="border border-ink/10">
+              <div className="grid grid-cols-[1fr_1fr_100px_100px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Client</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Trainer</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Amount</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Fee</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Payout</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Date</p>
+              </div>
+
+              {loadingTransactions ? (
+                <div className="px-6 py-12 text-center">
+                  <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <p className="text-xs text-ink/30">No transactions found</p>
+                </div>
+              ) : (
+                transactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="grid grid-cols-[1fr_1fr_100px_100px_100px_100px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                  >
+                    <p className="text-sm text-ink truncate">{tx.client_name}</p>
+                    <p className="text-sm text-ink truncate">{tx.trainer_name}</p>
+                    <p className="text-sm text-ink">${tx.amount.toFixed(2)}</p>
+                    <p className="text-sm text-ink/60">${tx.platform_fee.toFixed(2)}</p>
+                    <p className="text-sm text-ink">${tx.trainer_payout.toFixed(2)}</p>
+                    <span className={`inline-block px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium ${
+                      tx.status === 'succeeded' ? 'bg-emerald-50 text-emerald-600' :
+                      tx.status === 'failed' ? 'bg-red-50 text-red-600' :
+                      tx.status === 'refunded' ? 'bg-amber-50 text-amber-600' :
+                      'bg-ink/5 text-ink/50'
+                    }`}>
+                      {tx.status}
+                    </span>
+                    <p className="text-xs text-ink/40">{new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Load more */}
+            {hasMoreTx && transactions.length > 0 && (
+              <div className="text-center">
+                <button
+                  onClick={() => fetchTransactions(txOffset, true)}
+                  disabled={loadingTransactions}
+                  className="px-8 py-2 text-[10px] uppercase tracking-[0.2em] font-medium border border-ink/10 text-ink/60 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-50"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
           </div>
         )}
 
