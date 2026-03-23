@@ -25,15 +25,33 @@ interface FlaggedReview {
 interface UserRow {
   id: string;
   full_name: string;
-  role: 'trainer' | 'client' | null;
+  role: 'trainer' | 'client' | 'admin' | null;
   is_suspended: boolean;
   created_at: string;
-  trainer_profiles?: {
-    subscription_tier: 'free' | 'pro' | 'elite';
-    subscription_status: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
-    tier_overridden_by: string | null;
-    tier_overridden_at: string | null;
-  } | null;
+  email?: string;
+  last_sign_in_at?: string | null;
+  subscription_tier?: 'free' | 'pro' | 'elite' | null;
+  subscription_status?: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete' | null;
+  tier_overridden_by?: string | null;
+  tier_overridden_at?: string | null;
+}
+
+interface PayoutBalance {
+  trainer_profile_id: string;
+  trainer_user_id: string;
+  trainer_name: string;
+  stripe_account_id: string | null;
+  pending_balance: number;
+  unpaid_booking_count: number;
+}
+
+interface PayoutHistoryRow {
+  id: string;
+  amount: number;
+  status: string;
+  initiated_by: string;
+  created_at: string;
+  completed_at: string | null;
 }
 
 interface CertReviewItem {
@@ -133,6 +151,13 @@ const AdminDashboard: React.FC = () => {
   const [txOffset, setTxOffset] = useState(0);
   const [hasMoreTx, setHasMoreTx] = useState(true);
   const TX_PAGE_SIZE = 25;
+  const [payoutBalances, setPayoutBalances] = useState<PayoutBalance[]>([]);
+  const [loadingPayouts, setLoadingPayouts] = useState(false);
+  const [payoutHistory, setPayoutHistory] = useState<PayoutHistoryRow[]>([]);
+  const [loadingPayoutHistory, setLoadingPayoutHistory] = useState(false);
+  const [processingPayoutTrainerId, setProcessingPayoutTrainerId] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -175,19 +200,27 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = useCallback(async () => {
     setLoadingUsers(true);
     try {
-      let query = supabase
-        .from('profiles')
-        .select('id, full_name, role, is_suspended, created_at, trainer_profiles(subscription_tier, subscription_status, tier_overridden_by, tier_overridden_at)')
-        .in('role', ['trainer', 'client'])
-        .order('created_at', { ascending: false });
+      const { data, error } = await (supabase as any).rpc('get_admin_user_list');
+      if (error) throw error;
+      let rows = (data ?? []) as UserRow[];
 
+      // Client-side filtering (RPC returns all users, filter in JS for responsiveness)
+      if (roleFilter !== 'all') {
+        rows = rows.filter(u => u.role === roleFilter);
+      }
+      if (statusFilter === 'active') {
+        rows = rows.filter(u => !u.is_suspended);
+      } else if (statusFilter === 'suspended') {
+        rows = rows.filter(u => u.is_suspended);
+      }
       if (search.trim()) {
-        query = query.ilike('full_name', `%${search.trim()}%`);
+        const q = search.trim().toLowerCase();
+        rows = rows.filter(u =>
+          u.full_name?.toLowerCase().includes(q) ||
+          u.email?.toLowerCase().includes(q)
+        );
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      const rows = (data ?? []) as unknown as UserRow[];
       setUsers(rows);
     } catch {
       setUsers([]);
@@ -195,7 +228,7 @@ const AdminDashboard: React.FC = () => {
     } finally {
       setLoadingUsers(false);
     }
-  }, [search]);
+  }, [search, roleFilter, statusFilter]);
 
   const fetchTransactions = useCallback(async (offset = 0, append = false) => {
     setLoadingTransactions(true);
@@ -246,6 +279,88 @@ const AdminDashboard: React.FC = () => {
   }, [txStatusFilter]);
 
   useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
+
+  const fetchPayoutBalances = useCallback(async () => {
+    setLoadingPayouts(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('get_admin_payout_balances');
+      if (error) throw error;
+      setPayoutBalances((data ?? []) as PayoutBalance[]);
+    } catch {
+      toast.error('Failed to load payout balances');
+      setPayoutBalances([]);
+    } finally {
+      setLoadingPayouts(false);
+    }
+  }, []);
+
+  const fetchPayoutHistory = useCallback(async () => {
+    setLoadingPayoutHistory(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('payout_transactions')
+        .select('id, amount, status, initiated_by, created_at, completed_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      setPayoutHistory((data ?? []) as PayoutHistoryRow[]);
+    } catch {
+      toast.error('Failed to load payout history');
+    } finally {
+      setLoadingPayoutHistory(false);
+    }
+  }, []);
+
+  const handleApprovePayout = async (balance: PayoutBalance) => {
+    if (!balance.stripe_account_id) {
+      toast.error(`${balance.trainer_name} has no Stripe account connected`);
+      return;
+    }
+    if (balance.pending_balance < 50) {
+      toast.error('Minimum payout is $50');
+      return;
+    }
+    setProcessingPayoutTrainerId(balance.trainer_profile_id);
+    try {
+      const { error } = await supabase.functions.invoke('create-payout', {
+        body: { trainer_id: balance.trainer_user_id },
+      });
+      if (error) throw error;
+      toast.success(`Payout of $${balance.pending_balance.toFixed(2)} initiated for ${balance.trainer_name}`);
+      await fetchPayoutBalances();
+      await fetchPayoutHistory();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Payout failed');
+    } finally {
+      setProcessingPayoutTrainerId(null);
+    }
+  };
+
+  const handleHoldPayout = async (balance: PayoutBalance) => {
+    setProcessingPayoutTrainerId(balance.trainer_profile_id);
+    try {
+      const { error } = await (supabase as any)
+        .from('payout_transactions')
+        .insert({
+          trainer_id: balance.trainer_profile_id,
+          amount: balance.pending_balance,
+          status: 'held',
+          initiated_by: 'admin',
+          currency: 'usd',
+        });
+      if (error) throw error;
+      toast.success(`Payout held for ${balance.trainer_name}`);
+      await fetchPayoutBalances();
+      await fetchPayoutHistory();
+    } catch {
+      toast.error('Failed to hold payout');
+    } finally {
+      setProcessingPayoutTrainerId(null);
+    }
+  };
+
+  useEffect(() => { fetchPayoutBalances(); }, [fetchPayoutBalances]);
+  useEffect(() => { fetchPayoutHistory(); }, [fetchPayoutHistory]);
 
   const fetchPendingCerts = useCallback(async () => {
     setLoadingCerts(true);
@@ -684,27 +799,168 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
+        {/* Payouts Tab */}
+        {activeTab === 'payouts' && (
+          <div className="space-y-8">
+            {/* Pending Balances */}
+            <div className="space-y-3">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Trainer Pending Balances</p>
+              <div className="border border-ink/10">
+                <div className="grid grid-cols-[2fr_120px_100px_100px_180px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Trainer</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Balance</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Bookings</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Stripe</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Actions</p>
+                </div>
+
+                {loadingPayouts ? (
+                  <div className="px-6 py-12 text-center">
+                    <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : payoutBalances.length === 0 ? (
+                  <div className="px-6 py-12 text-center">
+                    <p className="text-xs text-ink/30">No pending payout balances</p>
+                  </div>
+                ) : (
+                  payoutBalances.map((b) => (
+                    <div
+                      key={b.trainer_profile_id}
+                      className="grid grid-cols-[2fr_120px_100px_100px_180px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                    >
+                      <p className="text-sm text-ink">{b.trainer_name}</p>
+                      <p className="text-sm text-ink font-medium">${Number(b.pending_balance).toFixed(2)}</p>
+                      <p className="text-sm text-ink/60">{b.unpaid_booking_count}</p>
+                      <span className={`text-[9px] uppercase tracking-wider font-medium ${b.stripe_account_id ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {b.stripe_account_id ? 'Connected' : 'None'}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApprovePayout(b)}
+                          disabled={processingPayoutTrainerId === b.trainer_profile_id || !b.stripe_account_id || b.pending_balance < 50}
+                          className="px-3 py-1 text-[9px] uppercase tracking-wider font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Approve'}
+                        </button>
+                        <button
+                          onClick={() => handleHoldPayout(b)}
+                          disabled={processingPayoutTrainerId === b.trainer_profile_id}
+                          className="px-3 py-1 text-[9px] uppercase tracking-wider font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-40"
+                        >
+                          Hold
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Payout History */}
+            <div className="space-y-3">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Payout History</p>
+              <div className="border border-ink/10">
+                <div className="grid grid-cols-[1fr_120px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">ID</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Amount</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Initiated</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Date</p>
+                </div>
+                {loadingPayoutHistory ? (
+                  <div className="px-6 py-8 text-center">
+                    <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : payoutHistory.length === 0 ? (
+                  <div className="px-6 py-8 text-center">
+                    <p className="text-xs text-ink/30">No payout history</p>
+                  </div>
+                ) : (
+                  payoutHistory.map((ph) => (
+                    <div
+                      key={ph.id}
+                      className="grid grid-cols-[1fr_120px_100px_100px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                    >
+                      <p className="text-xs text-ink/50 font-mono truncate">{ph.id.slice(0, 8)}...</p>
+                      <p className="text-sm text-ink font-medium">${Number(ph.amount).toFixed(2)}</p>
+                      <span className={`inline-block px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium ${
+                        ph.status === 'completed' ? 'bg-emerald-50 text-emerald-600' :
+                        ph.status === 'failed' ? 'bg-red-50 text-red-600' :
+                        ph.status === 'held' ? 'bg-amber-50 text-amber-600' :
+                        'bg-ink/5 text-ink/50'
+                      }`}>
+                        {ph.status}
+                      </span>
+                      <p className="text-xs text-ink/40">{ph.initiated_by}</p>
+                      <p className="text-xs text-ink/40">{new Date(ph.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div className="space-y-6">
-            <div className="relative max-w-sm">
-              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
-              <input
-                type="text"
-                placeholder="Search by name…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-ink/10 bg-transparent text-sm text-ink placeholder-ink/25 focus:outline-none focus:border-ink/30"
-              />
+            {/* Filters row */}
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="relative max-w-sm flex-1">
+                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
+                <input
+                  type="text"
+                  placeholder="Search by name or email..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-ink/10 bg-transparent text-sm text-ink placeholder-ink/25 focus:outline-none focus:border-ink/30"
+                />
+              </div>
+
+              {/* Role filter */}
+              <div className="flex gap-1">
+                {['all', 'trainer', 'client', 'admin'].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRoleFilter(r)}
+                    className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border transition-colors ${
+                      roleFilter === r
+                        ? 'border-ink text-ink bg-ink/5'
+                        : 'border-ink/10 text-ink/40 hover:text-ink'
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status filter */}
+              <div className="flex gap-1">
+                {['all', 'active', 'suspended'].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border transition-colors ${
+                      statusFilter === s
+                        ? 'border-ink text-ink bg-ink/5'
+                        : 'border-ink/10 text-ink/40 hover:text-ink'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="border border-ink/10">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_100px_120px_100px_120px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/2">
+              <div className="grid grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Name</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Email</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Role</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Tier</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Joined</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Last Login</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Override</p>
               </div>
@@ -721,24 +977,30 @@ const AdminDashboard: React.FC = () => {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className="grid grid-cols-[1fr_100px_120px_100px_120px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/2 transition-colors"
+                    className="grid grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
                   >
                     <div>
                       <p className={`text-sm font-medium ${user.is_suspended ? 'text-ink/30 line-through' : 'text-ink'}`}>
                         {user.full_name || '—'}
                       </p>
                     </div>
+                    <p className="text-xs text-ink/50 truncate">{user.email ?? '—'}</p>
                     <p className="text-[10px] uppercase tracking-widest text-ink/50">{user.role}</p>
                     <div>
-                      {user.role === 'trainer' && user.trainer_profiles ? (
+                      {user.role === 'trainer' && user.subscription_tier ? (
                         <TierBadge
-                          tier={user.trainer_profiles.subscription_tier}
-                          status={user.trainer_profiles.subscription_status}
+                          tier={user.subscription_tier}
+                          status={user.subscription_status ?? 'inactive'}
                         />
                       ) : null}
                     </div>
                     <p className="text-[10px] text-ink/40">
                       {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                    <p className="text-xs text-ink/40">
+                      {user.last_sign_in_at
+                        ? new Date(user.last_sign_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : 'Never'}
                     </p>
                     <button
                       onClick={() => handleSuspend(user)}
@@ -782,9 +1044,9 @@ const AdminDashboard: React.FC = () => {
                             >
                               Override
                             </button>
-                            {user.trainer_profiles?.tier_overridden_at && (
+                            {user.tier_overridden_at && (
                               <p className="text-[8px] text-ink/25">
-                                Set {new Date(user.trainer_profiles.tier_overridden_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                Set {new Date(user.tier_overridden_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </p>
                             )}
                           </div>
