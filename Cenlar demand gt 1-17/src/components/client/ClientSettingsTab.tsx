@@ -176,8 +176,9 @@ const ClientSettingsTab: React.FC = () => {
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
-      await updateProfile({ avatar_url: publicUrl });
-      setAvatarPreview(publicUrl);
+      const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+      await updateProfile({ avatar_url: urlWithCacheBust });
+      setAvatarPreview(urlWithCacheBust);
       toast.success('Photo updated.');
     } catch {
       toast.error('Photo upload failed — please try again.');

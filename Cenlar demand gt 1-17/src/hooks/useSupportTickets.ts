@@ -26,7 +26,7 @@ export function useSupportTickets(isAdmin = false) {
 
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
-      setTickets((data ?? []) as SupportTicket[]);
+      setTickets((data ?? []) as unknown as SupportTicket[]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load tickets');
     } finally {
@@ -62,7 +62,7 @@ export function useSupportTickets(isAdmin = false) {
 
     if (insertError) throw insertError;
     await fetchTickets();
-    return data as SupportTicket;
+    return data as unknown as SupportTicket;
   };
 
   const sendMessage = async (ticketId: string, message: string): Promise<void> => {
@@ -151,7 +151,7 @@ export function useTicketMessages(ticketId: string | null) {
       .eq('ticket_id', ticketId)
       .order('created_at', { ascending: true });
 
-    setMessages((data ?? []) as SupportMessage[]);
+    setMessages((data ?? []) as unknown as SupportMessage[]);
     setLoading(false);
   }, [ticketId]);
 

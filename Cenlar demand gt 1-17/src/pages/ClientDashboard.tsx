@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield, User } from 'lucide-react';
+import { Calendar, Clock, Search, Heart, Sparkles, Bell, Camera, Shield, User, LifeBuoy } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import ReferralWidget from '@/components/shared/ReferralWidget';
@@ -8,23 +8,23 @@ import ProgressTab from '@/components/client/ProgressTab';
 import { NotificationPreferencesSection } from '@/components/client/NotificationPreferencesSection';
 import ProfileProgressRing from '@/components/client/ProfileProgressRing';
 import ClientSettingsTab from '@/components/client/ClientSettingsTab';
+import ClientSupportTab from '@/components/support/ClientSupportTab';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
 // ─── Profile completion calculation (mirrors ClientPassport logic) ─────────────
 function computeCompletion(clientProfile: Record<string, unknown> | null, avatarUrl: string | null | undefined) {
-  if (!clientProfile) return { pct: 0, missing: ['age', 'weight', 'height', 'fitness level', 'intensity preference', 'goal ranking'] };
+  if (!clientProfile) return { pct: 0, missing: ['age', 'weight', 'height', 'fitness level', 'intensity preference', 'goals'] };
+  const hasGoals = !!((clientProfile.goals_ranked as string[] | null)?.length || (clientProfile.fitness_goals as string[] | null)?.length);
+  const hasHealth = !!((clientProfile.health_conditions as string[] | null)?.length || (clientProfile.health_notes as string | null)?.trim());
   const fields = [
     !!avatarUrl,
     !!(clientProfile.age),
     !!(clientProfile.weight_lbs),
     !!(clientProfile.height_ft || clientProfile.height_in),
     !!(clientProfile.fitness_level),
-    !!(
-      (clientProfile.health_conditions as string[] | null)?.length ||
-      (clientProfile.health_notes as string | null)?.trim()
-    ),
+    hasHealth,
     !!(clientProfile.intensity_preference),
-    !!(clientProfile.goals_ranked as string[] | null)?.length,
+    hasGoals,
   ];
   const pct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
   const missing: string[] = [];
@@ -33,7 +33,7 @@ function computeCompletion(clientProfile: Record<string, unknown> | null, avatar
   if (!clientProfile.height_ft && !clientProfile.height_in) missing.push('height');
   if (!clientProfile.fitness_level) missing.push('fitness level');
   if (!clientProfile.intensity_preference) missing.push('intensity preference');
-  if (!(clientProfile.goals_ranked as string[] | null)?.length) missing.push('goal ranking');
+  if (!hasGoals) missing.push('goals');
   return { pct, missing };
 }
 
@@ -64,7 +64,7 @@ const QuickActionCard: React.FC<QuickActionProps> = ({ to, icon, title, descript
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-type TabId = 'overview' | 'profile' | 'progress' | 'alerts' | 'settings';
+type TabId = 'overview' | 'profile' | 'progress' | 'alerts' | 'settings' | 'support';
 
 const ClientDashboard: React.FC = () => {
   const { profile, user } = useAuthStore();
@@ -96,12 +96,12 @@ const ClientDashboard: React.FC = () => {
       // Client profile for completion ring
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data } = await (supabase as any)
+        const { data, error } = await (supabase as any)
           .from('client_profiles')
           .select('age, weight_lbs, height_ft, height_in, fitness_level, health_conditions, health_notes, intensity_preference, goals_ranked, fitness_goals, workout_types, training_frequency, bio')
           .eq('user_id', user.id)
-          .single() as unknown as { data: Record<string, unknown> | null };
-        setClientProfile(data);
+          .maybeSingle() as unknown as { data: Record<string, unknown> | null; error: unknown };
+        if (!error && data) setClientProfile(data);
       } catch {
         // No profile yet
       }
@@ -122,6 +122,7 @@ const ClientDashboard: React.FC = () => {
     { id: 'settings', label: 'Settings', icon: <User size={11} /> },
     { id: 'progress', label: 'Progress' },
     { id: 'alerts', label: 'Alerts', icon: <Bell size={11} /> },
+    { id: 'support', label: 'Support', icon: <LifeBuoy size={11} /> },
   ];
 
   // Passport summary values
@@ -438,6 +439,10 @@ const ClientDashboard: React.FC = () => {
 
         {activeTab === 'alerts' && (
           <NotificationPreferencesSection />
+        )}
+
+        {activeTab === 'support' && (
+          <ClientSupportTab />
         )}
 
       </div>

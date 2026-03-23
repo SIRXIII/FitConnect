@@ -28,6 +28,9 @@ import Privacy from '@/pages/Privacy';
 import TrialBanner from '@/components/subscription/TrialBanner';
 import GoogleCalendarCallback from '@/pages/GoogleCalendarCallback';
 import ResetPassword from '@/pages/ResetPassword';
+import HelpCenter from '@/pages/HelpCenter';
+import { MyTicketsList, TicketThread } from '@/components/support/MyTickets';
+import SubmitTicketForm from '@/components/support/SubmitTicketForm';
 
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
@@ -158,6 +161,33 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          {/* Help & Support */}
+          <Route path="/help" element={<HelpCenter />} />
+          <Route
+            path="/help/tickets"
+            element={
+              <ProtectedRoute>
+                <MyTicketsList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/help/tickets/:id"
+            element={
+              <ProtectedRoute>
+                <TicketThread />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/help/new-ticket"
+            element={
+              <ProtectedRoute>
+                <SubmitTicketForm />
+              </ProtectedRoute>
+            }
+          />
+
           {/* 404 catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
