@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- cable machine top anchor -->
+  <rect x="28" y="4" width="8" height="6" rx="1"/>
+  <!-- cable -->
+  <line x1="32" y1="10" x2="32" y2="22"/>
+  <!-- handle/bar -->
+  <line x1="24" y1="22" x2="40" y2="22"/>
+  <!-- head -->
+  <circle cx="32" cy="14" r="4"/>
+  <!-- torso upright -->
+  <line x1="32" y1="18" x2="32" y2="38"/>
+  <!-- arms pushing down (elbows at sides) -->
+  <line x1="32" y1="24" x2="22" y2="26"/>
+  <line x1="22" y1="26" x2="24" y2="40"/>
+  <line x1="32" y1="24" x2="42" y2="26"/>
+  <line x1="42" y1="26" x2="40" y2="40"/>
+  <!-- hands at hip level -->
+  <line x1="22" y1="40" x2="28" y2="40"/>
+  <line x1="36" y1="40" x2="42" y2="40"/>
+  <!-- legs -->
+  <line x1="32" y1="38" x2="26" y2="54"/>
+  <line x1="32" y1="38" x2="38" y2="54"/>
+</svg>

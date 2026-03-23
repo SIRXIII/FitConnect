@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- head -->
+  <circle cx="32" cy="8" r="5"/>
+  <!-- neck -->
+  <line x1="32" y1="13" x2="32" y2="16"/>
+  <!-- shoulders -->
+  <path d="M16 20 Q32 16 48 20"/>
+  <!-- torso outline -->
+  <path d="M16 20 L14 44 L22 48 L32 46 L42 48 L50 44 L48 20"/>
+  <!-- chest highlight (thicker) -->
+  <path d="M18 22 Q25 30 32 28 Q39 30 46 22" stroke-width="3"/>
+  <!-- collar / sternum -->
+  <line x1="32" y1="16" x2="32" y2="44"/>
+  <!-- arms outline -->
+  <line x1="16" y1="20" x2="10" y2="36"/>
+  <line x1="48" y1="20" x2="54" y2="36"/>
+</svg>

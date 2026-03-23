@@ -195,6 +195,23 @@ Plans:
 - [ ] 37-01-PLAN.md — Schema + trainer creation UI: slot_type/max_capacity/group_rate migration, group slot form fields, RPCs
 - [ ] 37-02-PLAN.md — Booking flow + client display: capacity enforcement, spots-remaining badge, participant list in trainer dashboard, group-safe cancellation
 
+### Phase 38: Client Workout Log & Exercise Diagrams
+**Goal**: Clients can log their workouts (exercises, sets, reps, weight) with visual exercise illustrations. Logs persist across sessions and trainers. The next trainer sees the client's last workout so they can pick up where the previous trainer left off. Creates continuity even when switching trainers.
+**Depends on**: Phase 34
+**Requirements**: LOG-01, LOG-02, LOG-03, LOG-04, LOG-05, LOG-06
+**Success Criteria**:
+  1. Client can log exercises with sets, reps, and weight after a session
+  2. Each exercise shows a clean illustration or diagram of the movement
+  3. Workout history is visible on the client dashboard with date and trainer
+  4. Trainer can view a client's recent workout logs before or during a session
+  5. Logs are tied to bookings but also accessible independently
+  6. Mobile-friendly input (quick add, minimal taps)
+**Plans:** 3/3 plans complete
+Plans:
+- [ ] 38-01-PLAN.md — DB migration (workout_logs + workout_exercises tables, RLS), TypeScript types, exercise catalog (50 exercises), utility functions, SVG illustrations, ExerciseDiagram component
+- [ ] 38-02-PLAN.md — Client workout log UI: WorkoutLogForm (exercise search, set entry, save), WorkoutTab (history with pagination), wire Workouts tab into ClientDashboard
+- [ ] 38-03-PLAN.md — Trainer read-only view: ClientWorkoutSummary component (last 5 sessions), integrate into TrainerBookings and ClientPassport
+
 ---
 
 ## Progress
@@ -231,6 +248,7 @@ Plans:
 | 35. Push Notifications | v6.0 | 0/2 | planned | — |
 | 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
 | 37. Group Sessions | 2/2 | Complete   | 2026-03-21 | — |
+| 38. Client Workout Log | 3/3 | Complete   | 2026-03-23 | — |
 
 ---
-*Last updated: 2026-03-23 -- Phase 33 planned*
+*Last updated: 2026-03-23 -- Phase 38 planned*

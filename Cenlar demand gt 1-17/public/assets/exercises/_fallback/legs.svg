@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- head -->
+  <circle cx="32" cy="6" r="4"/>
+  <!-- torso (compact, focus on lower body) -->
+  <path d="M24 14 Q32 10 40 14 L42 28 L22 28 Z"/>
+  <!-- hips -->
+  <line x1="22" y1="28" x2="42" y2="28"/>
+  <!-- left thigh (highlighted) -->
+  <path d="M26 28 Q22 40 24 52" stroke-width="3"/>
+  <!-- right thigh (highlighted) -->
+  <path d="M38 28 Q42 40 40 52" stroke-width="3"/>
+  <!-- left lower leg -->
+  <line x1="24" y1="52" x2="22" y2="62"/>
+  <!-- right lower leg -->
+  <line x1="40" y1="52" x2="42" y2="62"/>
+  <!-- knee joints -->
+  <circle cx="24" cy="42" r="2"/>
+  <circle cx="40" cy="42" r="2"/>
+</svg>
