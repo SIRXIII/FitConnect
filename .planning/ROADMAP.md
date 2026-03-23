@@ -206,7 +206,7 @@ Plans:
   4. Trainer can view a client's recent workout logs before or during a session
   5. Logs are tied to bookings but also accessible independently
   6. Mobile-friendly input (quick add, minimal taps)
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 38-01-PLAN.md — DB migration (workout_logs + workout_exercises tables, RLS), TypeScript types, exercise catalog (50 exercises), utility functions, SVG illustrations, ExerciseDiagram component
 - [ ] 38-02-PLAN.md — Client workout log UI: WorkoutLogForm (exercise search, set entry, save), WorkoutTab (history with pagination), wire Workouts tab into ClientDashboard
@@ -248,7 +248,7 @@ Plans:
 | 35. Push Notifications | v6.0 | 0/2 | planned | — |
 | 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
 | 37. Group Sessions | 2/2 | Complete   | 2026-03-21 | — |
-| 38. Client Workout Log | 1/3 | In Progress|  | — |
+| 38. Client Workout Log | 3/3 | Complete   | 2026-03-23 | — |
 
 ---
 *Last updated: 2026-03-23 -- Phase 38 planned*

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: -- The Live Platform
 status: unknown
-stopped_at: Completed 38-01-PLAN.md (Client Workout Log - Data Foundation)
-last_updated: "2026-03-23T20:33:15.092Z"
+stopped_at: Completed 38-03-PLAN.md (Trainer-Facing Workout Summary)
+last_updated: "2026-03-23T20:57:07.608Z"
 progress:
   total_phases: 11
   completed_phases: 4
   total_plans: 12
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State -- FitRush
@@ -71,6 +71,8 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [Phase 38-client-workout-log-exercise-diagrams]: workout.ts kept separate from session.ts -- client-owned logs must not conflict with trainer-owned types from Phase 24
 - [Phase 38-client-workout-log-exercise-diagrams]: exercise_key is nullable -- custom exercises have no key and fall back to muscle group SVG
 - [Phase 38-client-workout-log-exercise-diagrams]: ExerciseDiagram SVG fallback via React useState + onError rather than CSS background-image
+- [Phase 38-client-workout-log-exercise-diagrams]: ClientWorkoutSummary placed outside completed-status condition in TrainerBookings -- trainers see client history for any booking status
+- [Phase 38-client-workout-log-exercise-diagrams]: ClientPassport workout history section uses border-t separator at bottom of page to keep profile editing fields uncluttered
 
 ## Blockers / Concerns
 
@@ -86,6 +88,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-23T20:33:15.089Z
-Stopped at: Completed 38-01-PLAN.md (Client Workout Log - Data Foundation)
+Last session: 2026-03-23T20:57:07.606Z
+Stopped at: Completed 38-03-PLAN.md (Trainer-Facing Workout Summary)
 Resume file: None
