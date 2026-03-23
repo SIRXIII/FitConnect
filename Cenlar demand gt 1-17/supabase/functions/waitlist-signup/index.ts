@@ -38,8 +38,9 @@ Deno.serve(async (req) => {
 
   try {
     // Parse body
-    const body = await req.json().catch(() => ({})) as { email?: unknown };
+    const body = await req.json().catch(() => ({})) as { email?: unknown; intent?: unknown };
     const email = body.email;
+    const intent = body.intent === 'trainer' ? 'trainer' : body.intent === 'client' ? 'client' : null;
 
     // Validate email server-side
     if (
@@ -66,7 +67,7 @@ Deno.serve(async (req) => {
     // Insert into email_subscribers
     const { error: insertError } = await supabase
       .from('email_subscribers')
-      .insert({ email: normalizedEmail });
+      .insert({ email: normalizedEmail, ...(intent ? { intent } : {}) });
 
     if (insertError) {
       // 23505 = unique_violation — email already registered
