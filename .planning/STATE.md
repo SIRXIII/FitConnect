@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: -- The Live Platform
 status: unknown
-stopped_at: Completed 33-01-PLAN.md (Admin Dashboard Live Data - Database Layer)
-last_updated: "2026-03-23T07:56:56.900Z"
+stopped_at: Completed 33-02-PLAN.md (Admin Dashboard Live Data - UI Layer)
+last_updated: "2026-03-23T08:06:09.463Z"
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 9
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State -- FitRush
@@ -64,6 +64,8 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [Phase 33-admin-dashboard-live-data]: Admin payout bypass uses optional trainer_id body param in create-payout edge function, validated with admin role check + 403 guard
 - [Phase 33-admin-dashboard-live-data]: get_admin_user_list joins auth.users via SECURITY DEFINER — only safe path to email/last_sign_in_at without exposing auth schema to RLS
 - [Phase 33-admin-dashboard-live-data]: held status added to payout_transactions check constraint to support future admin hold workflow
+- [Phase 33-admin-dashboard-live-data]: Demo data removed from AdminDashboard — real zeros preferred over misleading mock data for new platform
+- [Phase 33-admin-dashboard-live-data]: MRR/subscriber counts read from top-level RPC response keys (data.mrr) not nested data.totals.mrr
 
 ## Blockers / Concerns
 
@@ -79,6 +81,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-23T07:56:56.734Z
-Stopped at: Completed 33-01-PLAN.md (Admin Dashboard Live Data - Database Layer)
+Last session: 2026-03-23T08:06:09.461Z
+Stopped at: Completed 33-02-PLAN.md (Admin Dashboard Live Data - UI Layer)
 Resume file: None
