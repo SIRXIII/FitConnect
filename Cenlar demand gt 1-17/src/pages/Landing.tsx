@@ -6,6 +6,7 @@ import SearchSection from '@/components/search/SearchSection';
 import BestDeals from '@/components/landing/BestDeals';
 import FeaturedTrainers from '@/components/landing/FeaturedTrainers';
 import HowItWorks from '@/components/landing/HowItWorks';
+import TrainerTestimonials from '@/components/landing/TrainerTestimonials';
 import TrustSafety from '@/components/landing/TrustSafety';
 import ReferralLeaderboard from '@/components/landing/ReferralLeaderboard';
 import { captureReferralCode } from '@/lib/referral';
@@ -32,6 +33,7 @@ const Landing: React.FC = () => {
         <FeaturedTrainers />
         <BestDeals />
         <HowItWorks />
+        <TrainerTestimonials />
         <TrustSafety />
         <ReferralLeaderboard />
       </main>

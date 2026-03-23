@@ -63,9 +63,9 @@ const Navbar: React.FC = () => {
           </Link>
 
           <div className="hidden md:flex items-center space-x-12">
-            <a href="/#search" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Trainers</a>
-            <a href="/#how-it-works" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Experience</a>
-            <a href="/#safety" className="text-[11px] uppercase tracking-[0.2em] font-medium hover:text-accent transition-colors">Safety</a>
+            <a href="/#search" className="text-[13px] uppercase tracking-[0.1em] font-semibold hover:text-accent transition-colors">Trainers</a>
+            <a href="/#how-it-works" className="text-[13px] uppercase tracking-[0.1em] font-semibold hover:text-accent transition-colors">Experience</a>
+            <a href="/#safety" className="text-[13px] uppercase tracking-[0.1em] font-semibold hover:text-accent transition-colors">Safety</a>
 
             {user ? (
               <>
@@ -253,13 +253,32 @@ const Navbar: React.FC = () => {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden bg-paper h-screen absolute w-full top-0 left-0 z-[-1] flex flex-col justify-center items-center space-y-8">
+        <div className="md:hidden bg-paper fixed inset-0 z-[60] flex flex-col justify-center items-center space-y-8">
+          {/* Close button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="absolute top-8 right-6 p-2 text-ink"
+          >
+            <X size={20} strokeWidth={1.5} />
+          </button>
+
           <a href="/#search" onClick={() => setIsOpen(false)} className="text-2xl serif font-light tracking-widest hover:text-accent">Trainers</a>
           <a href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-2xl serif font-light tracking-widest hover:text-accent">Experience</a>
           <a href="/#safety" onClick={() => setIsOpen(false)} className="text-2xl serif font-light tracking-widest hover:text-accent">Safety</a>
 
           {user ? (
             <>
+              <button
+                onClick={() => { navigate('/messages'); setIsOpen(false); }}
+                className="text-2xl serif font-light tracking-widest hover:text-accent flex items-center gap-3"
+              >
+                Messages
+                {unreadMessages > 0 && (
+                  <span className="w-5 h-5 bg-accent text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                  </span>
+                )}
+              </button>
               <button
                 onClick={() => { navigate(dashboardPath); setIsOpen(false); }}
                 className="text-2xl serif font-light tracking-widest hover:text-accent"

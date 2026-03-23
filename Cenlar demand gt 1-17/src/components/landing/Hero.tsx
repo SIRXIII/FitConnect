@@ -82,15 +82,16 @@ const Hero: React.FC = () => {
                     <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-accent block">
                       Elite Fitness Marketplace
                     </span>
-                    <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.95] tracking-tight text-ink">
+                    <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl serif font-normal md:font-light leading-[0.9] tracking-[-0.02em] text-ink">
                       Book Elite Trainers{' '}
                       <br className="hidden sm:block" />
-                      <span className="italic">at Idle-Hour Prices</span>
+                      <span className="italic">at Off-Peak Hours.</span>{' '}
+                      <span className="text-accent">24/7</span>
                     </h1>
                   </div>
 
-                  <p className="text-lg md:text-xl text-ink/80 md:text-ink/60 font-light leading-relaxed max-w-md">
-                    Top certified trainers, last-minute availability, up to 50% off. Your next session is waiting.
+                  <p className="text-lg md:text-xl text-[#4A4B4D] font-light leading-relaxed max-w-md">
+                    Certified trainers with open availability. Off-peak hours, preferred rates.
                   </p>
 
                   <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 pt-6">
@@ -101,7 +102,7 @@ const Hero: React.FC = () => {
                         onChange={(e) => { setEmail(e.target.value); setError(null); }}
                         placeholder="Enter your email"
                         disabled={loading}
-                        className="w-full bg-transparent border-b border-ink/20 focus:border-accent px-0 py-4 text-ink placeholder:text-ink/30 text-sm tracking-wide outline-none transition-colors duration-300"
+                        className="w-full bg-[#FAFAFA] focus:bg-[#F0F0F0] border-b border-ink/20 focus:border-ink px-4 py-4 text-ink placeholder:text-[#6B6D70] text-sm tracking-wide outline-none transition-all duration-300"
                       />
                       {error && <p className="text-red-600 text-xs mt-2 tracking-wide">{error}</p>}
                     </div>
@@ -179,14 +180,14 @@ const Hero: React.FC = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.8 }}
-              className="absolute -bottom-10 left-32 bg-paper p-10 border border-ink/5 hidden md:block"
+              className="absolute -bottom-10 left-32 bg-paper/95 p-10 border border-ink/5 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hidden md:block"
             >
               <div className="space-y-4">
                 <div className="w-12 h-[1px] bg-accent"></div>
-                <p className="text-xs italic serif text-ink/80 max-w-[180px] leading-relaxed">
+                <p className="text-sm italic serif text-[#222222] max-w-[200px] leading-relaxed">
                   "The most seamless way to access world-class coaching without the premium overhead."
                 </p>
-                <p className="text-[9px] uppercase tracking-widest text-ink/40">— Architectural Fitness</p>
+                <p className="text-[10px] uppercase tracking-widest text-ink/50 font-bold">— Architectural Fitness</p>
               </div>
             </motion.div>
           </div>

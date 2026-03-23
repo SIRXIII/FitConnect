@@ -175,7 +175,7 @@ const AvailabilityManager: React.FC = () => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <div className="min-w-[700px]">
+          <div className="min-w-[520px] sm:min-w-[700px]">
             {/* Day headers */}
             <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-ink/10">
               <div />
@@ -204,7 +204,7 @@ const AvailabilityManager: React.FC = () => {
                       onClick={() => !past && slot?.slot_type !== 'group' && handleCellClick(dayIndex, hour)}
                       disabled={past || adding || slot?.slot_type === 'group'}
                       className={`
-                        h-10 border-l border-ink/5 transition-all duration-200
+                        h-12 sm:h-10 border-l border-ink/5 transition-all duration-200
                         ${past ? 'bg-ink/3 cursor-not-allowed' : slot?.slot_type === 'group' ? 'cursor-default' : 'cursor-pointer hover:bg-accent/10'}
                         ${slot?.is_booked && slot?.slot_type !== 'group' ? 'bg-accent/20' : ''}
                         ${slot && !slot.is_booked && slot?.slot_type !== 'group' ? 'bg-accent/10 border-l-2 border-l-accent' : ''}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Camera, Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Camera, Check, ArrowLeft } from 'lucide-react';
 import { SkeletonCircle, SkeletonLine } from '@/components/shared/Skeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -174,7 +175,8 @@ const ClientPassport: React.FC = () => {
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
-      await updateProfile({ avatar_url: publicUrl } as Parameters<typeof updateProfile>[0]);
+      const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+      await updateProfile({ avatar_url: urlWithCacheBust } as Parameters<typeof updateProfile>[0]);
       toast.success('Photo uploaded!');
     } catch {
       toast.error('Photo upload failed. Please try again.');
@@ -200,6 +202,15 @@ const ClientPassport: React.FC = () => {
   return (
     <div className="min-h-screen bg-paper pt-24 pb-20 px-6">
       <div className="max-w-xl mx-auto space-y-10">
+
+        {/* Back to Dashboard */}
+        <Link
+          to="/client/dashboard"
+          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors"
+        >
+          <ArrowLeft size={14} />
+          Back to Dashboard
+        </Link>
 
         {/* Header + Progress Ring */}
         <div className="flex items-start gap-6">

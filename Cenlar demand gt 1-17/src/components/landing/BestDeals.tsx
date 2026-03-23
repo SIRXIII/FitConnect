@@ -31,11 +31,17 @@ const BestDeals: React.FC = () => {
         .from('trainer_profiles')
         .select(`
           id, specialty, optimized_rate, discount_percentage, rating,
-          profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
+          profiles!trainer_profiles_user_id_fkey (full_name, avatar_url, role)
         `)
         .gt('discount_percentage', 0);
 
-      if (!trainers?.length) {
+      // Filter out users who are no longer trainers
+      const activeTrainers = trainers?.filter((t: any) => {
+        const profile = Array.isArray(t.profiles) ? t.profiles[0] : t.profiles;
+        return profile?.role === 'trainer';
+      });
+
+      if (!activeTrainers?.length) {
         // No trainers with discounts yet — section will be hidden
         setDeals([]);
         setLoading(false);
@@ -46,7 +52,7 @@ const BestDeals: React.FC = () => {
       const { data: slots } = await supabase
         .from('availability_slots')
         .select('trainer_id, start_time, is_booked, deleted_at')
-        .in('trainer_id', trainers.map((t) => t.id))
+        .in('trainer_id', activeTrainers.map((t) => t.id))
         .eq('is_booked', false)
         .is('deleted_at', null)
         .gte('start_time', new Date().toISOString());
@@ -54,7 +60,7 @@ const BestDeals: React.FC = () => {
       type SlotRow = { trainer_id: string; start_time: string; is_booked: boolean; deleted_at: string | null };
       const idleCounts = buildIdleSlotCounts((slots ?? []) as SlotRow[]);
 
-      const withIdle = trainers
+      const withIdle = activeTrainers
         .filter((t) => (idleCounts[t.id] ?? 0) > 0)
         .sort((a, b) => b.discount_percentage - a.discount_percentage)
         .slice(0, 3)

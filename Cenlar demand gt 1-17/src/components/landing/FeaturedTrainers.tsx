@@ -9,7 +9,7 @@ interface FeaturedTrainer {
   rating: number;
   review_count: number;
   location: string;
-  profiles: { full_name: string; avatar_url: string | null } | null;
+  profiles: { full_name: string; avatar_url: string | null; role: string } | null;
 }
 
 const FeaturedTrainers: React.FC = () => {
@@ -21,14 +21,17 @@ const FeaturedTrainers: React.FC = () => {
       .from('trainer_profiles')
       .select(`
         id, specialty, rating, review_count, location,
-        profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
+        profiles!trainer_profiles_user_id_fkey (full_name, avatar_url, role)
       `)
       .eq('subscription_tier', 'elite')
       .eq('verified', true)
       .order('rating', { ascending: false })
       .limit(6)
       .then(({ data }) => {
-        setTrainers((data as unknown as FeaturedTrainer[]) ?? []);
+        const active = ((data as unknown as FeaturedTrainer[]) ?? []).filter(
+          (t) => t.profiles?.role === 'trainer'
+        );
+        setTrainers(active);
       });
   }, []);
 
