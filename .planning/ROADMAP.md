@@ -195,6 +195,19 @@ Plans:
 - [ ] 37-01-PLAN.md — Schema + trainer creation UI: slot_type/max_capacity/group_rate migration, group slot form fields, RPCs
 - [ ] 37-02-PLAN.md — Booking flow + client display: capacity enforcement, spots-remaining badge, participant list in trainer dashboard, group-safe cancellation
 
+### Phase 38: Client Workout Log & Exercise Diagrams
+**Goal**: Clients can log their workouts (exercises, sets, reps, weight) with visual exercise illustrations. Logs persist across sessions and trainers. The next trainer sees the client's last workout so they can pick up where the previous trainer left off. Creates continuity even when switching trainers.
+**Depends on**: Phase 34
+**Requirements**: LOG-01, LOG-02, LOG-03, LOG-04, LOG-05, LOG-06
+**Success Criteria**:
+  1. Client can log exercises with sets, reps, and weight after a session
+  2. Each exercise shows a clean illustration or diagram of the movement
+  3. Workout history is visible on the client dashboard with date and trainer
+  4. Trainer can view a client's recent workout logs before or during a session
+  5. Logs are tied to bookings but also accessible independently
+  6. Mobile-friendly input (quick add, minimal taps)
+**Plans:** TBD
+
 ---
 
 ## Progress
