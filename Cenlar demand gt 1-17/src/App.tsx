@@ -29,6 +29,7 @@ import TrialBanner from '@/components/subscription/TrialBanner';
 import GoogleCalendarCallback from '@/pages/GoogleCalendarCallback';
 import ResetPassword from '@/pages/ResetPassword';
 import HelpCenter from '@/pages/HelpCenter';
+import FAQ from '@/pages/FAQ';
 import { MyTicketsList, TicketThread } from '@/components/support/MyTickets';
 import SubmitTicketForm from '@/components/support/SubmitTicketForm';
 
@@ -162,6 +163,7 @@ const App: React.FC = () => {
             }
           />
           {/* Help & Support */}
+          <Route path="/faq" element={<FAQ />} />
           <Route path="/help" element={<HelpCenter />} />
           <Route
             path="/help/tickets"
