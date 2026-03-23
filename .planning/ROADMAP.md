@@ -129,7 +129,11 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
   4. Users tab shows all users with role, status (active/suspended), last login, filterable
   5. No demo/mock data anywhere in admin dashboard
   6. Cert approval button works without freezing
-**Plans:** TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 33-01-PLAN.md — Migration: admin RLS on payout_transactions, get_admin_user_list + get_admin_payout_balances RPCs, create-payout admin bypass
+- [ ] 33-02-PLAN.md — Remove all demo data, fix MRR mapping bug, add Transactions tab with status filter + pagination
+- [ ] 33-03-PLAN.md — Add Payouts tab (approve/hold), upgrade Users tab with email/last-login/role/status filters via RPC
 
 ### Phase 34: Capacitor iOS Build
 **Goal**: FitRush compiles and runs as an iOS app via Capacitor, with proper splash screen, status bar, safe areas, and native keyboard handling
@@ -223,9 +227,10 @@ Plans:
 | 26. AI Discount Analytics | v4.0 | 2/2 | done | 2026-03-19 |
 | 27. Location-Based Notifications | v4.0 | 2/2 | done | 2026-03-19 |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 3/3 | done | 2026-03-19 |
+| 33. Admin Dashboard Live Data | v5.0 | 0/3 | planned | — |
 | 35. Push Notifications | v6.0 | 0/2 | planned | — |
 | 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
 | 37. Group Sessions | 2/2 | Complete   | 2026-03-21 | — |
 
 ---
-*Last updated: 2026-03-20 -- v6.0 Growth Engine planned*
+*Last updated: 2026-03-23 -- Phase 33 planned*
