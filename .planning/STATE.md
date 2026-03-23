@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.0
-milestone_name: -- Growth Engine
-status: in-progress
-stopped_at: "Completed 35-01-PLAN.md and 35-02-PLAN.md (Push Notifications)"
-last_updated: "2026-03-20T00:40:00Z"
+milestone: v4.0
+milestone_name: -- The Live Platform
+status: unknown
+stopped_at: Completed 33-03-PLAN.md (Admin Dashboard - Payouts Tab and Users Tab Live Data)
+last_updated: "2026-03-23T08:13:58.080Z"
 progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 10
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 15
 ---
 
 # Project State -- FitRush
@@ -61,6 +61,13 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 - [Phase 37]: Group slot creation uses dedicated form section in AvailabilityManager (not grid click) — capacity/rate params require more input than a single cell click can express
 - [Phase 37]: create_booking_atomic updated to check capacity count for group slots instead of is_booked flag — group slots keep is_booked=false until truly full (DB trigger handles restoration)
 - [Phase 37]: Participant list placed in TrainerBookings.tsx (not TrainerDashboard.tsx) — that's where booking detail views exist
+- [Phase 33-admin-dashboard-live-data]: Admin payout bypass uses optional trainer_id body param in create-payout edge function, validated with admin role check + 403 guard
+- [Phase 33-admin-dashboard-live-data]: get_admin_user_list joins auth.users via SECURITY DEFINER — only safe path to email/last_sign_in_at without exposing auth schema to RLS
+- [Phase 33-admin-dashboard-live-data]: held status added to payout_transactions check constraint to support future admin hold workflow
+- [Phase 33-admin-dashboard-live-data]: Demo data removed from AdminDashboard — real zeros preferred over misleading mock data for new platform
+- [Phase 33-admin-dashboard-live-data]: MRR/subscriber counts read from top-level RPC response keys (data.mrr) not nested data.totals.mrr
+- [Phase Phase 33-admin-dashboard-live-data]: Payouts tab approve calls create-payout edge function with trainer_user_id (not profile ID) matching the edge function's existing user_id lookup
+- [Phase Phase 33-admin-dashboard-live-data]: Users tab uses client-side filtering after full get_admin_user_list fetch for instant filter responsiveness without extra RPC calls
 
 ## Blockers / Concerns
 
@@ -76,6 +83,6 @@ See `.planning/PROJECT.md` Key Decisions table for full history.
 
 ## Session Continuity
 
-Last session: 2026-03-20T00:40:00Z
-Stopped at: Completed Phase 35 Push Notifications (both plans)
+Last session: 2026-03-23T08:13:45.747Z
+Stopped at: Completed 33-03-PLAN.md (Admin Dashboard - Payouts Tab and Users Tab Live Data)
 Resume file: None

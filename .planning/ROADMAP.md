@@ -118,17 +118,22 @@ See: `.planning/milestones/v3.0-ROADMAP.md`
   5. Notification preferences save and persist
 **Plans:** TBD
 
-### Phase 33: Admin & Production Polish
-**Goal**: Admin dashboard is functional, all visual polish items are addressed, mock data is removed, Terms/Privacy have real structure, no console errors in production
+### Phase 33: Admin Dashboard Live Data & Controls
+**Goal**: Wire admin dashboard to real Supabase data — live analytics (revenue, bookings, users from DB), transaction list with payment status, payout approval/reject/hold per trainer, full user management with active/inactive filtering. Remove all demo/hardcoded data.
 **Depends on**: Phase 31, Phase 32
-**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, POLISH-01, POLISH-02, POLISH-03, POLISH-04, POLISH-05, POLISH-06, POLISH-07, POLISH-08, PERF-01, PERF-02, PERF-03, PERF-04
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06
 **Success Criteria**:
-  1. Admin can view users, suspend/unsuspend, view analytics
-  2. No mock/placeholder data in production
-  3. All loading states are skeletons, all errors are actionable
-  4. Terms and Privacy pages have structured content
-  5. Lighthouse mobile > 80, all tests passing, no console errors
-**Plans:** TBD
+  1. Analytics tab shows real revenue, booking counts, active users, and platform fees from Supabase
+  2. Transactions tab lists all payments with client, trainer, amount, status, date
+  3. Payouts tab lets admin approve/reject/hold individual trainer payouts
+  4. Users tab shows all users with role, status (active/suspended), last login, filterable
+  5. No demo/mock data anywhere in admin dashboard
+  6. Cert approval button works without freezing
+**Plans:** 3/3 plans complete
+Plans:
+- [ ] 33-01-PLAN.md — Migration: admin RLS on payout_transactions, get_admin_user_list + get_admin_payout_balances RPCs, create-payout admin bypass
+- [ ] 33-02-PLAN.md — Remove all demo data, fix MRR mapping bug, add Transactions tab with status filter + pagination
+- [ ] 33-03-PLAN.md — Add Payouts tab (approve/hold), upgrade Users tab with email/last-login/role/status filters via RPC
 
 ### Phase 34: Capacitor iOS Build
 **Goal**: FitRush compiles and runs as an iOS app via Capacitor, with proper splash screen, status bar, safe areas, and native keyboard handling
@@ -222,9 +227,10 @@ Plans:
 | 26. AI Discount Analytics | v4.0 | 2/2 | done | 2026-03-19 |
 | 27. Location-Based Notifications | v4.0 | 2/2 | done | 2026-03-19 |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 3/3 | done | 2026-03-19 |
+| 33. Admin Dashboard Live Data | 3/3 | Complete   | 2026-03-23 | — |
 | 35. Push Notifications | v6.0 | 0/2 | planned | — |
 | 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
 | 37. Group Sessions | 2/2 | Complete   | 2026-03-21 | — |
 
 ---
-*Last updated: 2026-03-20 -- v6.0 Growth Engine planned*
+*Last updated: 2026-03-23 -- Phase 33 planned*

@@ -51,11 +51,35 @@ Deno.serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
+    // Parse request body for optional admin bypass parameter
+    const body = await req.json().catch(() => ({}));
+    const adminTargetTrainerId = body.trainer_id as string | undefined;
+
+    // Resolve which trainer user to act on (admin bypass or self)
+    let trainerUserId = user.id;
+
+    if (adminTargetTrainerId) {
+      // Check if caller is admin
+      const { data: callerProfile } = await adminClient
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (callerProfile?.role !== 'admin') {
+        return new Response(JSON.stringify({ error: 'Only admins can trigger payouts for other trainers' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      trainerUserId = adminTargetTrainerId;
+    }
+
     // Step 2: Fetch trainer profile and stripe_account_id
     const { data: trainerProfile, error: trainerError } = await adminClient
       .from('trainer_profiles')
       .select('id, stripe_account_id, user_id')
-      .eq('user_id', user.id)
+      .eq('user_id', trainerUserId)
       .single();
 
     if (trainerError || !trainerProfile) {

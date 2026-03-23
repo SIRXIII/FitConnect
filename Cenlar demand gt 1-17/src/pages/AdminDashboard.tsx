@@ -11,45 +11,6 @@ import { useSupportTickets } from '@/hooks/useSupportTickets';
 
 type ProfileRow = Tables<'profiles'>;
 
-// ─── Demo data for empty/error states ───────────────────────────────────
-const DEMO_TOTALS = {
-  total_revenue: 45280.00,
-  total_platform_fee: 3622.40,
-  total_payouts: 41657.60,
-  booking_volume: 1847,
-  mrr: 2187.00,
-  pro_subscriber_count: 42,
-  elite_subscriber_count: 18,
-  active_trial_count: 7,
-};
-
-const DEMO_TOP_EARNERS = [
-  { trainer_name: 'Marcus Rivera', gross: 8420.00, net: 7746.40, bookings_count: 312 },
-  { trainer_name: 'Aisha Thompson', gross: 6890.00, net: 6338.80, bookings_count: 248 },
-  { trainer_name: 'James Kowalski', gross: 5215.00, net: 4797.80, bookings_count: 196 },
-  { trainer_name: 'Priya Sharma', gross: 4780.00, net: 4397.60, bookings_count: 178 },
-  { trainer_name: 'Elena Vasquez', gross: 4130.00, net: 3799.60, bookings_count: 162 },
-  { trainer_name: 'David Okonkwo', gross: 3650.00, net: 3358.00, bookings_count: 134 },
-  { trainer_name: 'Sofia Petrov', gross: 3420.00, net: 3146.40, bookings_count: 121 },
-  { trainer_name: 'Tyler Chen', gross: 2980.00, net: 2741.60, bookings_count: 108 },
-];
-
-const DEMO_USERS: UserRow[] = [
-  { id: 'demo-1', full_name: 'Marcus Rivera', role: 'trainer', is_suspended: false, created_at: '2025-11-04T10:00:00Z', trainer_profiles: { subscription_tier: 'elite', subscription_status: 'active', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-2', full_name: 'Aisha Thompson', role: 'trainer', is_suspended: false, created_at: '2025-11-18T14:30:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'active', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-3', full_name: 'James Kowalski', role: 'trainer', is_suspended: false, created_at: '2025-12-02T09:15:00Z', trainer_profiles: { subscription_tier: 'elite', subscription_status: 'trialing', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-4', full_name: 'Sarah Mitchell', role: 'client', is_suspended: false, created_at: '2026-01-10T11:00:00Z' },
-  { id: 'demo-5', full_name: 'Priya Sharma', role: 'trainer', is_suspended: false, created_at: '2026-01-15T16:45:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'trialing', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-6', full_name: 'David Okonkwo', role: 'trainer', is_suspended: false, created_at: '2026-01-22T08:30:00Z', trainer_profiles: { subscription_tier: 'free', subscription_status: 'inactive', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-7', full_name: 'Elena Vasquez', role: 'trainer', is_suspended: false, created_at: '2026-02-05T13:20:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'past_due', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-8', full_name: 'Tyler Chen', role: 'trainer', is_suspended: false, created_at: '2026-02-14T10:00:00Z', trainer_profiles: { subscription_tier: 'elite', subscription_status: 'active', tier_overridden_by: 'admin-1', tier_overridden_at: '2026-03-10T09:00:00Z' } },
-  { id: 'demo-9', full_name: 'Jordan Williams', role: 'client', is_suspended: false, created_at: '2026-02-20T15:00:00Z' },
-  { id: 'demo-10', full_name: 'Sofia Petrov', role: 'trainer', is_suspended: true, created_at: '2026-03-01T12:00:00Z', trainer_profiles: { subscription_tier: 'free', subscription_status: 'canceled', tier_overridden_by: null, tier_overridden_at: null } },
-  { id: 'demo-11', full_name: 'Alex Nakamura', role: 'client', is_suspended: false, created_at: '2026-03-08T09:30:00Z' },
-  { id: 'demo-12', full_name: 'Rachel Green', role: 'trainer', is_suspended: false, created_at: '2026-03-12T14:10:00Z', trainer_profiles: { subscription_tier: 'pro', subscription_status: 'active', tier_overridden_by: null, tier_overridden_at: null } },
-];
-// ─────────────────────────────────────────────────────────────────────────
-
 interface FlaggedReview {
   id: string;
   rating: number;
@@ -64,15 +25,33 @@ interface FlaggedReview {
 interface UserRow {
   id: string;
   full_name: string;
-  role: 'trainer' | 'client' | null;
+  role: 'trainer' | 'client' | 'admin' | null;
   is_suspended: boolean;
   created_at: string;
-  trainer_profiles?: {
-    subscription_tier: 'free' | 'pro' | 'elite';
-    subscription_status: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete';
-    tier_overridden_by: string | null;
-    tier_overridden_at: string | null;
-  } | null;
+  email?: string;
+  last_sign_in_at?: string | null;
+  subscription_tier?: 'free' | 'pro' | 'elite' | null;
+  subscription_status?: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete' | null;
+  tier_overridden_by?: string | null;
+  tier_overridden_at?: string | null;
+}
+
+interface PayoutBalance {
+  trainer_profile_id: string;
+  trainer_user_id: string;
+  trainer_name: string;
+  stripe_account_id: string | null;
+  pending_balance: number;
+  unpaid_booking_count: number;
+}
+
+interface PayoutHistoryRow {
+  id: string;
+  amount: number;
+  status: string;
+  initiated_by: string;
+  created_at: string;
+  completed_at: string | null;
 }
 
 interface CertReviewItem {
@@ -106,6 +85,17 @@ interface AuditLogEntry {
   actor?: { full_name: string } | null;
 }
 
+interface TransactionRow {
+  id: string;
+  amount: number;
+  platform_fee: number;
+  trainer_payout: number;
+  status: string;
+  created_at: string;
+  client_name: string;
+  trainer_name: string;
+}
+
 interface Stats {
   totalBookings: number;
   totalRevenue: number;
@@ -120,7 +110,7 @@ const AdminDashboard: React.FC = () => {
   const [platformFee, setPlatformFee] = useState('0.08');
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support'>('analytics');
   const { tickets: supportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
@@ -155,7 +145,19 @@ const AdminDashboard: React.FC = () => {
   }>>([]);
   const [loadingAdminAnalytics, setLoadingAdminAnalytics] = useState(false);
   const [overridingUserId, setOverridingUserId] = useState<string | null>(null);
-  const [usingDemoData, setUsingDemoData] = useState(false);
+  const [transactions, setTransactions] = useState<TransactionRow[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [txStatusFilter, setTxStatusFilter] = useState<string>('all');
+  const [txOffset, setTxOffset] = useState(0);
+  const [hasMoreTx, setHasMoreTx] = useState(true);
+  const TX_PAGE_SIZE = 25;
+  const [payoutBalances, setPayoutBalances] = useState<PayoutBalance[]>([]);
+  const [loadingPayouts, setLoadingPayouts] = useState(false);
+  const [payoutHistory, setPayoutHistory] = useState<PayoutHistoryRow[]>([]);
+  const [loadingPayoutHistory, setLoadingPayoutHistory] = useState(false);
+  const [processingPayoutTrainerId, setProcessingPayoutTrainerId] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -176,26 +178,20 @@ const AdminDashboard: React.FC = () => {
         ? Math.round(discounts.reduce((sum, t) => sum + t.discount_percentage, 0) / discounts.length)
         : 0;
 
-      const hasData = (bookingResult.count ?? 0) > 0 || totalRevenue > 0 || (userResult.count ?? 0) > 0;
-      if (!hasData) {
-        setStats({ totalBookings: 1847, totalRevenue: 45280, activeUsers: 284, avgDiscount: 15 });
-        setUsingDemoData(true);
-      } else {
-        setStats({
-          totalBookings: bookingResult.count ?? 0,
-          totalRevenue,
-          activeUsers: userResult.count ?? 0,
-          avgDiscount,
-        });
-      }
+      setStats({
+        totalBookings: bookingResult.count ?? 0,
+        totalRevenue,
+        activeUsers: userResult.count ?? 0,
+        avgDiscount,
+      });
 
       if (feeResult.data?.value) {
         setPlatformFee(feeResult.data.value);
         setSavedFee(feeResult.data.value);
       }
     } catch {
-      setStats({ totalBookings: 1847, totalRevenue: 45280, activeUsers: 284, avgDiscount: 15 });
-      setUsingDemoData(true);
+      setStats({ totalBookings: 0, totalRevenue: 0, activeUsers: 0, avgDiscount: 0 });
+      toast.error('Failed to load platform stats');
     } finally {
       setLoadingStats(false);
     }
@@ -204,37 +200,167 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = useCallback(async () => {
     setLoadingUsers(true);
     try {
-      let query = supabase
-        .from('profiles')
-        .select('id, full_name, role, is_suspended, created_at, trainer_profiles(subscription_tier, subscription_status, tier_overridden_by, tier_overridden_at)')
-        .in('role', ['trainer', 'client'])
-        .order('created_at', { ascending: false });
+      const { data, error } = await (supabase as any).rpc('get_admin_user_list');
+      if (error) throw error;
+      let rows = (data ?? []) as UserRow[];
 
+      // Client-side filtering (RPC returns all users, filter in JS for responsiveness)
+      if (roleFilter !== 'all') {
+        rows = rows.filter(u => u.role === roleFilter);
+      }
+      if (statusFilter === 'active') {
+        rows = rows.filter(u => !u.is_suspended);
+      } else if (statusFilter === 'suspended') {
+        rows = rows.filter(u => u.is_suspended);
+      }
       if (search.trim()) {
-        query = query.ilike('full_name', `%${search.trim()}%`);
+        const q = search.trim().toLowerCase();
+        rows = rows.filter(u =>
+          u.full_name?.toLowerCase().includes(q) ||
+          u.email?.toLowerCase().includes(q)
+        );
+      }
+
+      setUsers(rows);
+    } catch {
+      setUsers([]);
+      toast.error('Failed to load users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  }, [search, roleFilter, statusFilter]);
+
+  const fetchTransactions = useCallback(async (offset = 0, append = false) => {
+    setLoadingTransactions(true);
+    try {
+      let query = (supabase as any)
+        .from('payments')
+        .select(`
+          id, amount, platform_fee, trainer_payout, status, created_at,
+          bookings!inner(
+            client:client_id(full_name),
+            trainer:trainer_id(full_name)
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + TX_PAGE_SIZE - 1);
+
+      if (txStatusFilter !== 'all') {
+        query = query.eq('status', txStatusFilter);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      const rows = (data ?? []) as unknown as UserRow[];
-      if (rows.length === 0) {
-        // Fallback to demo users for empty databases
-        const filtered = search.trim()
-          ? DEMO_USERS.filter((u) => u.full_name.toLowerCase().includes(search.trim().toLowerCase()))
-          : DEMO_USERS;
-        setUsers(filtered);
-        setUsingDemoData(true);
+
+      const rows: TransactionRow[] = (data ?? []).map((p: any) => ({
+        id: p.id,
+        amount: Number(p.amount),
+        platform_fee: Number(p.platform_fee),
+        trainer_payout: Number(p.trainer_payout),
+        status: p.status,
+        created_at: p.created_at,
+        client_name: p.bookings?.client?.full_name ?? '—',
+        trainer_name: p.bookings?.trainer?.full_name ?? '—',
+      }));
+
+      if (append) {
+        setTransactions(prev => [...prev, ...rows]);
       } else {
-        setUsers(rows);
+        setTransactions(rows);
       }
+      setHasMoreTx(rows.length === TX_PAGE_SIZE);
+      setTxOffset(offset + rows.length);
     } catch {
-      // On error, show demo data instead of error toast
-      setUsers(DEMO_USERS);
-      setUsingDemoData(true);
+      toast.error('Failed to load transactions');
+      if (!append) setTransactions([]);
     } finally {
-      setLoadingUsers(false);
+      setLoadingTransactions(false);
     }
-  }, [search]);
+  }, [txStatusFilter]);
+
+  useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
+
+  const fetchPayoutBalances = useCallback(async () => {
+    setLoadingPayouts(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('get_admin_payout_balances');
+      if (error) throw error;
+      setPayoutBalances((data ?? []) as PayoutBalance[]);
+    } catch {
+      toast.error('Failed to load payout balances');
+      setPayoutBalances([]);
+    } finally {
+      setLoadingPayouts(false);
+    }
+  }, []);
+
+  const fetchPayoutHistory = useCallback(async () => {
+    setLoadingPayoutHistory(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('payout_transactions')
+        .select('id, amount, status, initiated_by, created_at, completed_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      setPayoutHistory((data ?? []) as PayoutHistoryRow[]);
+    } catch {
+      toast.error('Failed to load payout history');
+    } finally {
+      setLoadingPayoutHistory(false);
+    }
+  }, []);
+
+  const handleApprovePayout = async (balance: PayoutBalance) => {
+    if (!balance.stripe_account_id) {
+      toast.error(`${balance.trainer_name} has no Stripe account connected`);
+      return;
+    }
+    if (balance.pending_balance < 50) {
+      toast.error('Minimum payout is $50');
+      return;
+    }
+    setProcessingPayoutTrainerId(balance.trainer_profile_id);
+    try {
+      const { error } = await supabase.functions.invoke('create-payout', {
+        body: { trainer_id: balance.trainer_user_id },
+      });
+      if (error) throw error;
+      toast.success(`Payout of $${balance.pending_balance.toFixed(2)} initiated for ${balance.trainer_name}`);
+      await fetchPayoutBalances();
+      await fetchPayoutHistory();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Payout failed');
+    } finally {
+      setProcessingPayoutTrainerId(null);
+    }
+  };
+
+  const handleHoldPayout = async (balance: PayoutBalance) => {
+    setProcessingPayoutTrainerId(balance.trainer_profile_id);
+    try {
+      const { error } = await (supabase as any)
+        .from('payout_transactions')
+        .insert({
+          trainer_id: balance.trainer_profile_id,
+          amount: balance.pending_balance,
+          status: 'held',
+          initiated_by: 'admin',
+          currency: 'usd',
+        });
+      if (error) throw error;
+      toast.success(`Payout held for ${balance.trainer_name}`);
+      await fetchPayoutBalances();
+      await fetchPayoutHistory();
+    } catch {
+      toast.error('Failed to hold payout');
+    } finally {
+      setProcessingPayoutTrainerId(null);
+    }
+  };
+
+  useEffect(() => { fetchPayoutBalances(); }, [fetchPayoutBalances]);
+  useEffect(() => { fetchPayoutHistory(); }, [fetchPayoutHistory]);
 
   const fetchPendingCerts = useCallback(async () => {
     setLoadingCerts(true);
@@ -344,43 +470,34 @@ const AdminDashboard: React.FC = () => {
     const fetchAdminAnalytics = async () => {
       setLoadingAdminAnalytics(true);
       const bounds = getDateBounds(adminRange);
-      const { data, error } = await supabase.rpc('get_admin_analytics', {
+      const { data: rawData, error } = await supabase.rpc('get_admin_analytics', {
         p_start: bounds.start,
         p_end: bounds.end,
         p_bucket: getBucketParam(adminRange),
       });
+      const data = rawData as any;
       if (error || !data?.totals) {
-        // Fallback to demo data so dashboard looks populated
-        setAdminTotals(DEMO_TOTALS);
-        setTopEarners(DEMO_TOP_EARNERS);
-        setUsingDemoData(true);
+        setAdminTotals(null);
+        setTopEarners([]);
         setLoadingAdminAnalytics(false);
         return;
       }
-      const hasRealData = Number(data.totals.total_revenue) > 0 || Number(data.totals.booking_volume) > 0;
-      if (!hasRealData) {
-        setAdminTotals(DEMO_TOTALS);
-        setTopEarners(DEMO_TOP_EARNERS);
-        setUsingDemoData(true);
-      } else {
-        setAdminTotals({
-          total_revenue: Number(data.totals.total_revenue),
-          total_platform_fee: Number(data.totals.total_platform_fee),
-          total_payouts: Number(data.totals.total_payouts),
-          booking_volume: Number(data.totals.booking_volume),
-          mrr: Number(data.totals.mrr ?? 0),
-          pro_subscriber_count: Number(data.totals.pro_subscriber_count ?? 0),
-          elite_subscriber_count: Number(data.totals.elite_subscriber_count ?? 0),
-          active_trial_count: Number(data.totals.active_trial_count ?? 0),
-        });
-        setTopEarners((data.top_earners ?? []).map((r: { trainer_name: string; gross: string; net: string; bookings_count: string }) => ({
-          trainer_name: r.trainer_name,
-          gross: Number(r.gross),
-          net: Number(r.net),
-          bookings_count: Number(r.bookings_count),
-        })));
-        setUsingDemoData(false);
-      }
+      setAdminTotals({
+        total_revenue: Number(data.totals.total_revenue),
+        total_platform_fee: Number(data.totals.total_platform_fee),
+        total_payouts: Number(data.totals.total_payouts),
+        booking_volume: Number(data.totals.booking_volume),
+        mrr: Number(data.mrr ?? 0),
+        pro_subscriber_count: Number(data.pro_subscriber_count ?? 0),
+        elite_subscriber_count: Number(data.elite_subscriber_count ?? 0),
+        active_trial_count: Number(data.active_trial_count ?? 0),
+      });
+      setTopEarners((data.top_earners ?? []).map((r: { trainer_name: string; gross: string; net: string; bookings_count: string }) => ({
+        trainer_name: r.trainer_name,
+        gross: Number(r.gross),
+        net: Number(r.net),
+        bookings_count: Number(r.bookings_count),
+      })));
       setLoadingAdminAnalytics(false);
     };
     fetchAdminAnalytics();
@@ -460,19 +577,9 @@ const AdminDashboard: React.FC = () => {
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">Platform Control</p>
         </div>
 
-        {/* Demo data indicator */}
-        {usingDemoData && (
-          <div className="border border-accent/20 bg-accent/5 px-6 py-3 flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-accent font-medium">
-              Showing demo data — connect live data to replace
-            </p>
-            <span className="text-[9px] uppercase tracking-widest text-accent/50">Preview Mode</span>
-          </div>
-        )}
-
         {/* Tabs */}
         <div className="flex flex-wrap border-b border-ink/10">
-          {(['analytics', 'users', 'reviews', 'certifications', 'audit', 'settings'] as const).map((tab) => (
+          {(['analytics', 'transactions', 'payouts', 'users', 'reviews', 'certifications', 'audit', 'settings'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -611,27 +718,249 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
+        {/* Transactions Tab */}
+        {activeTab === 'transactions' && (
+          <div className="space-y-6">
+            {/* Status filter */}
+            <div className="flex items-center gap-4">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Filter:</p>
+              {['all', 'succeeded', 'pending', 'processing', 'failed', 'refunded'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setTxStatusFilter(s); setTxOffset(0); }}
+                  className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
+                    txStatusFilter === s
+                      ? 'border-ink text-ink bg-ink/5'
+                      : 'border-ink/10 text-ink/40 hover:text-ink hover:border-ink/30'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {/* Transaction table */}
+            <div className="border border-ink/10">
+              <div className="grid grid-cols-[1fr_1fr_100px_100px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Client</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Trainer</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Amount</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Fee</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Payout</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Date</p>
+              </div>
+
+              {loadingTransactions ? (
+                <div className="px-6 py-12 text-center">
+                  <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <p className="text-xs text-ink/30">No transactions found</p>
+                </div>
+              ) : (
+                transactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="grid grid-cols-[1fr_1fr_100px_100px_100px_100px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                  >
+                    <p className="text-sm text-ink truncate">{tx.client_name}</p>
+                    <p className="text-sm text-ink truncate">{tx.trainer_name}</p>
+                    <p className="text-sm text-ink">${tx.amount.toFixed(2)}</p>
+                    <p className="text-sm text-ink/60">${tx.platform_fee.toFixed(2)}</p>
+                    <p className="text-sm text-ink">${tx.trainer_payout.toFixed(2)}</p>
+                    <span className={`inline-block px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium ${
+                      tx.status === 'succeeded' ? 'bg-emerald-50 text-emerald-600' :
+                      tx.status === 'failed' ? 'bg-red-50 text-red-600' :
+                      tx.status === 'refunded' ? 'bg-amber-50 text-amber-600' :
+                      'bg-ink/5 text-ink/50'
+                    }`}>
+                      {tx.status}
+                    </span>
+                    <p className="text-xs text-ink/40">{new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Load more */}
+            {hasMoreTx && transactions.length > 0 && (
+              <div className="text-center">
+                <button
+                  onClick={() => fetchTransactions(txOffset, true)}
+                  disabled={loadingTransactions}
+                  className="px-8 py-2 text-[10px] uppercase tracking-[0.2em] font-medium border border-ink/10 text-ink/60 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-50"
+                >
+                  Load More
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Payouts Tab */}
+        {activeTab === 'payouts' && (
+          <div className="space-y-8">
+            {/* Pending Balances */}
+            <div className="space-y-3">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Trainer Pending Balances</p>
+              <div className="border border-ink/10">
+                <div className="grid grid-cols-[2fr_120px_100px_100px_180px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Trainer</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Balance</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Bookings</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Stripe</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Actions</p>
+                </div>
+
+                {loadingPayouts ? (
+                  <div className="px-6 py-12 text-center">
+                    <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : payoutBalances.length === 0 ? (
+                  <div className="px-6 py-12 text-center">
+                    <p className="text-xs text-ink/30">No pending payout balances</p>
+                  </div>
+                ) : (
+                  payoutBalances.map((b) => (
+                    <div
+                      key={b.trainer_profile_id}
+                      className="grid grid-cols-[2fr_120px_100px_100px_180px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                    >
+                      <p className="text-sm text-ink">{b.trainer_name}</p>
+                      <p className="text-sm text-ink font-medium">${Number(b.pending_balance).toFixed(2)}</p>
+                      <p className="text-sm text-ink/60">{b.unpaid_booking_count}</p>
+                      <span className={`text-[9px] uppercase tracking-wider font-medium ${b.stripe_account_id ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {b.stripe_account_id ? 'Connected' : 'None'}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApprovePayout(b)}
+                          disabled={processingPayoutTrainerId === b.trainer_profile_id || !b.stripe_account_id || b.pending_balance < 50}
+                          className="px-3 py-1 text-[9px] uppercase tracking-wider font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Approve'}
+                        </button>
+                        <button
+                          onClick={() => handleHoldPayout(b)}
+                          disabled={processingPayoutTrainerId === b.trainer_profile_id}
+                          className="px-3 py-1 text-[9px] uppercase tracking-wider font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-40"
+                        >
+                          Hold
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Payout History */}
+            <div className="space-y-3">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Payout History</p>
+              <div className="border border-ink/10">
+                <div className="grid grid-cols-[1fr_120px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">ID</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Amount</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Initiated</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Date</p>
+                </div>
+                {loadingPayoutHistory ? (
+                  <div className="px-6 py-8 text-center">
+                    <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : payoutHistory.length === 0 ? (
+                  <div className="px-6 py-8 text-center">
+                    <p className="text-xs text-ink/30">No payout history</p>
+                  </div>
+                ) : (
+                  payoutHistory.map((ph) => (
+                    <div
+                      key={ph.id}
+                      className="grid grid-cols-[1fr_120px_100px_100px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                    >
+                      <p className="text-xs text-ink/50 font-mono truncate">{ph.id.slice(0, 8)}...</p>
+                      <p className="text-sm text-ink font-medium">${Number(ph.amount).toFixed(2)}</p>
+                      <span className={`inline-block px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium ${
+                        ph.status === 'completed' ? 'bg-emerald-50 text-emerald-600' :
+                        ph.status === 'failed' ? 'bg-red-50 text-red-600' :
+                        ph.status === 'held' ? 'bg-amber-50 text-amber-600' :
+                        'bg-ink/5 text-ink/50'
+                      }`}>
+                        {ph.status}
+                      </span>
+                      <p className="text-xs text-ink/40">{ph.initiated_by}</p>
+                      <p className="text-xs text-ink/40">{new Date(ph.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Users Tab */}
         {activeTab === 'users' && (
           <div className="space-y-6">
-            <div className="relative max-w-sm">
-              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
-              <input
-                type="text"
-                placeholder="Search by name…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-ink/10 bg-transparent text-sm text-ink placeholder-ink/25 focus:outline-none focus:border-ink/30"
-              />
+            {/* Filters row */}
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="relative max-w-sm flex-1">
+                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
+                <input
+                  type="text"
+                  placeholder="Search by name or email..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-ink/10 bg-transparent text-sm text-ink placeholder-ink/25 focus:outline-none focus:border-ink/30"
+                />
+              </div>
+
+              {/* Role filter */}
+              <div className="flex gap-1">
+                {['all', 'trainer', 'client', 'admin'].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRoleFilter(r)}
+                    className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border transition-colors ${
+                      roleFilter === r
+                        ? 'border-ink text-ink bg-ink/5'
+                        : 'border-ink/10 text-ink/40 hover:text-ink'
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status filter */}
+              <div className="flex gap-1">
+                {['all', 'active', 'suspended'].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border transition-colors ${
+                      statusFilter === s
+                        ? 'border-ink text-ink bg-ink/5'
+                        : 'border-ink/10 text-ink/40 hover:text-ink'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="border border-ink/10">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_100px_120px_100px_120px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/2">
+              <div className="grid grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Name</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Email</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Role</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Tier</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Joined</p>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Last Login</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Status</p>
                 <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Override</p>
               </div>
@@ -648,24 +977,30 @@ const AdminDashboard: React.FC = () => {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className="grid grid-cols-[1fr_100px_120px_100px_120px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/2 transition-colors"
+                    className="grid grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
                   >
                     <div>
                       <p className={`text-sm font-medium ${user.is_suspended ? 'text-ink/30 line-through' : 'text-ink'}`}>
                         {user.full_name || '—'}
                       </p>
                     </div>
+                    <p className="text-xs text-ink/50 truncate">{user.email ?? '—'}</p>
                     <p className="text-[10px] uppercase tracking-widest text-ink/50">{user.role}</p>
                     <div>
-                      {user.role === 'trainer' && user.trainer_profiles ? (
+                      {user.role === 'trainer' && user.subscription_tier ? (
                         <TierBadge
-                          tier={user.trainer_profiles.subscription_tier}
-                          status={user.trainer_profiles.subscription_status}
+                          tier={user.subscription_tier}
+                          status={user.subscription_status ?? 'inactive'}
                         />
                       ) : null}
                     </div>
                     <p className="text-[10px] text-ink/40">
                       {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                    <p className="text-xs text-ink/40">
+                      {user.last_sign_in_at
+                        ? new Date(user.last_sign_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : 'Never'}
                     </p>
                     <button
                       onClick={() => handleSuspend(user)}
@@ -709,9 +1044,9 @@ const AdminDashboard: React.FC = () => {
                             >
                               Override
                             </button>
-                            {user.trainer_profiles?.tier_overridden_at && (
+                            {user.tier_overridden_at && (
                               <p className="text-[8px] text-ink/25">
-                                Set {new Date(user.trainer_profiles.tier_overridden_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                Set {new Date(user.tier_overridden_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </p>
                             )}
                           </div>
