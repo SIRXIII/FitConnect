@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-16 mb-24">
           <div className="md:col-span-6 space-y-10">
             <div className="flex items-center gap-3">
-              <img src="/assets/logo.png" alt="FitRush" className="h-10 w-10 object-contain brightness-0 invert" />
+              <img src="/assets/logo.png" alt="FitRush" className="h-10 w-10 object-contain rounded-lg" />
               <h3 className="text-3xl font-light tracking-[0.3em] uppercase serif">
                 FitRush
               </h3>
