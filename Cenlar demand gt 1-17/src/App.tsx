@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
+import { isNativeiOS } from '@/lib/platform';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
@@ -70,7 +71,7 @@ const App: React.FC = () => {
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/auth/google-callback" element={<GoogleCalendarCallback />} />
-          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/pricing" element={isNativeiOS() ? <Navigate to="/" replace /> : <Pricing />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
 
