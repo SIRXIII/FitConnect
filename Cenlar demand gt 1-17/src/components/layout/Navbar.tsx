@@ -67,6 +67,7 @@ const Navbar: React.FC = () => {
             <a href="/#search" className="text-[13px] uppercase tracking-[0.1em] font-semibold hover:text-accent transition-colors">Trainers</a>
             <a href="/#how-it-works" className="text-[13px] uppercase tracking-[0.1em] font-semibold hover:text-accent transition-colors">Experience</a>
             <a href="/#safety" className="text-[13px] uppercase tracking-[0.1em] font-semibold hover:text-accent transition-colors">Safety</a>
+            <Link to="/faq" className="text-[13px] uppercase tracking-[0.1em] font-semibold hover:text-accent transition-colors">FAQ</Link>
 
             {user ? (
               <>
@@ -266,6 +267,7 @@ const Navbar: React.FC = () => {
           <a href="/#search" onClick={() => setIsOpen(false)} className="text-2xl serif font-light tracking-widest hover:text-accent">Trainers</a>
           <a href="/#how-it-works" onClick={() => setIsOpen(false)} className="text-2xl serif font-light tracking-widest hover:text-accent">Experience</a>
           <a href="/#safety" onClick={() => setIsOpen(false)} className="text-2xl serif font-light tracking-widest hover:text-accent">Safety</a>
+          <Link to="/faq" onClick={() => setIsOpen(false)} className="text-2xl serif font-light tracking-widest hover:text-accent">FAQ</Link>
 
           {user ? (
             <>
