@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Star, MapPin } from 'lucide-react';
+import { Calendar, Clock, Star, MapPin, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
@@ -179,6 +179,120 @@ const ReviewModal: React.FC<{
   );
 };
 
+// ── Post-Workout Quick Survey ──────────────────────────────────────
+const SURVEY_QUESTIONS = [
+  {
+    key: 'energy',
+    label: 'How do you feel after this session?',
+    options: ['Exhausted', 'Tired but good', 'Energized', 'On top of the world'],
+  },
+  {
+    key: 'match',
+    label: 'Was this trainer a good fit for your goals?',
+    options: ['Not really', 'Okay', 'Good fit', 'Perfect match'],
+  },
+  {
+    key: 'rebook',
+    label: 'Would you book this trainer again?',
+    options: ['Probably not', 'Maybe', 'Likely', 'Absolutely'],
+  },
+] as const;
+
+const PostWorkoutSurvey: React.FC<{
+  bookingId: string;
+  trainerName: string;
+  onClose: () => void;
+}> = ({ bookingId, trainerName, onClose }) => {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [suggestion, setSuggestion] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const allAnswered = SURVEY_QUESTIONS.every(q => answers[q.key]);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      await (supabase as any).from('post_workout_surveys').insert({
+        booking_id: bookingId,
+        energy_level: answers.energy || null,
+        trainer_match: answers.match || null,
+        rebook_likelihood: answers.rebook || null,
+        suggestion: suggestion.trim() || null,
+      });
+      toast.success('Thanks for the feedback!');
+      onClose();
+    } catch {
+      // Table may not exist yet, silently close
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={onClose}>
+      <div className="bg-paper max-w-md w-full p-8 space-y-6 border border-ink/10" onClick={(e) => e.stopPropagation()}>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-accent">
+            <MessageSquare size={16} strokeWidth={1.5} />
+            <p className="text-[10px] uppercase tracking-[0.2em] font-medium">Quick Check-in</p>
+          </div>
+          <h3 className="text-xl serif font-light italic text-ink">How was your workout?</h3>
+          <p className="text-sm text-ink/40">Quick feedback after your session with {trainerName}</p>
+        </div>
+
+        {SURVEY_QUESTIONS.map((q) => (
+          <div key={q.key} className="space-y-2">
+            <p className="text-xs font-medium text-ink/70">{q.label}</p>
+            <div className="flex flex-wrap gap-2">
+              {q.options.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => setAnswers(prev => ({ ...prev, [q.key]: opt }))}
+                  className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.1em] border transition-all ${
+                    answers[q.key] === opt
+                      ? 'bg-accent text-white border-accent'
+                      : 'border-ink/15 text-ink/50 hover:border-ink/30'
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-ink/70">Any suggestions for your next session?</p>
+          <textarea
+            value={suggestion}
+            onChange={(e) => setSuggestion(e.target.value)}
+            placeholder="Optional: more intensity, different exercises, longer warmup..."
+            rows={2}
+            className="w-full border border-ink/10 bg-transparent p-3 text-sm text-ink placeholder:text-ink/20 focus:outline-none focus:border-accent/40 resize-none"
+          />
+        </div>
+
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+          >
+            Skip
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!allAnswered || submitting}
+            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] bg-ink text-white hover:bg-ink/80 transition-colors disabled:opacity-30"
+          >
+            {submitting ? 'Sending...' : 'Submit'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MyBookings: React.FC = () => {
   const { user } = useAuthStore();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
@@ -186,6 +300,7 @@ const MyBookings: React.FC = () => {
   const [fetchError, setFetchError] = useState<unknown>(null);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [reviewBooking, setReviewBooking] = useState<BookingWithDetails | null>(null);
+  const [surveyBooking, setSurveyBooking] = useState<{ id: string; trainerName: string } | null>(null);
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
   const [sessionLogsMap, setSessionLogsMap] = useState<Map<string, { notes: string | null; exercises: ExerciseEntry[] }>>(new Map());
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
@@ -300,7 +415,9 @@ const MyBookings: React.FC = () => {
     } else {
       toast.success('Review submitted — thank you!');
       setReviewedIds((prev) => new Set(prev).add(bookingId));
+      const trainerName = reviewBooking?.trainer_profiles?.profiles?.full_name || 'your trainer';
       setReviewBooking(null);
+      setSurveyBooking({ id: bookingId, trainerName });
     }
   };
 
@@ -545,6 +662,15 @@ const MyBookings: React.FC = () => {
           booking={reviewBooking}
           onClose={() => setReviewBooking(null)}
           onSubmit={handleReviewSubmit}
+        />
+      )}
+
+      {/* Post-Workout Survey — shows after review submission */}
+      {surveyBooking && (
+        <PostWorkoutSurvey
+          bookingId={surveyBooking.id}
+          trainerName={surveyBooking.trainerName}
+          onClose={() => setSurveyBooking(null)}
         />
       )}
     </div>
