@@ -1225,6 +1225,22 @@ const AdminDashboard: React.FC = () => {
               </p>
             </div>
 
+            {/* USREPS universal verification link */}
+            <div className="flex items-center gap-4 border border-ink/10 px-6 py-4">
+              <div className="flex-1">
+                <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-ink/60">U.S. Registry of Exercise Professionals</p>
+                <p className="text-xs text-ink/40 mt-1">150,000+ active credentials. Verify any NCCA-accredited certification in one search.</p>
+              </div>
+              <a
+                href="https://usreps.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 border border-accent/40 text-accent px-5 py-2.5 text-[11px] uppercase tracking-[0.15em] font-medium hover:bg-accent hover:text-white transition-all"
+              >
+                USREPS Registry
+              </a>
+            </div>
+
             {!loadingCerts && pendingCerts.length === 0 && (
               <div className="border border-ink/10 p-12 text-center">
                 <ShieldCheck size={32} strokeWidth={1} className="text-green-400 mx-auto mb-3" />
