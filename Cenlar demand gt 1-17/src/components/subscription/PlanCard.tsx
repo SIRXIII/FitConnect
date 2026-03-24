@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { BillingInterval, PlanPricing } from '@/lib/subscription';
 import type { Tier } from '@/lib/tierGates';
+import { isNativeiOS } from '@/lib/platform';
 
 interface PlanCardProps {
   plan: PlanPricing;
@@ -156,7 +157,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           </li>
         ))}
       </ul>
-      <div className="pt-2">{renderCTA()}</div>
+      {!isNativeiOS() && <div className="pt-2">{renderCTA()}</div>}
     </div>
   );
 };

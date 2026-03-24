@@ -1,5 +1,6 @@
 import { Instagram, Twitter, Linkedin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { isNativeiOS } from '@/lib/platform';
 
 const Footer: React.FC = () => {
   return (
@@ -35,7 +36,7 @@ const Footer: React.FC = () => {
               <li><Link to="/#search" className="hover:text-paper transition-colors">Find a Professional</Link></li>
               <li><Link to="/#how-it-works" className="hover:text-paper transition-colors">The Experience</Link></li>
               <li><Link to="/#search" className="hover:text-paper transition-colors">Browse Trainers</Link></li>
-              <li><Link to="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>
+              {!isNativeiOS() && <li><Link to="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>}
               <li><Link to="/faq" className="hover:text-paper transition-colors">FAQ</Link></li>
             </ul>
           </div>

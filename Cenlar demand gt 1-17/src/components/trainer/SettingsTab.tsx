@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Camera, Check, Eye, EyeOff, Mail, AlertTriangle } from 'lucide-react';
+import DeleteAccountModal from '@/components/shared/DeleteAccountModal';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
@@ -90,6 +91,7 @@ const SettingsTab: React.FC = () => {
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const initials = fullName.trim()
     ? fullName.trim().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -463,21 +465,25 @@ const SettingsTab: React.FC = () => {
       <div className="border border-red-200/60 p-8 space-y-4">
         <div className="flex items-start gap-3">
           <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" strokeWidth={1.5} />
-          <div className="space-y-1">
+          <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-red-400/80 font-medium">Danger Zone</p>
             <p className="text-sm font-light text-ink/50">
-              To delete your account and all associated data, contact us at{' '}
-              <a
-                href="mailto:support@fitrush.app"
-                className="text-ink/70 underline underline-offset-2 hover:text-ink transition-colors"
-              >
-                support@fitrush.app
-              </a>
-              . Account deletion is permanent and cannot be undone.
+              Permanently delete your account and all associated data. This cannot be undone.
+            </p>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="border border-red-300 text-red-600 px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors"
+            >
+              Delete My Account
+            </button>
+            <p className="text-[10px] text-ink/30">
+              Or contact support@fitrush.app for assistance
             </p>
           </div>
         </div>
       </div>
+
+      <DeleteAccountModal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} />
 
     </div>
   );

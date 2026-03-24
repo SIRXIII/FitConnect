@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
+import { isNativeiOS } from '@/lib/platform';
 import { useTier } from '@/hooks/useTier';
 import { getPortalUrl } from '@/lib/subscription';
 import type { Tier } from '@/lib/tierGates';
@@ -37,6 +38,15 @@ const SubscriptionTab: React.FC = () => {
       year: 'numeric',
     });
   };
+
+  if (isNativeiOS()) {
+    return (
+      <div className="space-y-4 text-center py-12">
+        <p className="text-sm text-ink/50">Subscription management is available on the web.</p>
+        <p className="text-xs text-ink/30">Visit fitrush-app.netlify.app to manage your plan.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
