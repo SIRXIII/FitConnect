@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 
 // Test credentials
 const ACCOUNTS = {
-  admin: { email: 'admin@fitrush.com', password: '@dmin2026' },
+  admin: { email: 'admin@fitrush.com', password: 'ADMIN123' },
   trainer: { email: 'hostcalifornia@gmail.com', password: 'YoloLife2026' },
   client: { email: 'sirxiii@gmail.com', password: 'Workout20206!' },
 };
@@ -108,9 +108,7 @@ test.describe('Trainer Flow', () => {
 
 // ─── Admin role ───────────────────────────────────────────────────
 
-// NOTE: Admin tests skipped — need correct password for admin@fitrush.com
-// Update ACCOUNTS.admin.password and remove .skip when known
-test.describe.skip('Admin Flow', () => {
+test.describe('Admin Flow', () => {
   test('admin can log in and see dashboard', async ({ page }) => {
     await login(page, ACCOUNTS.admin.email, ACCOUNTS.admin.password);
     await page.goto('/admin');
@@ -121,54 +119,56 @@ test.describe.skip('Admin Flow', () => {
 
   test('admin analytics tab loads without demo data', async ({ page }) => {
     await login(page, ACCOUNTS.admin.email, ACCOUNTS.admin.password);
+    await page.goto('/admin');
     await page.waitForTimeout(5000);
-    // Should NOT show "SHOWING DEMO DATA"
-    const demoWarning = page.locator('text=SHOWING DEMO DATA');
-    expect(await demoWarning.count()).toBe(0);
+    const text = await page.textContent('body');
+    expect(text).not.toContain('Showing Demo Data');
   });
 
   test('admin users tab loads real data', async ({ page }) => {
     await login(page, ACCOUNTS.admin.email, ACCOUNTS.admin.password);
+    await page.goto('/admin');
     await page.waitForTimeout(3000);
-    const usersTab = page.locator('button:has-text("USERS")');
+    const usersTab = page.locator('button:has-text("Users")');
     if (await usersTab.isVisible()) {
       await usersTab.click();
       await page.waitForTimeout(3000);
-      // Should not show demo data warning
-      const demoWarning = page.locator('text=SHOWING DEMO DATA');
-      expect(await demoWarning.count()).toBe(0);
+      const text = await page.textContent('body');
+      expect(text).not.toContain('Showing Demo Data');
     }
   });
 
   test('admin transactions tab loads without errors', async ({ page }) => {
     await login(page, ACCOUNTS.admin.email, ACCOUNTS.admin.password);
+    await page.goto('/admin');
     await page.waitForTimeout(3000);
-    const txTab = page.locator('button:has-text("TRANSACTIONS")');
+    const txTab = page.locator('button:has-text("Transactions")');
     if (await txTab.isVisible()) {
       await txTab.click();
       await page.waitForTimeout(3000);
-      // No error toast
-      const errorToast = page.locator('.sonner-toast:has-text("Failed")');
+      const errorToast = page.locator('[data-sonner-toast]:has-text("Failed")');
       expect(await errorToast.count()).toBe(0);
     }
   });
 
   test('admin payouts tab loads without errors', async ({ page }) => {
     await login(page, ACCOUNTS.admin.email, ACCOUNTS.admin.password);
+    await page.goto('/admin');
     await page.waitForTimeout(3000);
-    const payoutsTab = page.locator('button:has-text("PAYOUTS")');
+    const payoutsTab = page.locator('button:has-text("Payouts")');
     if (await payoutsTab.isVisible()) {
       await payoutsTab.click();
       await page.waitForTimeout(3000);
-      const errorToast = page.locator('.sonner-toast:has-text("Failed")');
+      const errorToast = page.locator('[data-sonner-toast]:has-text("Failed")');
       expect(await errorToast.count()).toBe(0);
     }
   });
 
   test('admin certifications tab has USREPS link', async ({ page }) => {
     await login(page, ACCOUNTS.admin.email, ACCOUNTS.admin.password);
+    await page.goto('/admin');
     await page.waitForTimeout(3000);
-    const certsTab = page.locator('button:has-text("CERTS")');
+    const certsTab = page.locator('button:has-text("Cert")');
     if (await certsTab.isVisible()) {
       await certsTab.click();
       await page.waitForTimeout(2000);
