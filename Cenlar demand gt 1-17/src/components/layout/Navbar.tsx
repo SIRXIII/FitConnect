@@ -57,7 +57,7 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12">
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/assets/logo.png" alt="FitRush" className="h-8 w-8 object-contain" />
+            <img src="/assets/logo.png" alt="FitRush" className="hidden sm:block h-8 w-8 object-contain" />
             <span className="text-2xl font-light tracking-[0.2em] uppercase serif cursor-pointer">
               FitRush
             </span>
