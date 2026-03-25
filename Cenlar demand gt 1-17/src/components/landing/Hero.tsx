@@ -149,7 +149,7 @@ const Hero: React.FC = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-2xl serif font-light italic">Up to 40%</div>
-                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Off Idle Hours</div>
+                      <div className="text-[9px] uppercase tracking-widest text-ink/40">Off-Peak Rates</div>
                     </div>
                     <div className="space-y-1">
                       <div className="text-2xl serif font-light italic">Verified</div>
