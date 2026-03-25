@@ -206,7 +206,7 @@ const TrainerDashboard: React.FC = () => {
             {isFirstVisit ? 'Welcome' : 'Welcome back'}{profile?.full_name ? `, ${profile.full_name}` : ''}
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
-            Every idle hour is untapped revenue.
+            Every open hour is untapped revenue.
           </p>
         </div>
 

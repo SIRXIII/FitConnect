@@ -111,7 +111,7 @@ const RoleSelect: React.FC = () => {
                 Certified Personal Trainer
               </h3>
               <p className="text-sm text-ink/50 leading-relaxed font-light">
-                Fill your idle hours with optimized-rate sessions. Keep 92% of every booking. Set your own rates and availability.
+                Fill your open hours with off-peak sessions. Keep 92% of every booking. Set your own rates and availability.
               </p>
               <p className="text-[10px] uppercase tracking-[0.15em] text-accent/70 font-medium">
                 Requires valid CPT certification

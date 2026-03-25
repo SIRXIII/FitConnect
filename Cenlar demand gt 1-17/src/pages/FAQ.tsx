@@ -36,7 +36,7 @@ const TRAINER_FAQS: FAQItem[] = [
   {
     question: 'Can I keep clients I meet through FitRush?',
     answer:
-      'Of course. We cannot control a great match, and we would not want to. FitRush is here to fill the gaps. When someone cancels last minute or you have idle hours between sessions, we connect you with clients who need training right now. Think of it as turning dead time into income instead of sitting around waiting.',
+      'Of course. We cannot control a great match, and we would not want to. FitRush is here to fill the gaps. When someone cancels last minute or you have open hours between sessions, we connect you with clients who need training right now. Think of it as turning dead time into income instead of sitting around waiting.',
   },
   {
     question: 'What certifications do you accept?',
