@@ -127,7 +127,7 @@ const Login: React.FC = () => {
           </h1>
           {isSignUp ? (
             <p className="text-xs text-ink/40 leading-relaxed">
-              Join as a client to find trainers, or as a trainer to fill your idle hours
+              Join as a client to find trainers, or as a trainer to fill your open hours
             </p>
           ) : (
             <p className="text-xs tracking-wide text-ink/40">

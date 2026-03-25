@@ -434,7 +434,7 @@ const TrainerOnboarding: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.2em] font-semibold text-accent">Optimized Rate</p>
-                    <p className="text-xs text-ink/40 mt-1 font-light">Discounted rate for idle hour bookings. You keep 92%.</p>
+                    <p className="text-xs text-ink/40 mt-1 font-light">Discounted rate for off-peak bookings. You keep 92%.</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-ink/40 text-sm">$</span>

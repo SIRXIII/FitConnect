@@ -105,11 +105,11 @@ const BestDeals: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Zap size={16} className="text-accent" strokeWidth={1.5} />
-              <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">AI-Classified Idle Hours</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">AI-Classified Off-Peak Hours</p>
             </div>
             <h2 className="text-4xl md:text-5xl serif font-light italic text-white">Best Deals Now</h2>
             <p className="text-sm text-white/40 max-w-lg">
-              Trainers with open idle hours offering discounts — classified by our scheduling engine in real time.
+              Trainers with open availability offering preferred rates, classified by our scheduling engine in real time.
             </p>
           </div>
           <a

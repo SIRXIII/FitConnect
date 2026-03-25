@@ -330,7 +330,7 @@ const SettingsTab: React.FC = () => {
             </div>
           </Field>
 
-          <Field label="Optimized Rate ($/hr)" hint="Discounted rate for idle-hour bookings">
+          <Field label="Optimized Rate ($/hr)" hint="Discounted rate for off-peak bookings">
             <div className="flex items-center gap-2 border-b border-accent/30 pb-2">
               <span className="text-ink/40 text-sm">$</span>
               <input
