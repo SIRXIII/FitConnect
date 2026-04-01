@@ -6,6 +6,7 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { stripePromise, STRIPE_CONFIGURED } from '@/lib/stripe';
+import { isNativeiOS } from '@/lib/platform';
 
 // ---- Image compression (mirrors SettingsTab pattern) ----
 async function compressImage(file: File, maxSize = 400, quality = 0.7): Promise<Blob> {
@@ -454,73 +455,73 @@ const ClientSettingsTab: React.FC = () => {
         </div>
       </Section>
 
-      {/* ── Section 3: Payment Method ── */}
-      <Section
-        title="Payment Method"
-        subtitle="Your saved card is used at checkout when booking sessions."
-      >
-        {/* Saved card display */}
-        {savedCard && (
-          <div className="flex items-center gap-3 py-3 px-4 border border-green-200 bg-green-50/50">
-            <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-            <CreditCard size={14} className="text-green-600 shrink-0" />
-            <p className="text-sm font-light text-green-800 capitalize">
-              {savedCard.brand} ending in {savedCard.last4}
-            </p>
-            <Check size={14} className="text-green-600 ml-auto shrink-0" />
-          </div>
-        )}
-
-        {/* Stripe Elements form */}
-        {setupClientSecret && stripePromise ? (
-          <Elements
-            stripe={stripePromise}
-            options={{
-              clientSecret: setupClientSecret,
-              appearance: { theme: 'stripe' },
-            }}
-          >
-            <SetupForm
-              onSuccess={handlePaymentSuccess}
-              onCancel={() => setSetupClientSecret(null)}
-            />
-          </Elements>
-        ) : (
-          <div className="space-y-4">
-            {!savedCard && (
-              <p className="text-sm text-ink/50 font-light leading-relaxed">
-                No payment method saved. Add a card to speed up the checkout process when booking sessions.
+      {/* ── Section 3: Payment Method — hidden on iOS per App Store 3.1.1 ── */}
+      {!isNativeiOS() && (
+        <Section
+          title="Payment Method"
+          subtitle="Your saved card is used at checkout when booking sessions."
+        >
+          {savedCard && (
+            <div className="flex items-center gap-3 py-3 px-4 border border-green-200 bg-green-50/50">
+              <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+              <CreditCard size={14} className="text-green-600 shrink-0" />
+              <p className="text-sm font-light text-green-800 capitalize">
+                {savedCard.brand} ending in {savedCard.last4}
               </p>
-            )}
+              <Check size={14} className="text-green-600 ml-auto shrink-0" />
+            </div>
+          )}
 
-            {STRIPE_CONFIGURED ? (
-              <button
-                onClick={handleAddPaymentMethod}
-                disabled={loadingSetupIntent}
-                className="border border-ink/20 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300 disabled:opacity-50"
-              >
-                {loadingSetupIntent ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                    Loading...
-                  </span>
-                ) : savedCard ? (
-                  'Update Payment Method'
-                ) : (
-                  'Add Payment Method'
-                )}
-              </button>
-            ) : (
-              <div className="flex items-center gap-2 py-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
-                  Payments secured by Stripe at checkout
+          {setupClientSecret && stripePromise ? (
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret: setupClientSecret,
+                appearance: { theme: 'stripe' },
+              }}
+            >
+              <SetupForm
+                onSuccess={handlePaymentSuccess}
+                onCancel={() => setSetupClientSecret(null)}
+              />
+            </Elements>
+          ) : (
+            <div className="space-y-4">
+              {!savedCard && (
+                <p className="text-sm text-ink/50 font-light leading-relaxed">
+                  No payment method saved. Add a card to speed up the checkout process when booking sessions.
                 </p>
-              </div>
-            )}
-          </div>
-        )}
-      </Section>
+              )}
+
+              {STRIPE_CONFIGURED ? (
+                <button
+                  onClick={handleAddPaymentMethod}
+                  disabled={loadingSetupIntent}
+                  className="border border-ink/20 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300 disabled:opacity-50"
+                >
+                  {loadingSetupIntent ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                      Loading...
+                    </span>
+                  ) : savedCard ? (
+                    'Update Payment Method'
+                  ) : (
+                    'Add Payment Method'
+                  )}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 py-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                    Payments secured by Stripe at checkout
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </Section>
+      )}
 
       {/* ── Section 4: Danger Zone ── */}
       <div className="border border-red-200/60 p-8 space-y-4">

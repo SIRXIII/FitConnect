@@ -7,9 +7,10 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { clientProfileSchema } from '@/lib/schemas';
+import { isNativeiOS } from '@/lib/platform';
 
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+const stripePromise = stripeKey && !isNativeiOS() ? loadStripe(stripeKey) : null;
 
 // ─── types ────────────────────────────────────────────────
 interface FormData {
