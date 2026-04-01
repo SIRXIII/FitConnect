@@ -8,6 +8,7 @@ import ProgressTab from '@/components/client/ProgressTab';
 import { NotificationPreferencesSection } from '@/components/client/NotificationPreferencesSection';
 import ProfileProgressRing from '@/components/client/ProfileProgressRing';
 import ClientSettingsTab from '@/components/client/ClientSettingsTab';
+import { isNativeiOS } from '@/lib/platform';
 import ClientSupportTab from '@/components/support/ClientSupportTab';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 import WorkoutTab from '@/components/client/WorkoutTab';
@@ -287,25 +288,27 @@ const ClientDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Payment Methods */}
-            <div className="border border-ink/10 p-8 space-y-4">
-              <div className="flex items-center gap-3">
-                <Shield size={14} className="text-accent" />
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
-                  Payment Methods
+            {/* Payment Methods — hidden on iOS native (Apple guideline 3.1.1) */}
+            {!isNativeiOS() && (
+              <div className="border border-ink/10 p-8 space-y-4">
+                <div className="flex items-center gap-3">
+                  <Shield size={14} className="text-accent" />
+                  <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
+                    Payment Methods
+                  </p>
+                </div>
+                <p className="text-sm text-ink/50 font-light leading-relaxed max-w-xl">
+                  Payment is handled securely through Stripe at the time of booking. No card storage
+                  required — your details are processed directly by Stripe's encrypted checkout.
                 </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                    Secured by Stripe
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-ink/50 font-light leading-relaxed max-w-xl">
-                Payment is handled securely through Stripe at the time of booking. No card storage
-                required — your details are processed directly by Stripe's encrypted checkout.
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
-                  Secured by Stripe
-                </p>
-              </div>
-            </div>
+            )}
 
             {/* Referral Widget */}
             {profile?.referral_code && (

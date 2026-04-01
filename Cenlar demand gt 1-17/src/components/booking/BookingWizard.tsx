@@ -7,6 +7,7 @@ import { StepPayment } from './StepPayment';
 import { StepSuccess } from './StepSuccess';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import type { TrainerProfile } from '@/stores/auth';
+import { isNativeiOS } from '@/lib/platform';
 
 export interface SlotWithTrainer extends AvailabilitySlot {
   trainer_profiles: TrainerProfile & {
@@ -86,9 +87,10 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   referralDiscountPending,
   PaymentFormComponent,
 }) => {
+  const showPayment = stripeConfigured && !isNativeiOS();
   const steps = useMemo(
-    () => ['Review', 'Confirm', ...(stripeConfigured ? ['Payment'] : []), 'Complete'],
-    [stripeConfigured]
+    () => ['Review', 'Confirm', ...(showPayment ? ['Payment'] : []), 'Complete'],
+    [showPayment]
   );
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -129,7 +131,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       body: { booking_id: newBookingId },
     }).catch(() => { /* GCal sync is best-effort — never block booking */ });
 
-    if (stripeConfigured) {
+    if (showPayment) {
       const secret = await createPaymentIntent(newBookingId);
       if (!secret) {
         setLoading(false);
@@ -182,7 +184,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             referralDiscountPending={referralDiscountPending}
             platformFeePct={platformFeePct}
             paymentError={paymentError}
-            stripeConfigured={stripeConfigured}
+            stripeConfigured={showPayment}
             bookingMode={slot.trainer_profiles.booking_mode}
           />
         );
@@ -203,7 +205,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             sessionDate={slot.start_time}
             sessionEndDate={slot.end_time}
             rate={rate}
-            stripeConfigured={stripeConfigured}
+            stripeConfigured={showPayment}
           />
         );
       default:

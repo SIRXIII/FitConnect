@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth';
+import { isNativeiOS } from '@/lib/platform';
 
 const TrialBanner: React.FC = () => {
   const trainerProfile = useAuthStore((s) => s.trainerProfile);
@@ -22,13 +23,18 @@ const TrialBanner: React.FC = () => {
   return (
     <div className="bg-accent/5 border-b border-accent/10 px-6 py-3 text-center">
       <p className="text-xs tracking-wide text-ink/70">
-        {daysLeft} {dayLabel} left in your {tierName} trial &mdash;{' '}
-        <Link
-          to="/trainer/dashboard?tab=subscription"
-          className="text-accent underline underline-offset-2"
-        >
-          add payment to keep access
-        </Link>
+        {daysLeft} {dayLabel} left in your {tierName} trial
+        {!isNativeiOS() && (
+          <>
+            {' '}&mdash;{' '}
+            <Link
+              to="/trainer/dashboard?tab=subscription"
+              className="text-accent underline underline-offset-2"
+            >
+              add payment to keep access
+            </Link>
+          </>
+        )}
       </p>
     </div>
   );

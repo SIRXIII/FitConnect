@@ -18,6 +18,7 @@ import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
+import { isNativeiOS } from '@/lib/platform';
 import SettingsTab from '@/components/trainer/SettingsTab';
 import VideoUploader from '@/components/trainer/VideoUploader';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
@@ -307,45 +308,54 @@ const TrainerDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Stripe Connect */}
-        <div className="border border-ink/10 p-8 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Payment Setup</p>
-              {trainerProfile?.stripe_account_id ? (
-                <p className="text-sm text-green-700 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                  Stripe account connected
-                </p>
-              ) : (
-                <p className="text-sm text-ink/50">
-                  Connect your Stripe account to receive payouts from bookings
-                </p>
+        {/* Stripe Connect — hidden on iOS per App Store guideline 3.1.1 */}
+        {!isNativeiOS() ? (
+          <div className="border border-ink/10 p-8 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Payment Setup</p>
+                {trainerProfile?.stripe_account_id ? (
+                  <p className="text-sm text-green-700 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                    Stripe account connected
+                  </p>
+                ) : (
+                  <p className="text-sm text-ink/50">
+                    Connect your Stripe account to receive payouts from bookings
+                  </p>
+                )}
+              </div>
+              {!trainerProfile?.stripe_account_id && (
+                <button
+                  onClick={handleStripeConnect}
+                  disabled={stripeLoading}
+                  className="border border-accent text-accent px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300 disabled:opacity-50"
+                >
+                  {stripeLoading ? 'Setting up...' : 'Set Up Payments'}
+                </button>
+              )}
+              {trainerProfile?.stripe_account_id && (
+                <button
+                  onClick={handleStripeConnect}
+                  disabled={stripeLoading}
+                  className="border border-ink/20 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300 disabled:opacity-50"
+                >
+                  {stripeLoading ? 'Loading...' : 'Manage Payments'}
+                </button>
               )}
             </div>
-            {!trainerProfile?.stripe_account_id && (
-              <button
-                onClick={handleStripeConnect}
-                disabled={stripeLoading}
-                className="border border-accent text-accent px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300 disabled:opacity-50"
-              >
-                {stripeLoading ? 'Setting up...' : 'Set Up Payments'}
-              </button>
-            )}
-            {trainerProfile?.stripe_account_id && (
-              <button
-                onClick={handleStripeConnect}
-                disabled={stripeLoading}
-                className="border border-ink/20 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300 disabled:opacity-50"
-              >
-                {stripeLoading ? 'Loading...' : 'Manage Payments'}
-              </button>
+            {stripeError && (
+              <p className="text-sm text-red-600">{stripeError}</p>
             )}
           </div>
-          {stripeError && (
-            <p className="text-sm text-red-600">{stripeError}</p>
-          )}
-        </div>
+        ) : (
+          <div className="border border-ink/10 p-8">
+            <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Payment Setup</p>
+            <p className="text-sm text-ink/50 mt-2">
+              Payment setup is available on the web at fitrush-app.pages.dev
+            </p>
+          </div>
+        )}
 
         {/* Availability section */}
         <div className="space-y-6">
