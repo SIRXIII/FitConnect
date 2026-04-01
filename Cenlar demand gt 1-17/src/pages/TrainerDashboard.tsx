@@ -19,6 +19,7 @@ import AvailabilityHeader from '@/components/trainer/AvailabilityHeader';
 import BookingRequestQueue from '@/components/trainer/BookingRequestQueue';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
 import { isNativeiOS } from '@/lib/platform';
+import WorkoutLocationsManager from '@/components/trainer/WorkoutLocationsManager';
 import SettingsTab from '@/components/trainer/SettingsTab';
 import VideoUploader from '@/components/trainer/VideoUploader';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
@@ -395,6 +396,13 @@ const TrainerDashboard: React.FC = () => {
         {/* Referral Widget */}
         {profile?.referral_code && (
           <ReferralWidget referralCode={profile.referral_code} />
+        )}
+
+        {/* Workout Locations */}
+        {trainerProfile && (
+          <div className="border border-ink/10 p-8">
+            <WorkoutLocationsManager trainerId={trainerProfile.id} />
+          </div>
         )}
 
         {/* Certifications */}
