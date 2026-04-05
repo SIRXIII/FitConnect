@@ -5,38 +5,18 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { firebaseConfig, FIREBASE_VAPID_KEY, hasFirebaseConfig } from '@/lib/firebaseConfig';
 
 // push_subscriptions is a new table not yet reflected in the generated types.
 // Cast to any to bypass type constraint until types are regenerated.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
 
-function hasFirebaseConfig(): boolean {
-  return !!(
-    import.meta.env.VITE_FIREBASE_API_KEY &&
-    import.meta.env.VITE_FIREBASE_PROJECT_ID &&
-    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID &&
-    import.meta.env.VITE_FIREBASE_APP_ID &&
-    import.meta.env.VITE_FIREBASE_VAPID_KEY
-  );
-}
-
-function getFirebaseConfig() {
-  return {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
-    authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID as string}.firebaseapp.com`,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
-    storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID as string}.appspot.com`,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
-  };
-}
-
 async function sendConfigToServiceWorker(): Promise<void> {
   if (!('serviceWorker' in navigator)) return;
   const reg = await navigator.serviceWorker.ready;
   if (reg.active) {
-    reg.active.postMessage({ type: 'FIREBASE_CONFIG', config: getFirebaseConfig() });
+    reg.active.postMessage({ type: 'FIREBASE_CONFIG', config: firebaseConfig });
   }
 }
 
@@ -84,9 +64,9 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
     const { initializeApp, getApps } = await import(/* @vite-ignore */ 'firebase/app');
     const { getMessaging, getToken } = await import(/* @vite-ignore */ 'firebase/messaging');
 
-    const app = getApps().length ? getApps()[0] : initializeApp(getFirebaseConfig());
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
     const token = await getToken(getMessaging(app), {
-      vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY as string,
+      vapidKey: FIREBASE_VAPID_KEY,
     });
     if (!token) return false;
 
