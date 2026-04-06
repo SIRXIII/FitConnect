@@ -54,7 +54,7 @@ export const LockedFeatureBanner: React.FC<LockedFeatureBannerProps> = ({ featur
       <p className="text-sm text-ink/50 max-w-sm mx-auto">{copy.description}</p>
       {isNativeiOS() ? (
         <a
-          href="https://fitrush-app.netlify.app/pricing"
+          href="https://fitconnect-2sn.pages.dev/pricing"
           target="_blank"
           rel="noopener noreferrer"
           className="text-accent underline underline-offset-2 text-xs"

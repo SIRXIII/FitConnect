@@ -11,6 +11,25 @@ import { ErrorState } from '@/components/shared/ErrorState';
 import { BookingWizard } from '@/components/booking/BookingWizard';
 import type { SlotWithTrainer } from '@/components/booking/BookingWizard';
 
+/** Fire-and-forget: notify trainer about a new booking via email + push */
+function notifyTrainer(
+  slot: SlotWithTrainer,
+  clientName: string,
+  rate: number,
+  mode: 'instant' | 'request'
+) {
+  supabase.functions.invoke('notify-trainer-booking', {
+    body: {
+      trainer_user_id: slot.trainer_profiles.user_id,
+      client_name: clientName,
+      session_date: slot.start_time,
+      session_end: slot.end_time,
+      rate,
+      mode,
+    },
+  }).catch(() => { /* notification is best-effort */ });
+}
+
 // --- Payment Form Component (used inside <Elements>) ---
 const PaymentForm: React.FC<{
   onSuccess: () => void;
@@ -100,7 +119,7 @@ const PaymentForm: React.FC<{
 const BookSession: React.FC = () => {
   const { slotId } = useParams<{ slotId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, profile } = useAuthStore();
   const [slot, setSlot] = useState<SlotWithTrainer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -237,6 +256,7 @@ const BookSession: React.FC = () => {
         toast.error('Failed to send request. Please try again.');
         return null;
       }
+      notifyTrainer(slot, profile?.full_name || 'A client', finalRate, 'request');
       toast.success('Request sent! The trainer will review it shortly.');
       navigate('/client/bookings');
       return null;
@@ -274,6 +294,8 @@ const BookSession: React.FC = () => {
     }
 
     if (!rpcResult?.booking_id) return null;
+
+    notifyTrainer(slot, profile?.full_name || 'A client', finalRate, 'instant');
 
     if (hadReferralDiscount) {
       await supabase

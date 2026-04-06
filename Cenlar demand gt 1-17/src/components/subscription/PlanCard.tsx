@@ -160,7 +160,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
       <div className="pt-2">
         {isNativeiOS() && isPaid ? (
           <a
-            href="https://fitrush-app.netlify.app/pricing"
+            href="https://fitconnect-2sn.pages.dev/pricing"
             target="_blank"
             rel="noopener noreferrer"
             className={`${ctaClass} block text-center`}

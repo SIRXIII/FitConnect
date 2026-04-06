@@ -47,7 +47,7 @@ const SubscriptionTab: React.FC = () => {
           FitRush subscriptions are managed through our website. Tap below to view plans and subscribe.
         </p>
         <a
-          href="https://fitrush-app.netlify.app/pricing"
+          href="https://fitconnect-2sn.pages.dev/pricing"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block border border-accent text-accent px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300"
