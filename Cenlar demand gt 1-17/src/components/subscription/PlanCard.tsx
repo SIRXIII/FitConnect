@@ -157,7 +157,20 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           </li>
         ))}
       </ul>
-      {!isNativeiOS() && <div className="pt-2">{renderCTA()}</div>}
+      <div className="pt-2">
+        {isNativeiOS() && isPaid ? (
+          <a
+            href="https://fitrush-app.netlify.app/pricing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${ctaClass} block text-center`}
+          >
+            Subscribe on Web
+          </a>
+        ) : (
+          renderCTA()
+        )}
+      </div>
     </div>
   );
 };

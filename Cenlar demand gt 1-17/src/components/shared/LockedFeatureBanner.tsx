@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { TierFeature, Tier } from '@/lib/tierGates';
+import { isNativeiOS } from '@/lib/platform';
 
 const FEATURE_COPY: Record<TierFeature, { label: string; description: string }> = {
   analytics_advanced: {
@@ -51,9 +52,20 @@ export const LockedFeatureBanner: React.FC<LockedFeatureBannerProps> = ({ featur
         {FEATURE_NAMES[feature]}
       </p>
       <p className="text-sm text-ink/50 max-w-sm mx-auto">{copy.description}</p>
-      <Link to="/pricing" className="text-accent underline underline-offset-2 text-xs">
-        View upgrade options
-      </Link>
+      {isNativeiOS() ? (
+        <a
+          href="https://fitrush-app.netlify.app/pricing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-accent underline underline-offset-2 text-xs"
+        >
+          Subscribe on Web
+        </a>
+      ) : (
+        <Link to="/pricing" className="text-accent underline underline-offset-2 text-xs">
+          View upgrade options
+        </Link>
+      )}
     </div>
   );
 };

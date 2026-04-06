@@ -41,9 +41,20 @@ const SubscriptionTab: React.FC = () => {
 
   if (isNativeiOS()) {
     return (
-      <div className="space-y-4 text-center py-12">
-        <p className="text-sm text-ink/50">Subscription management is available on the web.</p>
-        <p className="text-xs text-ink/30">Visit fitrush-app.netlify.app to manage your plan.</p>
+      <div className="space-y-6 text-center py-12">
+        <p className="serif text-xl font-light italic text-ink">Manage Your Plan</p>
+        <p className="text-sm text-ink/50 max-w-xs mx-auto">
+          FitRush subscriptions are managed through our website. Tap below to view plans and subscribe.
+        </p>
+        <a
+          href="https://fitrush-app.netlify.app/pricing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block border border-accent text-accent px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300"
+        >
+          Subscribe on Web
+        </a>
+        <p className="text-[10px] text-ink/30">Opens in your browser</p>
       </div>
     );
   }
