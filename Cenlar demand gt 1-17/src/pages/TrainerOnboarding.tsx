@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { trainerProfileSchema } from '@/lib/schemas';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
+import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
 import { VERIFIABLE_CODES } from '@/lib/certifications';
 
 const CERT_BODIES = ['NASM', 'ACE', 'NSCA', 'ISSA', 'ACSM', 'NCSF', 'NFPT', 'Other'];
@@ -365,12 +366,9 @@ const TrainerOnboarding: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Location *</label>
-                <input
-                  type="text"
+                <LocationAutocomplete
                   value={form.location}
-                  onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
-                  placeholder="City, State (e.g. Miami, FL)"
-                  className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+                  onChange={(val) => setForm(f => ({ ...f, location: val }))}
                 />
               </div>
               <div className="space-y-2">

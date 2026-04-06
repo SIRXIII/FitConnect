@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useTier } from '@/hooks/useTier';
 import { bioLimitForTier } from '@/lib/tierGates';
 import WorkoutLocationsManager from '@/components/trainer/WorkoutLocationsManager';
+import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
 
 // ---- Image compression (mirrors ClientPassport pattern) ----
 async function compressImage(file: File, maxSize = 400, quality = 0.7): Promise<Blob> {
@@ -283,12 +284,9 @@ const SettingsTab: React.FC = () => {
 
         {/* Location */}
         <Field label="Location">
-          <input
-            type="text"
+          <LocationAutocomplete
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="City, State (e.g. Miami, FL)"
-            className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+            onChange={setLocation}
           />
         </Field>
 
