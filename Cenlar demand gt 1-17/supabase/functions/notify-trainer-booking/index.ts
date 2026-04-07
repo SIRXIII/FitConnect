@@ -29,20 +29,25 @@ Deno.serve(async (req) => {
     const supabaseUrl = requireEnv('SUPABASE_URL');
     const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 
-    // Verify caller is authenticated
-    const supabaseAnonKey = requireEnv('SUPABASE_ANON_KEY');
+    // Verify caller is authenticated (user JWT or service_role key)
     const authHeader = req.headers.get('Authorization') || '';
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { persistSession: false },
-    });
+    const token = authHeader.replace('Bearer ', '');
+    const isServiceRole = token === supabaseServiceRoleKey;
 
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!isServiceRole) {
+      const supabaseAnonKey = requireEnv('SUPABASE_ANON_KEY');
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false },
       });
+
+      const { data: { user }, error: userError } = await userClient.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     const body = (await req.json().catch(() => ({}))) as Partial<NotifyRequest>;
@@ -142,12 +147,13 @@ Deno.serve(async (req) => {
       : `${client_name} booked a session on ${formattedDate} at ${formattedTime}`;
 
     // Insert in-app notification
-    await adminClient.from('notifications').insert({
+    const { error: notifError } = await adminClient.from('notifications').insert({
       user_id: trainer_user_id,
       type: isRequest ? 'booking_request' : 'booking_confirmed',
       title: pushTitle,
       message: pushBody,
-    }).catch((e: unknown) => console.error('[notify-trainer-booking] notification insert error:', e));
+    });
+    if (notifError) console.error('[notify-trainer-booking] notification insert error:', notifError);
 
     // Push notification via existing edge function
     fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
