@@ -131,25 +131,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = get().user;
     if (!user) return;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role })
-      .eq('id', user.id);
-
-    if (error) throw error;
-
     if (role === 'trainer') {
-      const { error: trainerError } = await supabase
-        .from('trainer_profiles')
-        .upsert({
-          user_id: user.id,
-          specialty: 'strength_training',
-          hourly_rate: 100,
-          optimized_rate: 60,
-          location: '',
-        }, { onConflict: 'user_id', ignoreDuplicates: true });
-
-      if (trainerError) throw trainerError;
+      // Use server-authoritative RPC — handles profiles.role update +
+      // trainer_profiles insert atomically inside SECURITY DEFINER function
+      // (bypasses the new RLS WITH CHECK on profiles).
+      const { error } = await supabase.rpc('promote_to_trainer');
+      if (error) throw error;
+    } else {
+      // Client (and other non-trainer) role updates: direct profiles.update.
+      // The RLS WITH CHECK allows this because role IS NOT DISTINCT FROM current role
+      // (client → client is a no-op role change, which passes the policy).
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role })
+        .eq('id', user.id);
+      if (error) throw error;
     }
 
     await get().fetchProfile(user.id);
