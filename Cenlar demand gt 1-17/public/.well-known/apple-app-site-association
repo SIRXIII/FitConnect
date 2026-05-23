@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["VS86KE39H8.com.SIRXIII.FitRush"],
+        "components": [
+          {
+            "/": "/stripe-connect-return*",
+            "comment": "Stripe KYC return relay — opens app after Connect onboarding"
+          },
+          {
+            "/": "/auth/callback*",
+            "comment": "Supabase email confirmation callback — exchanges PKCE code in-app"
+          }
+        ]
+      }
+    ]
+  }
+}
