@@ -66,6 +66,49 @@ describe('AdminDashboard subscription metrics (Task 1)', () => {
   });
 });
 
+describe('AdminDashboard trainer approval (REQ-219)', () => {
+  // Write path: RPC_REQUIRED (25-00 Probe 2 verdict — admin cannot UPDATE
+  // another trainer's trainer_profiles row directly under current RLS).
+  // All assertions target the RPC path (supabase.rpc('approve_trainer',...)).
+
+  it('handleApproveTrainer handler exists', () => {
+    expect(SOURCE).toContain('handleApproveTrainer');
+  });
+
+  it('approve handler calls approve_trainer RPC', () => {
+    expect(SOURCE).toContain("rpc('approve_trainer'");
+  });
+
+  it('approve handler passes p_user_id parameter', () => {
+    expect(SOURCE).toContain('p_user_id: userId');
+  });
+
+  it('fetchPendingTrainers filters to pending approval_status', () => {
+    expect(SOURCE).toContain("eq('approval_status', 'pending')");
+  });
+
+  it('pending-trainers tab member exists in activeTab union', () => {
+    expect(SOURCE).toContain("'pending-trainers'");
+  });
+
+  it('fetchPendingTrainers function is defined and called', () => {
+    // Must appear at least twice: definition + at least one call site
+    const count = (SOURCE.match(/fetchPendingTrainers/g) ?? []).length;
+    expect(count).toBeGreaterThanOrEqual(2);
+  });
+
+  it('approve handler does NOT touch trainer_certifications', () => {
+    // Guard: handleApproveTrainer block must not reference trainer_certifications
+    expect(SOURCE).not.toMatch(/handleApproveTrainer[\s\S]{0,300}trainer_certifications/);
+  });
+
+  it('approval targets user_id not profile id', () => {
+    expect(SOURCE).toContain('p_user_id: userId');
+    // Must NOT filter by plain .eq('id', userId) in the approve path
+    expect(SOURCE).not.toMatch(/handleApproveTrainer[\s\S]{0,400}\.eq\('id', userId\)/);
+  });
+});
+
 describe('AdminDashboard TierBadge (Task 2)', () => {
   it('UserRow interface includes trainer_profiles field', () => {
     expect(SOURCE).toContain('trainer_profiles?');
