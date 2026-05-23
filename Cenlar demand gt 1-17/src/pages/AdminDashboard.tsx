@@ -85,6 +85,14 @@ interface AuditLogEntry {
   actor?: { full_name: string } | null;
 }
 
+interface PendingTrainer {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  approval_status: string;
+  created_at: string;
+}
+
 interface TransactionRow {
   id: string;
   amount: number;
@@ -110,7 +118,7 @@ const AdminDashboard: React.FC = () => {
   const [platformFee, setPlatformFee] = useState('0.08');
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support' | 'pending-trainers'>('analytics');
   const { tickets: supportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
@@ -158,6 +166,9 @@ const AdminDashboard: React.FC = () => {
   const [processingPayoutTrainerId, setProcessingPayoutTrainerId] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [pendingTrainers, setPendingTrainers] = useState<PendingTrainer[]>([]);
+  const [loadingPendingTrainers, setLoadingPendingTrainers] = useState(false);
+  const [approvingTrainerId, setApprovingTrainerId] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -414,6 +425,47 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchPendingTrainers = useCallback(async () => {
+    setLoadingPendingTrainers(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('trainer_profiles')
+        .select('user_id, approval_status, created_at, profiles!trainer_profiles_user_id_fkey(full_name, email)')
+        .eq('approval_status', 'pending');
+      if (error) throw error;
+      const rows: PendingTrainer[] = (data ?? []).map((r: any) => ({
+        user_id: r.user_id,
+        full_name: r.profiles?.full_name ?? null,
+        email: r.profiles?.email ?? null,
+        approval_status: r.approval_status,
+        created_at: r.created_at,
+      }));
+      setPendingTrainers(rows);
+    } catch {
+      setPendingTrainers([]);
+      toast.error('Failed to load pending trainers.');
+    } finally {
+      setLoadingPendingTrainers(false);
+    }
+  }, []);
+
+  const handleApproveTrainer = async (userId: string) => {
+    setApprovingTrainerId(userId);
+    try {
+      // RLS verdict = RPC_REQUIRED (25-00 Probe 2): admin cannot directly UPDATE
+      // another trainer's trainer_profiles row — the only UPDATE policy is
+      // USING (auth.uid() = user_id). Use the SECURITY DEFINER approve_trainer RPC.
+      const { error } = await (supabase as any).rpc('approve_trainer', { p_user_id: userId });
+      if (error) throw error;
+      toast.success('Trainer approved.');
+      await fetchPendingTrainers();
+    } catch {
+      toast.error('Failed to approve trainer.');
+    } finally {
+      setApprovingTrainerId(null);
+    }
+  };
+
   const fetchFlaggedReviews = useCallback(async () => {
     setLoadingReviews(true);
     try {
@@ -460,6 +512,8 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => { fetchFlaggedReviews(); }, [fetchFlaggedReviews]);
   useEffect(() => { fetchAuditLogs(); }, [fetchAuditLogs]);
   useEffect(() => { fetchPendingCerts(); }, [fetchPendingCerts]);
+  useEffect(() => { fetchPendingTrainers(); }, [fetchPendingTrainers]);
+  useEffect(() => { if (activeTab === 'pending-trainers') fetchPendingTrainers(); }, [activeTab, fetchPendingTrainers]);
 
   useEffect(() => {
     const fetchAdminAnalytics = async () => {
@@ -599,6 +653,21 @@ const AdminDashboard: React.FC = () => {
             {openSupportCount > 0 && (
               <span className="absolute top-2 right-3 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-accent text-white rounded-full">
                 {openSupportCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('pending-trainers')}
+            className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors relative ${
+              activeTab === 'pending-trainers'
+                ? 'border-b-2 border-ink text-ink -mb-px'
+                : 'text-ink/40 hover:text-ink'
+            }`}
+          >
+            pending trainers
+            {pendingTrainers.length > 0 && (
+              <span className="absolute top-2 right-3 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-accent text-white rounded-full">
+                {pendingTrainers.length}
               </span>
             )}
           </button>
@@ -1430,6 +1499,49 @@ const AdminDashboard: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Pending Trainer Approvals Tab (REQ-219) */}
+        {activeTab === 'pending-trainers' && (
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">Pending Trainer Approvals</p>
+              <p className="text-[10px] text-ink/30">One-click approval sets is_verified=true and approval_status='approved' via the approve_trainer RPC.</p>
+            </div>
+
+            {loadingPendingTrainers && (
+              <p className="text-[10px] text-ink/30 uppercase tracking-widest">Loading…</p>
+            )}
+
+            {!loadingPendingTrainers && pendingTrainers.length === 0 && (
+              <p className="text-sm font-light text-ink/40">No trainers pending approval.</p>
+            )}
+
+            {!loadingPendingTrainers && pendingTrainers.length > 0 && (
+              <div className="border border-ink/10">
+                <div className="grid grid-cols-[2fr_2fr_1fr_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Name</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Email / User ID</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Signed Up</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Action</p>
+                </div>
+                {pendingTrainers.map((trainer) => (
+                  <div key={trainer.user_id} className="grid grid-cols-[2fr_2fr_1fr_120px] gap-4 px-6 py-4 border-b border-ink/5 last:border-0 items-center">
+                    <p className="text-sm font-light text-ink truncate">{trainer.full_name ?? '—'}</p>
+                    <p className="text-[10px] text-ink/50 truncate">{trainer.email ?? trainer.user_id}</p>
+                    <p className="text-[10px] text-ink/40">{new Date(trainer.created_at).toLocaleDateString()}</p>
+                    <button
+                      onClick={() => handleApproveTrainer(trainer.user_id)}
+                      disabled={approvingTrainerId === trainer.user_id}
+                      className="py-2 bg-green-600 text-white text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      {approvingTrainerId === trainer.user_id ? '…' : 'Approve'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
