@@ -430,7 +430,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const { data, error } = await (supabase as any)
         .from('trainer_profiles')
-        .select('user_id, approval_status, created_at, profiles!trainer_profiles_user_id_fkey(full_name, email)')
+        .select('user_id, approval_status, created_at, profiles!trainer_profiles_user_id_fkey(full_name)')
         .eq('approval_status', 'pending');
       if (error) throw error;
       const rows: PendingTrainer[] = (data ?? []).map((r: any) => ({
