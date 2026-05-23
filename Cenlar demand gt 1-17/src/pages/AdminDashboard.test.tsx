@@ -36,7 +36,7 @@ describe('AdminDashboard subscription metrics (Task 1)', () => {
   });
 
   it('fetchAdminAnalytics extracts mrr from data', () => {
-    expect(SOURCE).toContain('data.totals.mrr');
+    expect(SOURCE).toContain('data.mrr');
   });
 
   it('renders Subscription Health label', () => {
@@ -67,12 +67,12 @@ describe('AdminDashboard subscription metrics (Task 1)', () => {
 });
 
 describe('AdminDashboard TierBadge (Task 2)', () => {
-  it('UserRow interface includes trainer_profiles field', () => {
-    expect(SOURCE).toContain('trainer_profiles?');
+  it('UserRow interface includes subscription_tier field', () => {
+    expect(SOURCE).toContain('subscription_tier?');
   });
 
-  it('fetchUsers selects trainer_profiles join', () => {
-    expect(SOURCE).toContain('trainer_profiles(subscription_tier');
+  it('fetchUsers loads users via get_admin_user_list RPC', () => {
+    expect(SOURCE).toContain("rpc('get_admin_user_list')");
   });
 
   it('TierBadge component is defined', () => {
@@ -85,7 +85,7 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
   });
 
   it('users table header uses multi-column grid', () => {
-    expect(SOURCE).toContain('grid-cols-[1fr_100px_120px_100px_120px_140px]');
+    expect(SOURCE).toContain('grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px]');
   });
 
   it('TierBadge handles past_due status', () => {
@@ -97,8 +97,8 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
   });
 
   it('TierBadge renders null for non-trainer rows', () => {
-    // The conditional rendering pattern
+    // The conditional rendering pattern: badge shown only for trainers with a tier
     expect(SOURCE).toContain("user.role === 'trainer'");
-    expect(SOURCE).toContain('user.trainer_profiles');
+    expect(SOURCE).toContain('user.subscription_tier');
   });
 });
