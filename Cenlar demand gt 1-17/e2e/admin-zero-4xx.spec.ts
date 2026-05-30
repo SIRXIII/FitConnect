@@ -12,6 +12,7 @@ async function login(page: Page, email: string, password: string) {
 }
 
 test.describe('Admin dashboard — zero Supabase 4xx', () => {
+  // Referrals tab (get_referral_leaderboard RPC) is out of Phase 27 scope — unbuilt referral feature, tracked as a separate phase.
   test('all four admin tabs load with zero Supabase 400/404', async ({ page }) => {
     // Capture all Supabase 4xx responses across the admin tab cycle
     const errors: string[] = [];
