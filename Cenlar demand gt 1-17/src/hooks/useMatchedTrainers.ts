@@ -45,7 +45,7 @@ export function useMatchedTrainers(): UseMatchedTrainersResult {
         .from('client_profiles')
         .select('fitness_level, goals_ranked, workout_types, hourly_budget_max')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (cpError || !cp) {
         // No client profile found — treat as passport not ready
