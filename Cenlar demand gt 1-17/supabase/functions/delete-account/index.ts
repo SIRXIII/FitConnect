@@ -127,6 +127,14 @@ Deno.serve(async (req) => {
       .delete()
       .eq('client_id', userId);
 
+    // 9b. Delete trainer_session_logs about this client (Phase 33).
+    // trainer_session_logs.client_id references profiles.id (= userId).
+    // ON DELETE CASCADE covers trainer_session_exercises + trainer_exercise_sets.
+    await adminClient
+      .from('trainer_session_logs')
+      .delete()
+      .eq('client_id', userId);
+
     // Trainer-specific child rows
     if (trainerId) {
       // 10. Delete availability_slots
@@ -150,6 +158,13 @@ Deno.serve(async (req) => {
       // 13. Delete google_calendar_connections
       await adminClient
         .from('google_calendar_connections')
+        .delete()
+        .eq('trainer_id', trainerId);
+
+      // 14. Delete trainer_session_logs authored by this trainer (Phase 33).
+      // ON DELETE CASCADE covers trainer_session_exercises + trainer_exercise_sets.
+      await adminClient
+        .from('trainer_session_logs')
         .delete()
         .eq('trainer_id', trainerId);
     }
