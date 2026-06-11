@@ -469,10 +469,10 @@ const AdminDashboard: React.FC = () => {
     if (!window.confirm('Decline this trainer application? This sets their status to rejected.')) return;
     setDecliningTrainerId(userId);
     try {
-      const { error } = await (supabase as any)
-        .from('trainer_profiles')
-        .update({ approval_status: 'rejected' })
-        .eq('user_id', userId);
+      // RLS verdict: admin cannot directly UPDATE another trainer's trainer_profiles row
+      // (only UPDATE policy is USING (auth.uid() = user_id)). Use the SECURITY DEFINER
+      // reject_trainer RPC, mirroring how handleApproveTrainer calls approve_trainer.
+      const { error } = await (supabase as any).rpc('reject_trainer', { p_user_id: userId });
       if (error) throw error;
       toast.success('Trainer application declined.');
       await fetchPendingTrainers();
