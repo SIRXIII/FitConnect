@@ -88,7 +88,6 @@ interface AuditLogEntry {
 interface PendingTrainer {
   user_id: string;
   full_name: string | null;
-  email: string | null;
   approval_status: string;
   created_at: string;
 }
@@ -169,6 +168,7 @@ const AdminDashboard: React.FC = () => {
   const [pendingTrainers, setPendingTrainers] = useState<PendingTrainer[]>([]);
   const [loadingPendingTrainers, setLoadingPendingTrainers] = useState(false);
   const [approvingTrainerId, setApprovingTrainerId] = useState<string | null>(null);
+  const [decliningTrainerId, setDecliningTrainerId] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -436,7 +436,6 @@ const AdminDashboard: React.FC = () => {
       const rows: PendingTrainer[] = (data ?? []).map((r: any) => ({
         user_id: r.user_id,
         full_name: r.profiles?.full_name ?? null,
-        email: r.profiles?.email ?? null,
         approval_status: r.approval_status,
         created_at: r.created_at,
       }));
@@ -463,6 +462,24 @@ const AdminDashboard: React.FC = () => {
       toast.error('Failed to approve trainer.');
     } finally {
       setApprovingTrainerId(null);
+    }
+  };
+
+  const handleDeclineTrainer = async (userId: string) => {
+    if (!window.confirm('Decline this trainer application? This sets their status to rejected.')) return;
+    setDecliningTrainerId(userId);
+    try {
+      const { error } = await (supabase as any)
+        .from('trainer_profiles')
+        .update({ approval_status: 'rejected' })
+        .eq('user_id', userId);
+      if (error) throw error;
+      toast.success('Trainer application declined.');
+      await fetchPendingTrainers();
+    } catch {
+      toast.error('Failed to decline trainer.');
+    } finally {
+      setDecliningTrainerId(null);
     }
   };
 
@@ -1507,7 +1524,7 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-6">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">Pending Trainer Approvals</p>
-              <p className="text-[10px] text-ink/30">One-click approval sets is_verified=true and approval_status='approved' via the approve_trainer RPC.</p>
+              <p className="text-[10px] text-ink/30">Approve sets is_verified=true and approval_status='approved' via the approve_trainer RPC. Decline sets approval_status='rejected'.</p>
             </div>
 
             {loadingPendingTrainers && (
@@ -1520,24 +1537,33 @@ const AdminDashboard: React.FC = () => {
 
             {!loadingPendingTrainers && pendingTrainers.length > 0 && (
               <div className="border border-ink/10">
-                <div className="grid grid-cols-[2fr_2fr_1fr_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                <div className="grid grid-cols-[2fr_2fr_1fr_220px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Name</p>
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Email / User ID</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">User ID</p>
                   <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Signed Up</p>
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Action</p>
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Actions</p>
                 </div>
                 {pendingTrainers.map((trainer) => (
-                  <div key={trainer.user_id} className="grid grid-cols-[2fr_2fr_1fr_120px] gap-4 px-6 py-4 border-b border-ink/5 last:border-0 items-center">
+                  <div key={trainer.user_id} className="grid grid-cols-[2fr_2fr_1fr_220px] gap-4 px-6 py-4 border-b border-ink/5 last:border-0 items-center">
                     <p className="text-sm font-light text-ink truncate">{trainer.full_name ?? '—'}</p>
-                    <p className="text-[10px] text-ink/50 truncate">{trainer.email ?? trainer.user_id}</p>
+                    <p className="text-[10px] text-ink/50 font-mono truncate">{trainer.user_id}</p>
                     <p className="text-[10px] text-ink/40">{new Date(trainer.created_at).toLocaleDateString()}</p>
-                    <button
-                      onClick={() => handleApproveTrainer(trainer.user_id)}
-                      disabled={approvingTrainerId === trainer.user_id}
-                      className="py-2 bg-green-600 text-white text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      {approvingTrainerId === trainer.user_id ? '…' : 'Approve'}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleApproveTrainer(trainer.user_id)}
+                        disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
+                        className="flex-1 py-2 bg-green-600 text-white text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        {approvingTrainerId === trainer.user_id ? '…' : 'Approve'}
+                      </button>
+                      <button
+                        onClick={() => handleDeclineTrainer(trainer.user_id)}
+                        disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
+                        className="flex-1 py-2 border border-red-200 text-red-700 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        {decliningTrainerId === trainer.user_id ? '…' : 'Decline'}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
