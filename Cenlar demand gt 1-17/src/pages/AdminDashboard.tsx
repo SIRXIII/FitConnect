@@ -86,11 +86,38 @@ interface AuditLogEntry {
   actor?: { full_name: string } | null;
 }
 
+interface PendingTrainerCertDoc {
+  id: string;
+  cert_name: string | null;
+  cert_code: string | null;
+  status: string;
+  expiry_date: string | null;
+  file_url: string | null;
+  submitted_at: string | null;
+}
+
 interface PendingTrainer {
   user_id: string;
+  trainer_profile_id: string;
   full_name: string | null;
+  avatar_url: string | null;
+  phone: string | null;
+  email: string;
+  last_sign_in_at: string | null;
   approval_status: string;
   created_at: string;
+  bio: string | null;
+  specialty: string | null;
+  trainer_location: string | null;
+  profile_location: string | null;
+  hourly_rate: number | null;
+  certifications: string[] | null;
+  certification_number: string | null;
+  certification_url: string | null;
+  gym_memberships: string[] | null;
+  stripe_account_id: string | null;
+  payouts_enabled: boolean | null;
+  cert_documents: PendingTrainerCertDoc[];
 }
 
 interface TransactionRow {
@@ -461,18 +488,11 @@ const AdminDashboard: React.FC = () => {
   const fetchPendingTrainers = useCallback(async () => {
     setLoadingPendingTrainers(true);
     try {
-      const { data, error } = await (supabase as any)
-        .from('trainer_profiles')
-        .select('user_id, approval_status, created_at, profiles!trainer_profiles_user_id_fkey(full_name)')
-        .eq('approval_status', 'pending');
+      // SECURITY DEFINER RPC: joins auth.users for email and aggregates
+      // trainer_certifications, which the admin cannot read via direct selects.
+      const { data, error } = await (supabase as any).rpc('get_admin_pending_trainers');
       if (error) throw error;
-      const rows: PendingTrainer[] = (data ?? []).map((r: any) => ({
-        user_id: r.user_id,
-        full_name: r.profiles?.full_name ?? null,
-        approval_status: r.approval_status,
-        created_at: r.created_at,
-      }));
-      setPendingTrainers(rows);
+      setPendingTrainers((data ?? []) as PendingTrainer[]);
     } catch {
       setPendingTrainers([]);
       toast.error('Failed to load pending trainers.');
@@ -1569,36 +1589,148 @@ const AdminDashboard: React.FC = () => {
             )}
 
             {!loadingPendingTrainers && pendingTrainers.length > 0 && (
-              <div className="border border-ink/10">
-                <div className="grid grid-cols-[2fr_2fr_1fr_220px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Name</p>
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">User ID</p>
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Signed Up</p>
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Actions</p>
-                </div>
-                {pendingTrainers.map((trainer) => (
-                  <div key={trainer.user_id} className="grid grid-cols-[2fr_2fr_1fr_220px] gap-4 px-6 py-4 border-b border-ink/5 last:border-0 items-center">
-                    <p className="text-sm font-light text-ink truncate">{trainer.full_name ?? '—'}</p>
-                    <p className="text-[10px] text-ink/50 font-mono truncate">{trainer.user_id}</p>
-                    <p className="text-[10px] text-ink/40">{new Date(trainer.created_at).toLocaleDateString()}</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApproveTrainer(trainer.user_id)}
-                        disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
-                        className="flex-1 py-2 bg-green-600 text-white text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        {approvingTrainerId === trainer.user_id ? '…' : 'Approve'}
-                      </button>
-                      <button
-                        onClick={() => handleDeclineTrainer(trainer.user_id)}
-                        disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
-                        className="flex-1 py-2 border border-red-200 text-red-700 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        {decliningTrainerId === trainer.user_id ? '…' : 'Decline'}
-                      </button>
+              <div className="space-y-4">
+                {pendingTrainers.map((trainer) => {
+                  const location = trainer.trainer_location ?? trainer.profile_location;
+                  const payoutLabel = !trainer.stripe_account_id
+                    ? 'Not connected'
+                    : trainer.payouts_enabled
+                      ? 'Synced — payouts enabled'
+                      : 'Connected — payouts pending';
+                  const payoutTone = !trainer.stripe_account_id
+                    ? 'text-ink/40'
+                    : trainer.payouts_enabled
+                      ? 'text-green-700'
+                      : 'text-amber-700';
+                  return (
+                    <div key={trainer.user_id} className="border border-ink/10">
+                      {/* Header: identity + actions */}
+                      <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-ink/5 bg-ink/[0.02]">
+                        <div className="flex items-center gap-4 min-w-0">
+                          {trainer.avatar_url ? (
+                            <img
+                              src={trainer.avatar_url}
+                              alt={trainer.full_name ?? 'Trainer'}
+                              className="w-12 h-12 rounded-full object-cover border border-ink/10"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-sm font-light text-ink/40">
+                              {(trainer.full_name ?? trainer.email).charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-light text-ink truncate">{trainer.full_name ?? 'No name provided'}</p>
+                            <p className="text-[11px] text-ink/50 truncate">{trainer.email}</p>
+                            <p className="text-[10px] text-ink/30">
+                              Signed up {new Date(trainer.created_at).toLocaleDateString()}
+                              {trainer.last_sign_in_at && ` · Last sign-in ${new Date(trainer.last_sign_in_at).toLocaleDateString()}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 shrink-0 w-[220px]">
+                          <button
+                            onClick={() => handleApproveTrainer(trainer.user_id)}
+                            disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
+                            className="flex-1 py-2 bg-green-600 text-white text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            {approvingTrainerId === trainer.user_id ? '…' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={() => handleDeclineTrainer(trainer.user_id)}
+                            disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
+                            className="flex-1 py-2 border border-red-200 text-red-700 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            {decliningTrainerId === trainer.user_id ? '…' : 'Decline'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Detail grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4 px-6 py-4">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Specialty</p>
+                          <p className="text-xs font-light text-ink/70">{trainer.specialty ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Hourly Rate</p>
+                          <p className="text-xs font-light text-ink/70">{trainer.hourly_rate != null ? `$${Number(trainer.hourly_rate).toFixed(0)}/hr` : '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Location</p>
+                          <p className="text-xs font-light text-ink/70">{location ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Phone</p>
+                          <p className="text-xs font-light text-ink/70">{trainer.phone ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Stripe Payout</p>
+                          <p className={`text-xs font-light ${payoutTone}`}>{payoutLabel}</p>
+                          {trainer.stripe_account_id && (
+                            <p className="text-[10px] text-ink/40 font-mono truncate">{trainer.stripe_account_id}</p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">User ID</p>
+                          <p className="text-[10px] text-ink/50 font-mono truncate">{trainer.user_id}</p>
+                        </div>
+                      </div>
+
+                      {/* Bio */}
+                      <div className="px-6 pb-4">
+                        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Bio</p>
+                        <p className="text-xs font-light text-ink/70 whitespace-pre-wrap">{trainer.bio?.trim() || 'No bio provided yet.'}</p>
+                      </div>
+
+                      {/* Certifications */}
+                      <div className="px-6 pb-5 space-y-3">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Certifications</p>
+                          {(trainer.certifications?.length ?? 0) > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {trainer.certifications!.map((cert) => (
+                                <span key={cert} className="px-2 py-1 border border-ink/10 text-[10px] text-ink/60 uppercase tracking-wider">
+                                  {cert}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs font-light text-ink/40">None listed.</p>
+                          )}
+                          {trainer.certification_number && (
+                            <p className="text-[10px] text-ink/40 mt-1">Cert # {trainer.certification_number}</p>
+                          )}
+                          {trainer.certification_url && (
+                            <a href={trainer.certification_url} target="_blank" rel="noreferrer" className="text-[10px] text-blue-700 underline">
+                              View certification file
+                            </a>
+                          )}
+                        </div>
+                        {trainer.cert_documents.length > 0 && (
+                          <div>
+                            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Uploaded Cert Documents</p>
+                            <div className="space-y-1">
+                              {trainer.cert_documents.map((doc) => (
+                                <div key={doc.id} className="flex items-center gap-3 text-[11px] text-ink/60">
+                                  <span className="font-light">{doc.cert_name ?? doc.cert_code ?? 'Document'}</span>
+                                  <span className={`uppercase tracking-wider text-[9px] ${doc.status === 'approved' ? 'text-green-700' : doc.status === 'rejected' ? 'text-red-700' : 'text-amber-700'}`}>
+                                    {doc.status}
+                                  </span>
+                                  {doc.expiry_date && <span className="text-ink/40">expires {new Date(doc.expiry_date).toLocaleDateString()}</span>}
+                                  {doc.file_url && (
+                                    <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-blue-700 underline">
+                                      view file
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
