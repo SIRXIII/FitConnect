@@ -16,13 +16,21 @@ interface UseMatchedTrainersResult {
 }
 
 export function useMatchedTrainers(): UseMatchedTrainersResult {
-  const { user } = useAuthStore();
+  const { user, profile } = useAuthStore();
   const [results, setResults] = useState<MatchResult[]>([]);
   const [passportReady, setPassportReady] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Only clients have a client_profiles row. Skip the fetch entirely for
+    // trainers and admins to avoid a 406 from maybeSingle() finding no row.
+    if (profile?.role !== 'client') {
+      setPassportReady(false);
       setLoading(false);
       return;
     }

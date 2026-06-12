@@ -19,7 +19,7 @@ interface FlaggedReview {
   is_hidden: boolean;
   created_at: string;
   client: { full_name: string } | null;
-  trainer: { id: string; user_id: string; profiles: { full_name: string } | null } | null;
+  trainer: { user_id: string; profiles: { full_name: string } | null } | null;
 }
 
 interface UserRow {
@@ -488,7 +488,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const { data } = await supabase
         .from('reviews')
-        .select('id, rating, comment, is_flagged, is_hidden, created_at, client:client_id(full_name), trainer:trainer_id(id, user_id, profiles:user_id(full_name))')
+        .select('id, rating, comment, is_flagged, is_hidden, created_at, client:profiles!reviews_client_id_fkey(full_name), trainer:trainer_profiles!reviews_trainer_id_fkey(user_id, profiles:profiles!trainer_profiles_user_id_fkey(full_name))')
         .eq('is_flagged', true)
         .order('created_at', { ascending: false });
       setFlaggedReviews((data ?? []) as unknown as FlaggedReview[]);
