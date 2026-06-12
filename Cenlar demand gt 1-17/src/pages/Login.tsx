@@ -28,6 +28,8 @@ const Login: React.FC = () => {
   const navigateAfterAuth = (freshProfile: typeof profile) => {
     if (redirectTo) {
       navigate(redirectTo, { replace: true });
+    } else if (freshProfile?.role === 'admin') {
+      navigate('/admin', { replace: true });
     } else if (freshProfile?.role === 'trainer') {
       navigate('/trainer/dashboard', { replace: true });
     } else if (freshProfile?.role) {
