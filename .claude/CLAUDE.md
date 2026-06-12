@@ -2,7 +2,8 @@
 
 ## App Identity
 - **App Name:** FitRush (originally FitConnect — repo/folder still named FitConnect)
-- **Live URL:** https://fitrush-app.netlify.app
+- **Live URL:** https://fitconnect-2sn.pages.dev (canonical, Cloudflare Pages)
+- **Secondary URL:** https://fitrush-app.netlify.app (Netlify, kept in sync)
 - **GitHub:** https://github.com/SIRXIII/FitConnect
 - **Supabase Project:** qecwxvvlpvrnrqyrdxrj
 
@@ -11,7 +12,7 @@
 - **Backend:** Supabase (PostgreSQL + Auth + Realtime + Edge Functions on Deno)
 - **Payments:** Stripe Connect (trainer payouts) + Stripe Billing (subscriptions)
 - **Mobile:** Capacitor 8 (iOS)
-- **Hosting:** Netlify (frontend), Supabase (backend + edge functions)
+- **Hosting:** Cloudflare Pages (canonical) + Netlify (secondary), Supabase (backend + edge functions)
 - **Email:** Resend.com (transactional — from noreply@resend.dev)
 - **Testing:** Vitest
 
