@@ -6,8 +6,19 @@ A luxury fitness marketplace that connects certified personal trainers' idle hou
 
 **App Name:** FitRush
 **Live URL:** https://fitconnect-2sn.pages.dev
-**Version:** v4.0 complete
-**Next:** v5.0
+**Version:** v6.0 complete
+**Next:** v6.1 Admin Portal Quality (executing)
+
+## Current Milestone: v6.1 Admin Portal Quality
+
+**Goal:** Professional, accurate admin portal — crisp typography, zero broken fetches, no fake/hardcoded data, test data purged, and a working release pipeline with Cloudflare Pages (fitconnect-2sn.pages.dev) as the canonical host.
+
+**Target outcomes:**
+- Cloudy fonts fixed (Inter data text + antialiasing; Cormorant kept for brand titles)
+- Zero 4xx console errors on /admin (flagged reviews 400, referral leaderboard 404, client_profiles 406)
+- approve_trainer/reject_trainer RPCs backfilled into source control
+- System Health shows live probes; payouts show real admin identity; test accounts deleted
+- One release: push main → CF Pages (canonical) + Netlify (sync); pending-trainer fixes go live
 
 ## Core Value
 

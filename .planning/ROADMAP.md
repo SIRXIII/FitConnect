@@ -7,6 +7,8 @@
 - v2.1 Subscription Tiers -- Phases 12-16 (shipped 2026-03-17)
 - v3.0 The Premium Experience & Trust Update -- Phases 17-20 (shipped 2026-03-18)
 - v4.0 The Live Platform -- Phases 21-28 (shipped 2026-03-19)
+- v6.0 Growth Engine -- Phases 35-38 (shipped 2026-04-05)
+- v6.1 Admin Portal Quality -- Phases 39-42 (executing, started 2026-06-11)
 
 ---
 
@@ -245,10 +247,34 @@ Plans:
 | 27. Location-Based Notifications | v4.0 | 2/2 | done | 2026-03-19 |
 | 28. Google Calendar Bidirectional Sync | v4.0 | 3/3 | done | 2026-03-19 |
 | 33. Admin Dashboard Live Data | 3/3 | Complete   | 2026-03-23 | — |
-| 35. Push Notifications | v6.0 | 0/2 | planned | — |
-| 36. Trainer Video Intros | v6.0 | 0/2 | planned | — |
-| 37. Group Sessions | 2/2 | Complete   | 2026-03-21 | — |
-| 38. Client Workout Log | 3/3 | Complete   | 2026-03-23 | — |
+| 35. Push Notifications | v6.0 | 2/2 | done | 2026-04-05 |
+| 36. Trainer Video Intros | v6.0 | 2/2 | done | 2026-04-05 |
+| 37. Group Sessions | v6.0 | 2/2 | done | 2026-04-05 |
+| 38. Client Workout Log | v6.0 | 3/3 | done | 2026-04-05 |
+| 39. Typography & Visual Clarity | v6.1 | 0/1 | in progress | — |
+| 40. Broken Fetches + RPC Backfill | v6.1 | 0/1 | pending | — |
+| 41. Real Data + Test Data Purge | v6.1 | 0/1 | pending | — |
+| 42. Release + Verification | v6.1 | 0/1 | pending | — |
+
+## v6.1 — Admin Portal Quality (executing)
+
+**Goal:** Professional, accurate admin portal + working release pipeline. Full audit findings + plan: `~/.claude/plans/please-look-at-the-splendid-dream.md`
+
+### Phase 39: Typography & Visual Clarity
+Requirements: TYPO-01..04. Font preload, antialiasing, Inter KPI numerals (Cormorant stays on brand titles), contrast sweep text-ink/40→/70, min 10px labels.
+Success: build clean; before/after screenshots show crisp text; h1 still Cormorant.
+
+### Phase 40: Broken Fetches + RPC Backfill
+Requirements: FETCH-01..04. Fix flagged-reviews embed 400, client_profiles 406 guard, get_referral_leaderboard backfill, approve/reject_trainer migration (exact live defs).
+Success: zero 4xx on /admin load; 3 RPCs present in pg_proc; vitest green.
+
+### Phase 41: Real Data + Test Data Purge
+Requirements: DATA-01..05. Live health probes, initiated_by_admin_id, payout display guard, audit actor names, FK-safe test account deletion (keep pt.golive.0611 + real accounts).
+Success: Settings probes live; tabs show only real data; protected rows intact.
+
+### Phase 42: Release + Verification
+Requirements: REL-01..05. Admin redirect fix, push origin main, deploy CF Pages (canonical) + Netlify, live verification, docs + Obsidian Phase Log.
+Success: live bundle contains reject_trainer; admin login lands /admin; zero console 4xx; pending trainer visible with Decline.
 
 ---
-*Last updated: 2026-03-23 -- Phase 38 planned*
+*Last updated: 2026-06-11 -- v6.1 Admin Portal Quality started (phases 39-42)*
