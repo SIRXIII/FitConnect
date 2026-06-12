@@ -52,6 +52,7 @@ interface PayoutHistoryRow {
   trainer_id: string;
   created_at: string;
   updated_at: string | null;
+  initiated_by_admin?: { full_name: string } | null;
 }
 
 interface CertReviewItem {
@@ -169,6 +170,12 @@ const AdminDashboard: React.FC = () => {
   const [loadingPendingTrainers, setLoadingPendingTrainers] = useState(false);
   const [approvingTrainerId, setApprovingTrainerId] = useState<string | null>(null);
   const [decliningTrainerId, setDecliningTrainerId] = useState<string | null>(null);
+  const [healthChecks, setHealthChecks] = useState<Record<string, 'operational' | 'degraded' | 'down'>>({
+    Database: 'operational',
+    Auth: 'operational',
+    Storage: 'operational',
+    'Edge Functions': 'operational',
+  });
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -308,7 +315,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const { data, error } = await (supabase as any)
         .from('payout_transactions')
-        .select('id, amount, status, trainer_id, created_at, updated_at')
+        .select('id, amount, status, trainer_id, created_at, updated_at, initiated_by_admin:initiated_by_admin_id(full_name)')
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -348,12 +355,14 @@ const AdminDashboard: React.FC = () => {
   const handleHoldPayout = async (balance: PayoutBalance) => {
     setProcessingPayoutTrainerId(balance.trainer_profile_id);
     try {
+      const { data: { user: adminUser } } = await supabase.auth.getUser();
       const { error } = await (supabase as any)
         .from('payout_transactions')
         .insert({
           trainer_id: balance.trainer_profile_id,
           amount: balance.pending_balance,
           status: 'held',
+          initiated_by_admin_id: adminUser?.id ?? null,
         });
       if (error) throw error;
       toast.success(`Payout held for ${balance.trainer_name}`);
@@ -365,6 +374,30 @@ const AdminDashboard: React.FC = () => {
       setProcessingPayoutTrainerId(null);
     }
   };
+
+  const runHealthChecks = useCallback(async () => {
+    const timeout = (ms: number) => new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+    const probe = async (fn: () => Promise<unknown>): Promise<'operational' | 'degraded' | 'down'> => {
+      const start = Date.now();
+      try {
+        await Promise.race([fn(), timeout(3000)]);
+        return Date.now() - start > 2000 ? 'degraded' : 'operational';
+      } catch {
+        return 'down';
+      }
+    };
+
+    const [db, auth, storage, edge] = await Promise.all([
+      probe(() => supabase.from('profiles').select('id', { head: true, count: 'exact' })),
+      probe(() => supabase.auth.getSession()),
+      probe(() => supabase.storage.from('avatars').list('', { limit: 1 })),
+      probe(() => supabase.functions.invoke('stripe-webhook', { method: 'OPTIONS' }).then(r => { if (r.error && !r.data) throw r.error; })),
+    ]);
+
+    setHealthChecks({ Database: db, Auth: auth, Storage: storage, 'Edge Functions': edge });
+  }, []);
+
+  useEffect(() => { if (activeTab === 'settings') runHealthChecks(); }, [activeTab, runHealthChecks]);
 
   useEffect(() => { if (activeTab === 'payouts') { fetchPayoutBalances(); fetchPayoutHistory(); } }, [activeTab, fetchPayoutBalances, fetchPayoutHistory]);
 
@@ -850,7 +883,7 @@ const AdminDashboard: React.FC = () => {
                     <p className="text-sm text-ink truncate">{tx.trainer_name}</p>
                     <p className="text-sm text-ink tabular-nums">${tx.amount.toFixed(2)}</p>
                     <p className="text-sm text-ink/60 tabular-nums">${tx.platform_fee.toFixed(2)}</p>
-                    <p className="text-sm text-ink tabular-nums">${tx.trainer_payout.toFixed(2)}</p>
+                    <p className="text-sm text-ink tabular-nums">${(tx.trainer_payout > 0 ? tx.trainer_payout : tx.amount - tx.platform_fee).toFixed(2)}</p>
                     <span className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium ${
                       tx.status === 'succeeded' ? 'bg-emerald-50 text-emerald-600' :
                       tx.status === 'failed' ? 'bg-red-50 text-red-600' :
@@ -972,7 +1005,7 @@ const AdminDashboard: React.FC = () => {
                       }`}>
                         {ph.status}
                       </span>
-                      <p className="text-xs text-ink/70">admin</p>
+                      <p className="text-xs text-ink/70">{ph.initiated_by_admin?.full_name ?? 'system'}</p>
                       <p className="text-xs text-ink/70">{new Date(ph.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
                   ))
@@ -1616,10 +1649,9 @@ const AdminDashboard: React.FC = () => {
             <div className="border border-ink/10 p-8 max-w-lg space-y-4">
               <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">System Health</p>
               <div className="space-y-3">
-                <HealthRow label="Database" status="operational" />
-                <HealthRow label="Edge Functions" status="operational" />
-                <HealthRow label="Stripe Connect" status="operational" />
-                <HealthRow label="Realtime" status="operational" />
+                {Object.entries(healthChecks).map(([label, status]) => (
+                  <HealthRow key={label} label={label} status={status} />
+                ))}
               </div>
             </div>
           </div>
