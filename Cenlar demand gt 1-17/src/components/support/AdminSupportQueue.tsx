@@ -18,7 +18,7 @@ const STATUS_STYLES: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700 border-amber-200',
   waiting_on_user: 'bg-purple-50 text-purple-700 border-purple-200',
   resolved: 'bg-green-50 text-green-700 border-green-200',
-  closed: 'bg-ink/5 text-ink/40 border-ink/10',
+  closed: 'bg-ink/5 text-ink/70 border-ink/10',
 };
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -40,7 +40,7 @@ const StatusBadge: React.FC<{ status: string; size?: 'sm' | 'xs' }> = ({
   size = 'sm',
 }) => (
   <span
-    className={`inline-flex items-center border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/40 border-ink/10'} ${
+    className={`inline-flex items-center border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/70 border-ink/10'} ${
       size === 'xs' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-xs'
     }`}
   >
@@ -120,7 +120,7 @@ const TicketDetail: React.FC<{
       {/* Back */}
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-xs text-ink/40 hover:text-ink transition-colors"
+        className="flex items-center gap-1.5 text-xs text-ink/70 hover:text-ink transition-colors"
       >
         <ChevronLeft size={13} />
         Back to queue
@@ -131,7 +131,7 @@ const TicketDetail: React.FC<{
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-sm font-medium text-ink">{ticket.subject}</h3>
-            <p className="text-xs text-ink/40 mt-1">
+            <p className="text-xs text-ink/70 mt-1">
               {ticket.user?.full_name ?? 'Unknown'} ·{' '}
               {new Date(ticket.created_at).toLocaleDateString('en-US', {
                 month: 'short',
@@ -153,13 +153,13 @@ const TicketDetail: React.FC<{
       {/* Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-ink/40 mb-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-ink/70 mb-1.5">
             Status
           </label>
           <select
             value={currentStatus}
             onChange={(e) => handleStatusChange(e.target.value as TicketStatus)}
-            className="w-full px-3 py-2 bg-white border border-ink/10 text-sm text-ink focus:outline-none focus:border-accent transition-colors"
+            className="w-full px-3 py-2 bg-white border border-ink/10 text-sm text-ink rounded-none focus:outline-none focus:border-accent transition-colors"
           >
             {(Object.keys(STATUS_LABELS) as TicketStatus[]).map((s) => (
               <option key={s} value={s}>
@@ -169,13 +169,13 @@ const TicketDetail: React.FC<{
           </select>
         </div>
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-ink/40 mb-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-ink/70 mb-1.5">
             Priority
           </label>
           <select
             value={currentPriority}
             onChange={(e) => handlePriorityChange(e.target.value as TicketPriority)}
-            className="w-full px-3 py-2 bg-white border border-ink/10 text-sm text-ink focus:outline-none focus:border-accent transition-colors"
+            className="w-full px-3 py-2 bg-white border border-ink/10 text-sm text-ink rounded-none focus:outline-none focus:border-accent transition-colors"
           >
             {(Object.keys(PRIORITY_LABELS) as TicketPriority[]).map((p) => (
               <option key={p} value={p}>
@@ -188,7 +188,7 @@ const TicketDetail: React.FC<{
 
       {/* Admin Notes */}
       <div>
-        <label className="block text-[10px] uppercase tracking-widest text-ink/40 mb-1.5">
+        <label className="block text-[10px] uppercase tracking-widest text-ink/70 mb-1.5">
           Internal Admin Notes
         </label>
         <textarea
@@ -209,7 +209,7 @@ const TicketDetail: React.FC<{
 
       {/* Message thread */}
       <div>
-        <p className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Conversation</p>
+        <p className="text-[10px] uppercase tracking-widest text-ink/70 mb-3">Conversation</p>
         <div className="space-y-3 max-h-96 overflow-y-auto border border-ink/10 p-4 bg-white">
           {messagesLoading ? (
             <div className="flex items-center justify-center py-8">
@@ -236,12 +236,12 @@ const TicketDetail: React.FC<{
                     }`}
                   >
                     {!isCurrentUser && (
-                      <p className="text-[10px] opacity-60 mb-0.5 uppercase tracking-wider font-semibold">
+                      <p className="text-[10px] opacity-80 mb-0.5 uppercase tracking-wider font-semibold">
                         {isAdmin ? 'Support Team' : (msg.sender?.full_name ?? 'User')}
                       </p>
                     )}
                     <p className="leading-relaxed">{msg.message}</p>
-                    <p className="text-[10px] opacity-50 mt-1">
+                    <p className="text-[10px] opacity-80 mt-1">
                       {new Date(msg.created_at).toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: '2-digit',
@@ -324,7 +324,7 @@ const AdminSupportQueue: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">
+          <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">
             Support Queue
           </h3>
           {openCount > 0 && (
@@ -335,7 +335,7 @@ const AdminSupportQueue: React.FC = () => {
         </div>
         <button
           onClick={refetch}
-          className="text-xs text-ink/40 hover:text-ink transition-colors"
+          className="text-xs text-ink/70 hover:text-ink transition-colors"
         >
           Refresh
         </button>
@@ -346,7 +346,7 @@ const AdminSupportQueue: React.FC = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-1.5 bg-white border border-ink/10 text-xs text-ink focus:outline-none focus:border-accent transition-colors"
+          className="px-3 py-1.5 bg-white border border-ink/10 text-xs text-ink rounded-none focus:outline-none focus:border-accent transition-colors"
         >
           <option value="all">All Statuses</option>
           {Object.entries(STATUS_LABELS).map(([v, l]) => (
@@ -356,7 +356,7 @@ const AdminSupportQueue: React.FC = () => {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-1.5 bg-white border border-ink/10 text-xs text-ink focus:outline-none focus:border-accent transition-colors"
+          className="px-3 py-1.5 bg-white border border-ink/10 text-xs text-ink rounded-none focus:outline-none focus:border-accent transition-colors"
         >
           <option value="all">All Categories</option>
           {Object.entries(CATEGORY_LABELS).map(([v, l]) => (
@@ -366,7 +366,7 @@ const AdminSupportQueue: React.FC = () => {
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="px-3 py-1.5 bg-white border border-ink/10 text-xs text-ink focus:outline-none focus:border-accent transition-colors"
+          className="px-3 py-1.5 bg-white border border-ink/10 text-xs text-ink rounded-none focus:outline-none focus:border-accent transition-colors"
         >
           <option value="all">All Priorities</option>
           {Object.entries(PRIORITY_LABELS).map(([v, l]) => (
@@ -383,29 +383,29 @@ const AdminSupportQueue: React.FC = () => {
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <CheckCircle size={28} className="mx-auto text-green-400 mb-3" />
-          <p className="text-sm text-ink/40">No tickets match the current filters.</p>
+          <p className="text-sm text-ink/70">No tickets match the current filters.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-ink/10">
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/40 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
                   Priority
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/40 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
                   Subject
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/40 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
                   User
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/40 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
                   Category
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/40 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
                   Status
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/40 font-medium pb-3">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3">
                   Created
                 </th>
               </tr>
@@ -444,7 +444,7 @@ const AdminSupportQueue: React.FC = () => {
                   <td className="py-3 pr-4">
                     <StatusBadge status={ticket.status} size="xs" />
                   </td>
-                  <td className="py-3 text-xs text-ink/40">
+                  <td className="py-3 text-xs text-ink/70">
                     {new Date(ticket.created_at).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
