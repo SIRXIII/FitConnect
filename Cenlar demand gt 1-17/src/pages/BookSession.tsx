@@ -5,6 +5,7 @@ import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { STRIPE_CONFIGURED } from '@/lib/stripe';
+import { computeBookingPricing, DEFAULT_PLATFORM_FEE_PCT } from '@/lib/pricing';
 import { useAuthStore } from '@/stores/auth';
 import { SkeletonLine, SkeletonRect } from '@/components/shared/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
@@ -123,7 +124,7 @@ const BookSession: React.FC = () => {
   const [slot, setSlot] = useState<SlotWithTrainer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [platformFeePct, setPlatformFeePct] = useState(0.08);
+  const [platformFeePct, setPlatformFeePct] = useState(DEFAULT_PLATFORM_FEE_PCT);
   const [referralDiscountPending, setReferralDiscountPending] = useState(false);
   const [bookedSlotIds, setBookedSlotIds] = useState<string[]>([]);
 
@@ -241,8 +242,8 @@ const BookSession: React.FC = () => {
       hadReferralDiscount = true;
     }
 
-    const platformFee = Math.round(finalRate * platformFeePct * 100) / 100;
-    const trainerPayout = Math.round((finalRate - platformFee) * 100) / 100;
+    // Canonical fee-on-top economics: client pays finalRate + fee, trainer nets finalRate.
+    const { rateCharged, platformFee, trainerPayout } = computeBookingPricing(finalRate, platformFeePct);
 
     // Request to Book mode — insert into booking_requests instead of direct booking
     const isRequestMode = trainerProfile.booking_mode === 'request';
@@ -267,7 +268,7 @@ const BookSession: React.FC = () => {
       p_slot_id: slot.id,
       p_client_id: user.id,
       p_trainer_id: trainerProfile.id,
-      p_rate_charged: finalRate,
+      p_rate_charged: rateCharged,
       p_platform_fee: platformFee,
       p_trainer_payout: trainerPayout,
       p_notes: notes || null,

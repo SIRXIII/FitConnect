@@ -1157,6 +1157,12 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Summary header */}
+            {/*
+              Canonical fee-on-top model (src/lib/pricing.ts): `amount` is rate_charged
+              (trainer rate + platform fee), so for paid rows charged === fees + payouts.
+              Comp rows (is_comp) carry amount 0 with a platform-funded trainer_payout, so
+              payout falls back to the stored value rather than amount - fee.
+            */}
             {(() => {
               const visible = transactions.filter((tx) =>
                 (txCompFilter === 'all') ||

@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import { computeBookingPricing, DEFAULT_PLATFORM_FEE_PCT } from '@/lib/pricing';
 import BookingRequestCard from './BookingRequestCard';
 
 interface BookingRequest {
@@ -36,6 +37,24 @@ const BookingRequestQueue: React.FC = () => {
   const { trainerProfile } = useAuthStore();
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [platformFeePct, setPlatformFeePct] = useState(DEFAULT_PLATFORM_FEE_PCT);
+
+  // Load the live platform fee so accepted requests are priced exactly like
+  // instant bookings (BookSession) rather than a stale hardcoded value.
+  useEffect(() => {
+    let active = true;
+    supabase
+      .from('platform_settings')
+      .select('value')
+      .eq('key', 'platform_fee_pct')
+      .single()
+      .then(({ data }) => {
+        if (!active || !data?.value) return;
+        const parsed = parseFloat(data.value);
+        if (!isNaN(parsed)) setPlatformFeePct(parsed);
+      });
+    return () => { active = false; };
+  }, []);
 
   const fetchRequests = useCallback(async () => {
     if (!trainerProfile?.id) return;
@@ -133,14 +152,23 @@ const BookingRequestQueue: React.FC = () => {
       return;
     }
 
+    // Price identically to an instant booking: apply the trainer's standing
+    // discount to the optimized rate, then the canonical fee-on-top model.
+    const baseRate = Number(trainerProfile.optimized_rate);
+    const discountPct = trainerProfile.discount_percentage ?? 0;
+    const rate = discountPct > 0
+      ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
+      : baseRate;
+    const { rateCharged, platformFee, trainerPayout } = computeBookingPricing(rate, platformFeePct);
+
     // Create the actual booking via atomic RPC
     const { data: rpcData, error: rpcError } = await supabase.rpc('create_booking_atomic', {
       p_slot_id: request.slot_id,
       p_client_id: request.client_id,
       p_trainer_id: trainerProfile.id,
-      p_rate_charged: Number(trainerProfile.optimized_rate),
-      p_platform_fee: Math.round(Number(trainerProfile.optimized_rate) * 0.08 * 100) / 100,
-      p_trainer_payout: Math.round(Number(trainerProfile.optimized_rate) * 0.92 * 100) / 100,
+      p_rate_charged: rateCharged,
+      p_platform_fee: platformFee,
+      p_trainer_payout: trainerPayout,
       p_notes: null,
     });
 

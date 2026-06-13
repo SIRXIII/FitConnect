@@ -10,14 +10,16 @@ describe('BookSession atomic booking', () => {
       error: null,
     });
 
-    // Verify RPC is called with expected param names
+    // Verify RPC is called with expected param names.
+    // Values follow the canonical fee-on-top model (rate 100 @ 12%):
+    // client charged 112, platform keeps 12, trainer nets the full 100.
     const params = {
       p_slot_id: 'slot-1',
       p_client_id: 'client-1',
       p_trainer_id: 'trainer-1',
-      p_rate_charged: 100,
-      p_platform_fee: 15,
-      p_trainer_payout: 85,
+      p_rate_charged: 112,
+      p_platform_fee: 12,
+      p_trainer_payout: 100,
       p_notes: null,
     };
 
