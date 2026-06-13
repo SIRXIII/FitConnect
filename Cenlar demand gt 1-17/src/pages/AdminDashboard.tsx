@@ -126,9 +126,66 @@ interface TransactionRow {
   platform_fee: number;
   trainer_payout: number;
   status: string;
+  is_comp: boolean;
   created_at: string;
   client_name: string;
   trainer_name: string;
+}
+
+interface SessionCredit {
+  id: string;
+  reason: string;
+  status: string;
+  outcome: string | null;
+  booking_id: string | null;
+  granted_at: string;
+  redeemed_at: string | null;
+  notes: string | null;
+  trainer_name: string | null;
+}
+
+interface SessionCreditClient {
+  client_id: string;
+  full_name: string;
+  email: string;
+  granted_count: number;
+  available_count: number;
+  redeemed_count: number;
+  no_show_count: number;
+  credits: SessionCredit[];
+}
+
+interface OpenSlot {
+  slot_id: string;
+  trainer_profile_id: string;
+  trainer_name: string;
+  rate: number;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+}
+
+interface CompOwedRow {
+  trainer_profile_id: string;
+  trainer_user_id: string;
+  trainer_name: string;
+  stripe_account_id: string | null;
+  comp_count: number;
+  comp_owed: number;
+}
+
+interface FreeMetrics {
+  new_clients: number;
+  booked_any: number;
+  first_free_done: number;
+  second_free_done: number;
+  converted_paid: number;
+  credits_granted: number;
+  credits_available: number;
+  credits_redeemed: number;
+  comp_no_shows: number;
+  comp_cost_total: number;
+  comp_cost_unpaid: number;
 }
 
 interface Stats {
@@ -145,7 +202,7 @@ const AdminDashboard: React.FC = () => {
   const [platformFee, setPlatformFee] = useState('0.08');
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support' | 'pending-trainers'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support' | 'pending-trainers' | 'sessions'>('analytics');
   const { tickets: supportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
@@ -203,6 +260,27 @@ const AdminDashboard: React.FC = () => {
     Storage: 'operational',
     'Edge Functions': 'operational',
   });
+
+  // Sessions tab state
+  const [sessionCredits, setSessionCredits] = useState<SessionCreditClient[]>([]);
+  const [loadingSessionCredits, setLoadingSessionCredits] = useState(false);
+  const [openSlots, setOpenSlots] = useState<OpenSlot[]>([]);
+  const [loadingOpenSlots, setLoadingOpenSlots] = useState(false);
+  const [grantingCompClientId, setGrantingCompClientId] = useState<string | null>(null);
+  const [arrangingCreditId, setArrangingCreditId] = useState<string | null>(null);
+  const [selectedSlotId, setSelectedSlotId] = useState<Record<string, string>>({});
+  const [arrangingSubmitting, setArrangingSubmitting] = useState(false);
+
+  // Payouts tab — comp owed state
+  const [compOwed, setCompOwed] = useState<CompOwedRow[]>([]);
+  const [loadingCompOwed, setLoadingCompOwed] = useState(false);
+
+  // Analytics tab — free session metrics
+  const [freeMetrics, setFreeMetrics] = useState<FreeMetrics | null>(null);
+  const [loadingFreeMetrics, setLoadingFreeMetrics] = useState(false);
+
+  // Transactions tab — comp type filter
+  const [txCompFilter, setTxCompFilter] = useState<'all' | 'comp' | 'paid'>('all');
 
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
@@ -281,7 +359,7 @@ const AdminDashboard: React.FC = () => {
       let query = (supabase as any)
         .from('bookings')
         .select(`
-          id, rate_charged, platform_fee, trainer_payout, status, stripe_payment_intent_id, created_at,
+          id, rate_charged, platform_fee, trainer_payout, status, is_comp, stripe_payment_intent_id, created_at,
           client:client_id(full_name),
           trainer_profile:trainer_id(user_id, profiles:user_id(full_name))
         `)
@@ -301,6 +379,7 @@ const AdminDashboard: React.FC = () => {
         platform_fee: Number(b.platform_fee || 0),
         trainer_payout: Number(b.trainer_payout || 0),
         status: b.status,
+        is_comp: Boolean(b.is_comp),
         created_at: b.created_at,
         client_name: b.client?.full_name ?? '—',
         trainer_name: b.trainer_profile?.profiles?.full_name ?? '—',
@@ -426,6 +505,96 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => { if (activeTab === 'settings') runHealthChecks(); }, [activeTab, runHealthChecks]);
 
+  const fetchSessionCredits = useCallback(async () => {
+    setLoadingSessionCredits(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('get_admin_session_credits');
+      if (error) throw error;
+      const rows: SessionCreditClient[] = (data ?? []).map((r: any) => ({
+        ...r,
+        granted_count: Number(r.granted_count),
+        available_count: Number(r.available_count),
+        redeemed_count: Number(r.redeemed_count),
+        no_show_count: Number(r.no_show_count),
+        credits: (r.credits ?? []),
+      }));
+      setSessionCredits(rows);
+    } catch {
+      toast.error('Failed to load session credits');
+      setSessionCredits([]);
+    } finally {
+      setLoadingSessionCredits(false);
+    }
+  }, []);
+
+  const fetchOpenSlots = useCallback(async () => {
+    setLoadingOpenSlots(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('get_admin_open_slots');
+      if (error) throw error;
+      setOpenSlots((data ?? []).map((s: any) => ({
+        ...s,
+        rate: Number(s.rate),
+        duration_minutes: Number(s.duration_minutes),
+      })));
+    } catch {
+      toast.error('Failed to load open slots');
+      setOpenSlots([]);
+    } finally {
+      setLoadingOpenSlots(false);
+    }
+  }, []);
+
+  const fetchCompOwed = useCallback(async () => {
+    setLoadingCompOwed(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('get_admin_comp_owed');
+      if (error) throw error;
+      setCompOwed((data ?? []).map((r: any) => ({
+        ...r,
+        comp_count: Number(r.comp_count),
+        comp_owed: Number(r.comp_owed),
+      })));
+    } catch {
+      toast.error('Failed to load comp owed');
+      setCompOwed([]);
+    } finally {
+      setLoadingCompOwed(false);
+    }
+  }, []);
+
+  const fetchFreeMetrics = useCallback(async () => {
+    setLoadingFreeMetrics(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('get_admin_free_session_metrics');
+      if (error) throw error;
+      const r = (Array.isArray(data) ? data[0] : data) ?? {};
+      setFreeMetrics({
+        new_clients: Number(r.new_clients ?? 0),
+        booked_any: Number(r.booked_any ?? 0),
+        first_free_done: Number(r.first_free_done ?? 0),
+        second_free_done: Number(r.second_free_done ?? 0),
+        converted_paid: Number(r.converted_paid ?? 0),
+        credits_granted: Number(r.credits_granted ?? 0),
+        credits_available: Number(r.credits_available ?? 0),
+        credits_redeemed: Number(r.credits_redeemed ?? 0),
+        comp_no_shows: Number(r.comp_no_shows ?? 0),
+        comp_cost_total: Number(r.comp_cost_total ?? 0),
+        comp_cost_unpaid: Number(r.comp_cost_unpaid ?? 0),
+      });
+    } catch {
+      toast.error('Failed to load free session metrics');
+    } finally {
+      setLoadingFreeMetrics(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'sessions') { fetchSessionCredits(); fetchOpenSlots(); }
+    if (activeTab === 'payouts') fetchCompOwed();
+    if (activeTab === 'analytics') fetchFreeMetrics();
+  }, [activeTab, fetchSessionCredits, fetchOpenSlots, fetchCompOwed, fetchFreeMetrics]);
+
   useEffect(() => { if (activeTab === 'payouts') { fetchPayoutBalances(); fetchPayoutHistory(); } }, [activeTab, fetchPayoutBalances, fetchPayoutHistory]);
 
   const fetchPendingCerts = useCallback(async () => {
@@ -533,6 +702,49 @@ const AdminDashboard: React.FC = () => {
       toast.error('Failed to decline trainer.');
     } finally {
       setDecliningTrainerId(null);
+    }
+  };
+
+  const handleGrantComp = async (clientId: string) => {
+    setGrantingCompClientId(clientId);
+    try {
+      const { error } = await (supabase as any).rpc('admin_grant_comp_session', {
+        p_client_id: clientId,
+        p_reason: 'make_good',
+        p_notes: null,
+      });
+      if (error) throw error;
+      toast.success('Comp session granted');
+      await fetchSessionCredits();
+    } catch {
+      toast.error('Failed to grant comp session');
+    } finally {
+      setGrantingCompClientId(null);
+    }
+  };
+
+  const handleArrangeComp = async (creditId: string) => {
+    const slotId = selectedSlotId[creditId];
+    if (!slotId) { toast.error('Select a slot first'); return; }
+    const slot = openSlots.find((s) => s.slot_id === slotId);
+    if (!slot) { toast.error('Slot not found'); return; }
+    setArrangingSubmitting(true);
+    try {
+      const { error } = await (supabase as any).rpc('admin_arrange_comp_booking', {
+        p_credit_id: creditId,
+        p_trainer_id: slot.trainer_profile_id,
+        p_slot_id: slot.slot_id,
+        p_rate: slot.rate,
+      });
+      if (error) throw error;
+      toast.success('Comp booking arranged');
+      setArrangingCreditId(null);
+      setSelectedSlotId((prev) => { const copy = { ...prev }; delete copy[creditId]; return copy; });
+      await Promise.all([fetchSessionCredits(), fetchOpenSlots()]);
+    } catch {
+      toast.error('Failed to arrange comp booking');
+    } finally {
+      setArrangingSubmitting(false);
     }
   };
 
@@ -741,6 +953,16 @@ const AdminDashboard: React.FC = () => {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab('sessions')}
+            className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors ${
+              activeTab === 'sessions'
+                ? 'border-b-2 border-ink text-ink -mb-px'
+                : 'text-ink/70 hover:text-ink'
+            }`}
+          >
+            sessions
+          </button>
         </div>
 
         {/* Analytics Tab */}
@@ -761,6 +983,49 @@ const AdminDashboard: React.FC = () => {
                   {r}
                 </button>
               ))}
+            </div>
+
+            {/* Onboarding Funnel */}
+            <div className="space-y-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Onboarding Funnel</p>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {[
+                  { label: 'New Clients', value: freeMetrics?.new_clients },
+                  { label: 'Booked ≥1', value: freeMetrics?.booked_any },
+                  { label: '1st Free Done', value: freeMetrics?.first_free_done },
+                  { label: '2nd Free Done', value: freeMetrics?.second_free_done },
+                  { label: 'Converted Paid', value: freeMetrics?.converted_paid, accent: true },
+                ].map(({ label, value, accent }) => (
+                  <StatCard
+                    key={label}
+                    icon={<TrendingUp size={18} strokeWidth={1.5} />}
+                    label={label}
+                    value={loadingFreeMetrics || freeMetrics == null ? '—' : String(value ?? 0)}
+                    accent={accent}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Free Sessions Summary */}
+            <div className="space-y-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Free Sessions</p>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="Granted" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.credits_granted)} />
+                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="Available" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.credits_available)} />
+                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="Redeemed" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.credits_redeemed)} />
+                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="No-shows" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.comp_no_shows)} />
+                <div className="border border-ink/10 p-8 space-y-4">
+                  <div className="text-ink/30"><DollarSign size={18} strokeWidth={1.5} /></div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Cost</p>
+                  <p className="text-3xl font-semibold tabular-nums tracking-tight text-ink">
+                    {loadingFreeMetrics || !freeMetrics ? '—' : `$${freeMetrics.comp_cost_total.toFixed(2)}`}
+                  </p>
+                  {freeMetrics && (
+                    <p className="text-[10px] text-ink/40">unpaid: ${freeMetrics.comp_cost_unpaid.toFixed(2)}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Platform aggregate stats */}
@@ -855,29 +1120,70 @@ const AdminDashboard: React.FC = () => {
         {/* Transactions Tab */}
         {activeTab === 'transactions' && (
           <div className="space-y-6">
-            {/* Status filter */}
-            <div className="flex items-center gap-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Filter:</p>
-              {['all', 'succeeded', 'pending', 'processing', 'failed', 'refunded'].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => { setTxStatusFilter(s); setTxOffset(0); }}
-                  className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
-                    txStatusFilter === s
-                      ? 'border-ink text-ink bg-ink/5'
-                      : 'border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30'
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+            {/* Filters row */}
+            <div className="flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-3">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status:</p>
+                {['all', 'succeeded', 'pending', 'processing', 'failed', 'refunded'].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => { setTxStatusFilter(s); setTxOffset(0); }}
+                    className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
+                      txStatusFilter === s
+                        ? 'border-ink text-ink bg-ink/5'
+                        : 'border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Type:</p>
+                {(['all', 'paid', 'comp'] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTxCompFilter(t)}
+                    className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
+                      txCompFilter === t
+                        ? 'border-ink text-ink bg-ink/5'
+                        : 'border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Summary header */}
+            {(() => {
+              const visible = transactions.filter((tx) =>
+                (txCompFilter === 'all') ||
+                (txCompFilter === 'comp' && tx.is_comp) ||
+                (txCompFilter === 'paid' && !tx.is_comp)
+              );
+              const totalCharged = visible.reduce((s, tx) => s + tx.amount, 0);
+              const totalFees = visible.reduce((s, tx) => s + tx.platform_fee, 0);
+              const totalPayouts = visible.reduce((s, tx) => s + (tx.trainer_payout > 0 ? tx.trainer_payout : tx.amount - tx.platform_fee), 0);
+              const compCount = visible.filter((tx) => tx.is_comp).length;
+              return (
+                <div className="flex flex-wrap gap-6 border border-ink/10 bg-ink/[0.02] px-6 py-3">
+                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Showing <b className="text-ink">{visible.length}</b> rows</span>
+                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Charged <b className="text-ink">${totalCharged.toFixed(2)}</b></span>
+                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Fees <b className="text-ink">${totalFees.toFixed(2)}</b></span>
+                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Payouts <b className="text-ink">${totalPayouts.toFixed(2)}</b></span>
+                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Comp <b className="text-amber-600">{compCount}</b></span>
+                </div>
+              );
+            })()}
 
             {/* Transaction table */}
             <div className="border border-ink/10">
-              <div className="grid grid-cols-[1fr_1fr_100px_100px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+              <div className="grid grid-cols-[1fr_1fr_80px_100px_100px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Client</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Type</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Amount</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Fee</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Payout</p>
@@ -894,13 +1200,24 @@ const AdminDashboard: React.FC = () => {
                   <p className="text-xs text-ink/50">No transactions found</p>
                 </div>
               ) : (
-                transactions.map((tx) => (
+                transactions
+                  .filter((tx) =>
+                    (txCompFilter === 'all') ||
+                    (txCompFilter === 'comp' && tx.is_comp) ||
+                    (txCompFilter === 'paid' && !tx.is_comp)
+                  )
+                  .map((tx) => (
                   <div
                     key={tx.id}
-                    className="grid grid-cols-[1fr_1fr_100px_100px_100px_100px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                    className="grid grid-cols-[1fr_1fr_80px_100px_100px_100px_100px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
                   >
                     <p className="text-sm text-ink truncate">{tx.client_name}</p>
                     <p className="text-sm text-ink truncate">{tx.trainer_name}</p>
+                    <span className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium ${
+                      tx.is_comp ? 'bg-amber-50 text-amber-600' : 'bg-ink/5 text-ink/50'
+                    }`}>
+                      {tx.is_comp ? 'Comp' : 'Paid'}
+                    </span>
                     <p className="text-sm text-ink tabular-nums">${tx.amount.toFixed(2)}</p>
                     <p className="text-sm text-ink/60 tabular-nums">${tx.platform_fee.toFixed(2)}</p>
                     <p className="text-sm text-ink tabular-nums">${(tx.trainer_payout > 0 ? tx.trainer_payout : tx.amount - tx.platform_fee).toFixed(2)}</p>
@@ -936,6 +1253,42 @@ const AdminDashboard: React.FC = () => {
         {/* Payouts Tab */}
         {activeTab === 'payouts' && (
           <div className="space-y-8">
+            {/* Comp Sessions Owed */}
+            <div className="space-y-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Sessions — Platform Owes</p>
+              <div className="border border-ink/10">
+                <div className="grid grid-cols-[2fr_100px_120px_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Sessions</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Owed</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Stripe</p>
+                </div>
+                {loadingCompOwed ? (
+                  <div className="px-6 py-8 text-center">
+                    <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+                  </div>
+                ) : compOwed.length === 0 ? (
+                  <div className="px-6 py-8 text-center">
+                    <p className="text-xs text-ink/50">No comp sessions owed.</p>
+                  </div>
+                ) : (
+                  compOwed.map((row) => (
+                    <div
+                      key={row.trainer_profile_id}
+                      className="grid grid-cols-[2fr_100px_120px_120px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                    >
+                      <p className="text-sm text-ink">{row.trainer_name}</p>
+                      <p className="text-sm text-ink tabular-nums">{row.comp_count}</p>
+                      <p className="text-sm text-ink font-medium tabular-nums">${row.comp_owed.toFixed(2)}</p>
+                      <span className={`text-[10px] uppercase tracking-wider font-medium ${row.stripe_account_id ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {row.stripe_account_id ? 'Connected' : 'None'}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
             {/* Pending Balances */}
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer Pending Balances</p>
@@ -1736,6 +2089,149 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
+        {/* Sessions Tab */}
+        {activeTab === 'sessions' && (
+          <div className="space-y-8">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">Free Session Mission Control</p>
+              <p className="text-[10px] text-ink/30">Grant make-good comps or arrange comp bookings for clients with available credits.</p>
+            </div>
+
+            {loadingSessionCredits && (
+              <div className="text-center py-16">
+                <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+              </div>
+            )}
+
+            {!loadingSessionCredits && sessionCredits.length === 0 && (
+              <div className="border border-ink/10 p-12 text-center">
+                <p className="text-xs text-ink/50 uppercase tracking-widest">No clients yet.</p>
+              </div>
+            )}
+
+            {!loadingSessionCredits && sessionCredits.length > 0 && (
+              <div className="space-y-6">
+                {sessionCredits.map((client) => (
+                  <div key={client.client_id} className="border border-ink/10">
+                    {/* Client header */}
+                    <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-ink/5 bg-ink/[0.02]">
+                      <div className="space-y-0.5 min-w-0">
+                        <p className="text-sm font-light text-ink truncate">{client.full_name}</p>
+                        <p className="text-[11px] text-ink/50 truncate">{client.email}</p>
+                        <div className="flex items-center gap-3 mt-1 flex-wrap">
+                          <span className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/60">
+                            Free sessions used <b className="text-ink">{client.redeemed_count}</b> / 2
+                          </span>
+                          <span className="text-[10px] text-ink/40">
+                            {client.available_count} available
+                          </span>
+                          {client.no_show_count > 0 && (
+                            <span className="text-[10px] uppercase tracking-[0.1em] text-amber-600">
+                              {client.no_show_count} no-show{client.no_show_count > 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleGrantComp(client.client_id)}
+                        disabled={grantingCompClientId === client.client_id}
+                        className="shrink-0 px-4 py-2 border border-ink/20 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 hover:text-ink hover:border-ink/40 transition-colors disabled:opacity-40"
+                      >
+                        {grantingCompClientId === client.client_id ? 'Granting…' : 'Grant comp session'}
+                      </button>
+                    </div>
+
+                    {/* Credits list */}
+                    {client.credits.length > 0 && (
+                      <div className="divide-y divide-ink/5">
+                        {client.credits.map((credit) => (
+                          <div key={credit.id} className="px-6 py-4 space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium ${
+                                  credit.reason === 'onboarding' ? 'bg-ink/5 text-ink/60' : 'bg-amber-50 text-amber-700'
+                                }`}>
+                                  {credit.reason}
+                                </span>
+                                <span className={`text-[10px] uppercase tracking-wider font-medium ${
+                                  credit.status === 'available' ? 'text-emerald-600' :
+                                  credit.status === 'redeemed' ? 'text-ink/50' :
+                                  'text-red-500'
+                                }`}>
+                                  {credit.status}
+                                </span>
+                                {credit.outcome && (
+                                  <span className="text-[10px] text-ink/40 uppercase tracking-wider">{credit.outcome}</span>
+                                )}
+                                {credit.trainer_name && (
+                                  <span className="text-[10px] text-ink/50">with {credit.trainer_name}</span>
+                                )}
+                                <span className="text-[10px] text-ink/30">
+                                  {new Date(credit.granted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </div>
+
+                              {credit.status === 'available' && (
+                                <button
+                                  onClick={() => setArrangingCreditId(arrangingCreditId === credit.id ? null : credit.id)}
+                                  className="shrink-0 px-3 py-1 text-[10px] uppercase tracking-[0.15em] font-medium border border-accent/40 text-accent hover:bg-accent hover:text-white transition-all"
+                                >
+                                  Arrange comp
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Inline slot picker */}
+                            {credit.status === 'available' && arrangingCreditId === credit.id && (
+                              <div className="border border-ink/10 bg-ink/[0.02] p-4 space-y-3">
+                                {loadingOpenSlots ? (
+                                  <p className="text-[10px] text-ink/40">Loading slots…</p>
+                                ) : openSlots.length === 0 ? (
+                                  <p className="text-[10px] text-ink/40">No open trainer slots — ask a trainer to publish availability.</p>
+                                ) : (
+                                  <>
+                                    <select
+                                      value={selectedSlotId[credit.id] ?? ''}
+                                      onChange={(e) => setSelectedSlotId((prev) => ({ ...prev, [credit.id]: e.target.value }))}
+                                      className="w-full border border-ink/10 bg-transparent px-3 py-2 text-xs text-ink focus:outline-none focus:border-ink/30"
+                                    >
+                                      <option value="">Select a slot…</option>
+                                      {openSlots.map((slot) => (
+                                        <option key={slot.slot_id} value={slot.slot_id}>
+                                          {slot.trainer_name} · {new Date(slot.start_time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} · {slot.duration_minutes}min · ${Number(slot.rate).toFixed(0)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => handleArrangeComp(credit.id)}
+                                        disabled={!selectedSlotId[credit.id] || arrangingSubmitting}
+                                        className="px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium bg-ink text-white hover:bg-ink/80 transition-colors disabled:opacity-40"
+                                      >
+                                        {arrangingSubmitting ? 'Booking…' : 'Confirm booking'}
+                                      </button>
+                                      <button
+                                        onClick={() => setArrangingCreditId(null)}
+                                        className="px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border border-ink/10 text-ink/50 hover:text-ink transition-colors"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-8">
@@ -1774,6 +2270,7 @@ const AdminDashboard: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-[10px] text-ink/25">Enter as decimal (e.g. 0.08 = 8%). Max 0.5 (50%).</p>
+                <p className="text-[10px] text-ink/40 mt-1">Platform fee is the platform's commission — it does not make a session free. To give complimentary sessions, use the Sessions tab.</p>
               </div>
             </div>
 
