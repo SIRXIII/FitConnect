@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
 import { setAdminTierOverride } from '@/lib/subscription';
-import { CERTIFICATION_TIERS, getCertificationByCode } from '@/lib/certifications';
+// CERTIFICATION_TIERS / getCertificationByCode removed — cert catalog now comes from get_admin_pending_certs RPC fields (tier, accreditation, org, verify_url)
 import AdminSupportQueue from '@/components/support/AdminSupportQueue';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
 
@@ -60,18 +60,22 @@ interface CertReviewItem {
   trainer_id: string;
   cert_code: string;
   cert_name: string;
-  file_url: string;
+  cert_number: string | null;
+  file_path: string | null;
+  file_url: string | null;
   expiry_date: string | null;
-  status: 'pending' | 'approved' | 'rejected';
-  admin_notes: string | null;
+  status: 'pending' | 'needs_info';
   submitted_at: string;
-  reviewed_at: string | null;
-  trainer?: {
-    id: string;
-    user_id: string;
-    avatar_url?: string | null;
-    profiles?: { full_name: string; avatar_url?: string | null } | null;
-  } | null;
+  admin_notes: string | null;
+  trainer_name: string | null;
+  trainer_last_name: string | null;
+  display_name: string | null;
+  org: string | null;
+  accreditation: 'NCCA' | 'DEAC' | 'none' | 'safety' | null;
+  tier: 'gold' | 'strong' | 'acceptable' | 'safety' | 'other' | null;
+  kind: string | null;
+  verify_url: string | null;
+  verify_fields: string | null;
 }
 
 interface AuditLogEntry {
@@ -207,9 +211,13 @@ const AdminDashboard: React.FC = () => {
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
   const [loadingCerts, setLoadingCerts] = useState(false);
-  const [certRejectNotes, setCertRejectNotes] = useState<Record<string, string>>({});
+  const [certsError, setCertsError] = useState<string | null>(null);
+  const [certNotes, setCertNotes] = useState<Record<string, string>>({});
+  const [certDecisionOpen, setCertDecisionOpen] = useState<Record<string, 'reject' | 'needs_info' | null>>({});
   const [certChecklist, setCertChecklist] = useState<Record<string, Record<string, boolean>>>({});
   const [processingCertId, setProcessingCertId] = useState<string | null>(null);
+  const [certSignedUrls, setCertSignedUrls] = useState<Record<string, string | null>>({});
+  const [certPreviewOpen, setCertPreviewOpen] = useState<Record<string, boolean>>({});
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
@@ -599,58 +607,55 @@ const AdminDashboard: React.FC = () => {
 
   const fetchPendingCerts = useCallback(async () => {
     setLoadingCerts(true);
+    setCertsError(null);
     try {
-      const { data, error } = await (supabase as any)
-        .from('trainer_certifications')
-        .select('*, trainer:trainer_id(id, user_id, profiles:user_id(full_name, avatar_url))')
-        .eq('status', 'pending')
-        .order('submitted_at', { ascending: false });
+      const { data, error } = await (supabase as any).rpc('get_admin_pending_certs');
       if (error) throw error;
-      setPendingCerts(data ?? []);
-    } catch {
-      // table may not exist in dev
+      setPendingCerts((data ?? []) as CertReviewItem[]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to load certification queue';
+      setCertsError(msg);
+      toast.error(msg);
+      setPendingCerts([]);
     } finally {
       setLoadingCerts(false);
     }
   }, []);
 
-  const handleCertApprove = async (certId: string) => {
+  const handleCertReview = async (certId: string, decision: 'approved' | 'rejected' | 'needs_info') => {
+    const notes = (certNotes[certId] ?? '').trim();
+    if ((decision === 'rejected' || decision === 'needs_info') && !notes) {
+      toast.error(decision === 'rejected' ? 'Rejection reason is required.' : 'Please describe what information is needed.');
+      return;
+    }
     setProcessingCertId(certId);
     try {
-      const { error } = await (supabase as any)
-        .from('trainer_certifications')
-        .update({ status: 'approved', reviewed_at: new Date().toISOString() })
-        .eq('id', certId);
+      const { error } = await (supabase as any).rpc('admin_review_cert', {
+        p_cert_id: certId,
+        p_decision: decision,
+        p_notes: notes || null,
+      });
       if (error) throw error;
-      toast.success('Certification approved.');
+      const label = decision === 'approved' ? 'Certification approved.' : decision === 'rejected' ? 'Certification rejected.' : 'Trainer notified — awaiting more info.';
+      toast.success(label);
+      setCertNotes(n => { const copy = { ...n }; delete copy[certId]; return copy; });
+      setCertDecisionOpen(d => { const copy = { ...d }; delete copy[certId]; return copy; });
       await fetchPendingCerts();
-    } catch {
-      toast.error('Failed to approve certification.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : `Failed to ${decision} certification.`);
     } finally {
       setProcessingCertId(null);
     }
   };
 
-  const handleCertReject = async (certId: string) => {
-    const notes = certRejectNotes[certId]?.trim();
-    if (!notes) {
-      toast.error('Please add notes explaining the rejection reason.');
-      return;
-    }
-    setProcessingCertId(certId);
+  const mintCertSignedUrl = async (certId: string, filePath: string) => {
+    if (certSignedUrls[certId] !== undefined) return; // already minted or attempted
+    setCertSignedUrls(prev => ({ ...prev, [certId]: null })); // mark loading
     try {
-      const { error } = await (supabase as any)
-        .from('trainer_certifications')
-        .update({ status: 'rejected', admin_notes: notes, reviewed_at: new Date().toISOString() })
-        .eq('id', certId);
-      if (error) throw error;
-      toast.success('Certification rejected.');
-      setCertRejectNotes(n => { const copy = { ...n }; delete copy[certId]; return copy; });
-      await fetchPendingCerts();
+      const { data } = await supabase.storage.from('trainer-certifications').createSignedUrl(filePath, 600);
+      setCertSignedUrls(prev => ({ ...prev, [certId]: data?.signedUrl ?? null }));
     } catch {
-      toast.error('Failed to reject certification.');
-    } finally {
-      setProcessingCertId(null);
+      setCertSignedUrls(prev => ({ ...prev, [certId]: null }));
     }
   };
 
@@ -1713,7 +1718,7 @@ const AdminDashboard: React.FC = () => {
                 </p>
               </div>
               <p className="text-sm font-light text-ink/50">
-                {loadingCerts ? 'Loading…' : `${pendingCerts.length} certification${pendingCerts.length !== 1 ? 's' : ''} awaiting review`}
+                {loadingCerts ? 'Loading…' : certsError ? 'Error loading queue — see banner below.' : `${pendingCerts.length} certification${pendingCerts.length !== 1 ? 's' : ''} awaiting review`}
               </p>
             </div>
 
@@ -1733,38 +1738,64 @@ const AdminDashboard: React.FC = () => {
               </a>
             </div>
 
-            {!loadingCerts && pendingCerts.length === 0 && (
-              <div className="border border-ink/10 p-12 text-center">
-                <ShieldCheck size={32} strokeWidth={1} className="text-green-400 mx-auto mb-3" />
-                <p className="text-sm text-ink/70 font-light">All certifications reviewed — queue is empty.</p>
+            {/* Error state */}
+            {certsError && (
+              <div className="border border-red-200 bg-red-50 px-6 py-4 flex items-center gap-4">
+                <AlertTriangle size={16} className="text-red-400 shrink-0" strokeWidth={1.5} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-red-700">Failed to load certification queue</p>
+                  <p className="text-xs text-red-600 mt-0.5 truncate">{certsError}</p>
+                </div>
+                <button
+                  onClick={fetchPendingCerts}
+                  className="shrink-0 border border-red-200 text-red-700 px-4 py-2 text-[11px] uppercase tracking-[0.15em] font-medium hover:bg-red-100 transition-colors"
+                >
+                  Retry
+                </button>
               </div>
             )}
 
-            {pendingCerts.map((cert) => {
-              const trainerName = (cert.trainer as any)?.profiles?.full_name ?? 'Unknown Trainer';
-              const avatarUrl = (cert.trainer as any)?.profiles?.avatar_url ?? null;
-              const certDef = getCertificationByCode(cert.cert_code);
-              const tierLabel = certDef
-                ? certDef.tier === 'gold' ? 'Gold (NCCA)'
-                : certDef.tier === 'silver' ? 'Silver (Recognized)'
-                : 'Specialty'
-                : (() => {
-                  for (const [key, tier] of Object.entries(CERTIFICATION_TIERS)) {
-                    if (tier.certs.some(c => c.code === cert.cert_code)) {
-                      return key === 'tier1_gold' ? 'Gold (NCCA)'
-                           : key === 'tier2_silver' ? 'Silver (DEAC/NBFE)'
-                           : 'Specialty';
-                    }
-                  }
-                  return 'Unknown';
-                })();
+            {loadingCerts && (
+              <div className="py-16 text-center">
+                <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin mx-auto" />
+              </div>
+            )}
+
+            {!loadingCerts && !certsError && pendingCerts.length === 0 && (
+              <div className="border border-ink/10 p-12 text-center">
+                <ShieldCheck size={32} strokeWidth={1} className="text-green-400 mx-auto mb-3" />
+                <p className="text-sm text-ink/70 font-light">No certifications pending review.</p>
+              </div>
+            )}
+
+            {!loadingCerts && pendingCerts.map((cert) => {
+              const trainerDisplayName = cert.display_name ?? cert.trainer_name ?? 'Unknown Trainer';
+              const isExpired = cert.expiry_date ? new Date(cert.expiry_date) < new Date() : false;
+
+              // Tier badge styling
+              const tierStyles: Record<string, string> = {
+                gold: 'text-amber-700 border-amber-300 bg-amber-50',
+                strong: 'text-sky-700 border-sky-300 bg-sky-50',
+                acceptable: 'text-violet-700 border-violet-300 bg-violet-50',
+                safety: 'text-orange-700 border-orange-300 bg-orange-50',
+                other: 'text-ink/60 border-ink/20 bg-ink/[0.03]',
+              };
+              const tierClass = cert.tier ? (tierStyles[cert.tier] ?? tierStyles.other) : tierStyles.other;
+
+              const accreditationStyles: Record<string, string> = {
+                NCCA: 'text-green-700 border-green-300 bg-green-50',
+                DEAC: 'text-teal-700 border-teal-300 bg-teal-50',
+                safety: 'text-orange-700 border-orange-300 bg-orange-50',
+                none: 'text-ink/40 border-ink/10 bg-transparent',
+              };
+              const accredClass = cert.accreditation ? (accreditationStyles[cert.accreditation] ?? accreditationStyles.none) : accreditationStyles.none;
 
               const checklist = certChecklist[cert.id] ?? {};
               const checkItems = [
-                { key: 'legible', label: 'Document is legible and not expired' },
-                { key: 'matches_type', label: 'Certification matches the selected type' },
-                { key: 'name_matches', label: "Trainer name on cert matches profile name" },
-                { key: 'photo_ok', label: 'High-resolution profile photo uploaded' },
+                { key: 'legible', label: 'Document is legible' },
+                { key: 'not_expired', label: 'Certification is not expired' },
+                { key: 'name_matches', label: 'Name on cert matches profile' },
+                { key: 'photo_ok', label: 'High-res profile photo uploaded' },
               ];
               const allChecked = checkItems.every(item => checklist[item.key]);
 
@@ -1775,61 +1806,54 @@ const AdminDashboard: React.FC = () => {
                 }));
               };
 
+              const signedUrl = certSignedUrls[cert.id];
+              const previewOpen = certPreviewOpen[cert.id] ?? false;
+              const fileExt = cert.file_path?.split('.').pop()?.toLowerCase() ?? '';
+              const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt);
+              const isPdf = fileExt === 'pdf';
+
+              const decisionMode = certDecisionOpen[cert.id] ?? null;
+
               return (
                 <div key={cert.id} className="border border-ink/10 p-8 space-y-6">
                   {/* Header row */}
                   <div className="flex items-start gap-6">
-                    {/* Profile photo */}
-                    <div className="shrink-0">
-                      {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt={trainerName}
-                          className="w-16 h-16 object-cover border border-ink/10"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 border border-red-200 bg-red-50 flex items-center justify-center">
-                          <AlertTriangle size={20} className="text-red-400" strokeWidth={1.5} />
-                        </div>
-                      )}
-                      {!avatarUrl && (
-                        <p className="text-[10px] text-red-500 mt-1 uppercase tracking-wide">No photo</p>
-                      )}
-                    </div>
-
                     {/* Cert info */}
                     <div className="flex-1 space-y-1 min-w-0">
-                      <p className="text-sm font-semibold text-ink">{trainerName}</p>
+                      <p className="text-sm font-semibold text-ink">{trainerDisplayName}</p>
                       <p className="text-sm font-light text-ink/70">{cert.cert_name}</p>
-                      {certDef && (
-                        <p className="text-[11px] text-ink/50 font-light">{certDef.issuer}</p>
+                      {cert.org && (
+                        <p className="text-[11px] text-ink/50 font-light">{cert.org}</p>
                       )}
                       <div className="flex flex-wrap gap-2 mt-2">
-                        <span className={`text-[10px] uppercase tracking-[0.15em] font-semibold border px-2 py-0.5 ${
-                          certDef?.tier === 'gold'
-                            ? 'text-amber-700 border-amber-300 bg-amber-50'
-                            : certDef?.tier === 'silver'
-                            ? 'text-sky-700 border-sky-300 bg-sky-50'
-                            : 'text-ink/60 border-ink/20 bg-ink/[0.03]'
-                        }`}>
-                          {tierLabel}
-                        </span>
-                        {certDef?.ncca_accredited && (
-                          <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-green-700 border border-green-300 bg-green-50 px-2 py-0.5">
-                            NCCA Accredited
+                        {/* Tier badge */}
+                        {cert.tier && (
+                          <span className={`text-[10px] uppercase tracking-[0.15em] font-semibold border px-2 py-0.5 ${tierClass}`}>
+                            {cert.tier}
                           </span>
                         )}
-                        {certDef?.category && (
+                        {/* Accreditation chip */}
+                        {cert.accreditation && cert.accreditation !== 'none' && (
+                          <span className={`text-[10px] uppercase tracking-[0.15em] font-semibold border px-2 py-0.5 ${accredClass}`}>
+                            {cert.accreditation}
+                          </span>
+                        )}
+                        {cert.kind && (
                           <span className="text-[10px] uppercase tracking-[0.12em] text-ink/70 border border-ink/15 px-2 py-0.5">
-                            {certDef.category}
+                            {cert.kind}
                           </span>
                         )}
                         <span className="text-[10px] text-ink/70 uppercase tracking-[0.1em]">
                           {cert.cert_code}
                         </span>
+                        {cert.status === 'needs_info' && (
+                          <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-amber-700 border border-amber-300 bg-amber-50 px-2 py-0.5">
+                            Needs Info
+                          </span>
+                        )}
                         {cert.expiry_date && (
-                          <span className="text-[10px] text-ink/70 uppercase tracking-[0.1em]">
-                            Expires {new Date(cert.expiry_date).toLocaleDateString()}
+                          <span className={`text-[10px] uppercase tracking-[0.1em] font-medium ${isExpired ? 'text-red-600' : 'text-ink/70'}`}>
+                            {isExpired ? '⚠ Expired' : 'Expires'} {new Date(cert.expiry_date).toLocaleDateString()}
                           </span>
                         )}
                         <span className="text-[10px] text-ink/50">
@@ -1839,27 +1863,111 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Document + verify links */}
-                    <div className="shrink-0 flex flex-col gap-2">
-                      <a
-                        href={cert.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all text-center"
-                      >
-                        View Doc
-                      </a>
-                      {certDef?.verification_url && (
+                    <div className="shrink-0 flex flex-col gap-2 min-w-[130px]">
+                      {/* Preview toggle */}
+                      {cert.file_path && (
+                        <button
+                          onClick={() => {
+                            setCertPreviewOpen(prev => ({ ...prev, [cert.id]: !prev[cert.id] }));
+                            if (!previewOpen) mintCertSignedUrl(cert.id, cert.file_path!);
+                          }}
+                          className="border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all text-center"
+                        >
+                          {previewOpen ? 'Hide Doc' : 'Preview Doc'}
+                        </button>
+                      )}
+                      {/* Fallback: legacy file_url with no file_path */}
+                      {!cert.file_path && cert.file_url && (
                         <a
-                          href={certDef.verification_url}
+                          href={cert.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all text-center"
+                        >
+                          View Doc ↗
+                        </a>
+                      )}
+                      {/* Registry verify link */}
+                      {cert.verify_url && (
+                        <a
+                          href={cert.verify_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="border border-green-200 text-green-700 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-green-50 transition-all text-center"
                         >
-                          Verify
+                          Verify on registry ↗
                         </a>
                       )}
                     </div>
                   </div>
+
+                  {/* Inline document preview */}
+                  {previewOpen && cert.file_path && (
+                    <div className="border border-ink/10 bg-ink/[0.01]">
+                      {signedUrl === undefined || signedUrl === null ? (
+                        <div className="flex items-center justify-center py-10">
+                          <div className="w-4 h-4 border border-ink/20 border-t-ink/60 rounded-full animate-spin" />
+                        </div>
+                      ) : isImage ? (
+                        <div className="space-y-2 p-4">
+                          <img src={signedUrl} alt={cert.cert_name} className="max-w-full max-h-[480px] object-contain mx-auto border border-ink/10" />
+                          <div className="text-center">
+                            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.15em] text-ink/50 hover:text-ink transition-colors">
+                              Open in new tab ↗
+                            </a>
+                          </div>
+                        </div>
+                      ) : isPdf ? (
+                        <div className="space-y-2 p-4">
+                          <iframe
+                            src={signedUrl}
+                            title={cert.cert_name}
+                            className="w-full border-0"
+                            style={{ height: 520 }}
+                          />
+                          <div className="text-center">
+                            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.15em] text-ink/50 hover:text-ink transition-colors">
+                              Open in new tab ↗
+                            </a>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center space-y-3">
+                          <p className="text-xs text-ink/50">Cannot preview this file type ({fileExt || 'unknown'})</p>
+                          <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="inline-block border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all">
+                            Open in new tab ↗
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Registry lookup hints */}
+                  {(cert.verify_url || cert.verify_fields || cert.cert_number || cert.trainer_last_name) && (
+                    <div className="border border-ink/10 bg-ink/[0.01] px-5 py-4 space-y-1">
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Registry Lookup Hints</p>
+                      {cert.verify_fields && (
+                        <p className="text-xs text-ink/60 font-light">
+                          Search by: <span className="text-ink/80">{cert.verify_fields}</span>
+                          {cert.trainer_last_name && <> — name: <span className="font-medium text-ink">{cert.trainer_last_name}</span></>}
+                          {cert.cert_number && <>, cert #: <span className="font-medium text-ink font-mono">{cert.cert_number}</span></>}
+                          {!cert.cert_number && <>, cert #: <span className="text-ink/30">—</span></>}
+                        </p>
+                      )}
+                      {!cert.verify_fields && (cert.trainer_last_name || cert.cert_number) && (
+                        <p className="text-xs text-ink/60 font-light">
+                          {cert.trainer_last_name && <>Last name: <span className="font-medium text-ink">{cert.trainer_last_name}</span></>}
+                          {cert.trainer_last_name && cert.cert_number && ' · '}
+                          {cert.cert_number && <>Cert #: <span className="font-medium text-ink font-mono">{cert.cert_number}</span></>}
+                        </p>
+                      )}
+                      {cert.admin_notes && (
+                        <p className="text-[11px] text-amber-700 border-t border-ink/5 pt-2 mt-2">
+                          Previous notes: {cert.admin_notes}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Admin checklist */}
                   <div className="space-y-2 border-t border-ink/5 pt-5">
@@ -1886,39 +1994,77 @@ const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex flex-col sm:flex-row gap-4 pt-2 border-t border-ink/5">
-                    <div className="flex-1 space-y-2">
-                      <textarea
-                        value={certRejectNotes[cert.id] ?? ''}
-                        onChange={e => setCertRejectNotes(n => ({ ...n, [cert.id]: e.target.value }))}
-                        placeholder="Rejection reason (required if rejecting)…"
-                        rows={2}
-                        className="w-full border border-ink/10 bg-transparent px-4 py-2.5 text-sm font-light outline-none focus:border-red-300 transition-colors placeholder:text-ink/20 resize-none"
-                      />
-                    </div>
-                    <div className="flex gap-3 sm:flex-col sm:w-36">
+                  <div className="border-t border-ink/5 pt-5 space-y-4">
+                    {/* Approve (gate: all checklist items) */}
+                    <div className="flex items-center gap-3 flex-wrap">
                       <button
-                        onClick={() => handleCertApprove(cert.id)}
-                        disabled={!allChecked || processingCertId === cert.id}
-                        className="flex-1 sm:flex-none py-2.5 bg-green-600 text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        onClick={() => handleCertReview(cert.id, 'approved')}
+                        disabled={!allChecked || processingCertId === cert.id || isExpired}
+                        className="py-2.5 px-6 bg-green-600 text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         {processingCertId === cert.id ? '…' : 'Approve'}
                       </button>
                       <button
-                        onClick={() => handleCertReject(cert.id)}
+                        onClick={() => setCertDecisionOpen(d => ({ ...d, [cert.id]: d[cert.id] === 'needs_info' ? null : 'needs_info' }))}
                         disabled={processingCertId === cert.id}
-                        className="flex-1 sm:flex-none py-2.5 border border-red-200 text-red-700 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30"
+                        className={`py-2.5 px-6 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors disabled:opacity-30 ${
+                          decisionMode === 'needs_info'
+                            ? 'bg-amber-100 border border-amber-300 text-amber-800'
+                            : 'border border-amber-200 text-amber-700 hover:bg-amber-50'
+                        }`}
                       >
-                        {processingCertId === cert.id ? '…' : 'Reject'}
+                        Needs Info
+                      </button>
+                      <button
+                        onClick={() => setCertDecisionOpen(d => ({ ...d, [cert.id]: d[cert.id] === 'reject' ? null : 'reject' }))}
+                        disabled={processingCertId === cert.id}
+                        className={`py-2.5 px-6 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors disabled:opacity-30 ${
+                          decisionMode === 'reject'
+                            ? 'bg-red-50 border border-red-300 text-red-800'
+                            : 'border border-red-200 text-red-700 hover:bg-red-50'
+                        }`}
+                      >
+                        Reject
                       </button>
                     </div>
-                  </div>
 
-                  {!allChecked && (
-                    <p className="text-[10px] text-ink/50 italic">
-                      Complete all checklist items before approving.
-                    </p>
-                  )}
+                    {/* Notes input — shown when reject or needs_info selected */}
+                    {decisionMode && (
+                      <div className="space-y-2">
+                        <textarea
+                          value={certNotes[cert.id] ?? ''}
+                          onChange={e => setCertNotes(n => ({ ...n, [cert.id]: e.target.value }))}
+                          placeholder={decisionMode === 'reject' ? 'Rejection reason (required)…' : 'Describe what additional info is needed (required)…'}
+                          rows={3}
+                          className={`w-full border bg-transparent px-4 py-2.5 text-sm font-light outline-none transition-colors placeholder:text-ink/20 resize-none ${
+                            decisionMode === 'reject' ? 'border-red-200 focus:border-red-400' : 'border-amber-200 focus:border-amber-400'
+                          }`}
+                        />
+                        <button
+                          onClick={() => handleCertReview(cert.id, decisionMode === 'reject' ? 'rejected' : 'needs_info')}
+                          disabled={!(certNotes[cert.id] ?? '').trim() || processingCertId === cert.id}
+                          className={`py-2 px-5 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                            decisionMode === 'reject'
+                              ? 'bg-red-600 text-white hover:bg-red-700'
+                              : 'bg-amber-500 text-white hover:bg-amber-600'
+                          }`}
+                        >
+                          {processingCertId === cert.id ? '…' : decisionMode === 'reject' ? 'Confirm Reject' : 'Send — Needs Info'}
+                        </button>
+                      </div>
+                    )}
+
+                    {!allChecked && (
+                      <p className="text-[10px] text-ink/50 italic">
+                        Complete all checklist items before approving.
+                      </p>
+                    )}
+                    {isExpired && (
+                      <p className="text-[10px] text-red-500 italic">
+                        Certification is expired — cannot approve. Reject or request a renewed document.
+                      </p>
+                    )}
+                  </div>
                 </div>
               );
             })}
