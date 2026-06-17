@@ -296,6 +296,8 @@ const AdminDashboard: React.FC = () => {
     booking_volume: number;
   } | null>(null);
   const [timeSeries, setTimeSeries] = useState<Array<{ bucket: string; revenue: number; fees: number; bookings: number }>>([]);
+  const [prevTimeSeries, setPrevTimeSeries] = useState<Array<{ bucket: string; revenue: number; fees: number; bookings: number }>>([]);
+  const [attention, setAttention] = useState<{ past_due_subs: number; payout_backlog_total: number; payout_backlog_trainers: number; comp_no_shows: number } | null>(null);
   const [userSeries, setUserSeries] = useState<Array<{ bucket: string; newClients: number; newTrainers: number }>>([]);
 
   // Transactions tab — comp type filter
@@ -831,6 +833,8 @@ const AdminDashboard: React.FC = () => {
         setAdminTotals(null);
         setPrevTotals(null);
         setTimeSeries([]);
+        setPrevTimeSeries([]);
+        setAttention(null);
         setUserSeries([]);
         setTopEarners([]);
         setLoadingAdminAnalytics(false);
@@ -862,6 +866,12 @@ const AdminDashboard: React.FC = () => {
         fees: Number(r.fees),
         bookings: Number(r.bookings),
       })));
+      setPrevTimeSeries((data.prev_time_series ?? []).map((r: { bucket: string; revenue: number | string; fees: number | string; bookings: number | string }) => ({
+        bucket: r.bucket,
+        revenue: Number(r.revenue),
+        fees: Number(r.fees),
+        bookings: Number(r.bookings),
+      })));
       setUserSeries((data.user_series ?? []).map((r: { bucket: string; new_clients: number | string; new_trainers: number | string }) => ({
         bucket: r.bucket,
         newClients: Number(r.new_clients),
@@ -873,6 +883,14 @@ const AdminDashboard: React.FC = () => {
         net: Number(r.net),
         bookings_count: Number(r.bookings_count),
       })));
+      const { data: attnRaw } = await (supabase as any).rpc('get_admin_attention', { p_start: bounds.start, p_end: bounds.end });
+      const attn = attnRaw as any;
+      setAttention(attn ? {
+        past_due_subs: Number(attn.past_due_subs ?? 0),
+        payout_backlog_total: Number(attn.payout_backlog_total ?? 0),
+        payout_backlog_trainers: Number(attn.payout_backlog_trainers ?? 0),
+        comp_no_shows: Number(attn.comp_no_shows ?? 0),
+      } : null);
       setLoadingAdminAnalytics(false);
     };
     fetchAdminAnalytics();
@@ -1013,35 +1031,60 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'analytics' && (
           <div className="space-y-8">
             {/* Range selector */}
-            <div className="flex border-b border-ink/10">
-              {(['week', 'month', 'quarter', 'year'] as const).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setAdminRange(r)}
-                  className={`px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${
-                    adminRange === r
-                      ? 'border-b-2 border-ink text-ink -mb-px'
-                      : 'text-ink/70 hover:text-ink'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
+            {(() => {
+              const bounds = getDateBounds(adminRange);
+              const startDate = new Date(bounds.start);
+              const endDate = new Date(bounds.end);
+              const periodLabel = `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+              const priorLabel = adminRange === 'week' ? '7 days' : adminRange === 'month' ? '30 days' : adminRange === 'quarter' ? 'quarter' : 'year';
+              return (
+                <>
+                  <div className="flex items-end justify-between border-b border-ink/10">
+                    <div className="flex">
+                      {(['week', 'month', 'quarter', 'year'] as const).map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => setAdminRange(r)}
+                          className={`px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${
+                            adminRange === r
+                              ? 'border-b-2 border-ink text-ink -mb-px'
+                              : 'text-ink/70 hover:text-ink'
+                          }`}
+                        >
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="text-right pb-2 pr-1">
+                      <p className="text-xs tabular-nums text-ink/70">{periodLabel}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60 mt-1">Compared to prior {priorLabel}</p>
+                    </div>
+                  </div>
+                  {attention && (attention.past_due_subs > 0 || attention.payout_backlog_trainers > 0 || attention.comp_no_shows > 0) && (
+                    <div className="flex flex-wrap gap-x-7 gap-y-2 items-center border border-amber-700/30 bg-amber-700/[0.04] px-5 py-3.5">
+                      <span className="text-[10px] uppercase tracking-[0.2em] text-amber-700 font-semibold">Needs attention</span>
+                      {attention.past_due_subs > 0 && <span className="text-xs text-ink/70"><b className="text-ink tabular-nums font-semibold">{attention.past_due_subs}</b> subscription{attention.past_due_subs === 1 ? '' : 's'} past due</span>}
+                      {attention.payout_backlog_trainers > 0 && <span className="text-xs text-ink/70"><b className="text-ink tabular-nums font-semibold">${attention.payout_backlog_total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</b> payout backlog ({attention.payout_backlog_trainers} trainer{attention.payout_backlog_trainers === 1 ? '' : 's'})</span>}
+                      {attention.comp_no_shows > 0 && <span className="text-xs text-ink/70"><b className="text-ink tabular-nums font-semibold">{attention.comp_no_shows}</b> comp no-show{attention.comp_no_shows === 1 ? '' : 's'} this period</span>}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Executive Summary */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {(() => {
                 const heroItems = [
-                  { label: 'Total Revenue', val: adminTotals?.total_revenue, prev: prevTotals?.total_revenue, accent: true },
-                  { label: 'Platform Fee', val: adminTotals?.total_platform_fee, prev: prevTotals?.total_platform_fee, accent: false },
-                  { label: 'Monthly Recurring', val: adminTotals?.mrr, accent: true },
+                  { label: 'Total Revenue', val: adminTotals?.total_revenue, prev: prevTotals?.total_revenue, accent: true, series: timeSeries.map(t => t.revenue), seriesColor: '#C5A059' },
+                  { label: 'Platform Fee', val: adminTotals?.total_platform_fee, prev: prevTotals?.total_platform_fee, accent: false, series: timeSeries.map(t => t.fees), seriesColor: 'rgba(26,26,26,0.45)' },
+                  { label: 'Monthly Recurring', val: adminTotals?.mrr, accent: true, series: undefined as number[] | undefined, seriesColor: undefined as string | undefined },
                 ];
-                return heroItems.map(({ label, val, prev, accent }) => {
+                return heroItems.map(({ label, val, prev, accent, series, seriesColor }) => {
                   const d = prev && prev > 0 && val != null ? ((val - prev) / prev) * 100 : undefined;
                   return (
                     <div key={label} className="border border-ink/10 p-10 space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">{label}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60 font-medium">{label}</p>
                       {loadingAdminAnalytics || val == null ? (
                         <div className="h-12 w-28 bg-ink/[0.04] rounded animate-pulse" />
                       ) : (
@@ -1053,6 +1096,9 @@ const AdminDashboard: React.FC = () => {
                         <p className={`text-xs font-medium tabular-nums ${d > 0 ? 'text-green-600' : d < 0 ? 'text-red-500' : 'text-ink/40'}`}>
                           {d > 0 ? `↑ ${d.toFixed(1)}%` : d < 0 ? `↓ ${Math.abs(d).toFixed(1)}%` : '—'} vs prev period
                         </p>
+                      )}
+                      {!loadingAdminAnalytics && series && series.length > 1 && seriesColor && (
+                        <Sparkline data={series} color={seriesColor} />
                       )}
                     </div>
                   );
@@ -1073,7 +1119,7 @@ const AdminDashboard: React.FC = () => {
                   </p>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="border border-ink/10 p-7 space-y-1.5">
                 {(() => {
                   const newClients = freeMetrics?.new_clients ?? 0;
                   const bookedAny = freeMetrics?.booked_any ?? 0;
@@ -1081,29 +1127,24 @@ const AdminDashboard: React.FC = () => {
                   const secondFree = freeMetrics?.second_free_done ?? 0;
                   const converted = freeMetrics?.converted_paid ?? 0;
                   const pct = (n: number, d: number) => d > 0 ? `(${Math.round((n / d) * 100)}% of prev)` : undefined;
-                  const icons = [
-                    <UserPlus size={18} strokeWidth={1.5} />,
-                    <Activity size={18} strokeWidth={1.5} />,
-                    <Zap size={18} strokeWidth={1.5} />,
-                    <Zap size={18} strokeWidth={1.5} />,
-                    <CreditCard size={18} strokeWidth={1.5} />,
+                  const stages = [
+                    { name: 'New Clients', value: newClients, conv: undefined as string | undefined, last: false },
+                    { name: 'Booked ≥1', value: bookedAny, conv: pct(bookedAny, newClients), last: false },
+                    { name: '1st Free Done', value: firstFree, conv: pct(firstFree, bookedAny), last: false },
+                    { name: '2nd Free Done', value: secondFree, conv: pct(secondFree, firstFree), last: false },
+                    { name: 'Converted Paid', value: converted, conv: pct(converted, secondFree), last: true },
                   ];
-                  return [
-                    { label: 'New Clients', value: newClients, subtitle: undefined, accent: false },
-                    { label: 'Booked ≥1', value: bookedAny, subtitle: pct(bookedAny, newClients), accent: false },
-                    { label: '1st Free Done', value: firstFree, subtitle: pct(firstFree, bookedAny), accent: false },
-                    { label: '2nd Free Done', value: secondFree, subtitle: pct(secondFree, firstFree), accent: false },
-                    { label: 'Converted Paid', value: converted, subtitle: pct(converted, secondFree), accent: true },
-                  ].map(({ label, value, subtitle, accent }, i) => (
-                    <StatCard
-                      key={label}
-                      icon={icons[i]}
-                      label={label}
-                      value={String(value)}
-                      accent={accent}
-                      loading={loadingFreeMetrics || freeMetrics == null}
-                      subtitle={subtitle}
-                    />
+                  const top = Math.max(newClients, 1);
+                  return stages.map((s) => (
+                    <div key={s.name} className="flex items-center gap-4">
+                      <span className="w-32 text-right text-[11px] uppercase tracking-[0.12em] text-ink/70">{s.name}</span>
+                      <div className="flex-1 flex items-center gap-3">
+                        <div className={`h-8 flex items-center px-3 ${s.last ? 'bg-accent text-ink' : 'bg-ink text-paper'}`} style={{ width: `${Math.max((s.value / top) * 100, 6)}%` }}>
+                          <span className="text-xs tabular-nums font-semibold">{loadingFreeMetrics || !freeMetrics ? '' : s.value}</span>
+                        </div>
+                      </div>
+                      <span className="w-24 text-[11px] text-ink/60 tabular-nums">{s.conv ?? ''}</span>
+                    </div>
                   ));
                 })()}
               </div>
@@ -1124,7 +1165,7 @@ const AdminDashboard: React.FC = () => {
                     {loadingFreeMetrics || !freeMetrics ? '—' : `$${freeMetrics.comp_cost_total.toFixed(2)}`}
                   </p>
                   {freeMetrics && (
-                    <p className="text-[10px] text-ink/40">unpaid: ${freeMetrics.comp_cost_unpaid.toFixed(2)}</p>
+                    <p className="text-[10px] text-ink/60">unpaid: ${freeMetrics.comp_cost_unpaid.toFixed(2)}</p>
                   )}
                 </div>
               </div>
@@ -1141,22 +1182,7 @@ const AdminDashboard: React.FC = () => {
               const payoutDelta = adminTotals && prevTotals ? calcDelta(adminTotals.total_payouts, prevTotals.total_payouts) : undefined;
               const volDelta = adminTotals && prevTotals ? calcDelta(adminTotals.booking_volume, prevTotals.booking_volume) : undefined;
               return (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <StatCard
-                    icon={<DollarSign size={18} strokeWidth={1.5} />}
-                    label="Total Revenue"
-                    value={adminTotals ? `$${adminTotals.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
-                    accent
-                    delta={revDelta}
-                    loading={loadingAdminAnalytics || !adminTotals}
-                  />
-                  <StatCard
-                    icon={<TrendingUp size={18} strokeWidth={1.5} />}
-                    label="Platform Fee Collected"
-                    value={adminTotals ? `$${adminTotals.total_platform_fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
-                    delta={feeDelta}
-                    loading={loadingAdminAnalytics || !adminTotals}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <StatCard
                     icon={<Wallet size={18} strokeWidth={1.5} />}
                     label="Trainer Payouts"
@@ -1192,9 +1218,16 @@ const AdminDashboard: React.FC = () => {
                       <div className="w-3 h-px bg-ink/25" />
                       <span className="text-[10px] text-ink/50">Platform Fees</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 border-t border-dashed border-ink/30" />
+                      <span className="text-[10px] text-ink/50">Prior period</span>
+                    </div>
                   </div>
+                  {(() => {
+                    const chartData = timeSeries.map((t, i) => ({ ...t, prevRevenue: prevTimeSeries[i]?.revenue ?? null }));
+                    return (
                   <ResponsiveContainer width="100%" height={320}>
-                    <AreaChart data={timeSeries} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#c9a96e" stopOpacity={0.25} />
@@ -1212,13 +1245,13 @@ const AdminDashboard: React.FC = () => {
                           const d = new Date(v);
                           return isNaN(d.getTime()) ? v : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         }}
-                        tick={{ fontSize: 10, fill: 'rgba(26,26,26,0.4)', fontFamily: 'inherit' }}
+                        tick={{ fontSize: 10, fill: 'rgba(26,26,26,0.6)', fontFamily: 'inherit' }}
                         axisLine={false}
                         tickLine={false}
                       />
                       <YAxis
                         tickFormatter={(v: number) => `$${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}`}
-                        tick={{ fontSize: 10, fill: 'rgba(26,26,26,0.4)', fontFamily: 'inherit' }}
+                        tick={{ fontSize: 10, fill: 'rgba(26,26,26,0.6)', fontFamily: 'inherit' }}
                         axisLine={false}
                         tickLine={false}
                         width={52}
@@ -1237,8 +1270,11 @@ const AdminDashboard: React.FC = () => {
                       />
                       <Area type="monotone" dataKey="revenue" stroke="#c9a96e" strokeWidth={1.5} fill="url(#revGradient)" />
                       <Area type="monotone" dataKey="fees" stroke="rgba(26,26,26,0.25)" strokeWidth={1} fill="url(#feeGradient)" />
+                      <Area type="monotone" dataKey="prevRevenue" stroke="rgba(26,26,26,0.3)" strokeWidth={1.5} strokeDasharray="5 5" fill="none" connectNulls />
                     </AreaChart>
                   </ResponsiveContainer>
+                    );
+                  })()}
                   </>
                 )}
               </div>
@@ -2631,6 +2667,20 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
+const Sparkline: React.FC<{ data: number[]; color: string }> = ({ data, color }) => {
+  if (data.length < 2) return null;
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const w = 160, h = 32;
+  const pts = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * h}`).join(' ');
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="mt-3 block" preserveAspectRatio="none">
+      <polyline fill="none" stroke={color} strokeWidth={1.5} points={pts} vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+};
+
 const StatCard: React.FC<{
   icon: React.ReactNode;
   label: string;
@@ -2649,7 +2699,7 @@ const StatCard: React.FC<{
       <p className={`text-3xl font-semibold tabular-nums tracking-tight ${accent ? 'text-accent' : 'text-ink'}`}>{value}</p>
     )}
     {!loading && subtitle && (
-      <p className="text-[10px] text-ink/40 tabular-nums">{subtitle}</p>
+      <p className="text-[10px] text-ink/60 tabular-nums">{subtitle}</p>
     )}
     {!loading && delta !== undefined && (
       <p className={`text-[10px] font-medium tabular-nums ${delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-500' : 'text-ink/40'}`}>
