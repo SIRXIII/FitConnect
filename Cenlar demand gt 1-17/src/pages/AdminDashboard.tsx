@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy } from 'lucide-react';
+import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy, UserPlus, CreditCard, Activity, Wallet, Zap } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
@@ -286,6 +287,16 @@ const AdminDashboard: React.FC = () => {
   // Analytics tab — free session metrics
   const [freeMetrics, setFreeMetrics] = useState<FreeMetrics | null>(null);
   const [loadingFreeMetrics, setLoadingFreeMetrics] = useState(false);
+
+  // Analytics tab — period-over-period comparison + time series
+  const [prevTotals, setPrevTotals] = useState<{
+    total_revenue: number;
+    total_platform_fee: number;
+    total_payouts: number;
+    booking_volume: number;
+  } | null>(null);
+  const [timeSeries, setTimeSeries] = useState<Array<{ bucket: string; revenue: number; fees: number; bookings: number }>>([]);
+  const [userSeries, setUserSeries] = useState<Array<{ bucket: string; newClients: number; newTrainers: number }>>([]);
 
   // Transactions tab — comp type filter
   const [txCompFilter, setTxCompFilter] = useState<'all' | 'comp' | 'paid'>('all');
@@ -574,7 +585,11 @@ const AdminDashboard: React.FC = () => {
   const fetchFreeMetrics = useCallback(async () => {
     setLoadingFreeMetrics(true);
     try {
-      const { data, error } = await (supabase as any).rpc('get_admin_free_session_metrics');
+      const bounds = getDateBounds(adminRange);
+      const { data, error } = await (supabase as any).rpc('get_admin_free_session_metrics', {
+        p_start: bounds.start,
+        p_end: bounds.end,
+      });
       if (error) throw error;
       const r = (Array.isArray(data) ? data[0] : data) ?? {};
       setFreeMetrics({
@@ -595,13 +610,13 @@ const AdminDashboard: React.FC = () => {
     } finally {
       setLoadingFreeMetrics(false);
     }
-  }, []);
+  }, [adminRange]);
 
   useEffect(() => {
     if (activeTab === 'sessions') { fetchSessionCredits(); fetchOpenSlots(); }
     if (activeTab === 'payouts') fetchCompOwed();
     if (activeTab === 'analytics') fetchFreeMetrics();
-  }, [activeTab, fetchSessionCredits, fetchOpenSlots, fetchCompOwed, fetchFreeMetrics]);
+  }, [activeTab, adminRange, fetchSessionCredits, fetchOpenSlots, fetchCompOwed, fetchFreeMetrics]);
 
   useEffect(() => { if (activeTab === 'payouts') { fetchPayoutBalances(); fetchPayoutHistory(); } }, [activeTab, fetchPayoutBalances, fetchPayoutHistory]);
 
@@ -814,6 +829,9 @@ const AdminDashboard: React.FC = () => {
       const data = rawData as any;
       if (error || !data?.totals) {
         setAdminTotals(null);
+        setPrevTotals(null);
+        setTimeSeries([]);
+        setUserSeries([]);
         setTopEarners([]);
         setLoadingAdminAnalytics(false);
         return;
@@ -828,6 +846,27 @@ const AdminDashboard: React.FC = () => {
         elite_subscriber_count: Number(data.elite_subscriber_count ?? 0),
         active_trial_count: Number(data.active_trial_count ?? 0),
       });
+      if (data.prev_totals) {
+        setPrevTotals({
+          total_revenue: Number(data.prev_totals.total_revenue),
+          total_platform_fee: Number(data.prev_totals.total_platform_fee),
+          total_payouts: Number(data.prev_totals.total_payouts),
+          booking_volume: Number(data.prev_totals.booking_volume),
+        });
+      } else {
+        setPrevTotals(null);
+      }
+      setTimeSeries((data.time_series ?? []).map((r: { bucket: string; revenue: number | string; fees: number | string; bookings: number | string }) => ({
+        bucket: r.bucket,
+        revenue: Number(r.revenue),
+        fees: Number(r.fees),
+        bookings: Number(r.bookings),
+      })));
+      setUserSeries((data.user_series ?? []).map((r: { bucket: string; new_clients: number | string; new_trainers: number | string }) => ({
+        bucket: r.bucket,
+        newClients: Number(r.new_clients),
+        newTrainers: Number(r.new_trainers),
+      })));
       setTopEarners((data.top_earners ?? []).map((r: { trainer_name: string; gross: string; net: string; bookings_count: string }) => ({
         trainer_name: r.trainer_name,
         gross: Number(r.gross),
@@ -990,25 +1029,83 @@ const AdminDashboard: React.FC = () => {
               ))}
             </div>
 
+            {/* Executive Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {(() => {
+                const heroItems = [
+                  { label: 'Total Revenue', val: adminTotals?.total_revenue, prev: prevTotals?.total_revenue, accent: true },
+                  { label: 'Platform Fee', val: adminTotals?.total_platform_fee, prev: prevTotals?.total_platform_fee, accent: false },
+                  { label: 'Monthly Recurring', val: adminTotals?.mrr, accent: true },
+                ];
+                return heroItems.map(({ label, val, prev, accent }) => {
+                  const d = prev && prev > 0 && val != null ? ((val - prev) / prev) * 100 : undefined;
+                  return (
+                    <div key={label} className="border border-ink/10 p-10 space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">{label}</p>
+                      {loadingAdminAnalytics || val == null ? (
+                        <div className="h-12 w-28 bg-ink/[0.04] rounded animate-pulse" />
+                      ) : (
+                        <p className={`text-4xl font-semibold tabular-nums tracking-tight ${accent ? 'text-accent' : 'text-ink'}`}>
+                          ${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      )}
+                      {d !== undefined && !loadingAdminAnalytics && (
+                        <p className={`text-xs font-medium tabular-nums ${d > 0 ? 'text-green-600' : d < 0 ? 'text-red-500' : 'text-ink/40'}`}>
+                          {d > 0 ? `↑ ${d.toFixed(1)}%` : d < 0 ? `↓ ${Math.abs(d).toFixed(1)}%` : '—'} vs prev period
+                        </p>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+
             {/* Onboarding Funnel */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Onboarding Funnel</p>
+              <div className="flex items-baseline justify-between">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Onboarding Funnel</p>
+                {!loadingFreeMetrics && freeMetrics && (freeMetrics.new_clients ?? 0) > 0 && (
+                  <p className="text-xs tabular-nums text-ink/50">
+                    End-to-end{' '}
+                    <span className="font-medium text-accent">
+                      {Math.round(((freeMetrics.converted_paid ?? 0) / (freeMetrics.new_clients ?? 1)) * 100)}%
+                    </span>
+                  </p>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {[
-                  { label: 'New Clients', value: freeMetrics?.new_clients },
-                  { label: 'Booked ≥1', value: freeMetrics?.booked_any },
-                  { label: '1st Free Done', value: freeMetrics?.first_free_done },
-                  { label: '2nd Free Done', value: freeMetrics?.second_free_done },
-                  { label: 'Converted Paid', value: freeMetrics?.converted_paid, accent: true },
-                ].map(({ label, value, accent }) => (
-                  <StatCard
-                    key={label}
-                    icon={<TrendingUp size={18} strokeWidth={1.5} />}
-                    label={label}
-                    value={loadingFreeMetrics || freeMetrics == null ? '—' : String(value ?? 0)}
-                    accent={accent}
-                  />
-                ))}
+                {(() => {
+                  const newClients = freeMetrics?.new_clients ?? 0;
+                  const bookedAny = freeMetrics?.booked_any ?? 0;
+                  const firstFree = freeMetrics?.first_free_done ?? 0;
+                  const secondFree = freeMetrics?.second_free_done ?? 0;
+                  const converted = freeMetrics?.converted_paid ?? 0;
+                  const pct = (n: number, d: number) => d > 0 ? `(${Math.round((n / d) * 100)}% of prev)` : undefined;
+                  const icons = [
+                    <UserPlus size={18} strokeWidth={1.5} />,
+                    <Activity size={18} strokeWidth={1.5} />,
+                    <Zap size={18} strokeWidth={1.5} />,
+                    <Zap size={18} strokeWidth={1.5} />,
+                    <CreditCard size={18} strokeWidth={1.5} />,
+                  ];
+                  return [
+                    { label: 'New Clients', value: newClients, subtitle: undefined, accent: false },
+                    { label: 'Booked ≥1', value: bookedAny, subtitle: pct(bookedAny, newClients), accent: false },
+                    { label: '1st Free Done', value: firstFree, subtitle: pct(firstFree, bookedAny), accent: false },
+                    { label: '2nd Free Done', value: secondFree, subtitle: pct(secondFree, firstFree), accent: false },
+                    { label: 'Converted Paid', value: converted, subtitle: pct(converted, secondFree), accent: true },
+                  ].map(({ label, value, subtitle, accent }, i) => (
+                    <StatCard
+                      key={label}
+                      icon={icons[i]}
+                      label={label}
+                      value={String(value)}
+                      accent={accent}
+                      loading={loadingFreeMetrics || freeMetrics == null}
+                      subtitle={subtitle}
+                    />
+                  ));
+                })()}
               </div>
             </div>
 
@@ -1016,10 +1113,10 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Free Sessions</p>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="Granted" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.credits_granted)} />
-                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="Available" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.credits_available)} />
-                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="Redeemed" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.credits_redeemed)} />
-                <StatCard icon={<BarChart2 size={18} strokeWidth={1.5} />} label="No-shows" value={loadingFreeMetrics || !freeMetrics ? '—' : String(freeMetrics.comp_no_shows)} />
+                <StatCard icon={<Wallet size={18} strokeWidth={1.5} />} label="Granted" value={String(freeMetrics?.credits_granted ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
+                <StatCard icon={<Activity size={18} strokeWidth={1.5} />} label="Available" value={String(freeMetrics?.credits_available ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
+                <StatCard icon={<Zap size={18} strokeWidth={1.5} />} label="Redeemed" value={String(freeMetrics?.credits_redeemed ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
+                <StatCard icon={<AlertTriangle size={18} strokeWidth={1.5} />} label="No-shows" value={String(freeMetrics?.comp_no_shows ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
                 <div className="border border-ink/10 p-8 space-y-4">
                   <div className="text-ink/30"><DollarSign size={18} strokeWidth={1.5} /></div>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Cost</p>
@@ -1034,28 +1131,117 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Platform aggregate stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <StatCard
-                icon={<DollarSign size={18} strokeWidth={1.5} />}
-                label="Total Revenue"
-                value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                accent
-              />
-              <StatCard
-                icon={<TrendingUp size={18} strokeWidth={1.5} />}
-                label="Platform Fee Collected"
-                value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.total_platform_fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-              />
-              <StatCard
-                icon={<BarChart2 size={18} strokeWidth={1.5} />}
-                label="Trainer Payouts"
-                value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.total_payouts.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-              />
-              <StatCard
-                icon={<Users size={18} strokeWidth={1.5} />}
-                label="Booking Volume"
-                value={loadingAdminAnalytics || !adminTotals ? '—' : adminTotals.booking_volume.toLocaleString()}
-              />
+            {(() => {
+              const calcDelta = (curr: number, prev: number): number | undefined => {
+                if (!prevTotals || prev === 0) return undefined;
+                return ((curr - prev) / prev) * 100;
+              };
+              const revDelta = adminTotals && prevTotals ? calcDelta(adminTotals.total_revenue, prevTotals.total_revenue) : undefined;
+              const feeDelta = adminTotals && prevTotals ? calcDelta(adminTotals.total_platform_fee, prevTotals.total_platform_fee) : undefined;
+              const payoutDelta = adminTotals && prevTotals ? calcDelta(adminTotals.total_payouts, prevTotals.total_payouts) : undefined;
+              const volDelta = adminTotals && prevTotals ? calcDelta(adminTotals.booking_volume, prevTotals.booking_volume) : undefined;
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <StatCard
+                    icon={<DollarSign size={18} strokeWidth={1.5} />}
+                    label="Total Revenue"
+                    value={adminTotals ? `$${adminTotals.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
+                    accent
+                    delta={revDelta}
+                    loading={loadingAdminAnalytics || !adminTotals}
+                  />
+                  <StatCard
+                    icon={<TrendingUp size={18} strokeWidth={1.5} />}
+                    label="Platform Fee Collected"
+                    value={adminTotals ? `$${adminTotals.total_platform_fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
+                    delta={feeDelta}
+                    loading={loadingAdminAnalytics || !adminTotals}
+                  />
+                  <StatCard
+                    icon={<Wallet size={18} strokeWidth={1.5} />}
+                    label="Trainer Payouts"
+                    value={adminTotals ? `$${adminTotals.total_payouts.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
+                    delta={payoutDelta}
+                    loading={loadingAdminAnalytics || !adminTotals}
+                  />
+                  <StatCard
+                    icon={<Users size={18} strokeWidth={1.5} />}
+                    label="Booking Volume"
+                    value={adminTotals ? adminTotals.booking_volume.toLocaleString() : ''}
+                    delta={volDelta}
+                    loading={loadingAdminAnalytics || !adminTotals}
+                  />
+                </div>
+              );
+            })()}
+
+            {/* Revenue Trend */}
+            <div className="space-y-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Revenue Trend</p>
+              <div className="border border-ink/10 p-6">
+                {timeSeries.length === 0 ? (
+                  <p className="text-xs text-ink/30 text-center py-16">No data for this period</p>
+                ) : (
+                  <>
+                  <div className="flex items-center gap-6 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-px bg-accent" />
+                      <span className="text-[10px] text-ink/50">Revenue</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-px bg-ink/25" />
+                      <span className="text-[10px] text-ink/50">Platform Fees</span>
+                    </div>
+                  </div>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <AreaChart data={timeSeries} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#c9a96e" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#c9a96e" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="feeGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#1a1a1a" stopOpacity={0.12} />
+                          <stop offset="95%" stopColor="#1a1a1a" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(26,26,26,0.06)" vertical={false} />
+                      <XAxis
+                        dataKey="bucket"
+                        tickFormatter={(v: string) => {
+                          const d = new Date(v);
+                          return isNaN(d.getTime()) ? v : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        }}
+                        tick={{ fontSize: 10, fill: 'rgba(26,26,26,0.4)', fontFamily: 'inherit' }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tickFormatter={(v: number) => `$${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}`}
+                        tick={{ fontSize: 10, fill: 'rgba(26,26,26,0.4)', fontFamily: 'inherit' }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={52}
+                      />
+                      <Tooltip
+                        contentStyle={{ background: '#faf9f7', border: '1px solid rgba(26,26,26,0.1)', borderRadius: 0, fontSize: 11 }}
+                        formatter={(value: unknown, name: unknown) => {
+                          const v = Number(value ?? 0);
+                          const n = String(name);
+                          return [`$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, n === 'revenue' ? 'Revenue' : 'Platform Fees'] as [string, string];
+                        }}
+                        labelFormatter={(label: unknown) => {
+                          const d = new Date(String(label));
+                          return isNaN(d.getTime()) ? String(label) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        }}
+                      />
+                      <Area type="monotone" dataKey="revenue" stroke="#c9a96e" strokeWidth={1.5} fill="url(#revGradient)" />
+                      <Area type="monotone" dataKey="fees" stroke="rgba(26,26,26,0.25)" strokeWidth={1} fill="url(#feeGradient)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Subscription Health */}
@@ -1065,23 +1251,27 @@ const AdminDashboard: React.FC = () => {
                 <StatCard
                   icon={<TrendingUp size={18} strokeWidth={1.5} />}
                   label="MRR"
-                  value={loadingAdminAnalytics || !adminTotals ? '—' : `$${adminTotals.mrr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  value={adminTotals ? `$${adminTotals.mrr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                   accent
+                  loading={loadingAdminAnalytics || !adminTotals}
                 />
                 <StatCard
                   icon={<Users size={18} strokeWidth={1.5} />}
                   label="Pro Subscribers"
-                  value={loadingAdminAnalytics || !adminTotals ? '—' : `${adminTotals.pro_subscriber_count}`}
+                  value={adminTotals ? `${adminTotals.pro_subscriber_count}` : ''}
+                  loading={loadingAdminAnalytics || !adminTotals}
                 />
                 <StatCard
                   icon={<Users size={18} strokeWidth={1.5} />}
                   label="Elite Subscribers"
-                  value={loadingAdminAnalytics || !adminTotals ? '—' : `${adminTotals.elite_subscriber_count}`}
+                  value={adminTotals ? `${adminTotals.elite_subscriber_count}` : ''}
+                  loading={loadingAdminAnalytics || !adminTotals}
                 />
                 <StatCard
                   icon={<BarChart2 size={18} strokeWidth={1.5} />}
                   label="Active Trials"
-                  value={loadingAdminAnalytics || !adminTotals ? '—' : `${adminTotals.active_trial_count}`}
+                  value={adminTotals ? `${adminTotals.active_trial_count}` : ''}
+                  loading={loadingAdminAnalytics || !adminTotals}
                 />
               </div>
             </div>
@@ -2446,11 +2636,26 @@ const StatCard: React.FC<{
   label: string;
   value: string;
   accent?: boolean;
-}> = ({ icon, label, value, accent }) => (
+  delta?: number;
+  subtitle?: string;
+  loading?: boolean;
+}> = ({ icon, label, value, accent, delta, subtitle, loading }) => (
   <div className="border border-ink/10 p-8 space-y-4">
     <div className={`${accent ? 'text-accent' : 'text-ink/30'}`}>{icon}</div>
     <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">{label}</p>
-    <p className={`text-3xl font-semibold tabular-nums tracking-tight ${accent ? 'text-accent' : 'text-ink'}`}>{value}</p>
+    {loading ? (
+      <div className="h-9 w-20 bg-ink/[0.04] rounded animate-pulse" />
+    ) : (
+      <p className={`text-3xl font-semibold tabular-nums tracking-tight ${accent ? 'text-accent' : 'text-ink'}`}>{value}</p>
+    )}
+    {!loading && subtitle && (
+      <p className="text-[10px] text-ink/40 tabular-nums">{subtitle}</p>
+    )}
+    {!loading && delta !== undefined && (
+      <p className={`text-[10px] font-medium tabular-nums ${delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-500' : 'text-ink/40'}`}>
+        {delta > 0 ? `↑ ${delta.toFixed(1)}%` : delta < 0 ? `↓ ${Math.abs(delta).toFixed(1)}%` : null}
+      </p>
+    )}
   </div>
 );
 
