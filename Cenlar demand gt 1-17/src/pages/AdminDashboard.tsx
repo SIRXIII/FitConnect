@@ -9,6 +9,16 @@ import { CERTIFICATION_TIERS, getCertificationByCode } from '@/lib/certification
 import AdminSupportQueue from '@/components/support/AdminSupportQueue';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
 
+// On-demand payout release moves REAL money via a Stripe LIVE transfer. It must
+// stay OFF in production until the "Model B" payout cutover ships:
+//   1. create-payment-intent switched to a platform-only charge, and
+//   2. the $50 floor dropped to $0 in create-payout / weekly-payouts.
+// Until then, trainers still paid via the destination-charge path would be
+// DOUBLE-PAID. Ops flips VITE_ENABLE_ONDEMAND_PAYOUT=true only after that
+// cutover is verified. Defaults to disabled when the env var is absent.
+const ONDEMAND_PAYOUT_ENABLED =
+  import.meta.env.VITE_ENABLE_ONDEMAND_PAYOUT === 'true';
+
 type ProfileRow = Tables<'profiles'>;
 
 interface FlaggedReview {
@@ -43,6 +53,9 @@ interface PayoutBalance {
   stripe_account_id: string | null;
   pending_balance: number;
   unpaid_booking_count: number;
+  // Stripe-synced truth from trainer_profiles.payouts_enabled. The balances RPC
+  // does not return it, so fetchPayoutBalances backfills it (see below).
+  payouts_enabled?: boolean | null;
 }
 
 interface PayoutHistoryRow {
@@ -248,6 +261,10 @@ const AdminDashboard: React.FC = () => {
   const [payoutHistory, setPayoutHistory] = useState<PayoutHistoryRow[]>([]);
   const [loadingPayoutHistory, setLoadingPayoutHistory] = useState(false);
   const [processingPayoutTrainerId, setProcessingPayoutTrainerId] = useState<string | null>(null);
+  // On-demand "Release payout" confirm flow
+  const [payoutConfirm, setPayoutConfirm] = useState<PayoutBalance | null>(null);
+  const [payoutResult, setPayoutResult] = useState<{ amount: number; transferId: string } | null>(null);
+  const [payoutError, setPayoutError] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [pendingTrainers, setPendingTrainers] = useState<PendingTrainer[]>([]);
@@ -407,7 +424,24 @@ const AdminDashboard: React.FC = () => {
     try {
       const { data, error } = await (supabase as any).rpc('get_admin_payout_balances');
       if (error) throw error;
-      setPayoutBalances((data ?? []) as PayoutBalance[]);
+      const balances = (data ?? []) as PayoutBalance[];
+      // The balances RPC omits payouts_enabled (the Stripe-synced truth we must
+      // verify before releasing). Backfill it directly — admins have SELECT-all
+      // on trainer_profiles via the trainer_profiles_admin_select_all policy.
+      const ids = balances.map((b) => b.trainer_profile_id);
+      if (ids.length > 0) {
+        const { data: peRows } = await (supabase as any)
+          .from('trainer_profiles')
+          .select('id, payouts_enabled')
+          .in('id', ids);
+        const peMap = new Map<string, boolean | null>(
+          ((peRows ?? []) as { id: string; payouts_enabled: boolean | null }[]).map(
+            (r) => [r.id, r.payouts_enabled]
+          )
+        );
+        balances.forEach((b) => { b.payouts_enabled = peMap.get(b.trainer_profile_id) ?? null; });
+      }
+      setPayoutBalances(balances);
     } catch {
       toast.error('Failed to load payout balances');
       setPayoutBalances([]);
@@ -433,26 +467,54 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
-  const handleApprovePayout = async (balance: PayoutBalance) => {
-    if (!balance.stripe_account_id) {
-      toast.error(`${balance.trainer_name} has no Stripe account connected`);
+  // supabase-js wraps a non-2xx Edge Function response in a FunctionsHttpError
+  // whose .message is generic ("...non-2xx status code"). The function's real
+  // JSON { error } body lives on .context (a Response), so unwrap it to surface
+  // the actual reason ("No earnings available", "A payout is already in
+  // progress", Stripe errors, etc.).
+  const extractFunctionError = async (err: unknown): Promise<string> => {
+    const ctx = (err as { context?: unknown })?.context;
+    if (ctx instanceof Response) {
+      try {
+        const body = await ctx.clone().json();
+        if (body?.error) return String(body.error);
+      } catch { /* not JSON — fall through to the generic message */ }
+    }
+    return err instanceof Error ? err.message : 'Payout failed';
+  };
+
+  // On-demand admin release. Calls create-payout's admin override path with
+  // target_trainer_profile_id (the function pays out that trainer's accrued
+  // unpaid earnings via a Stripe transfer to their connected account).
+  const handleReleasePayout = async (balance: PayoutBalance) => {
+    if (!ONDEMAND_PAYOUT_ENABLED) {
+      setPayoutError('On-demand release is disabled until the Model B payout cutover ships.');
       return;
     }
-    if (balance.pending_balance < 50) {
-      toast.error('Minimum payout is $50');
+    if (!balance.stripe_account_id) {
+      setPayoutError(`${balance.trainer_name} has no Stripe account connected.`);
+      return;
+    }
+    if (!balance.payouts_enabled) {
+      setPayoutError(`Stripe payouts are not enabled for ${balance.trainer_name}.`);
       return;
     }
     setProcessingPayoutTrainerId(balance.trainer_profile_id);
+    setPayoutError(null);
+    setPayoutResult(null);
     try {
-      const { error } = await supabase.functions.invoke('create-payout', {
-        body: { trainer_id: balance.trainer_user_id },
+      const { data, error } = await supabase.functions.invoke('create-payout', {
+        body: { target_trainer_profile_id: balance.trainer_profile_id },
       });
-      if (error) throw error;
-      toast.success(`Payout of $${balance.pending_balance.toFixed(2)} initiated for ${balance.trainer_name}`);
+      if (error) throw new Error(await extractFunctionError(error));
+      const amount = Number(data?.amount ?? balance.pending_balance);
+      const transferId = String(data?.transferId ?? '');
+      setPayoutResult({ amount, transferId });
+      toast.success(`Released $${amount.toFixed(2)} to ${balance.trainer_name}`);
       await fetchPayoutBalances();
       await fetchPayoutHistory();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Payout failed');
+      setPayoutError(err instanceof Error ? err.message : 'Payout failed');
     } finally {
       setProcessingPayoutTrainerId(null);
     }
@@ -1292,6 +1354,18 @@ const AdminDashboard: React.FC = () => {
             {/* Pending Balances */}
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer Pending Balances</p>
+              {!ONDEMAND_PAYOUT_ENABLED && (
+                <div className="flex items-start gap-2 border border-amber-200 bg-amber-50/60 px-4 py-3">
+                  <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    On-demand release is <strong>disabled</strong>. It moves real money via a Stripe LIVE
+                    transfer and stays off until the Model B payout cutover ships (platform-only charge in
+                    create-payment-intent + $50 floor dropped to $0). Set
+                    <code className="mx-1 px-1 bg-amber-100 rounded text-[10px]">VITE_ENABLE_ONDEMAND_PAYOUT=true</code>
+                    only after that cutover is verified, or trainers on the destination-charge path get double-paid.
+                  </p>
+                </div>
+              )}
               <div className="border border-ink/10">
                 <div className="grid grid-cols-[2fr_120px_100px_100px_180px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
@@ -1318,16 +1392,30 @@ const AdminDashboard: React.FC = () => {
                       <p className="text-sm text-ink">{b.trainer_name}</p>
                       <p className="text-sm text-ink font-medium tabular-nums">${Number(b.pending_balance).toFixed(2)}</p>
                       <p className="text-sm text-ink/60">{b.unpaid_booking_count}</p>
-                      <span className={`text-[10px] uppercase tracking-wider font-medium ${b.stripe_account_id ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {b.stripe_account_id ? 'Connected' : 'None'}
+                      <span className={`text-[10px] uppercase tracking-wider font-medium ${
+                        !b.stripe_account_id ? 'text-red-500' : b.payouts_enabled ? 'text-emerald-600' : 'text-amber-600'
+                      }`}>
+                        {!b.stripe_account_id ? 'None' : b.payouts_enabled ? 'Payouts on' : 'Payouts off'}
                       </span>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleApprovePayout(b)}
-                          disabled={processingPayoutTrainerId === b.trainer_profile_id || !b.stripe_account_id || b.pending_balance < 50}
+                          onClick={() => { setPayoutResult(null); setPayoutError(null); setPayoutConfirm(b); }}
+                          disabled={
+                            !ONDEMAND_PAYOUT_ENABLED ||
+                            processingPayoutTrainerId === b.trainer_profile_id ||
+                            !b.stripe_account_id ||
+                            !b.payouts_enabled ||
+                            Number(b.pending_balance) <= 0
+                          }
+                          title={
+                            !ONDEMAND_PAYOUT_ENABLED ? 'Disabled until the Model B payout cutover is complete'
+                            : !b.stripe_account_id ? 'No Stripe account connected'
+                            : !b.payouts_enabled ? 'Stripe payouts not enabled for this trainer'
+                            : undefined
+                          }
                           className="px-3 py-1 text-[10px] uppercase tracking-wider font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Approve'}
+                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Release payout'}
                         </button>
                         <button
                           onClick={() => handleHoldPayout(b)}
@@ -1387,6 +1475,98 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Release payout confirm / result modal */}
+        {payoutConfirm && (() => {
+          const b = payoutConfirm;
+          const processing = processingPayoutTrainerId === b.trainer_profile_id;
+          const done = !!payoutResult;
+          const close = () => {
+            if (processing) return;
+            setPayoutConfirm(null);
+            setPayoutResult(null);
+            setPayoutError(null);
+          };
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={close}>
+              <div className="bg-paper max-w-md w-full p-8 space-y-6 border border-ink/15" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-start gap-3">
+                  <DollarSign size={20} className="text-emerald-600 shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <h3 className="text-xl serif font-light italic text-ink">Release payout</h3>
+                    <p className="text-sm text-ink/50 leading-relaxed">
+                      {done
+                        ? "Payout released. Stripe is transferring the funds to the trainer's connected account."
+                        : "This moves REAL money via a Stripe LIVE transfer to the trainer's connected account. This cannot be undone."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-y border-ink/10 py-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ink/50">Trainer</span>
+                    <span className="text-ink font-medium">{b.trainer_name}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ink/50">Accrued balance</span>
+                    <span className="text-ink font-medium tabular-nums">${Number(b.pending_balance).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ink/50">Unpaid bookings</span>
+                    <span className="text-ink/70 tabular-nums">{b.unpaid_booking_count}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ink/50">Stripe payouts</span>
+                    <span className={b.payouts_enabled ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}>
+                      {b.payouts_enabled ? 'Enabled' : 'Not enabled'}
+                    </span>
+                  </div>
+                </div>
+
+                {payoutResult && (
+                  <div className="border border-emerald-200 bg-emerald-50/60 px-4 py-3 space-y-1">
+                    <p className="text-sm text-emerald-800 font-medium">Released ${payoutResult.amount.toFixed(2)}</p>
+                    {payoutResult.transferId && (
+                      <p className="text-[11px] text-emerald-700/80 font-mono break-all">Transfer: {payoutResult.transferId}</p>
+                    )}
+                  </div>
+                )}
+
+                {payoutError && (
+                  <div className="flex items-start gap-2 border border-red-200 bg-red-50/60 px-4 py-3">
+                    <AlertTriangle size={14} className="text-red-500 shrink-0 mt-0.5" />
+                    <p className="text-[12px] text-red-700 leading-relaxed">{payoutError}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={close}
+                    disabled={processing}
+                    className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors disabled:opacity-30"
+                  >
+                    {done ? 'Done' : 'Cancel'}
+                  </button>
+                  {!done && (
+                    <button
+                      onClick={() => handleReleasePayout(b)}
+                      disabled={
+                        processing ||
+                        !ONDEMAND_PAYOUT_ENABLED ||
+                        !b.stripe_account_id ||
+                        !b.payouts_enabled ||
+                        Number(b.pending_balance) <= 0
+                      }
+                      className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] bg-emerald-600 text-white hover:bg-emerald-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      {processing ? 'Releasing...' : `Confirm release of $${Number(b.pending_balance).toFixed(2)}`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Users Tab */}
         {activeTab === 'users' && (

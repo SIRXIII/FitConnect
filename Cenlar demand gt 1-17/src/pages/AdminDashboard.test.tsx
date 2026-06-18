@@ -145,3 +145,46 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
     expect(SOURCE).toContain('user.trainer_profiles');
   });
 });
+
+describe('AdminDashboard on-demand Release payout', () => {
+  it('exposes the Release payout button', () => {
+    expect(SOURCE).toContain('Release payout');
+  });
+
+  it('invokes create-payout via the admin override (target_trainer_profile_id)', () => {
+    expect(SOURCE).toContain("supabase.functions.invoke('create-payout'");
+    expect(SOURCE).toContain('target_trainer_profile_id: balance.trainer_profile_id');
+  });
+
+  it('does NOT call create-payout with the legacy trainer_id body', () => {
+    // The legacy body never triggered the admin override and would 404.
+    expect(SOURCE).not.toContain('body: { trainer_id: balance.trainer_user_id }');
+  });
+
+  it('gates release behind the Model B cutover feature flag (off by default)', () => {
+    expect(SOURCE).toContain('VITE_ENABLE_ONDEMAND_PAYOUT');
+    expect(SOURCE).toContain('ONDEMAND_PAYOUT_ENABLED');
+    // Guard clause inside the handler must short-circuit when disabled.
+    expect(SOURCE).toMatch(/handleReleasePayout[\s\S]{0,200}!ONDEMAND_PAYOUT_ENABLED/);
+  });
+
+  it('verifies Stripe payouts_enabled before releasing', () => {
+    expect(SOURCE).toContain('payouts_enabled');
+    expect(SOURCE).toMatch(/handleReleasePayout[\s\S]{0,400}!balance\.payouts_enabled/);
+  });
+
+  it('requires an explicit confirm step (modal state)', () => {
+    expect(SOURCE).toContain('payoutConfirm');
+    expect(SOURCE).toContain('Confirm release of $');
+  });
+
+  it('surfaces the result: success amount + transfer id', () => {
+    expect(SOURCE).toContain('payoutResult');
+    expect(SOURCE).toContain('transferId');
+  });
+
+  it('unwraps the Edge Function error body to surface the real reason', () => {
+    expect(SOURCE).toContain('extractFunctionError');
+    expect(SOURCE).toContain('payoutError');
+  });
+});
