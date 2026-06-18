@@ -95,6 +95,7 @@ interface PendingTrainerCertDoc {
   id: string;
   cert_name: string | null;
   cert_code: string | null;
+  cert_number: string | null;
   status: string;
   expiry_date: string | null;
   file_url: string | null;
@@ -116,6 +117,11 @@ interface PendingTrainer {
   trainer_location: string | null;
   profile_location: string | null;
   hourly_rate: number | null;
+  optimized_rate: number | null;
+  discount_percentage: number | null;
+  credential_score: number | null;
+  intro_video_url: string | null;
+  intro_video_thumbnail_url: string | null;
   certifications: string[] | null;
   certification_number: string | null;
   certification_url: string | null;
@@ -2301,8 +2307,8 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'pending-trainers' && (
           <div className="space-y-6">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">Pending Trainer Approvals</p>
-              <p className="text-[10px] text-ink/30">Approve sets is_verified=true and approval_status='approved' via the approve_trainer RPC. Decline sets approval_status='rejected'.</p>
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Pending Trainer Approvals</p>
+              <p className="text-[10px] text-ink/60">Approve sets is_verified=true and approval_status='approved' via the approve_trainer RPC. Decline sets approval_status='rejected'.</p>
             </div>
 
             {loadingPendingTrainers && (
@@ -2323,30 +2329,38 @@ const AdminDashboard: React.FC = () => {
                       ? 'Synced — payouts enabled'
                       : 'Connected — payouts pending';
                   const payoutTone = !trainer.stripe_account_id
-                    ? 'text-ink/40'
+                    ? 'text-ink/60'
                     : trainer.payouts_enabled
                       ? 'text-green-700'
                       : 'text-amber-700';
                   return (
                     <div key={trainer.user_id} className="border border-ink/10">
-                      {/* Header: identity + actions */}
-                      <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-ink/5 bg-ink/[0.02]">
-                        <div className="flex items-center gap-4 min-w-0">
+
+                      {/* ── SECTION 1: Header — identity + actions ── */}
+                      <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-ink/10 bg-ink/[0.02]">
+                        <div className="flex items-start gap-4 min-w-0">
                           {trainer.avatar_url ? (
                             <img
                               src={trainer.avatar_url}
                               alt={trainer.full_name ?? 'Trainer'}
-                              className="w-12 h-12 rounded-full object-cover border border-ink/10"
+                              className="w-16 h-16 rounded-full object-cover border border-ink/10 shrink-0"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-sm font-light text-ink/40">
-                              {(trainer.full_name ?? trainer.email).charAt(0).toUpperCase()}
+                            <div className="w-16 h-16 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-lg text-ink/40 shrink-0">
+                              {(trainer.full_name?.trim() || trainer.email || 'U').charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-light text-ink truncate">{trainer.full_name ?? 'No name provided'}</p>
-                            <p className="text-[11px] text-ink/50 truncate">{trainer.email}</p>
-                            <p className="text-[10px] text-ink/30">
+                          <div className="min-w-0 pt-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-lg text-ink font-medium truncate">{trainer.full_name?.trim() || 'No name provided'}</p>
+                              {trainer.credential_score != null && trainer.credential_score > 0 && (
+                                <span className="text-[10px] uppercase tracking-[0.15em] text-accent font-medium whitespace-nowrap">
+                                  Credential {Math.round(trainer.credential_score)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-ink/60 truncate">{trainer.email}{trainer.phone ? ` · ${trainer.phone}` : ''}</p>
+                            <p className="text-xs text-ink/50 mt-0.5">
                               Signed up {new Date(trainer.created_at).toLocaleDateString()}
                               {trainer.last_sign_in_at && ` · Last sign-in ${new Date(trainer.last_sign_in_at).toLocaleDateString()}`}
                             </p>
@@ -2356,103 +2370,198 @@ const AdminDashboard: React.FC = () => {
                           <button
                             onClick={() => handleApproveTrainer(trainer.user_id)}
                             disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
-                            className="flex-1 py-2 bg-green-600 text-white text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="flex-1 py-2 bg-green-600 text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                           >
                             {approvingTrainerId === trainer.user_id ? '…' : 'Approve'}
                           </button>
                           <button
                             onClick={() => handleDeclineTrainer(trainer.user_id)}
                             disabled={approvingTrainerId === trainer.user_id || decliningTrainerId === trainer.user_id}
-                            className="flex-1 py-2 border border-red-200 text-red-700 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="flex-1 py-2 border border-red-200 text-red-700 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                           >
                             {decliningTrainerId === trainer.user_id ? '…' : 'Decline'}
                           </button>
                         </div>
                       </div>
 
-                      {/* Detail grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4 px-6 py-4">
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Specialty</p>
-                          <p className="text-xs font-light text-ink/70">{trainer.specialty ?? '—'}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Hourly Rate</p>
-                          <p className="text-xs font-light text-ink/70">{trainer.hourly_rate != null ? `$${Number(trainer.hourly_rate).toFixed(0)}/hr` : '—'}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Location</p>
-                          <p className="text-xs font-light text-ink/70">{location ?? '—'}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Phone</p>
-                          <p className="text-xs font-light text-ink/70">{trainer.phone ?? '—'}</p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Stripe Payout</p>
-                          <p className={`text-xs font-light ${payoutTone}`}>{payoutLabel}</p>
-                          {trainer.stripe_account_id && (
-                            <p className="text-[10px] text-ink/40 font-mono truncate">{trainer.stripe_account_id}</p>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">User ID</p>
-                          <p className="text-[10px] text-ink/50 font-mono truncate">{trainer.user_id}</p>
-                        </div>
-                      </div>
-
-                      {/* Bio */}
-                      <div className="px-6 pb-4">
-                        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Bio</p>
-                        <p className="text-xs font-light text-ink/70 whitespace-pre-wrap">{trainer.bio?.trim() || 'No bio provided yet.'}</p>
-                      </div>
-
-                      {/* Certifications */}
-                      <div className="px-6 pb-5 space-y-3">
-                        <div>
-                          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Certifications</p>
-                          {(trainer.certifications?.length ?? 0) > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                              {trainer.certifications!.map((cert) => (
-                                <span key={cert} className="px-2 py-1 border border-ink/10 text-[10px] text-ink/60 uppercase tracking-wider">
-                                  {cert}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-xs font-light text-ink/40">None listed.</p>
-                          )}
-                          {trainer.certification_number && (
-                            <p className="text-[10px] text-ink/40 mt-1">Cert # {trainer.certification_number}</p>
-                          )}
-                          {trainer.certification_url && (
-                            <a href={trainer.certification_url} target="_blank" rel="noreferrer" className="text-[10px] text-blue-700 underline">
-                              View certification file
-                            </a>
-                          )}
-                        </div>
-                        {trainer.cert_documents.length > 0 && (
+                      {/* ── SECTION 2: Pricing & Terms ── */}
+                      <div className="border-t border-ink/10 px-6 py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-4">Pricing &amp; Terms</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-5">
                           <div>
-                            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-1">Uploaded Cert Documents</p>
-                            <div className="space-y-1">
-                              {trainer.cert_documents.map((doc) => (
-                                <div key={doc.id} className="flex items-center gap-3 text-[11px] text-ink/60">
-                                  <span className="font-light">{doc.cert_name ?? doc.cert_code ?? 'Document'}</span>
-                                  <span className={`uppercase tracking-wider text-[9px] ${doc.status === 'approved' ? 'text-green-700' : doc.status === 'rejected' ? 'text-red-700' : 'text-amber-700'}`}>
-                                    {doc.status}
-                                  </span>
-                                  {doc.expiry_date && <span className="text-ink/40">expires {new Date(doc.expiry_date).toLocaleDateString()}</span>}
-                                  {doc.file_url && (
-                                    <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-blue-700 underline">
-                                      view file
-                                    </a>
-                                  )}
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Specialty</p>
+                            {trainer.specialty
+                              ? <p className="text-sm text-ink">{trainer.specialty}</p>
+                              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Hourly Rate</p>
+                            {trainer.hourly_rate != null
+                              ? <p className="text-sm text-ink tabular-nums">${Number(trainer.hourly_rate).toFixed(0)}/hr</p>
+                              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Optimized Rate</p>
+                            {trainer.optimized_rate != null
+                              ? <p className="text-sm text-ink tabular-nums">${Number(trainer.optimized_rate).toFixed(0)}/hr</p>
+                              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Discount</p>
+                            {trainer.discount_percentage != null
+                              ? <p className="text-sm text-ink tabular-nums">{Number(trainer.discount_percentage).toFixed(0)}%</p>
+                              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+                          </div>
+                          <div className="col-span-2 md:col-span-4">
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Location</p>
+                            {location
+                              ? <p className="text-sm text-ink">{location}</p>
+                              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ── SECTION 3: Bio ── */}
+                      <div className="border-t border-ink/10 px-6 py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-3">Bio</p>
+                        {trainer.bio?.trim()
+                          ? <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-wrap">{trainer.bio.trim()}</p>
+                          : <p className="text-sm text-ink/40 italic">No bio provided yet.</p>}
+                      </div>
+
+                      {/* ── SECTION 4: Intro Video ── */}
+                      <div className="border-t border-ink/10 px-6 py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-3">Intro Video</p>
+                        {trainer.intro_video_url ? (
+                          trainer.intro_video_thumbnail_url ? (
+                            <a
+                              href={trainer.intro_video_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-block relative w-48 aspect-video border border-ink/10 bg-ink/5 overflow-hidden group"
+                            >
+                              <img
+                                src={trainer.intro_video_thumbnail_url}
+                                alt="Intro video thumbnail"
+                                className="absolute inset-0 w-full h-full object-cover"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-ink/40 text-paper rounded-full w-10 h-10 flex items-center justify-center group-hover:bg-ink/60 transition-colors">
+                                  <span className="text-xs pl-0.5">▶</span>
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            </a>
+                          ) : (
+                            <a
+                              href={trainer.intro_video_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm text-ink underline decoration-ink/30 underline-offset-2 hover:text-accent transition-colors"
+                            >
+                              View intro video
+                            </a>
+                          )
+                        ) : (
+                          <p className="text-sm text-ink/40 italic">No intro video uploaded.</p>
+                        )}
+                      </div>
+
+                      {/* ── SECTION 5: Gym Memberships ── */}
+                      <div className="border-t border-ink/10 px-6 py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-3">Gym Memberships</p>
+                        {(trainer.gym_memberships?.length ?? 0) > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {trainer.gym_memberships!.map((gym, idx) => (
+                              <span key={`gym-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/70">
+                                {gym}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-ink/40 italic">None listed.</p>
+                        )}
+                      </div>
+
+                      {/* ── SECTION 6: Certifications ── */}
+                      <div className="border-t border-ink/10 px-6 py-5 space-y-4">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium">Certifications</p>
+                        {/* Cert chips */}
+                        {(trainer.certifications?.length ?? 0) > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {trainer.certifications!.map((cert, idx) => (
+                              <span key={`cert-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/70">
+                                {cert}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-ink/40 italic">None listed.</p>
+                        )}
+                        {/* Cert number + file link from trainer_profile level */}
+                        {trainer.certification_number && (
+                          <p className="text-xs text-ink/55">Cert # {trainer.certification_number}</p>
+                        )}
+                        {trainer.certification_url && (
+                          <a
+                            href={trainer.certification_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm text-ink underline decoration-ink/30 underline-offset-2 hover:text-accent transition-colors"
+                          >
+                            View certification file
+                          </a>
+                        )}
+                        {/* Uploaded cert documents */}
+                        {trainer.cert_documents.length > 0 && (
+                          <div className="space-y-2 pt-1">
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium">Uploaded Documents</p>
+                            {trainer.cert_documents.map((doc) => (
+                              <div key={doc.id} className="flex items-start gap-3 flex-wrap">
+                                <span className="text-sm text-ink">{doc.cert_name ?? doc.cert_code ?? 'Document'}</span>
+                                {doc.cert_number && (
+                                  <span className="text-xs text-ink/55">#{doc.cert_number}</span>
+                                )}
+                                <span className={`text-[10px] uppercase tracking-wider font-medium ${doc.status === 'approved' ? 'text-green-700' : doc.status === 'rejected' ? 'text-red-700' : 'text-amber-700'}`}>
+                                  {doc.status}
+                                </span>
+                                {doc.expiry_date && (
+                                  <span className="text-xs text-ink/55">expires {new Date(doc.expiry_date).toLocaleDateString()}</span>
+                                )}
+                                {doc.file_url && (
+                                  <a
+                                    href={doc.file_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-sm text-ink underline decoration-ink/30 underline-offset-2 hover:text-accent transition-colors"
+                                  >
+                                    View file
+                                  </a>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
+
+                      {/* ── SECTION 7: Account ── */}
+                      <div className="border-t border-ink/10 px-6 py-5">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-4">Account</p>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Stripe Payout</p>
+                            <p className={`text-sm ${payoutTone}`}>{payoutLabel}</p>
+                            {trainer.stripe_account_id && (
+                              <p className="text-xs text-ink/55 font-mono mt-0.5 truncate">{trainer.stripe_account_id}</p>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">User ID</p>
+                            <p className="text-xs text-ink/55 font-mono truncate">{trainer.user_id}</p>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
                   );
                 })}
