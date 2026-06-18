@@ -90,6 +90,25 @@ These are the established patterns. Reuse them; do not invent parallel ones.
 - **Delta:** colored text, `text-green-600` up / `text-red-500` down, with a `↑`/`↓`
   glyph and a "vs prior period" suffix. **Text, not a filled pill** (pills fight the
   restraint). The glyph means the color is never the only signal (a11y).
+- **Record card** (e.g. pending-trainer approval): a hairline card split into labeled
+  sections divided by `border-t border-ink/10` — identity header, then field groups.
+  Field group: a `grid` of label + value pairs (label `text-[10px] uppercase
+  tracking-[0.2em] text-ink/55`, value `text-sm text-ink`). Show the FULL record; do
+  not hide sparse fields. An empty field renders **"Not provided"** in
+  `text-sm text-ink/40 italic` so reviewers see the gap, never a cryptic dash. Reviewer
+  actions (approve/decline) live top-right in the header.
+- **Empty-state filler:** the only place `text-ink/40` is allowed on text, and only in
+  `italic` ("No bio provided yet.", "None listed.", "Not provided"). Anything that
+  carries data stays at `text-ink/60`+.
+- **Media thumbnail** (intro video): fixed-aspect framed box (`w-48 aspect-video
+  border border-ink/10 bg-ink/5 overflow-hidden`) with the image absolutely filling it
+  and a centered play glyph (`bg-ink/40` circle, `group-hover:bg-ink/60`). Always set
+  `onError` to hide the broken `<img>` so the bg-ink/5 frame + play glyph survive a 404.
+- **Chips** (gym memberships, certifications): `px-2.5 py-1 border border-ink/10
+  text-[11px] text-ink/70`, wrapped in `flex flex-wrap gap-2`. Key by index, not value
+  (values can repeat).
+- **Links:** `text-ink underline decoration-ink/30 underline-offset-2 hover:text-accent`.
+  Never blue — gold is the only accent (see section 1).
 
 ---
 
