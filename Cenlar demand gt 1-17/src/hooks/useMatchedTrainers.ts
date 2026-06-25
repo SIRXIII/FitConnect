@@ -70,10 +70,12 @@ export function useMatchedTrainers(): UseMatchedTrainersResult {
       }
 
       // Fetch trainers for scoring
-      const { data: trainers } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: trainers } = await (supabase as any)
         .from('trainer_profiles')
         .select(`
           id,
+          slug,
           optimized_rate,
           specialty,
           profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)

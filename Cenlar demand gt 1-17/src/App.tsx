@@ -132,6 +132,7 @@ const App: React.FC = () => {
           {/* Public trainer pages */}
           <Route path="/trainers" element={<Landing />} />
           <Route path="/trainers/:id" element={<TrainerProfile />} />
+          <Route path="/personal-trainer/:slug" element={<TrainerProfile />} />
 
           {/* Admin routes */}
           <Route

@@ -6,7 +6,17 @@ import type { Tables } from '@/types/supabase';
 export type UserRole = 'trainer' | 'client' | 'admin';
 
 export type Profile = Tables<'profiles'>;
-export type TrainerProfile = Tables<'trainer_profiles'>;
+export type TrainerProfile = Tables<'trainer_profiles'> & {
+  years_experience?: number | null;
+  expertise_tags?: string[] | null;
+  success_story?: string | null;
+  faqs?: { q: string; a: string }[] | null;
+  slug?: string | null;
+  social_links?: Record<string, string> | null;
+  gym_memberships?: string[] | null;
+  booking_count?: number | null;
+  is_verified?: boolean | null;
+};
 
 interface AuthState {
   user: User | null;

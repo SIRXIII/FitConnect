@@ -14,6 +14,7 @@ export interface ClientMatchInput {
 
 export interface TrainerMatchInput {
   id: string;
+  slug?: string | null;
   optimized_rate: number;
   specialty: string;
   profiles: { full_name: string; avatar_url: string | null };

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { optimizedUrl } from '@/lib/imageUtils';
 import type { MatchResult } from '@/lib/matchScoring';
+import { trainerPath } from '@/lib/trainerPath';
 
 interface RecommendedTrainerCardProps {
   result: MatchResult;
@@ -67,7 +68,7 @@ export const RecommendedTrainerCard: React.FC<RecommendedTrainerCardProps> = ({ 
       {/* Divider */}
       <div className="border-t border-ink/5 pt-4">
         <Link
-          to={`/trainers/${trainer.id}`}
+          to={trainerPath(trainer)}
           className="block text-center border border-ink/10 py-4 text-[10px] uppercase tracking-[0.3em] hover:bg-ink hover:text-white transition-all duration-500"
         >
           View Profile

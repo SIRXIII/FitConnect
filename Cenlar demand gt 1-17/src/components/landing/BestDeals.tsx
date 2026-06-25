@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, Clock, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { trainerPath } from '@/lib/trainerPath';
 import { buildIdleSlotCounts } from '@/lib/scheduling';
 import { formatSpecialty } from '@/types';
 import { TrainerCardSkeleton } from '@/components/skeleton/TrainerCardSkeleton';
@@ -10,6 +11,7 @@ import { toast } from 'sonner';
 
 interface DealTrainer {
   id: string;
+  slug: string | null;
   name: string;
   avatarUrl: string | null;
   specialty: string;
@@ -27,10 +29,11 @@ const BestDeals: React.FC = () => {
   useEffect(() => {
     const fetchDeals = async () => {
       // Fetch trainers with active discounts
-      const { data: trainers } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: trainers } = await (supabase as any)
         .from('trainer_profiles')
         .select(`
-          id, specialty, optimized_rate, discount_percentage, rating,
+          id, slug, specialty, optimized_rate, discount_percentage, rating,
           profiles!trainer_profiles_user_id_fkey (full_name, avatar_url, role)
         `)
         .gt('discount_percentage', 0);
@@ -52,7 +55,7 @@ const BestDeals: React.FC = () => {
       const { data: slots } = await supabase
         .from('availability_slots')
         .select('trainer_id, start_time, is_booked, deleted_at')
-        .in('trainer_id', activeTrainers.map((t) => t.id))
+        .in('trainer_id', activeTrainers.map((t: any) => t.id))
         .eq('is_booked', false)
         .is('deleted_at', null)
         .gte('start_time', new Date().toISOString());
@@ -61,14 +64,15 @@ const BestDeals: React.FC = () => {
       const idleCounts = buildIdleSlotCounts((slots ?? []) as SlotRow[]);
 
       const withIdle = activeTrainers
-        .filter((t) => (idleCounts[t.id] ?? 0) > 0)
-        .sort((a, b) => b.discount_percentage - a.discount_percentage)
+        .filter((t: any) => (idleCounts[t.id] ?? 0) > 0)
+        .sort((a: any, b: any) => b.discount_percentage - a.discount_percentage)
         .slice(0, 3)
         .map((t: any) => {
           const profile = Array.isArray(t.profiles) ? t.profiles[0] : t.profiles;
           const optimizedRate = Number(t.optimized_rate);
           return {
             id: t.id,
+            slug: t.slug ?? null,
             name: profile?.full_name || 'Trainer',
             avatarUrl: profile?.avatar_url ?? null,
             specialty: formatSpecialty(t.specialty),
@@ -143,9 +147,10 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
   const initials = deal.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
   const user = useAuthStore((s) => s.user);
 
+  const profileUrl = trainerPath(deal);
   const bookUrl = user
-    ? `/trainers/${deal.id}?book=true`
-    : `/login?redirect=${encodeURIComponent(`/trainers/${deal.id}?book=true`)}`;
+    ? `${profileUrl}?book=true`
+    : `/login?redirect=${encodeURIComponent(`${profileUrl}?book=true`)}`;
 
   const handleBookClick = () => {
     if (!user) {
@@ -157,7 +162,7 @@ const DealCard: React.FC<{ deal: DealTrainer }> = ({ deal }) => {
     <div className="border border-white/10 p-8 space-y-6 hover:border-white/25 transition-colors duration-500">
       {/* Top row: avatar + discount badge */}
       <div className="flex items-start justify-between">
-        <Link to={`/trainers/${deal.id}`} className="flex items-center gap-4 group">
+        <Link to={profileUrl} className="flex items-center gap-4 group">
           {deal.avatarUrl ? (
             <img
               src={deal.avatarUrl}

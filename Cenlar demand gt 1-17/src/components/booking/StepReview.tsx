@@ -2,6 +2,7 @@ import { Calendar, Clock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatSpecialty } from '@/types';
 import type { SlotWithTrainer } from './BookingWizard';
+import { trainerPath } from '@/lib/trainerPath';
 
 interface StepReviewProps {
   slot: SlotWithTrainer;
@@ -96,7 +97,7 @@ export const StepReview: React.FC<StepReviewProps> = ({
       {/* Actions */}
       <div className="flex gap-4">
         <Link
-          to={`/trainers/${slot.trainer_id}`}
+          to={trainerPath({ id: slot.trainer_id, slug: trainerData.slug })}
           className="border border-ink/20 px-8 py-4 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink/5 transition-all duration-300"
         >
           Back to Trainer

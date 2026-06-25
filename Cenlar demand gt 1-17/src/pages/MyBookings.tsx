@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { trainerPath } from '@/lib/trainerPath';
 import { Calendar, Clock, Star, MapPin, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -26,6 +27,7 @@ interface BookingWithDetails
   };
   trainer_profiles: {
     id: string;
+    slug: string | null;
     specialty: string;
     location: string;
     profiles: {
@@ -316,7 +318,7 @@ const MyBookings: React.FC = () => {
         id, status, rate_charged, notes, created_at,
         availability_slots!bookings_slot_id_fkey (start_time, end_time),
         trainer_profiles!bookings_trainer_id_fkey (
-          id, specialty, location,
+          id, slug, specialty, location,
           profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
         )
       `)
@@ -565,7 +567,7 @@ const MyBookings: React.FC = () => {
                       )}
                       <div className="space-y-1">
                         <Link
-                          to={`/trainers/${trainer?.id}`}
+                          to={trainer ? trainerPath(trainer) : '#'}
                           className="text-lg serif font-light text-ink hover:text-accent transition-colors"
                         >
                           {trainerName}

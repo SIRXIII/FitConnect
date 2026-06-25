@@ -179,7 +179,11 @@ export function useTrainerById(trainerId: string | undefined) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!trainerId) return;
+    if (!trainerId) {
+      setTrainer(null);
+      setLoading(false);
+      return;
+    }
 
     // Demo trainers (numeric IDs) — skip DB, serve mock data immediately
     if (isMockId(trainerId)) {
@@ -205,6 +209,37 @@ export function useTrainerById(trainerId: string | undefined) {
 
     fetchTrainer();
   }, [trainerId]);
+
+  return { trainer, loading };
+}
+
+export function useTrainerBySlug(slug: string | undefined) {
+  const [trainer, setTrainer] = useState<TrainerWithProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) {
+      setTrainer(null);
+      setLoading(false);
+      return;
+    }
+
+    const fetchTrainer = async () => {
+      const { data } = await supabase
+        .from('trainer_profiles')
+        .select(`
+          *,
+          profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
+        `)
+        .eq('slug', slug)
+        .single();
+
+      setTrainer(data as TrainerWithProfile | null);
+      setLoading(false);
+    };
+
+    fetchTrainer();
+  }, [slug]);
 
   return { trainer, loading };
 }

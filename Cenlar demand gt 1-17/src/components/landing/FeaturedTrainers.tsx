@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Crown, Star, MapPin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { trainerPath } from '@/lib/trainerPath';
 
 interface FeaturedTrainer {
   id: string;
+  slug: string | null;
   specialty: string;
   rating: number;
   review_count: number;
@@ -20,7 +22,7 @@ const FeaturedTrainers: React.FC = () => {
     supabase
       .from('trainer_profiles')
       .select(`
-        id, specialty, rating, review_count, location,
+        id, slug, specialty, rating, review_count, location,
         profiles!trainer_profiles_user_id_fkey (full_name, avatar_url, role)
       `)
       .eq('subscription_tier', 'elite')
@@ -55,7 +57,7 @@ const FeaturedTrainers: React.FC = () => {
             return (
               <Link
                 key={trainer.id}
-                to={`/trainers/${trainer.id}`}
+                to={trainerPath(trainer)}
                 className="border border-ink/10 p-6 space-y-4 hover:border-accent/30 transition-colors group"
               >
                 <div className="flex items-center gap-4">

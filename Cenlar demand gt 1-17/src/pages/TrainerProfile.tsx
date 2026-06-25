@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply } from 'lucide-react';
+import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, Globe, Instagram, Youtube, Facebook, Gift, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTrainerById } from '@/hooks/useTrainers';
+import { useTrainerById, useTrainerBySlug } from '@/hooks/useTrainers';
 import { formatSpecialty } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
@@ -34,11 +34,18 @@ interface Review {
 }
 
 const TrainerProfile: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, slug } = useParams<{ id?: string; slug?: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile } = useAuthStore();
-  const { trainer, loading } = useTrainerById(id);
+
+  // Call both hooks unconditionally (hook rules); only one will be active at a time
+  const { trainer: trainerById, loading: loadingById } = useTrainerById(slug ? undefined : id);
+  const { trainer: trainerBySlug, loading: loadingBySlug } = useTrainerBySlug(slug);
+
+  const trainer = slug ? trainerBySlug : trainerById;
+  const loading = slug ? loadingBySlug : loadingById;
+
   // Demo trainers (numeric IDs) have no real DB records — disable transactional actions
   const isMockTrainer = id ? !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id) : false;
   const availabilityRef = useRef<HTMLDivElement>(null);
@@ -51,6 +58,8 @@ const TrainerProfile: React.FC = () => {
   const [submittingResponse, setSubmittingResponse] = useState(false);
   // Map of slot_id -> current booking count (for group slots)
   const [groupBookingCounts, setGroupBookingCounts] = useState<Record<string, number>>({});
+  // Sticky CTA bar visibility (appears after scrolling ~400px past hero)
+  const [showStickyBar, setShowStickyBar] = useState(false);
 
   const handleMessageTrainer = async () => {
     if (!user || !trainer) return;
@@ -109,7 +118,8 @@ const TrainerProfile: React.FC = () => {
   };
 
   const fetchSlots = useCallback(async () => {
-    if (!id) return;
+    const trainerId = trainer?.id ?? id;
+    if (!trainerId) return;
     // Mock trainers have no DB records — skip the query to avoid UUID errors
     if (isMockTrainer) {
       setAvailableSlots([]);
@@ -121,7 +131,7 @@ const TrainerProfile: React.FC = () => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (supabase as any)
-        .rpc('get_visible_slots', { p_trainer_id: id });
+        .rpc('get_visible_slots', { p_trainer_id: trainerId });
 
       const slots = (data as AvailabilitySlot[]) || [];
       setAvailableSlots(slots);
@@ -145,10 +155,11 @@ const TrainerProfile: React.FC = () => {
     } finally {
       setLoadingSlots(false);
     }
-  }, [id, isMockTrainer]);
+  }, [trainer?.id, id, isMockTrainer]);
 
   const fetchReviews = useCallback(async () => {
-    if (!id || isMockTrainer) return;
+    const trainerId = trainer?.id ?? id;
+    if (!trainerId || isMockTrainer) return;
 
     try {
       const { data } = await supabase
@@ -160,7 +171,7 @@ const TrainerProfile: React.FC = () => {
           is_flagged, is_hidden,
           profiles:client_id (full_name, avatar_url)
         `)
-        .eq('trainer_id', id)
+        .eq('trainer_id', trainerId)
         .eq('is_hidden', false)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -169,7 +180,7 @@ const TrainerProfile: React.FC = () => {
     } catch {
       setReviews([]);
     }
-  }, [id, isMockTrainer]);
+  }, [trainer?.id, id, isMockTrainer]);
 
   useEffect(() => {
     fetchSlots();
@@ -177,17 +188,19 @@ const TrainerProfile: React.FC = () => {
   }, [fetchSlots, fetchReviews]);
 
   useEffect(() => {
-    if (!id || isMockTrainer) return;
+    // Use the resolved trainer ID for realtime channels (works under both /trainers/:id and /personal-trainer/:slug)
+    const trainerId = trainer?.id ?? id;
+    if (!trainerId || isMockTrainer) return;
 
     const slotChannel = supabase
-      .channel(`trainer-profile-slots-${id}`)
+      .channel(`trainer-profile-slots-${trainerId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'availability_slots',
-          filter: `trainer_id=eq.${id}`,
+          filter: `trainer_id=eq.${trainerId}`,
         },
         () => {
           fetchSlots();
@@ -196,14 +209,14 @@ const TrainerProfile: React.FC = () => {
       .subscribe();
 
     const reviewChannel = supabase
-      .channel(`trainer-profile-reviews-${id}`)
+      .channel(`trainer-profile-reviews-${trainerId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'reviews',
-          filter: `trainer_id=eq.${id}`,
+          filter: `trainer_id=eq.${trainerId}`,
         },
         () => {
           fetchReviews();
@@ -215,7 +228,7 @@ const TrainerProfile: React.FC = () => {
       supabase.removeChannel(slotChannel);
       supabase.removeChannel(reviewChannel);
     };
-  }, [id, fetchSlots, fetchReviews]);
+  }, [trainer?.id, id, isMockTrainer, fetchSlots, fetchReviews]);
 
   // Auto-scroll to availability section when ?book=true is present
   useEffect(() => {
@@ -225,6 +238,98 @@ const TrainerProfile: React.FC = () => {
       }, 150);
     }
   }, [loading, searchParams]);
+
+  // Sticky CTA bar — show after 400px scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyBar(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Canonicalize: /trainers/:uuid → /personal-trainer/:slug when trainer has a slug
+  useEffect(() => {
+    if (!trainer || loading) return;
+    if (id && !slug && trainer.slug && !isMockTrainer) {
+      navigate(`/personal-trainer/${trainer.slug}`, { replace: true });
+    }
+  }, [trainer, loading, id, slug, isMockTrainer, navigate]);
+
+  // SEO — title, meta description, JSON-LD structured data, canonical link
+  useEffect(() => {
+    if (!trainer) return;
+    const trainerName = trainer.profiles?.full_name || 'Trainer';
+    const specialty = formatSpecialty(trainer.specialty);
+    const loc = trainer.location || '';
+    const ratingVal = Number(trainer.rating);
+    const reviewCount = Number(trainer.review_count);
+
+    // Page title
+    const prevTitle = document.title;
+    document.title = `${trainerName} — ${specialty} | FitRush`;
+
+    // Meta description — reuse the document's existing <meta name="description">
+    // so we never create a second, competing tag. Create one only if absent.
+    const META_ID = 'fitrush-trainer-meta-desc';
+    const existingMeta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    const metaEl = existingMeta ?? Object.assign(document.createElement('meta'), { name: 'description', id: META_ID });
+    const createdMeta = !existingMeta;
+    if (createdMeta) document.head.appendChild(metaEl);
+    const prevMetaContent = metaEl.content;
+    metaEl.content = `Book a session with ${trainerName}, a certified ${specialty} personal trainer${loc ? ` in ${loc}` : ''}${reviewCount > 0 && ratingVal > 0 ? `. Rated ${ratingVal.toFixed(1)}/5 by ${reviewCount} client${reviewCount !== 1 ? 's' : ''}` : ''}. Book online via FitRush.`;
+
+    // Canonical link tag — points to slug URL when available
+    const CANONICAL_ID = 'fitrush-trainer-canonical';
+    let canonicalEl = document.getElementById(CANONICAL_ID) as HTMLLinkElement | null;
+    const canonicalHref = trainer.slug
+      ? `${window.location.origin}/personal-trainer/${trainer.slug}`
+      : null;
+    if (canonicalHref) {
+      if (!canonicalEl) {
+        canonicalEl = document.createElement('link');
+        canonicalEl.rel = 'canonical';
+        canonicalEl.id = CANONICAL_ID;
+        document.head.appendChild(canonicalEl);
+      }
+      canonicalEl.href = canonicalHref;
+    }
+
+    // JSON-LD structured data
+    const JSONLD_ID = 'fitrush-trainer-jsonld';
+    let scriptEl = document.getElementById(JSONLD_ID) as HTMLScriptElement | null;
+    if (!scriptEl) {
+      scriptEl = document.createElement('script');
+      scriptEl.type = 'application/ld+json';
+      scriptEl.id = JSONLD_ID;
+      document.head.appendChild(scriptEl);
+    }
+    const jsonld: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: trainerName,
+      jobTitle: 'Personal Trainer',
+      ...(trainer.profiles?.avatar_url ? { image: trainer.profiles.avatar_url } : {}),
+      brand: { '@type': 'Brand', name: 'FitRush' },
+      worksFor: { '@type': 'Organization', name: 'FitRush' },
+      ...(loc ? { areaServed: loc } : {}),
+      ...(reviewCount > 0 && ratingVal > 0
+        ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: ratingVal.toFixed(1), reviewCount } }
+        : {}),
+    };
+    scriptEl.textContent = JSON.stringify(jsonld);
+
+    return () => {
+      document.title = prevTitle;
+      // Restore the original description if we reused it; remove ours if we created it.
+      if (createdMeta) metaEl.remove();
+      else metaEl.content = prevMetaContent;
+      const canonical = document.getElementById(CANONICAL_ID);
+      if (canonical) canonical.remove();
+      const jld = document.getElementById(JSONLD_ID);
+      if (jld) jld.remove();
+    };
+  }, [trainer]);
 
   // Group available slots by date
   const slotsByDate = useMemo(() => {
@@ -262,8 +367,85 @@ const TrainerProfile: React.FC = () => {
   const rating = Number(trainer.rating);
   const certs = trainer.certifications || [];
 
+  // Cheapest rate for sticky CTA (prefer discounted rate if present)
+  const cheapestRate = (() => {
+    const optimized = Number(trainer.optimized_rate);
+    const disc = trainer.discount_percentage ?? 0;
+    if (disc > 0 && optimized > 0) {
+      return Math.round(optimized * (1 - disc / 100) * 100) / 100;
+    }
+    return optimized > 0 ? optimized : Number(trainer.hourly_rate);
+  })();
+
+  // Social links — normalize to full URLs
+  const rawSocial = (trainer as { social_links?: Record<string, string> | null }).social_links ?? null;
+  const socialLinks: { key: string; url: string; icon: React.ReactNode; label: string }[] = [];
+  if (rawSocial && typeof rawSocial === 'object') {
+    const normalize = (key: string, val: string): string => {
+      const v = val.trim();
+      if (!v) return '';
+      if (v.startsWith('http://') || v.startsWith('https://')) return v;
+      // Handle-style values for known social platforms
+      if (key === 'instagram') return `https://instagram.com/${v.replace(/^@/, '')}`;
+      if (key === 'tiktok') return `https://tiktok.com/@${v.replace(/^@/, '')}`;
+      if (key === 'x' || key === 'twitter') return `https://x.com/${v.replace(/^@/, '')}`;
+      if (key === 'youtube') return `https://youtube.com/@${v.replace(/^@/, '')}`;
+      if (key === 'facebook') return `https://facebook.com/${v}`;
+      return `https://${v}`;
+    };
+    const iconMap: Record<string, React.ReactNode> = {
+      instagram: <Instagram size={16} />,
+      youtube: <Youtube size={16} />,
+      facebook: <Facebook size={16} />,
+      website: <Globe size={16} />,
+      tiktok: <Globe size={16} />,
+      x: <Globe size={16} />,
+      twitter: <Globe size={16} />,
+    };
+    const labelMap: Record<string, string> = {
+      instagram: 'Instagram', youtube: 'YouTube', facebook: 'Facebook',
+      website: 'Website', tiktok: 'TikTok', x: 'X', twitter: 'X',
+    };
+    Object.entries(rawSocial).forEach(([key, val]) => {
+      if (!val) return;
+      const url = normalize(key, String(val));
+      if (!url) return;
+      socialLinks.push({ key, url, icon: iconMap[key] ?? <Globe size={16} />, label: labelMap[key] ?? key });
+    });
+  }
+
+  // Gym memberships
+  const gymMemberships = (trainer as { gym_memberships?: string[] | null }).gym_memberships ?? null;
+  const hasGyms = Array.isArray(gymMemberships) && gymMemberships.length > 0;
+
+  // Verified signal (either column)
+  const isVerified = !!(trainer.verified || (trainer as { is_verified?: boolean }).is_verified);
+
+  // Own profile — hide sticky CTA
+  const isOwnProfile = trainer.user_id === user?.id;
+
   return (
-    <div className="min-h-screen bg-paper pt-28 pb-20">
+    <div className={`min-h-screen bg-paper pt-28 ${!isOwnProfile ? 'pb-32' : 'pb-20'}`}>
+      {/* Sticky "Book a Session" CTA bar */}
+      {!isOwnProfile && showStickyBar && (
+        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-ink/10 bg-paper/95 backdrop-blur">
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-ink truncate">{name}</p>
+              <p className="text-[10px] text-ink/50 tabular-nums">
+                From <span className="text-ink/70">${cheapestRate}/hr</span>
+              </p>
+            </div>
+            <button
+              onClick={() => availabilityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="flex-shrink-0 bg-ink text-white text-[11px] uppercase tracking-[0.2em] px-6 py-2.5 font-medium hover:bg-accent transition-colors duration-300"
+            >
+              Book a Session
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-6">
         {/* Back link */}
         <Link
@@ -325,6 +507,24 @@ const TrainerProfile: React.FC = () => {
                   </div>
                 </div>
               )}
+              {/* Years of experience */}
+              {trainer.years_experience != null && trainer.years_experience > 0 && (
+                <div className="flex items-center justify-between border-t border-ink/5 pt-4">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Experience</span>
+                  <span className="text-sm text-ink/70 tabular-nums">
+                    {trainer.years_experience} years
+                  </span>
+                </div>
+              )}
+              {/* Sessions delivered stat */}
+              {trainer.booking_count != null && (trainer.booking_count ?? 0) > 0 && (
+                <div className="flex items-center justify-between border-t border-ink/5 pt-4">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Sessions</span>
+                  <span className="text-sm text-ink/70 tabular-nums">
+                    {trainer.booking_count} delivered
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Certifications */}
@@ -345,6 +545,43 @@ const TrainerProfile: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Gym memberships */}
+            {hasGyms && (
+              <div className="space-y-3">
+                <h3 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                  Trains At
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {(gymMemberships as string[]).map((gym, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/60"
+                    >
+                      {gym}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Social links */}
+            {socialLinks.length > 0 && (
+              <div className="flex items-center gap-4 pt-1">
+                {socialLinks.map(({ key, url, icon, label }) => (
+                  <a
+                    key={key}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="text-ink/50 hover:text-accent transition-colors duration-200"
+                  >
+                    {icon}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right column — details & availability */}
@@ -358,7 +595,39 @@ const TrainerProfile: React.FC = () => {
                   {formatSpecialty(trainer.specialty)}
                 </span>
               </div>
+
+              {/* Trust strip */}
+              <div className="flex flex-wrap items-center gap-y-2 pt-1">
+                {isVerified && (
+                  <>
+                    <div className="flex items-center gap-1.5 pr-4">
+                      <Shield size={11} className="text-accent flex-shrink-0" />
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Verified</span>
+                    </div>
+                    <div className="h-3 border-r border-ink/15 mr-4" />
+                  </>
+                )}
+                <div className="flex items-center gap-1.5 pr-4">
+                  <Lock size={11} className="text-accent flex-shrink-0" />
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Secure Stripe Checkout</span>
+                </div>
+                <div className="h-3 border-r border-ink/15 mr-4" />
+                <div className="flex items-center gap-1.5">
+                  <MessageSquare size={11} className="text-accent flex-shrink-0" />
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Message First</span>
+                </div>
+              </div>
             </div>
+
+            {/* Complimentary trial banner — new clients, hide on own profile */}
+            {!isOwnProfile && (
+              <div className="flex items-center gap-3 border border-accent/30 bg-accent/5 px-5 py-3">
+                <Gift size={14} className="text-accent flex-shrink-0" />
+                <p className="text-sm text-ink/70">
+                  New clients — your first two 30-minute sessions are complimentary.
+                </p>
+              </div>
+            )}
 
             {/* Rates */}
             <div className="border border-ink/10 p-8 flex flex-wrap gap-12">
@@ -397,6 +666,35 @@ const TrainerProfile: React.FC = () => {
               <div className="space-y-4">
                 <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">About</h2>
                 <p className="text-ink/70 leading-relaxed">{trainer.bio}</p>
+              </div>
+            )}
+
+            {/* Areas of Expertise */}
+            {Array.isArray(trainer.expertise_tags) && trainer.expertise_tags.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                  Areas of Expertise
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {trainer.expertise_tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/60"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Success Story */}
+            {trainer.success_story && (
+              <div className="space-y-4">
+                <h2 className="text-2xl serif font-light italic text-ink">Success Story</h2>
+                <blockquote className="border-l-2 border-accent/30 pl-5 py-1 text-ink/70 leading-relaxed italic">
+                  {trainer.success_story}
+                </blockquote>
               </div>
             )}
 
@@ -536,6 +834,30 @@ const TrainerProfile: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* FAQ */}
+            {Array.isArray(trainer.faqs) && trainer.faqs.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-2xl serif font-light italic text-ink">FAQ</h2>
+                <div>
+                  {trainer.faqs.map((faq, i) => {
+                    if (!faq || typeof faq.q !== 'string' || typeof faq.a !== 'string') return null;
+                    return (
+                      <details key={i} className="group border-b border-ink/10">
+                        <summary className="flex items-center justify-between cursor-pointer list-none py-4 gap-4">
+                          <span className="text-sm font-medium text-ink/80">{faq.q}</span>
+                          <ChevronDown
+                            size={14}
+                            className="text-ink/40 flex-shrink-0 transition-transform duration-200 group-open:rotate-180"
+                          />
+                        </summary>
+                        <p className="text-sm text-ink/60 leading-relaxed pt-2 pb-4">{faq.a}</p>
+                      </details>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Reviews */}
             {reviews.length > 0 && (

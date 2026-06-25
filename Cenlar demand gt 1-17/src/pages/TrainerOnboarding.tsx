@@ -33,6 +33,10 @@ interface FormData {
   avatar_file: File | null;
   avatar_preview: string;
   avatar_url: string;
+  years_experience: string;
+  expertise_tags_raw: string;
+  success_story: string;
+  faqs: { q: string; a: string }[];
 }
 
 const TrainerOnboarding: React.FC = () => {
@@ -59,6 +63,10 @@ const TrainerOnboarding: React.FC = () => {
     avatar_file: null,
     avatar_preview: '',
     avatar_url: '',
+    years_experience: '',
+    expertise_tags_raw: '',
+    success_story: '',
+    faqs: [],
   });
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -156,6 +164,13 @@ const TrainerOnboarding: React.FC = () => {
       if (form.avatar_url) profileUpdate.avatar_url = form.avatar_url;
       await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
 
+      const yearsExp = parseInt(form.years_experience, 10);
+      const expertiseTags = form.expertise_tags_raw
+        .split(',')
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
+      const validFaqs = form.faqs.filter((f) => f.q.trim() && f.a.trim());
+
       const { error } = await supabase
         .from('trainer_profiles')
         .update({
@@ -166,6 +181,10 @@ const TrainerOnboarding: React.FC = () => {
           optimized_rate: Math.min(optimized, hourly),
           certification_number: form.cert_number.trim() || null,
           certification_url: form.cert_url || null,
+          years_experience: !isNaN(yearsExp) && yearsExp >= 0 ? yearsExp : null,
+          expertise_tags: expertiseTags.length > 0 ? expertiseTags : null,
+          success_story: form.success_story.trim() || null,
+          faqs: validFaqs.length > 0 ? validFaqs : null,
         })
         .eq('user_id', user.id);
 
@@ -395,6 +414,91 @@ const TrainerOnboarding: React.FC = () => {
                   placeholder="Tell clients about your training philosophy, experience, and what makes your sessions special..."
                   className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                  Years of Experience <span className="normal-case text-ink/30">(optional)</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={60}
+                  value={form.years_experience}
+                  onChange={e => setForm(f => ({ ...f, years_experience: e.target.value }))}
+                  placeholder="e.g. 5"
+                  className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                  Areas of Expertise <span className="normal-case text-ink/30">(optional — comma-separated)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.expertise_tags_raw}
+                  onChange={e => setForm(f => ({ ...f, expertise_tags_raw: e.target.value }))}
+                  placeholder="e.g. Weight Loss, Muscle Building, Flexibility"
+                  className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                  Success Story <span className="normal-case text-ink/30">(optional)</span>
+                </label>
+                <textarea
+                  value={form.success_story}
+                  onChange={e => setForm(f => ({ ...f, success_story: e.target.value }))}
+                  rows={3}
+                  placeholder="Share a client transformation or memorable result..."
+                  className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                  FAQ <span className="normal-case text-ink/30">(optional)</span>
+                </label>
+                {form.faqs.map((faq, i) => (
+                  <div key={i} className="border border-ink/10 p-4 space-y-3">
+                    <input
+                      type="text"
+                      value={faq.q}
+                      onChange={e => setForm(f => ({
+                        ...f,
+                        faqs: f.faqs.map((item, idx) => idx === i ? { ...item, q: e.target.value } : item),
+                      }))}
+                      placeholder="Question"
+                      className="w-full border-b border-ink/15 bg-transparent pb-2 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20"
+                    />
+                    <textarea
+                      value={faq.a}
+                      onChange={e => setForm(f => ({
+                        ...f,
+                        faqs: f.faqs.map((item, idx) => idx === i ? { ...item, a: e.target.value } : item),
+                      }))}
+                      rows={2}
+                      placeholder="Answer"
+                      className="w-full border border-ink/10 bg-transparent p-3 text-sm font-light outline-none focus:border-ink/30 transition-colors placeholder:text-ink/20 resize-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, faqs: f.faqs.filter((_, idx) => idx !== i) }))}
+                      className="text-[10px] uppercase tracking-[0.15em] text-ink/30 hover:text-red-400 transition-colors"
+                    >
+                      × Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, faqs: [...f.faqs, { q: '', a: '' }] }))}
+                  className="border border-ink/15 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-ink/50 hover:border-ink/30 hover:text-ink transition-all"
+                >
+                  + Add FAQ
+                </button>
               </div>
             </div>
           </div>
