@@ -32,7 +32,7 @@ const RECENT_SESSION_ERROR_CODES = new Set([
   'session_not_found',
 ]);
 
-export function getPasswordUpdateErrorMessage(error: unknown): string {
+function getPasswordUpdateErrorMessage(error: unknown): string {
   const authError = error && typeof error === 'object' ? error as AuthErrorLike : null;
   const code = authError?.code?.toLowerCase() ?? '';
   const message = authError?.message?.trim() ?? (error instanceof Error ? error.message.trim() : '');
