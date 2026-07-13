@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { Camera, Eye, EyeOff, Mail, AlertTriangle, CreditCard, Check } from 'lucide-react';
+import { Camera, AlertTriangle, CreditCard, Check } from 'lucide-react';
+import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import DeleteAccountModal from '@/components/shared/DeleteAccountModal';
 import { toast } from 'sonner';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -144,13 +145,6 @@ const ClientSettingsTab: React.FC = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Password form state
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPw, setShowNewPw] = useState(false);
-  const [showConfirmPw, setShowConfirmPw] = useState(false);
-  const [savingPassword, setSavingPassword] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Payment method state
@@ -210,33 +204,6 @@ const ClientSettingsTab: React.FC = () => {
       toast.error('Failed to save profile — please try again.');
     } finally {
       setSavingProfile(false);
-    }
-  };
-
-  // ---- Change password ----
-  const handleChangePassword = async () => {
-    if (newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match.');
-      return;
-    }
-
-    setSavingPassword(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      toast.success('Password updated.');
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowPasswordForm(false);
-    } catch (err) {
-      console.error('[ClientSettingsTab] password update error:', err);
-      toast.error(err instanceof Error ? err.message : 'Password update failed.');
-    } finally {
-      setSavingPassword(false);
     }
   };
 
@@ -374,86 +341,7 @@ const ClientSettingsTab: React.FC = () => {
       </Section>
 
       {/* ── Section 2: Account Security ── */}
-      <Section title="Account Security">
-
-        {/* Email (display only) */}
-        <Field label="Email Address" hint="Email changes require contacting support.">
-          <div className="flex items-center gap-3 pb-2 border-b border-ink/10">
-            <Mail size={16} className="text-ink/30 shrink-0" />
-            <span className="text-base font-light text-ink/70">{user?.email ?? '—'}</span>
-          </div>
-        </Field>
-
-        {/* Change password toggle */}
-        <div className="space-y-4">
-          <button
-            type="button"
-            onClick={() => setShowPasswordForm((v) => !v)}
-            className="border border-ink/20 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300"
-          >
-            {showPasswordForm ? 'Cancel' : 'Change Password'}
-          </button>
-
-          {showPasswordForm && (
-            <div className="space-y-4 pt-2">
-              <Field label="New Password">
-                <div className="flex items-center gap-2 border-b border-ink/20 pb-2">
-                  <input
-                    type={showNewPw ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min. 8 characters"
-                    className="flex-1 bg-transparent text-base font-light outline-none placeholder:text-ink/20"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPw((v) => !v)}
-                    className="text-ink/30 hover:text-ink transition-colors"
-                    aria-label={showNewPw ? 'Hide password' : 'Show password'}
-                  >
-                    {showNewPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </Field>
-
-              <Field label="Confirm Password">
-                <div className="flex items-center gap-2 border-b border-ink/20 pb-2">
-                  <input
-                    type={showConfirmPw ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repeat new password"
-                    className="flex-1 bg-transparent text-base font-light outline-none placeholder:text-ink/20"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPw((v) => !v)}
-                    className="text-ink/30 hover:text-ink transition-colors"
-                    aria-label={showConfirmPw ? 'Hide password' : 'Show password'}
-                  >
-                    {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </Field>
-
-              <button
-                onClick={handleChangePassword}
-                disabled={savingPassword || !newPassword || !confirmPassword}
-                className="border border-ink/20 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {savingPassword ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                    Updating...
-                  </span>
-                ) : (
-                  'Update Password'
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-      </Section>
+      <AccountSecuritySection />
 
       {/* ── Section 3: Payment Method — hidden on iOS per App Store 3.1.1 ── */}
       {!isNativeiOS() && (
