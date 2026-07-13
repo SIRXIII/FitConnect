@@ -8,6 +8,7 @@ import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
 import { setAdminTierOverride } from '@/lib/subscription';
 // CERTIFICATION_TIERS / getCertificationByCode removed — cert catalog now comes from get_admin_pending_certs RPC fields (tier, accreditation, org, verify_url)
 import AdminSupportQueue from '@/components/support/AdminSupportQueue';
+import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
 
 type ProfileRow = Tables<'profiles'>;
@@ -2716,6 +2717,8 @@ const AdminDashboard: React.FC = () => {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-8">
+            <AccountSecuritySection className="max-w-lg" />
+
             <div className="border border-ink/10 p-8 max-w-lg space-y-6">
               <div className="flex items-center gap-3">
                 <Settings size={16} strokeWidth={1.5} className="text-ink/40" />

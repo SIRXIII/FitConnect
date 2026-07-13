@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import {
+  getPasswordValidationError,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_REQUIREMENTS,
+} from '@/lib/passwordPolicy';
 import { toast } from 'sonner';
 
 const ResetPassword: React.FC = () => {
@@ -11,12 +16,9 @@ const ResetPassword: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
-    if (password !== confirm) {
-      toast.error('Passwords do not match');
+    const validationError = getPasswordValidationError(password, confirm);
+    if (validationError) {
+      toast.error(validationError.message);
       return;
     }
     setSubmitting(true);
@@ -43,35 +45,42 @@ const ResetPassword: React.FC = () => {
           <p className="text-xs text-ink/40 leading-relaxed">
             Choose a new password for your FitRush account.
           </p>
+          <p id="reset-password-instructions" className="text-xs text-ink/50 leading-relaxed">
+            {PASSWORD_REQUIREMENTS}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           <div className="space-y-1">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+            <label htmlFor="reset-new-password" className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
               New Password
             </label>
             <input
+              id="reset-new-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={PASSWORD_MIN_LENGTH}
               autoComplete="new-password"
+              aria-describedby="reset-password-instructions"
               className="w-full border border-ink/15 bg-transparent px-4 py-3 text-sm outline-none focus:border-ink/40 transition-colors"
-              placeholder="At least 6 characters"
+              placeholder={`At least ${PASSWORD_MIN_LENGTH} characters`}
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+            <label htmlFor="reset-confirm-password" className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
               Confirm Password
             </label>
             <input
+              id="reset-confirm-password"
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
-              minLength={6}
+              minLength={PASSWORD_MIN_LENGTH}
               autoComplete="new-password"
+              aria-describedby="reset-password-instructions"
               className="w-full border border-ink/15 bg-transparent px-4 py-3 text-sm outline-none focus:border-ink/40 transition-colors"
               placeholder="Repeat new password"
             />

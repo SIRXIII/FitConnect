@@ -35,8 +35,8 @@ describe('AdminDashboard subscription metrics (Task 1)', () => {
     expect(SOURCE).toContain('active_trial_count: number');
   });
 
-  it('fetchAdminAnalytics extracts mrr from data', () => {
-    expect(SOURCE).toContain('data.totals.mrr');
+  it('fetchAdminAnalytics extracts mrr from the analytics RPC payload', () => {
+    expect(SOURCE).toContain('mrr: Number(data.mrr ?? 0)');
   });
 
   it('renders Subscription Health label', () => {
@@ -83,8 +83,8 @@ describe('AdminDashboard trainer approval (REQ-219)', () => {
     expect(SOURCE).toContain('p_user_id: userId');
   });
 
-  it('fetchPendingTrainers filters to pending approval_status', () => {
-    expect(SOURCE).toContain("eq('approval_status', 'pending')");
+  it('fetchPendingTrainers uses the pending-trainer admin RPC', () => {
+    expect(SOURCE).toContain("rpc('get_admin_pending_trainers')");
   });
 
   it('pending-trainers tab member exists in activeTab union', () => {
@@ -110,12 +110,13 @@ describe('AdminDashboard trainer approval (REQ-219)', () => {
 });
 
 describe('AdminDashboard TierBadge (Task 2)', () => {
-  it('UserRow interface includes trainer_profiles field', () => {
-    expect(SOURCE).toContain('trainer_profiles?');
+  it('UserRow includes the flattened subscription fields returned by the admin RPC', () => {
+    expect(SOURCE).toContain("subscription_tier?: 'free' | 'pro' | 'elite' | null");
+    expect(SOURCE).toContain("subscription_status?: 'inactive' | 'trialing' | 'active'");
   });
 
-  it('fetchUsers selects trainer_profiles join', () => {
-    expect(SOURCE).toContain('trainer_profiles(subscription_tier');
+  it('fetchUsers loads the admin-safe user directory RPC', () => {
+    expect(SOURCE).toContain("rpc('get_admin_user_list')");
   });
 
   it('TierBadge component is defined', () => {
@@ -128,7 +129,7 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
   });
 
   it('users table header uses multi-column grid', () => {
-    expect(SOURCE).toContain('grid-cols-[1fr_100px_120px_100px_120px_140px]');
+    expect(SOURCE).toContain('grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px]');
   });
 
   it('TierBadge handles past_due status', () => {
@@ -142,6 +143,26 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
   it('TierBadge renders null for non-trainer rows', () => {
     // The conditional rendering pattern
     expect(SOURCE).toContain("user.role === 'trainer'");
-    expect(SOURCE).toContain('user.trainer_profiles');
+    expect(SOURCE).toContain('user.subscription_tier');
+  });
+});
+
+describe('AdminDashboard current tab structure', () => {
+  const tabs = [
+    'analytics',
+    'transactions',
+    'payouts',
+    'users',
+    'reviews',
+    'certifications',
+    'audit',
+    'settings',
+    'support',
+    'pending-trainers',
+    'sessions',
+  ];
+
+  it.each(tabs)('includes the %s tab in the dashboard contract', (tab) => {
+    expect(SOURCE).toContain(`'${tab}'`);
   });
 });

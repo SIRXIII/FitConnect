@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({ loading: false });
 
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null;
       set({ session, user });
 
@@ -69,7 +69,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       if (user) {
-        await get().fetchProfile(user.id);
+        // Supabase runs this callback while its internal auth lock is held.
+        // Defer database work so USER_UPDATED (including password changes)
+        // can finish instead of deadlocking on another client request.
+        setTimeout(() => {
+          void get().fetchProfile(user.id);
+        }, 0);
       } else {
         set({ profile: null, trainerProfile: null });
       }
