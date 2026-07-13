@@ -1,10 +1,12 @@
 import { test, expect, Page } from '@playwright/test';
+import { requireE2EAccount } from './credentials';
 
-// Test credentials
+// The authenticated suite intentionally fails during collection when local
+// disposable account credentials have not been configured.
 const ACCOUNTS = {
-  admin: { email: 'admin@fitrush.com', password: 'ADMIN123' },
-  trainer: { email: 'hostcalifornia@gmail.com', password: 'YoloLife2026' },
-  client: { email: 'sirxiii@gmail.com', password: 'Workout20206!' },
+  admin: requireE2EAccount('admin'),
+  trainer: requireE2EAccount('trainer'),
+  client: requireE2EAccount('client'),
 };
 
 async function login(page: Page, email: string, password: string) {

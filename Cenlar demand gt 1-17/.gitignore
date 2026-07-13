@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Local Playwright credentials (copy the tracked example, never commit values)
+.env.e2e
+.env.e2e.local
+
 # Capacitor iOS — track the native project but not generated/build artifacts
 ios/App/App/public/
 ios/App/Pods/

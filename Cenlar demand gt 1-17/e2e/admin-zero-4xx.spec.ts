@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
+import { requireE2EAccount } from './credentials';
 
-const ADMIN = { email: 'admin@fitrush.com', password: 'ADMIN123' };
+const ADMIN = requireE2EAccount('admin');
 
 async function login(page: Page, email: string, password: string) {
   await page.goto('/login');
