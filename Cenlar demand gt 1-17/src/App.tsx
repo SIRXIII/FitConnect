@@ -36,10 +36,24 @@ import SubmitTicketForm from '@/components/support/SubmitTicketForm';
 const App: React.FC = () => {
   const initialize = useAuthStore((s) => s.initialize);
   const profile = useAuthStore((s) => s.profile);
+  const isGoogleCalendarCallback = window.location.pathname === '/auth/google-callback';
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    if (!isGoogleCalendarCallback) {
+      initialize();
+    }
+  }, [initialize, isGoogleCalendarCallback]);
+
+  // The OAuth popup must not initialize Supabase auth. It closes immediately
+  // after posting the authorization code, which can otherwise orphan the
+  // shared auth-token lock and leave the opener stuck on "Connecting...".
+  if (isGoogleCalendarCallback) {
+    return (
+      <ErrorBoundary>
+        <GoogleCalendarCallback />
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary>
