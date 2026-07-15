@@ -80,11 +80,15 @@ const ClientDashboard: React.FC = () => {
 
     const fetchData = async () => {
       // Booking counts
+      // Only future sessions are "upcoming" — the linked slot holds the session
+      // time, so inner-join it and filter past slots out. ponytail: matches the
+      // trainer dashboard fix; past pending/confirmed bookings are not upcoming.
       const { count: upcoming } = await supabase
         .from('bookings')
-        .select('*', { count: 'exact', head: true })
+        .select('*, availability_slots!inner(start_time)', { count: 'exact', head: true })
         .eq('client_id', user.id)
-        .in('status', ['pending', 'confirmed']);
+        .in('status', ['pending', 'confirmed'])
+        .gte('availability_slots.start_time', new Date().toISOString());
 
       const { count: completed } = await supabase
         .from('bookings')

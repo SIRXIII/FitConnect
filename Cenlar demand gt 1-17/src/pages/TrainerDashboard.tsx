@@ -62,11 +62,16 @@ const TrainerDashboard: React.FC = () => {
   const fetchBookingCount = async () => {
     if (!trainerProfile) return;
 
+    // Only count sessions still in the future — the linked slot holds the session
+    // time (bookings have no date of their own). Without this the stat counted
+    // past pending/confirmed bookings as "upcoming", disagreeing with the
+    // future-filtered Available/Booked Slots stats. ponytail: inner-join the slot.
     const { count } = await supabase
       .from('bookings')
-      .select('*', { count: 'exact', head: true })
+      .select('*, availability_slots!inner(start_time)', { count: 'exact', head: true })
       .eq('trainer_id', trainerProfile.id)
-      .in('status', ['pending', 'confirmed']);
+      .in('status', ['pending', 'confirmed'])
+      .gte('availability_slots.start_time', new Date().toISOString());
 
     setUpcomingCount(count ?? 0);
   };
