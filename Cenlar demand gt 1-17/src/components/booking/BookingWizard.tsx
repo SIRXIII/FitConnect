@@ -8,6 +8,7 @@ import { StepSuccess } from './StepSuccess';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import type { TrainerProfile } from '@/stores/auth';
 import { isNativeiOS } from '@/lib/platform';
+import { computeBookingPricing } from '@/lib/pricing';
 
 export interface SlotWithTrainer extends AvailabilitySlot {
   trainer_profiles: TrainerProfile & {
@@ -112,6 +113,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
       : baseRate;
   const displayRate = referralDiscountPending ? Math.max(0, rate - 5) : rate;
+  // Total the client is actually charged (rate + platform fee). The trainer still nets displayRate.
+  const { rateCharged } = computeBookingPricing(displayRate, platformFeePct);
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -192,7 +195,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         return clientSecret && PaymentFormComponent ? (
           <StepPayment
             clientSecret={clientSecret}
-            amount={displayRate}
+            amount={rateCharged}
             onSuccess={handlePaymentSuccess}
             onBack={handlePaymentBack}
             PaymentFormComponent={PaymentFormComponent}
@@ -204,7 +207,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             trainerName={trainerName}
             sessionDate={slot.start_time}
             sessionEndDate={slot.end_time}
-            rate={rate}
+            rate={rateCharged}
             stripeConfigured={showPayment}
           />
         );

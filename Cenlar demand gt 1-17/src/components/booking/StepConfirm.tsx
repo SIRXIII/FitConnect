@@ -1,4 +1,5 @@
 import { AlertCircle } from 'lucide-react';
+import { computeBookingPricing } from '@/lib/pricing';
 import type { SlotWithTrainer } from './BookingWizard';
 
 interface StepConfirmProps {
@@ -34,7 +35,8 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
   stripeConfigured,
   bookingMode,
 }) => {
-  const platformFee = Math.round(displayRate * platformFeePct * 100) / 100;
+  // Fee-on-top: the platform fee is added to the rate, so the client's total is rate + fee.
+  const { platformFee, rateCharged } = computeBookingPricing(displayRate, platformFeePct);
   const trainerName = slot.trainer_profiles.profiles?.full_name || 'Trainer';
   const startTime = new Date(slot.start_time);
   const endTime = new Date(slot.end_time);
@@ -92,7 +94,7 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
         </div>
         <div className="flex items-center justify-between border-t border-ink/10 pt-4">
           <span className="text-sm font-medium">Total</span>
-          <span className="text-xl serif font-light text-accent">${displayRate}</span>
+          <span className="text-xl serif font-light text-accent">${rateCharged.toFixed(2)}</span>
         </div>
       </div>
 

@@ -34,6 +34,7 @@ interface TrainerBooking {
   slot_id: string | null;
   status: BookingStatus;
   rate_charged: number;
+  trainer_payout: number;
   notes: string | null;
   cancellation_reason: string | null;
   created_at: string;
@@ -97,6 +98,7 @@ const TrainerBookings: React.FC = () => {
           id,
           status,
           rate_charged,
+          trainer_payout,
           notes,
           cancellation_reason,
           created_at,
@@ -451,7 +453,8 @@ const TrainerBookings: React.FC = () => {
                           })}`
                         : 'Time unavailable'}
                     </div>
-                    <div className="ml-auto text-accent serif text-lg">${Number(booking.rate_charged)}</div>
+                    {/* Show the trainer their actual earnings (payout), not the fee-inclusive charge. */}
+                    <div className="ml-auto text-accent serif text-lg">${Number(booking.trainer_payout)}</div>
                   </div>
 
                   {booking.notes ? (
