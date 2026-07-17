@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Mail, Phone, X } from 'lucide-react';
 
@@ -33,16 +33,53 @@ const certifications = [
 
 const Partners: React.FC = () => {
   const [selected, setSelected] = useState<Partner | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const openPartner = (partner: Partner) => {
+    openerRef.current = document.activeElement as HTMLElement | null;
+    setSelected(partner);
+  };
 
   useEffect(() => {
     if (!selected) return;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const focusables = () =>
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+
+    focusables()?.[0]?.focus();
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelected(null);
+      if (event.key === 'Escape') {
+        setSelected(null);
+        return;
+      }
+      if (event.key === 'Tab') {
+        const nodes = focusables();
+        if (!nodes || nodes.length === 0) return;
+        const first = nodes[0];
+        const last = nodes[nodes.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      openerRef.current?.focus();
+    };
   }, [selected]);
 
   return (
@@ -67,7 +104,7 @@ const Partners: React.FC = () => {
                   type="button"
                   aria-haspopup="dialog"
                   aria-label={`Learn about our ${partner.name} ${partner.program} partnership`}
-                  onClick={() => setSelected(partner)}
+                  onClick={() => openPartner(partner)}
                   className="flex flex-col items-center gap-4 group active:scale-[0.98] transition-transform"
                 >
                   <img
@@ -100,6 +137,8 @@ const Partners: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.97 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
+              ref={dialogRef}
+              tabIndex={-1}
               role="dialog"
               aria-modal="true"
               aria-label={`${selected.name} ${selected.program}`}
