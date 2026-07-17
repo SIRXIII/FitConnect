@@ -9,6 +9,7 @@ import HowItWorks from '@/components/landing/HowItWorks';
 import TrainerTestimonials from '@/components/landing/TrainerTestimonials';
 import TrustSafety from '@/components/landing/TrustSafety';
 import ReferralLeaderboard from '@/components/landing/ReferralLeaderboard';
+import Partners from '@/components/landing/Partners';
 import { captureReferralCode } from '@/lib/referral';
 
 const Landing: React.FC = () => {
@@ -36,6 +37,7 @@ const Landing: React.FC = () => {
         <TrainerTestimonials />
         <TrustSafety />
         <ReferralLeaderboard />
+        <Partners />
       </main>
     </motion.div>
   );
