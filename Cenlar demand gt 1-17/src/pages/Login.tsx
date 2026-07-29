@@ -4,9 +4,10 @@ import { useAuthStore } from '@/stores/auth';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-// OAuth providers enabled in Supabase Dashboard.
-// Empty = email-only mode (Google/Facebook/Apple not yet configured).
-const ENABLED_PROVIDERS: string[] = [];
+// OAuth providers enabled in Supabase Dashboard (verified via /auth/v1/settings:
+// google + apple true, facebook false). These match the iOS app's providers.
+// The web redirect origin must be in Supabase Auth → URL Configuration → Redirect URLs.
+const ENABLED_PROVIDERS: string[] = ['google', 'apple'];
 
 const Login: React.FC = () => {
   const { user, profile, loading, signInWithProvider, signInWithEmail, signUpWithEmail } = useAuthStore();
