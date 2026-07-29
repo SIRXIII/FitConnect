@@ -23,6 +23,7 @@ export interface Trainer {
   isLive?: boolean;
   bookingMode?: 'instant' | 'request';
   intro_video_url?: string | null;
+  credentialScore?: number | null;
 }
 
 // DB specialty enum values

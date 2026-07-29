@@ -3,11 +3,8 @@ import { Upload, Check, AlertCircle, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
-import {
-  CERTIFICATION_TIERS,
-  VERIFIABLE_CODES,
-  type TrainerCertification,
-} from '@/lib/certifications';
+import { useCertificationCatalog } from '@/hooks/useCertificationCatalog';
+import type { TrainerCertification } from '@/lib/certifications';
 
 interface Props {
   trainerId: string;
@@ -44,6 +41,7 @@ const StatusBadge: React.FC<{ status: TrainerCertification['status'] }> = ({ sta
 const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => {
   const { user } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { groups: catalogGroups, loading: catalogLoading, error: catalogError } = useCertificationCatalog();
 
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -51,6 +49,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
   const [uploading, setUploading] = useState(false);
   const [certs, setCerts] = useState<TrainerCertification[]>([]);
   const [loadingCerts, setLoadingCerts] = useState(true);
+  const [certLinks, setCertLinks] = useState<Record<string, string | null>>({});
 
   const fetchCerts = async () => {
     setLoadingCerts(true);
@@ -73,13 +72,9 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
     if (trainerId) fetchCerts();
   }, [trainerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const selectedCertInfo = (() => {
-    for (const tier of Object.values(CERTIFICATION_TIERS)) {
-      const found = tier.certs.find(c => c.code === selectedCode);
-      if (found) return found;
-    }
-    return null;
-  })();
+  const selectedCertInfo = catalogGroups
+    .flatMap(group => group.certs)
+    .find(c => c.cert_code === selectedCode) ?? null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -106,18 +101,16 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('trainer-certifications')
-        .getPublicUrl(filePath);
-
-      // Insert record into trainer_certifications
+      // trainer-certifications is a private bucket — store the object path,
+      // not getPublicUrl() (which produces an unusable URL for private buckets).
+      // Admins mint short-lived signed URLs from file_path when reviewing.
       const { error: insertError } = await (supabase as any)
         .from('trainer_certifications')
         .insert({
           trainer_id: trainerId,
           cert_code: selectedCode,
-          cert_name: selectedCertInfo?.name ?? selectedCode,
-          file_url: publicUrl,
+          cert_name: selectedCertInfo?.display_name ?? selectedCode,
+          file_path: filePath,
           expiry_date: expiryDate || null,
           status: 'pending',
         });
@@ -139,6 +132,29 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
     }
   };
 
+  const handleViewDoc = async (cert: TrainerCertification) => {
+    if (cert.file_path) {
+      const cached = certLinks[cert.id];
+      if (cached) {
+        window.open(cached, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      const { data } = await supabase.storage
+        .from('trainer-certifications')
+        .createSignedUrl(cert.file_path, 300);
+      if (data?.signedUrl) {
+        setCertLinks(prev => ({ ...prev, [cert.id]: data.signedUrl }));
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        toast.error('Could not open document.');
+      }
+      return;
+    }
+    if (cert.file_url) {
+      window.open(cert.file_url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const canSubmit = selectedCode && selectedFile && !uploading;
 
   return (
@@ -152,23 +168,31 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
           <select
             value={selectedCode}
             onChange={e => setSelectedCode(e.target.value)}
-            className="w-full border border-ink/15 bg-transparent px-4 py-3 text-sm font-light outline-none focus:border-ink/40 transition-colors appearance-none"
+            disabled={catalogLoading}
+            className="w-full border border-ink/15 bg-transparent px-4 py-3 text-sm font-light outline-none focus:border-ink/40 transition-colors appearance-none disabled:opacity-50"
           >
-            <option value="">— Choose a certification —</option>
-            {Object.entries(CERTIFICATION_TIERS).map(([tierKey, tier]) => (
-              <optgroup key={tierKey} label={tier.label}>
-                {tier.certs.map(cert => (
-                  <option key={cert.code} value={cert.code}>
-                    {cert.name}
+            <option value="">
+              {catalogLoading ? 'Loading certifications…' : '— Choose a certification —'}
+            </option>
+            {catalogGroups.map(group => (
+              <optgroup key={group.kind} label={group.label}>
+                {group.certs.map(cert => (
+                  <option key={cert.cert_code} value={cert.cert_code}>
+                    {cert.display_name}
                   </option>
                 ))}
               </optgroup>
             ))}
           </select>
+          {catalogError && (
+            <p className="text-[11px] text-red-600 font-light">
+              Couldn't load the certification list — please refresh and try again.
+            </p>
+          )}
           {selectedCertInfo && (
             <p className="text-[11px] text-ink/40 font-light">
               {selectedCertInfo.org}
-              {VERIFIABLE_CODES.has(selectedCode) && (
+              {(selectedCertInfo.accreditation === 'NCCA' || selectedCertInfo.accreditation === 'DEAC') && (
                 <span className="ml-2 text-green-600">Accepted for verification</span>
               )}
             </p>
@@ -256,14 +280,15 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
                     <p className="text-xs text-red-700 font-light">{cert.admin_notes}</p>
                   </div>
                 )}
-                <a
-                  href={cert.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] uppercase tracking-[0.15em] text-ink/40 hover:text-accent transition-colors"
-                >
-                  View Document
-                </a>
+                {(cert.file_path || cert.file_url) && (
+                  <button
+                    type="button"
+                    onClick={() => handleViewDoc(cert)}
+                    className="text-[10px] uppercase tracking-[0.15em] text-ink/40 hover:text-accent transition-colors"
+                  >
+                    View Document
+                  </button>
+                )}
               </div>
             ))}
           </div>

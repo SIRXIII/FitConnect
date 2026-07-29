@@ -4,8 +4,8 @@ const TrustSafety: React.FC = () => {
   const features = [
     {
       icon: <ShieldCheck size={24} strokeWidth={1} />,
-      title: "Vetted",
-      description: "Rigorous background checks for every professional."
+      title: "Credential Verified",
+      description: "Every certification is reviewed and authenticated by our team before a trainer can be booked."
     },
     {
       icon: <GraduationCap size={24} strokeWidth={1} />,

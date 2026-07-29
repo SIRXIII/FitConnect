@@ -2,6 +2,7 @@ import { Star, MapPin, Award, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Trainer } from '@/types';
 import { optimizedUrl } from '@/lib/imageUtils';
+import { CredentialBadge } from '@/components/trainer/CredentialBadge';
 
 interface TrainerCardProps {
   trainer: Trainer;
@@ -13,7 +14,7 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
 
   return (
     <div className="group space-y-6">
-      <Link to={profileUrl} className="block relative aspect-[4/5] overflow-hidden bg-ink/5">
+      <Link to={profileUrl} className="block relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-ink/5">
         <img
           src={optimizedUrl(trainer.imageUrl)}
           alt={trainer.name}
@@ -50,6 +51,7 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
               <MapPin size={10} className="mr-1.5" />
               {trainer.location}
             </div>
+            <CredentialBadge credentialScore={trainer.credentialScore} />
           </div>
           <div className="text-right space-y-0.5">
             {trainer.discountPercentage > 0 ? (

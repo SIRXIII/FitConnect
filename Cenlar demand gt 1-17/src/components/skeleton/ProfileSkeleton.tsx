@@ -7,7 +7,7 @@ export const ProfileSkeleton: React.FC = () => (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
         {/* Left column */}
         <div className="lg:col-span-1 space-y-8">
-          <SkeletonRect className="aspect-[4/5] w-full" />
+          <SkeletonRect className="aspect-[4/5] w-full rounded-[2.5rem]" />
           <div className="space-y-4 border border-ink/10 p-6">
             <SkeletonLine width="w-full" className="h-4" />
             <SkeletonLine width="w-full" className="h-4" />

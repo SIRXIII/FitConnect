@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export interface PendingTrainerCertDoc {
   id: string;
@@ -8,7 +9,25 @@ export interface PendingTrainerCertDoc {
   status: string;
   expiry_date: string | null;
   file_url: string | null;
+  file_path: string | null;
   submitted_at: string | null;
+}
+
+// trainer-certifications is a private bucket — file_url (legacy public URL) no
+// longer resolves. Mint a short-lived signed URL from file_path instead.
+async function openCertDoc(doc: PendingTrainerCertDoc) {
+  if (doc.file_path) {
+    const { data } = await supabase.storage
+      .from('trainer-certifications')
+      .createSignedUrl(doc.file_path, 300);
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    }
+    return;
+  }
+  if (doc.file_url) {
+    window.open(doc.file_url, '_blank', 'noopener,noreferrer');
+  }
 }
 
 export interface PendingTrainer {
@@ -321,15 +340,14 @@ const TrainerDetailCard: React.FC<Props> = ({
                 {doc.expiry_date && (
                   <span className="text-xs text-ink/55">expires {new Date(doc.expiry_date).toLocaleDateString()}</span>
                 )}
-                {doc.file_url && (
-                  <a
-                    href={doc.file_url}
-                    target="_blank"
-                    rel="noreferrer"
+                {(doc.file_path || doc.file_url) && (
+                  <button
+                    type="button"
+                    onClick={() => openCertDoc(doc)}
                     className="text-sm text-ink underline decoration-ink/30 underline-offset-2 hover:text-accent transition-colors"
                   >
                     View file
-                  </a>
+                  </button>
                 )}
               </div>
             ))}

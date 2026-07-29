@@ -82,6 +82,11 @@ const SettingsTab: React.FC = () => {
   const [specialty, setSpecialty] = useState(trainerProfile?.specialty ?? 'strength_training');
   const [hourlyRate, setHourlyRate] = useState(String(trainerProfile?.hourly_rate ?? 100));
   const [optimizedRate, setOptimizedRate] = useState(String(trainerProfile?.optimized_rate ?? 60));
+  const [yearsExperience, setYearsExperience] = useState(
+    trainerProfile?.years_experience != null ? String(trainerProfile.years_experience) : ''
+  );
+  const [expertiseTags, setExpertiseTags] = useState((trainerProfile?.expertise_tags ?? []).join(', '));
+  const [successStory, setSuccessStory] = useState(trainerProfile?.success_story ?? '');
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url ?? '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -149,6 +154,13 @@ const SettingsTab: React.FC = () => {
       return;
     }
 
+    const parsedYearsExperience = yearsExperience.trim() ? parseInt(yearsExperience, 10) : null;
+    const parsedExpertiseTags = expertiseTags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    const trimmedSuccessStory = successStory.trim();
+
     setSavingProfile(true);
     try {
       // Update profiles table (name + avatar already saved inline)
@@ -163,6 +175,9 @@ const SettingsTab: React.FC = () => {
           specialty,
           hourly_rate: hourly,
           optimized_rate: Math.min(optimized, hourly),
+          years_experience: parsedYearsExperience,
+          expertise_tags: parsedExpertiseTags.length > 0 ? parsedExpertiseTags : null,
+          success_story: trimmedSuccessStory || null,
         })
         .eq('user_id', user.id);
 
@@ -276,6 +291,41 @@ const SettingsTab: React.FC = () => {
               </button>
             ))}
           </div>
+        </Field>
+
+        {/* Years of Experience */}
+        <Field label="Years of Experience">
+          <input
+            type="number"
+            min={0}
+            max={80}
+            value={yearsExperience}
+            onChange={(e) => setYearsExperience(e.target.value)}
+            placeholder="e.g. 5"
+            className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+          />
+        </Field>
+
+        {/* Expertise Tags */}
+        <Field label="Areas of Expertise" hint="Comma-separated, e.g. Strength Training, Weight Loss, Mobility">
+          <input
+            type="text"
+            value={expertiseTags}
+            onChange={(e) => setExpertiseTags(e.target.value)}
+            placeholder="Strength Training, Weight Loss, Mobility"
+            className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+          />
+        </Field>
+
+        {/* Success Story */}
+        <Field label="Success Story" hint="A brief client result or transformation story shown on your profile">
+          <textarea
+            value={successStory}
+            onChange={(e) => setSuccessStory(e.target.value)}
+            rows={3}
+            placeholder="Share a client success story that showcases your coaching..."
+            className="w-full border border-ink/15 bg-transparent p-4 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20 resize-none"
+          />
         </Field>
 
         {/* Rates */}
