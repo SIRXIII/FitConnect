@@ -19,7 +19,7 @@ interface UseTrainersOptions {
   location?: string;
 }
 
-// Weighted-blend ranking: discount 35%, rating 20%, proximity 15%, availability 10%, tier 20%
+// Weighted-blend ranking: discount 25%, profile 20%, rating 15%, proximity 15%, tier 15%, availability 10%
 export function rankTrainers(
   trainers: TrainerWithProfile[],
   slotCounts: Record<string, number>,
@@ -28,6 +28,10 @@ export function rankTrainers(
   const scored = trainers.map((t) => {
     const discountScore = (t.discount_percentage ?? 0) / 80;
     const ratingScore = Number(t.rating) / 5;
+    // rank_score (0-1) is trigger-maintained and blends credential score, rating,
+    // profile completeness and booking volume. Without it this client-side re-sort
+    // silently discards the DB ordering, so a richer profile earns nothing.
+    const profileScore = Math.min(Math.max(Number(t.rank_score ?? 0), 0), 1);
     const proximityScore =
       locationFilter && locationFilter.length > 0
         ? t.location.toLowerCase().includes(locationFilter.toLowerCase())
@@ -43,11 +47,12 @@ export function rankTrainers(
     })();
 
     const score =
-      0.35 * discountScore +
-      0.20 * ratingScore +
+      0.25 * discountScore +
+      0.20 * profileScore +
+      0.15 * ratingScore +
       0.15 * proximityScore +
       0.10 * availabilityScore +
-      0.20 * tierScore;
+      0.15 * tierScore;
 
     return { trainer: t, score };
   });
@@ -70,7 +75,8 @@ export function useTrainers(options: UseTrainersOptions = {}) {
       .select(`
         *,
         profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
-      `);
+      `)
+      .order('rank_score', { ascending: false });
 
     if (options.specialty) {
       query = query.eq('specialty', options.specialty);

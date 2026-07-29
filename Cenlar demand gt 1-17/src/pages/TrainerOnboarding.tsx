@@ -7,9 +7,7 @@ import { useAuthStore } from '@/stores/auth';
 import { trainerProfileSchema } from '@/lib/schemas';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
 import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
-import { VERIFIABLE_CODES } from '@/lib/certifications';
 
-const CERT_BODIES = ['NASM', 'ACE', 'NSCA', 'ISSA', 'ACSM', 'NCSF', 'NFPT', 'Other'];
 const SPECIALTIES = [
   { value: 'strength_training', label: 'Strength Training' },
   { value: 'cardio_hiit', label: 'Cardio & HIIT' },
@@ -20,7 +18,6 @@ const SPECIALTIES = [
 
 interface FormData {
   full_name: string;
-  cert_body: string;
   cert_confirmed: boolean;
   cert_number: string;
   cert_file: File | null;
@@ -50,7 +47,6 @@ const TrainerOnboarding: React.FC = () => {
 
   const [form, setForm] = useState<FormData>({
     full_name: profile?.full_name ?? '',
-    cert_body: '',
     cert_confirmed: false,
     cert_number: '',
     cert_file: null,
@@ -79,7 +75,7 @@ const TrainerOnboarding: React.FC = () => {
 
   const canProceed = () => {
     if (step === 1) return form.full_name.trim().length > 0;
-    if (step === 2) return form.cert_body !== '' && form.cert_confirmed;
+    if (step === 2) return form.cert_confirmed;
     if (step === 3) return form.location.trim().length > 0;
     if (step === 5) return certUploaded;
     return true;
@@ -257,22 +253,6 @@ const TrainerOnboarding: React.FC = () => {
               </p>
             </div>
             <div className="space-y-6">
-              <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Certifying body</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {CERT_BODIES.map(cb => (
-                    <button
-                      key={cb}
-                      onClick={() => setForm(f => ({ ...f, cert_body: cb }))}
-                      className={`py-3 px-4 border text-[11px] uppercase tracking-[0.15em] font-medium transition-all flex items-center justify-between ${form.cert_body === cb ? 'border-accent bg-accent/5 text-accent' : 'border-ink/10 hover:border-ink/30 text-ink/60'}`}
-                    >
-                      {cb}
-                      {form.cert_body === cb && <Check size={12} />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Cert number (optional) */}
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">

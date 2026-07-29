@@ -40,6 +40,7 @@ function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer 
     isLive: t.availability_status === 'live',
     bookingMode: t.booking_mode as 'instant' | 'request',
     intro_video_url: t.intro_video_url ?? null,
+    credentialScore: t.credential_score ?? null,
   };
 }
 

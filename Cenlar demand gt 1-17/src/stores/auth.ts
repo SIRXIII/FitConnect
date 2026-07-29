@@ -16,6 +16,11 @@ export type TrainerProfile = Tables<'trainer_profiles'> & {
   gym_memberships?: string[] | null;
   booking_count?: number | null;
   is_verified?: boolean | null;
+  credential_score?: number | null;
+  verified_cert_count?: number | null;
+  credentials_verified_at?: string | null;
+  profile_completeness?: number | null;
+  rank_score?: number | null;
 };
 
 interface AuthState {

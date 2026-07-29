@@ -67,3 +67,23 @@ describe('rankTrainers tier signal', () => {
     expect(ranked[0].id).toBe('elite1');
   });
 });
+
+describe('rankTrainers profile signal', () => {
+  const slotCounts = { rich: 5, sparse: 5 };
+
+  it('a fuller profile outranks a sparse one when all other scores equal', () => {
+    const trainers = [
+      makeTrainer({ id: 'sparse', rank_score: 0.1 }),
+      makeTrainer({ id: 'rich',   rank_score: 0.9 }),
+    ];
+    expect(rankTrainers(trainers, slotCounts)[0].id).toBe('rich');
+  });
+
+  it('treats a missing rank_score as zero rather than NaN', () => {
+    const trainers = [
+      makeTrainer({ id: 'sparse' }), // no rank_score at all
+      makeTrainer({ id: 'rich', rank_score: 0.9 }),
+    ];
+    expect(rankTrainers(trainers, slotCounts)[0].id).toBe('rich');
+  });
+});

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, Globe, Instagram, Youtube, Facebook, Gift, ChevronDown } from 'lucide-react';
+import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, Gift, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTrainerById, useTrainerBySlug } from '@/hooks/useTrainers';
 import { formatSpecialty } from '@/types';
@@ -12,6 +12,10 @@ import { ProfileSkeleton } from '@/components/skeleton/ProfileSkeleton';
 import { SkeletonRect } from '@/components/shared/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { WorkoutLocationsManager } from '@/components/trainer/WorkoutLocationsManager';
+import { ProfileHeroPhoto } from '@/components/trainer/ProfileHeroPhoto';
+import { CredentialsVerifiedBadge } from '@/components/trainer/CredentialsVerifiedBadge';
+import { CredentialBadge } from '@/components/trainer/CredentialBadge';
+import { SuperFitBadge } from '@/components/trainer/SuperFitBadge';
 
 interface Review {
   id: string;
@@ -377,43 +381,6 @@ const TrainerProfile: React.FC = () => {
     return optimized > 0 ? optimized : Number(trainer.hourly_rate);
   })();
 
-  // Social links — normalize to full URLs
-  const rawSocial = (trainer as { social_links?: Record<string, string> | null }).social_links ?? null;
-  const socialLinks: { key: string; url: string; icon: React.ReactNode; label: string }[] = [];
-  if (rawSocial && typeof rawSocial === 'object') {
-    const normalize = (key: string, val: string): string => {
-      const v = val.trim();
-      if (!v) return '';
-      if (v.startsWith('http://') || v.startsWith('https://')) return v;
-      // Handle-style values for known social platforms
-      if (key === 'instagram') return `https://instagram.com/${v.replace(/^@/, '')}`;
-      if (key === 'tiktok') return `https://tiktok.com/@${v.replace(/^@/, '')}`;
-      if (key === 'x' || key === 'twitter') return `https://x.com/${v.replace(/^@/, '')}`;
-      if (key === 'youtube') return `https://youtube.com/@${v.replace(/^@/, '')}`;
-      if (key === 'facebook') return `https://facebook.com/${v}`;
-      return `https://${v}`;
-    };
-    const iconMap: Record<string, React.ReactNode> = {
-      instagram: <Instagram size={16} />,
-      youtube: <Youtube size={16} />,
-      facebook: <Facebook size={16} />,
-      website: <Globe size={16} />,
-      tiktok: <Globe size={16} />,
-      x: <Globe size={16} />,
-      twitter: <Globe size={16} />,
-    };
-    const labelMap: Record<string, string> = {
-      instagram: 'Instagram', youtube: 'YouTube', facebook: 'Facebook',
-      website: 'Website', tiktok: 'TikTok', x: 'X', twitter: 'X',
-    };
-    Object.entries(rawSocial).forEach(([key, val]) => {
-      if (!val) return;
-      const url = normalize(key, String(val));
-      if (!url) return;
-      socialLinks.push({ key, url, icon: iconMap[key] ?? <Globe size={16} />, label: labelMap[key] ?? key });
-    });
-  }
-
   // Gym memberships
   const gymMemberships = (trainer as { gym_memberships?: string[] | null }).gym_memberships ?? null;
   const hasGyms = Array.isArray(gymMemberships) && gymMemberships.length > 0;
@@ -460,91 +427,82 @@ const TrainerProfile: React.FC = () => {
           {/* Left column — photo & info */}
           <div className="lg:col-span-1 space-y-8">
             {/* Photo */}
-            <div className="aspect-[4/5] overflow-hidden bg-ink/5">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={name}
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-6xl serif text-ink/20">
-                  {name.charAt(0)}
-                </div>
-              )}
-            </div>
+            <ProfileHeroPhoto avatar={avatar} name={name} />
 
-            {/* Quick stats */}
-            <div className="space-y-4 border border-ink/10 p-6">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Rating</span>
-                <div className="flex items-center gap-1 text-accent">
-                  <Star size={12} fill="currentColor" />
-                  <span className="text-sm font-medium">
-                    {rating > 0 ? rating.toFixed(1) : 'New'}
-                  </span>
-                  {trainer.review_count > 0 && (
-                    <span className="text-ink/30 text-[10px]">({trainer.review_count})</span>
-                  )}
+            {/* Overview — rating, location, verified, experience, sessions, certifications */}
+            <div className="space-y-6 rounded-[2rem] border border-ink/10 p-6">
+              <h3 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                Overview
+              </h3>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Rating</span>
+                  <div className="flex items-center gap-1 text-accent">
+                    <Star size={12} fill="currentColor" />
+                    <span className="text-sm font-medium">
+                      {rating > 0 ? rating.toFixed(1) : 'New'}
+                    </span>
+                    {trainer.review_count > 0 && (
+                      <span className="text-ink/30 text-[10px]">({trainer.review_count})</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Location</span>
-                <div className="flex items-center gap-1 text-sm text-ink/60">
-                  <MapPin size={12} />
-                  {trainer.location || 'Not specified'}
-                </div>
-              </div>
-              {trainer.verified && (
                 <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Verified</span>
-                  <div className="flex items-center gap-1 text-sm text-accent">
-                    <Shield size={12} />
-                    Certified
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Location</span>
+                  <div className="flex items-center gap-1 text-sm text-ink/60">
+                    <MapPin size={12} />
+                    {trainer.location || 'Not specified'}
+                  </div>
+                </div>
+                {trainer.verified && (
+                  <div className="flex items-center justify-between border-t border-ink/5 pt-4">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Verified</span>
+                    <div className="flex items-center gap-1 text-sm text-accent">
+                      <Shield size={12} />
+                      Certified
+                    </div>
+                  </div>
+                )}
+                {/* Years of experience */}
+                {trainer.years_experience != null && trainer.years_experience > 0 && (
+                  <div className="flex items-center justify-between border-t border-ink/5 pt-4">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Experience</span>
+                    <span className="text-sm text-ink/70 tabular-nums">
+                      {trainer.years_experience} years
+                    </span>
+                  </div>
+                )}
+                {/* Sessions delivered stat */}
+                {trainer.booking_count != null && (trainer.booking_count ?? 0) > 0 && (
+                  <div className="flex items-center justify-between border-t border-ink/5 pt-4">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Sessions</span>
+                    <span className="text-sm text-ink/70 tabular-nums">
+                      {trainer.booking_count} delivered
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Certifications */}
+              {certs.length > 0 && (
+                <div className="space-y-3 border-t border-ink/5 pt-4">
+                  <h4 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                    Certifications
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {certs.map((cert, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/60"
+                      >
+                        {cert}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
-              {/* Years of experience */}
-              {trainer.years_experience != null && trainer.years_experience > 0 && (
-                <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Experience</span>
-                  <span className="text-sm text-ink/70 tabular-nums">
-                    {trainer.years_experience} years
-                  </span>
-                </div>
-              )}
-              {/* Sessions delivered stat */}
-              {trainer.booking_count != null && (trainer.booking_count ?? 0) > 0 && (
-                <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Sessions</span>
-                  <span className="text-sm text-ink/70 tabular-nums">
-                    {trainer.booking_count} delivered
-                  </span>
-                </div>
-              )}
             </div>
-
-            {/* Certifications */}
-            {certs.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
-                  Certifications
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {certs.map((cert, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/60"
-                    >
-                      {cert}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Gym memberships */}
             {hasGyms && (
@@ -562,24 +520,6 @@ const TrainerProfile: React.FC = () => {
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Social links */}
-            {socialLinks.length > 0 && (
-              <div className="flex items-center gap-4 pt-1">
-                {socialLinks.map(({ key, url, icon, label }) => (
-                  <a
-                    key={key}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className="text-ink/50 hover:text-accent transition-colors duration-200"
-                  >
-                    {icon}
-                  </a>
-                ))}
               </div>
             )}
           </div>
@@ -607,6 +547,9 @@ const TrainerProfile: React.FC = () => {
                     <div className="h-3 border-r border-ink/15 mr-4" />
                   </>
                 )}
+                <CredentialsVerifiedBadge verifiedCertCount={trainer.verified_cert_count} />
+                <CredentialBadge credentialScore={trainer.credential_score} />
+                <SuperFitBadge trainerId={trainer.id} />
                 <div className="flex items-center gap-1.5 pr-4">
                   <Lock size={11} className="text-accent flex-shrink-0" />
                   <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Secure Stripe Checkout</span>
