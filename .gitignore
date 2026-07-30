@@ -1,0 +1,4 @@
+# Secrets — never commit Apple/private signing keys
+*.p8
+AuthKey_*.p8
+*.pem
