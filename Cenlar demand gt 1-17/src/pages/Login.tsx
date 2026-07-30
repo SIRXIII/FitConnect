@@ -4,10 +4,14 @@ import { useAuthStore } from '@/stores/auth';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-// OAuth providers enabled in Supabase Dashboard (verified via /auth/v1/settings:
-// google + apple true, facebook false). These match the iOS app's providers.
-// The web redirect origin must be in Supabase Auth → URL Configuration → Redirect URLs.
-const ENABLED_PROVIDERS: string[] = ['google', 'apple'];
+// OAuth providers that are fully configured for the WEB flow. A provider being
+// toggled on in Supabase is not enough to list it here: verify that
+// GET /auth/v1/authorize?provider=X returns a 302 to the provider first.
+//
+// apple is toggled on but returns 400 "Unsupported provider: missing OAuth
+// secret" -- the web flow needs a Services ID plus a generated client secret in
+// Supabase, which the iOS native flow does not. Add 'apple' back once that 302s.
+const ENABLED_PROVIDERS: string[] = ['google'];
 
 const Login: React.FC = () => {
   const { user, profile, loading, signInWithProvider, signInWithEmail, signUpWithEmail } = useAuthStore();
