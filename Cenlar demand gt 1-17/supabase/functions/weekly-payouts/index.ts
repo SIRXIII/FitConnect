@@ -3,10 +3,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import Stripe from 'npm:stripe@14.25.0';
 import { requireEnv } from '../_shared/env.ts';
 
-// weekly-payouts — System Edge Function
-// Called by pg_cron via net.http_post with service role key in Authorization header.
-// Iterates all trainers with available balance >= $50 and initiates Stripe transfers.
-// NOT intended for direct user invocation.
+// 2026-08-01: synced from deployed v37 (repo copy had drifted), then added:
+//   * RELEASE GATE — per-trainer recalculation only counts payments whose
+//     booking is 'completed' (the top-level discovery scan stays broad; the
+//     recalc is what determines the actual swept amount).
+//   * payout_on_hold skip — trainers frozen by admin are excluded.
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -16,8 +17,6 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Auth: validate service role key in Authorization header.
-  // pg_cron calls this with 'Bearer <service_role_key>'.
   const supabaseUrl = requireEnv('SUPABASE_URL');
   const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
   const stripeSecretKey = requireEnv('STRIPE_SECRET_KEY');
@@ -43,8 +42,6 @@ Deno.serve(async (req) => {
     httpClient: Stripe.createFetchHttpClient(),
   });
 
-  // Step 1: Find all eligible trainers (balance >= $50, no swept payments)
-  // Group payments by trainer via bookings, sum trainer_payout for unswept succeeded payments.
   const { data: eligibleRows, error: eligibleError } = await adminClient
     .from('payments')
     .select('booking_id, trainer_payout, bookings!inner(trainer_id)')
@@ -59,7 +56,6 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Aggregate balance per trainer
   const trainerBalances = new Map<string, number>();
   for (const row of eligibleRows ?? []) {
     const trainerId = (row.bookings as { trainer_id: string }).trainer_id;
@@ -67,21 +63,19 @@ Deno.serve(async (req) => {
     trainerBalances.set(trainerId, current + Number(row.trainer_payout));
   }
 
-  // Filter to trainers with balance >= $50
   const eligibleTrainers = Array.from(trainerBalances.entries())
-    .filter(([, balance]) => balance >= 50)
+    .filter(([, balance]) => balance > 0)
     .map(([trainerId, balance]) => ({ trainerId, balance }));
 
-  console.log(`[weekly-payouts] Found ${eligibleTrainers.length} eligible trainer(s)`);
+  console.log(`[weekly-payouts] Found ${eligibleTrainers.length} candidate trainer(s)`);
 
   let processed = 0;
   let failed = 0;
 
   for (const { trainerId, balance } of eligibleTrainers) {
-    console.log(`[weekly-payouts] Processing trainer ${trainerId} — balance $${balance.toFixed(2)}`);
+    console.log(`[weekly-payouts] Processing trainer ${trainerId} — candidate balance $${balance.toFixed(2)}`);
 
     try {
-      // Step 2a: Guard — skip if a pending/processing payout already exists
       const { data: existingPayout } = await adminClient
         .from('payout_transactions')
         .select('id')
@@ -94,10 +88,9 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Step 2b: Fetch trainer's stripe_account_id
       const { data: trainerProfile } = await adminClient
         .from('trainer_profiles')
-        .select('id, stripe_account_id, user_id')
+        .select('id, stripe_account_id, user_id, payout_on_hold')
         .eq('id', trainerId)
         .maybeSingle();
 
@@ -106,18 +99,23 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      if (trainerProfile.payout_on_hold) {
+        console.log(`[weekly-payouts] Trainer ${trainerId} payouts are on hold — skipping`);
+        continue;
+      }
+
       const stripeAccountId = trainerProfile.stripe_account_id as string;
 
-      // Step 2c: Recalculate exact balance at time of execution (race-condition safe)
-      const { data: balanceRows, error: balanceError } = await adminClient
+      // RELEASE GATE: only payments whose booking is 'completed' count toward
+      // the payout. (Also inherently excludes cancelled/no_show — the
+      // CANCEL-1/PAYOUT-2 exclusion.) Embedded-join form per the PAYOUT-1 fix.
+      const { data: eligibleForTrainerRows, error: balanceError } = await adminClient
         .from('payments')
-        .select('trainer_payout')
+        .select('id, trainer_payout, bookings!inner(trainer_id, status)')
+        .eq('bookings.trainer_id', trainerId)
         .eq('status', 'succeeded')
         .is('payout_transaction_id', null)
-        .in(
-          'booking_id',
-          adminClient.from('bookings').select('id').eq('trainer_id', trainerId)
-        );
+        .eq('bookings.status', 'completed');
 
       if (balanceError) {
         console.error(`[weekly-payouts] Failed to recalculate balance for trainer ${trainerId}:`, balanceError.message);
@@ -125,52 +123,56 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const exactBalance = (balanceRows ?? []).reduce(
+      const exactBalance = (eligibleForTrainerRows ?? []).reduce(
         (sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout),
         0
       );
+      const eligiblePaymentIds = (eligibleForTrainerRows ?? []).map((row: { id: string }) => row.id);
 
-      if (exactBalance < 50) {
-        // Balance changed between aggregation and recalc (race condition)
-        console.log(`[weekly-payouts] Trainer ${trainerId} balance dropped below $50 after recalc — skipping`);
+      if (exactBalance <= 0) {
+        console.log(`[weekly-payouts] Trainer ${trainerId} has no released (completed-session) balance — skipping`);
         continue;
       }
 
-      // Step 2d: Insert payout_transactions row (pending, initiated_by: 'auto')
-      const { data: payoutRow, error: insertError } = await adminClient
-        .from('payout_transactions')
-        .insert({
-          trainer_id: trainerId,
-          amount: exactBalance,
-          status: 'pending',
-          initiated_by: 'auto',
-        })
-        .select('id')
-        .single();
+      let payoutRow: { id: string } | null = null;
+      {
+        const { data, error: insertError } = await adminClient
+          .from('payout_transactions')
+          .insert({
+            trainer_id: trainerId,
+            amount: exactBalance,
+            status: 'pending',
+            initiated_by: 'auto',
+          })
+          .select('id')
+          .single();
 
-      if (insertError || !payoutRow) {
-        console.error(`[weekly-payouts] Failed to insert payout_transaction for trainer ${trainerId}:`, insertError?.message);
+        if (insertError) {
+          // uniq_payout_active_per_trainer partial unique index — belt-and-suspenders
+          // against the pre-insert maybeSingle() check above racing with a concurrent request.
+          if ((insertError as { code?: string }).code === '23505') {
+            console.log(`[weekly-payouts] Trainer ${trainerId} already has payout in progress (unique constraint) — skipping`);
+            continue;
+          }
+          console.error(`[weekly-payouts] Failed to insert payout_transaction for trainer ${trainerId}:`, insertError.message);
+          failed++;
+          continue;
+        }
+        payoutRow = data;
+      }
+      if (!payoutRow) {
         failed++;
         continue;
       }
 
       const payoutTransactionId = payoutRow.id as string;
 
-      // Step 2e: Sweep payments — link them to this payout_transaction
-      const { data: bookingRows } = await adminClient
-        .from('bookings')
-        .select('id')
-        .eq('trainer_id', trainerId);
-
-      const bookingIds = (bookingRows ?? []).map((b: { id: string }) => b.id);
-
-      if (bookingIds.length > 0) {
+      // Sweep exactly the payment rows counted above — not a fresh "all trainer bookings" query.
+      if (eligiblePaymentIds.length > 0) {
         const { error: sweepError } = await adminClient
           .from('payments')
           .update({ payout_transaction_id: payoutTransactionId })
-          .eq('status', 'succeeded')
-          .is('payout_transaction_id', null)
-          .in('booking_id', bookingIds);
+          .in('id', eligiblePaymentIds);
 
         if (sweepError) {
           console.error(`[weekly-payouts] Failed to sweep payments for trainer ${trainerId}:`, sweepError.message);
@@ -183,20 +185,55 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Step 2f: Create Stripe transfer
+      // Post-sweep re-sum so payout_transactions.amount and the Stripe transfer
+      // amount match exactly what got swept, not the pre-sweep balance estimate.
+      const { data: sweptRows, error: sweptError } = await adminClient
+        .from('payments')
+        .select('trainer_payout')
+        .eq('payout_transaction_id', payoutTransactionId);
+
+      if (sweptError) {
+        console.error(`[weekly-payouts] Failed to verify swept payments for trainer ${trainerId}:`, sweptError.message);
+        await adminClient
+          .from('payout_transactions')
+          .update({ status: 'failed' })
+          .eq('id', payoutTransactionId);
+        failed++;
+        continue;
+      }
+
+      const sweptAmount = (sweptRows ?? []).reduce(
+        (sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout),
+        0
+      );
+
+      if (sweptAmount <= 0) {
+        console.log(`[weekly-payouts] Trainer ${trainerId} swept amount is zero — marking failed, skipping transfer`);
+        await adminClient
+          .from('payout_transactions')
+          .update({ status: 'failed' })
+          .eq('id', payoutTransactionId);
+        failed++;
+        continue;
+      }
+
+      await adminClient
+        .from('payout_transactions')
+        .update({ amount: sweptAmount })
+        .eq('id', payoutTransactionId);
+
       let transfer: Stripe.Transfer;
       try {
         transfer = await stripe.transfers.create({
-          amount: Math.round(exactBalance * 100),
+          amount: Math.round(sweptAmount * 100),
           currency: 'usd',
           destination: stripeAccountId,
           metadata: {
             trainer_id: trainerId,
             payout_transaction_id: payoutTransactionId,
           },
-        });
+        }, { idempotencyKey: payoutTransactionId });
       } catch (stripeErr) {
-        // Step 2h: Stripe error — mark failed, reset payments, continue loop
         console.error(
           `[weekly-payouts] Stripe transfer failed for trainer ${trainerId}:`,
           stripeErr instanceof Error ? stripeErr.message : stripeErr
@@ -216,7 +253,6 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Step 2g: Update payout to 'processing' with transfer ID
       await adminClient
         .from('payout_transactions')
         .update({ status: 'processing', stripe_transfer_id: transfer.id })
@@ -224,15 +260,11 @@ Deno.serve(async (req) => {
 
       console.log(`[weekly-payouts] Transfer created for trainer ${trainerId}: ${transfer.id}`);
 
-      // Step 2i: Send initiation email (non-blocking)
       try {
-        const { data: profileData } = await adminClient
-          .from('profiles')
-          .select('email')
-          .eq('id', trainerProfile.user_id)
-          .maybeSingle();
+        // profiles has no email column — the address lives in auth.users
+        const { data: userData } = await adminClient.auth.admin.getUserById(trainerProfile.user_id);
 
-        const trainerEmail = profileData?.email as string | undefined;
+        const trainerEmail = userData?.user?.email as string | undefined;
 
         if (trainerEmail && resendApiKey) {
           const emailRes = await fetch('https://api.resend.com/emails', {
@@ -245,7 +277,7 @@ Deno.serve(async (req) => {
               from: 'FitRush <noreply@resend.dev>',
               to: [trainerEmail],
               subject: 'Your FitRush payout has been initiated',
-              html: `<p>Your weekly payout of $${exactBalance.toFixed(2)} has been initiated. Funds expected within 2 business days.</p>`,
+              html: `<p>Your weekly payout of $${sweptAmount.toFixed(2)} has been initiated. Funds expected within 2 business days.</p>`,
             }),
           });
 

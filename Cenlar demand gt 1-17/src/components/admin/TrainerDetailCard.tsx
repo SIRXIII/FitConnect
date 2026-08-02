@@ -73,6 +73,7 @@ interface Props {
   onDecline?: (userId: string) => void;
   approvingId?: string | null;
   decliningId?: string | null;
+  onMessageTrainer?: () => void;
 }
 
 const TrainerDetailCard: React.FC<Props> = ({
@@ -82,6 +83,7 @@ const TrainerDetailCard: React.FC<Props> = ({
   onDecline,
   approvingId,
   decliningId,
+  onMessageTrainer,
 }) => {
   const location = trainer.trainer_location ?? trainer.profile_location;
   const payoutLabel = !trainer.stripe_account_id
@@ -133,29 +135,44 @@ const TrainerDetailCard: React.FC<Props> = ({
                 </span>
               )}
             </div>
-            <p className="text-sm text-ink/60 truncate">{trainer.email}{trainer.phone ? ` · ${trainer.phone}` : ''}</p>
+            <p className="text-sm text-ink/60 truncate">
+              <a href={`mailto:${trainer.email}`} className="hover:underline">{trainer.email}</a>
+              {trainer.phone ? ` · ${trainer.phone}` : ''}
+            </p>
             <p className="text-xs text-ink/50 mt-0.5">
               Signed up {new Date(trainer.created_at).toLocaleDateString()}
               {trainer.last_sign_in_at && ` · Last sign-in ${new Date(trainer.last_sign_in_at).toLocaleDateString()}`}
             </p>
           </div>
         </div>
-        {showActions && (
-          <div className="flex gap-2 shrink-0 w-[220px]">
-            <button
-              onClick={() => onApprove?.(trainer.user_id)}
-              disabled={approvingId === trainer.user_id || decliningId === trainer.user_id}
-              className="flex-1 py-2 bg-green-600 text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              {approvingId === trainer.user_id ? '…' : 'Approve'}
-            </button>
-            <button
-              onClick={() => onDecline?.(trainer.user_id)}
-              disabled={approvingId === trainer.user_id || decliningId === trainer.user_id}
-              className="flex-1 py-2 border border-red-200 text-red-700 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              {decliningId === trainer.user_id ? '…' : 'Decline'}
-            </button>
+        {(showActions || onMessageTrainer) && (
+          <div className="flex flex-col gap-2 shrink-0 w-[220px]">
+            {showActions && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onApprove?.(trainer.user_id)}
+                  disabled={approvingId === trainer.user_id || decliningId === trainer.user_id}
+                  className="flex-1 py-2 bg-green-600 text-white text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {approvingId === trainer.user_id ? '…' : 'Approve'}
+                </button>
+                <button
+                  onClick={() => onDecline?.(trainer.user_id)}
+                  disabled={approvingId === trainer.user_id || decliningId === trainer.user_id}
+                  className="flex-1 py-2 border border-red-200 text-red-700 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {decliningId === trainer.user_id ? '…' : 'Decline'}
+                </button>
+              </div>
+            )}
+            {onMessageTrainer && (
+              <button
+                onClick={onMessageTrainer}
+                className="w-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+              >
+                Message Trainer
+              </button>
+            )}
           </div>
         )}
       </div>

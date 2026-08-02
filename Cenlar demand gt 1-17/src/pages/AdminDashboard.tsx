@@ -31,6 +31,7 @@ interface UserRow {
   role: 'trainer' | 'client' | 'admin' | null;
   is_suspended: boolean;
   created_at: string;
+  avatar_url: string | null;
   email?: string;
   last_sign_in_at?: string | null;
   subscription_tier?: 'free' | 'pro' | 'elite' | null;
@@ -44,6 +45,12 @@ interface PayoutBalance {
   trainer_user_id: string;
   trainer_name: string;
   stripe_account_id: string | null;
+  payout_on_hold: boolean;
+  payout_hold_reason: string | null;
+  releasable_balance: number;
+  not_yet_completed_balance: number;
+  releasable_booking_count: number;
+  not_yet_completed_booking_count: number;
   pending_balance: number;
   unpaid_booking_count: number;
 }
@@ -234,6 +241,7 @@ const AdminDashboard: React.FC = () => {
   const [viewingTrainerId, setViewingTrainerId] = useState<string | null>(null);
   const [viewingTrainer, setViewingTrainer] = useState<PendingTrainer | null>(null);
   const [loadingTrainerDetail, setLoadingTrainerDetail] = useState(false);
+  const [supportInitialTicketId, setSupportInitialTicketId] = useState<string | null>(null);
   const [healthChecks, setHealthChecks] = useState<Record<string, 'operational' | 'degraded' | 'down'>>({
     Database: 'operational',
     Auth: 'operational',
@@ -425,22 +433,27 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
-  const handleApprovePayout = async (balance: PayoutBalance) => {
+  const handleReleasePayout = async (balance: PayoutBalance) => {
     if (!balance.stripe_account_id) {
       toast.error(`${balance.trainer_name} has no Stripe account connected`);
       return;
     }
-    if (balance.pending_balance < 50) {
-      toast.error('Minimum payout is $50');
+    if (balance.payout_on_hold) {
+      toast.error(`${balance.trainer_name}'s payouts are on hold`);
+      return;
+    }
+    if (balance.releasable_balance <= 0) {
+      toast.error(`${balance.trainer_name} has no releasable balance`);
       return;
     }
     setProcessingPayoutTrainerId(balance.trainer_profile_id);
     try {
-      const { error } = await supabase.functions.invoke('create-payout', {
-        body: { trainer_id: balance.trainer_user_id },
+      const { data, error } = await supabase.functions.invoke('create-payout', {
+        body: { target_trainer_profile_id: balance.trainer_profile_id },
       });
       if (error) throw error;
-      toast.success(`Payout of $${balance.pending_balance.toFixed(2)} initiated for ${balance.trainer_name}`);
+      const amount = typeof data?.amount === 'number' ? data.amount : balance.releasable_balance;
+      toast.success(`Payout of $${amount.toFixed(2)} initiated for ${balance.trainer_name}`);
       await fetchPayoutBalances();
       await fetchPayoutHistory();
     } catch (err) {
@@ -450,24 +463,20 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleHoldPayout = async (balance: PayoutBalance) => {
+  const handleTogglePayoutHold = async (balance: PayoutBalance) => {
     setProcessingPayoutTrainerId(balance.trainer_profile_id);
     try {
-      const { data: { user: adminUser } } = await supabase.auth.getUser();
-      const { error } = await (supabase as any)
-        .from('payout_transactions')
-        .insert({
-          trainer_id: balance.trainer_profile_id,
-          amount: balance.pending_balance,
-          status: 'held',
-          initiated_by_admin_id: adminUser?.id ?? null,
-        });
+      const nextHold = !balance.payout_on_hold;
+      const { error } = await (supabase as any).rpc('admin_set_payout_hold', {
+        p_trainer_profile_id: balance.trainer_profile_id,
+        p_hold: nextHold,
+        p_reason: nextHold ? (window.prompt('Reason for hold (optional):') || null) : null,
+      });
       if (error) throw error;
-      toast.success(`Payout held for ${balance.trainer_name}`);
+      toast.success(nextHold ? `Payouts held for ${balance.trainer_name}` : `Hold released for ${balance.trainer_name}`);
       await fetchPayoutBalances();
-      await fetchPayoutHistory();
-    } catch {
-      toast.error('Failed to hold payout');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update payout hold');
     } finally {
       setProcessingPayoutTrainerId(null);
     }
@@ -475,7 +484,7 @@ const AdminDashboard: React.FC = () => {
 
   const runHealthChecks = useCallback(async () => {
     const timeout = (ms: number) => new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
-    const probe = async (fn: () => Promise<unknown>): Promise<'operational' | 'degraded' | 'down'> => {
+    const probe = async (fn: () => PromiseLike<unknown>): Promise<'operational' | 'degraded' | 'down'> => {
       const start = Date.now();
       try {
         await Promise.race([fn(), timeout(3000)]);
@@ -489,7 +498,7 @@ const AdminDashboard: React.FC = () => {
       probe(() => supabase.from('profiles').select('id', { head: true, count: 'exact' })),
       probe(() => supabase.auth.getSession()),
       probe(() => supabase.storage.from('avatars').list('', { limit: 1 })),
-      probe(() => supabase.functions.invoke('stripe-webhook', { method: 'OPTIONS' }).then(r => { if (r.error && !r.data) throw r.error; })),
+      probe(() => fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payout`, { method: 'OPTIONS' }).then(r => { if (!r.ok) throw new Error(`edge functions probe: ${r.status}`); })),
     ]);
 
     setHealthChecks({ Database: db, Auth: auth, Storage: storage, 'Edge Functions': edge });
@@ -681,6 +690,43 @@ const AdminDashboard: React.FC = () => {
   const closeTrainerDetail = () => {
     setViewingTrainerId(null);
     setViewingTrainer(null);
+  };
+
+  const handleMessageTrainer = async (trainerUserId: string, trainerName: string) => {
+    try {
+      const { data: existing, error: findError } = await (supabase as any)
+        .from('support_tickets')
+        .select('id')
+        .eq('user_id', trainerUserId)
+        .eq('subject', 'Message from FitRush Admin')
+        .not('status', 'in', '("resolved","closed")')
+        .maybeSingle();
+      if (findError) throw findError;
+
+      let ticketId = existing?.id as string | undefined;
+      if (!ticketId) {
+        const { data: created, error: insertError } = await (supabase as any)
+          .from('support_tickets')
+          .insert({
+            user_id: trainerUserId,
+            category: 'other',
+            subject: 'Message from FitRush Admin',
+            description: 'Direct thread between FitRush admin and ' + trainerName,
+            status: 'open',
+            priority: 'normal',
+          })
+          .select('id')
+          .single();
+        if (insertError) throw insertError;
+        ticketId = created?.id;
+      }
+
+      closeTrainerDetail();
+      setSupportInitialTicketId(ticketId ?? null);
+      setActiveTab('support');
+    } catch {
+      toast.error('Failed to open message thread.');
+    }
   };
 
   const handleApproveTrainer = async (userId: string) => {
@@ -1516,9 +1562,10 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer Pending Balances</p>
               <div className="border border-ink/10">
-                <div className="grid grid-cols-[2fr_120px_100px_100px_180px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                <div className="grid grid-cols-[2fr_110px_120px_90px_100px_190px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Balance</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Releasable</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium" title="Payment received but session not yet marked complete">Awaiting Session</p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Bookings</p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Stripe</p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Actions</p>
@@ -1536,28 +1583,41 @@ const AdminDashboard: React.FC = () => {
                   payoutBalances.map((b) => (
                     <div
                       key={b.trainer_profile_id}
-                      className="grid grid-cols-[2fr_120px_100px_100px_180px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                      className="grid grid-cols-[2fr_110px_120px_90px_100px_190px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
                     >
-                      <p className="text-sm text-ink">{b.trainer_name}</p>
-                      <p className="text-sm text-ink font-medium tabular-nums">${Number(b.pending_balance).toFixed(2)}</p>
-                      <p className="text-sm text-ink/60">{b.unpaid_booking_count}</p>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <p className="text-sm text-ink truncate">{b.trainer_name}</p>
+                        {b.payout_on_hold && (
+                          <span
+                            title={b.payout_hold_reason ?? 'Payouts on hold'}
+                            className="shrink-0 px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-medium bg-amber-100 text-amber-700"
+                          >
+                            On Hold
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-ink font-medium tabular-nums">${Number(b.releasable_balance).toFixed(2)}</p>
+                      <p className="text-xs text-ink/40 tabular-nums" title="Payment received but session not yet marked complete">
+                        ${Number(b.not_yet_completed_balance).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-ink/60">{b.releasable_booking_count}</p>
                       <span className={`text-[10px] uppercase tracking-wider font-medium ${b.stripe_account_id ? 'text-emerald-600' : 'text-red-500'}`}>
                         {b.stripe_account_id ? 'Connected' : 'None'}
                       </span>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleApprovePayout(b)}
-                          disabled={processingPayoutTrainerId === b.trainer_profile_id || !b.stripe_account_id || b.pending_balance < 50}
+                          onClick={() => handleReleasePayout(b)}
+                          disabled={processingPayoutTrainerId === b.trainer_profile_id || !b.stripe_account_id || b.releasable_balance <= 0 || b.payout_on_hold}
                           className="px-3 py-1 text-[10px] uppercase tracking-wider font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Approve'}
+                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Release'}
                         </button>
                         <button
-                          onClick={() => handleHoldPayout(b)}
+                          onClick={() => handleTogglePayoutHold(b)}
                           disabled={processingPayoutTrainerId === b.trainer_profile_id}
                           className="px-3 py-1 text-[10px] uppercase tracking-wider font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-40"
                         >
-                          Hold
+                          {b.payout_on_hold ? 'Unhold' : 'Hold'}
                         </button>
                       </div>
                     </div>
@@ -1690,8 +1750,29 @@ const AdminDashboard: React.FC = () => {
                     key={user.id}
                     className="grid grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px_80px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
                   >
-                    <div>
-                      <p className={`text-sm font-medium ${user.is_suspended ? 'text-ink/50 line-through' : 'text-ink'}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {user.avatar_url ? (
+                        <>
+                          <img
+                            src={user.avatar_url}
+                            alt={user.full_name || 'User'}
+                            className="w-8 h-8 rounded-full object-cover shrink-0"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                          <div className="hidden w-8 h-8 rounded-full bg-ink/10 items-center justify-center text-[10px] text-ink/50 font-medium shrink-0">
+                            {(user.full_name?.trim()?.charAt(0) || '?').toUpperCase()}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-ink/10 flex items-center justify-center text-[10px] text-ink/50 font-medium shrink-0">
+                          {(user.full_name?.trim()?.charAt(0) || '?').toUpperCase()}
+                        </div>
+                      )}
+                      <p className={`text-sm font-medium truncate ${user.is_suspended ? 'text-ink/50 line-through' : 'text-ink'}`}>
                         {user.full_name || '—'}
                       </p>
                     </div>
@@ -2536,7 +2617,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Support Tab */}
         {activeTab === 'support' && (
-          <AdminSupportQueue />
+          <AdminSupportQueue initialTicketId={supportInitialTicketId} />
         )}
       </div>
     </div>
@@ -2567,7 +2648,10 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {!loadingTrainerDetail && viewingTrainer && (
-            <TrainerDetailCard trainer={viewingTrainer} />
+            <TrainerDetailCard
+              trainer={viewingTrainer}
+              onMessageTrainer={() => handleMessageTrainer(viewingTrainer.user_id, viewingTrainer.full_name || 'this trainer')}
+            />
           )}
         </div>
       </div>

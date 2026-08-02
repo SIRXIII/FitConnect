@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Loader2, ChevronLeft, Send, CheckCircle, Clock, AlertCircle } from 'lucide-react';
@@ -284,12 +284,31 @@ const TicketDetail: React.FC<{
 
 // ─── Main Admin Support Queue ─────────────────────────────────────────────────
 
-const AdminSupportQueue: React.FC = () => {
+interface AdminSupportQueueProps {
+  initialTicketId?: string | null;
+}
+
+const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId }) => {
   const { tickets, loading, refetch, updateTicketStatus } = useSupportTickets(true);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const autoSelectedIdRef = useRef<string | null>(null);
+
+  // Auto-select a ticket passed in from outside (e.g. "Message Trainer" opening
+  // an admin support thread). Selection is independent of the status/category/
+  // priority filters below, so it works even if the ticket wouldn't otherwise
+  // show in the filtered table. Guarded by a ref so a later ticket refetch
+  // doesn't repeatedly clobber the admin's own selection.
+  useEffect(() => {
+    if (!initialTicketId || autoSelectedIdRef.current === initialTicketId) return;
+    const match = tickets.find((t) => t.id === initialTicketId);
+    if (match) {
+      setSelectedTicket(match);
+      autoSelectedIdRef.current = initialTicketId;
+    }
+  }, [initialTicketId, tickets]);
 
   const openCount = tickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
 
