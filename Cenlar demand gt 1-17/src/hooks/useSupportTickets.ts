@@ -61,6 +61,18 @@ export function useSupportTickets(isAdmin = false) {
       .single();
 
     if (insertError) throw insertError;
+
+    // Fire-and-forget admin notify, must never block or fail ticket creation
+    supabase.functions
+      .invoke('send-notification-email', {
+        body: {
+          to: 'ceofitrush@gmail.com',
+          subject: `New support ticket: ${params.subject}`,
+          body: `Category: ${params.category}\n\n${params.description.slice(0, 500)}`,
+        },
+      })
+      .catch(() => {});
+
     await fetchTickets();
     return data as unknown as SupportTicket;
   };

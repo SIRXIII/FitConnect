@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { LifeBuoy } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { useAvailability } from '@/hooks/useAvailability';
 import { useTier, useCan } from '@/hooks/useTier';
@@ -23,6 +24,7 @@ import WorkoutLocationsManager from '@/components/trainer/WorkoutLocationsManage
 import SettingsTab from '@/components/trainer/SettingsTab';
 import VideoUploader from '@/components/trainer/VideoUploader';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
+import ClientSupportTab from '@/components/support/ClientSupportTab';
 import type { TrainerCertification } from '@/lib/certifications';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -34,7 +36,7 @@ const TrainerDashboard: React.FC = () => {
   const canAnalytics = useCan('analytics_advanced');
   const [searchParams] = useSearchParams();
   const navigateTo = useNavigate();
-  const tabs = ['overview', 'payouts', 'analytics', 'subscription', 'calendar', 'profile'] as const;
+  const tabs = ['overview', 'payouts', 'analytics', 'subscription', 'calendar', 'settings', 'support'] as const;
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>(() => {
     const tabParam = searchParams.get('tab');
     return tabs.includes(tabParam as typeof tabs[number])
@@ -223,12 +225,13 @@ const TrainerDashboard: React.FC = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-5 sm:px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors whitespace-nowrap ${
+                className={`px-5 sm:px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === tab
                     ? 'border-b-2 border-ink text-ink -mb-px'
                     : 'text-ink/40 hover:text-ink'
                 }`}
               >
+                {tab === 'support' && <LifeBuoy size={12} />}
                 {tab}
               </button>
             ))}
@@ -502,7 +505,7 @@ const TrainerDashboard: React.FC = () => {
             />
           </div>
         )}
-        {activeTab === 'profile' && (
+        {activeTab === 'settings' && (
           <div className="space-y-8">
             {trainerProfile && user && (
               <div className="border border-ink/10 p-8">
@@ -518,6 +521,9 @@ const TrainerDashboard: React.FC = () => {
             )}
             <SettingsTab />
           </div>
+        )}
+        {activeTab === 'support' && (
+          <ClientSupportTab />
         )}
 
       </div>

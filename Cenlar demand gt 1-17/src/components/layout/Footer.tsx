@@ -38,6 +38,7 @@ const Footer: React.FC = () => {
               <li><Link to="/#search" className="hover:text-paper transition-colors">Browse Trainers</Link></li>
               {!isNativeiOS() && <li><Link to="/pricing" className="hover:text-paper transition-colors">Pricing</Link></li>}
               <li><Link to="/faq" className="hover:text-paper transition-colors">FAQ</Link></li>
+              <li><Link to="/help" className="hover:text-paper transition-colors">Help Center</Link></li>
             </ul>
           </div>
 

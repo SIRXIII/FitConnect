@@ -4,6 +4,13 @@ import Stripe from 'npm:stripe@14.25.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { requireEnv } from '../_shared/env.ts';
 
+// 2026-08-01: synced from deployed v38 (repo copy had drifted), then added:
+//   * RELEASE GATE — only payments whose booking is 'completed' are payable
+//     (admin decision 2026-08-01; previously any non-cancelled/no_show booking
+//     was payable the moment the charge succeeded).
+//   * payout_on_hold check — admin can freeze a trainer's payouts entirely
+//     (trainer_profiles.payout_on_hold, toggled via admin_set_payout_hold RPC).
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -52,15 +59,27 @@ Deno.serve(async (req) => {
 
     const isAdminOverride = callerProfile.role === 'admin' && !!body.target_trainer_profile_id;
 
-    let trainerProfile: { id: string; stripe_account_id: string | null; user_id: string };
+    // MANUAL-ONLY PAYOUTS: an admin releases funds from the dashboard after
+    // reviewing completed sessions. Trainers cannot pull their own balance
+    // while this is in force. Set to false to restore trainer self-service.
+    const MANUAL_PAYOUTS_ONLY = true;
+    if (MANUAL_PAYOUTS_ONLY && !isAdminOverride) {
+      return new Response(JSON.stringify({
+        error: 'Payouts are released by FitRush after your sessions are completed. Your balance is held safely until then.',
+      }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    type TrainerRow = { id: string; stripe_account_id: string | null; user_id: string; payout_on_hold: boolean };
+    let trainerProfile: TrainerRow;
     let initiatedBy: string;
     let initiatedByAdminId: string | null;
 
     if (isAdminOverride) {
-      // Admin path: resolve target trainer by trainer_profiles.id
       const { data: targetTrainer, error: targetTrainerError } = await adminClient
         .from('trainer_profiles')
-        .select('id, stripe_account_id, user_id')
+        .select('id, stripe_account_id, user_id, payout_on_hold')
         .eq('id', body.target_trainer_profile_id)
         .single();
       if (targetTrainerError || !targetTrainer) {
@@ -68,14 +87,13 @@ Deno.serve(async (req) => {
           status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      trainerProfile = targetTrainer as { id: string; stripe_account_id: string | null; user_id: string };
+      trainerProfile = targetTrainer as TrainerRow;
       initiatedBy = 'admin';
       initiatedByAdminId = user.id;
     } else {
-      // Trainer self-service path: resolve by user.id (original behavior)
       const { data: selfTrainer, error: trainerError } = await adminClient
         .from('trainer_profiles')
-        .select('id, stripe_account_id, user_id')
+        .select('id, stripe_account_id, user_id, payout_on_hold')
         .eq('user_id', user.id)
         .single();
       if (trainerError || !selfTrainer) {
@@ -83,9 +101,15 @@ Deno.serve(async (req) => {
           status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      trainerProfile = selfTrainer as { id: string; stripe_account_id: string | null; user_id: string };
+      trainerProfile = selfTrainer as TrainerRow;
       initiatedBy = 'trainer';
       initiatedByAdminId = null;
+    }
+
+    if (trainerProfile.payout_on_hold) {
+      return new Response(JSON.stringify({ error: 'Payouts are on hold for this trainer' }), {
+        status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     if (!trainerProfile.stripe_account_id) {
@@ -95,25 +119,29 @@ Deno.serve(async (req) => {
     }
     const stripeAccountId = trainerProfile.stripe_account_id as string;
 
-    // Step 3: Calculate available balance
-    const { data: balanceRows, error: balanceError } = await adminClient
-      .from('payments').select('trainer_payout')
-      .eq('status', 'succeeded').is('payout_transaction_id', null)
-      .in('booking_id', adminClient.from('bookings').select('id').eq('trainer_id', trainerProfile.id));
+    // RELEASE GATE: only payments whose booking is 'completed' count toward a
+    // payout. (Also inherently excludes cancelled/no_show.) The embedded-join
+    // form is the PAYOUT-1 fix — never pass a query builder to .in().
+    const { data: eligibleRows, error: balanceError } = await adminClient
+      .from('payments')
+      .select('id, trainer_payout, bookings!inner(trainer_id, status)')
+      .eq('bookings.trainer_id', trainerProfile.id)
+      .eq('status', 'succeeded')
+      .is('payout_transaction_id', null)
+      .eq('bookings.status', 'completed');
     if (balanceError) {
       return new Response(JSON.stringify({ error: 'Failed to calculate balance' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const balance = (balanceRows ?? []).reduce((sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout), 0);
+    const balance = (eligibleRows ?? []).reduce((sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout), 0);
+    const eligiblePaymentIds = (eligibleRows ?? []).map((row: { id: string }) => row.id);
 
-    // Step 4: min $50 (applies to both trainer self-service and admin paths)
-    if (balance < 50) {
-      return new Response(JSON.stringify({ error: 'Minimum payout amount is $50' }), {
+    if (balance <= 0) {
+      return new Response(JSON.stringify({ error: 'No earnings available to pay out' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    // Step 5: no duplicate
     const { data: existingPayout, error: existingPayoutError } = await adminClient
       .from('payout_transactions').select('id').eq('trainer_id', trainerProfile.id)
       .in('status', ['pending', 'processing']).maybeSingle();
@@ -127,7 +155,6 @@ Deno.serve(async (req) => {
         status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    // Step 6a: insert pending
     const insertPayload: Record<string, unknown> = {
       trainer_id: trainerProfile.id,
       amount: balance,
@@ -137,37 +164,76 @@ Deno.serve(async (req) => {
     if (initiatedByAdminId) {
       insertPayload.initiated_by_admin_id = initiatedByAdminId;
     }
-    const { data: payoutRow, error: insertError } = await adminClient
-      .from('payout_transactions')
-      .insert(insertPayload)
-      .select('id').single();
-    if (insertError || !payoutRow) {
+    let payoutRow: { id: string } | null = null;
+    {
+      const { data, error: insertError } = await adminClient
+        .from('payout_transactions')
+        .insert(insertPayload)
+        .select('id').single();
+      if (insertError) {
+        // uniq_payout_active_per_trainer partial unique index — belt-and-suspenders
+        // against the pre-insert maybeSingle() check above racing with a concurrent request.
+        if ((insertError as { code?: string }).code === '23505') {
+          return new Response(JSON.stringify({ error: 'A payout is already in progress' }), {
+            status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        return new Response(JSON.stringify({ error: 'Failed to create payout record' }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      payoutRow = data;
+    }
+    if (!payoutRow) {
       return new Response(JSON.stringify({ error: 'Failed to create payout record' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     const payoutTransactionId = payoutRow.id as string;
-    // Step 6b: sweep
-    const { data: bookingRows } = await adminClient.from('bookings').select('id').eq('trainer_id', trainerProfile.id);
-    const bookingIds = (bookingRows ?? []).map((b: { id: string }) => b.id);
-    if (bookingIds.length > 0) {
+    // Sweep exactly the payment rows counted above — not a fresh "all trainer bookings" query.
+    if (eligiblePaymentIds.length > 0) {
+      // The IS NULL guard keeps a concurrent payout from re-claiming rows it
+      // already swept, so a payment can only ever belong to one payout.
       const { error: sweepError } = await adminClient.from('payments')
         .update({ payout_transaction_id: payoutTransactionId })
-        .eq('status', 'succeeded').is('payout_transaction_id', null).in('booking_id', bookingIds);
+        .in('id', eligiblePaymentIds)
+        .is('payout_transaction_id', null);
       if (sweepError) {
+        await adminClient.from('payments').update({ payout_transaction_id: null }).eq('payout_transaction_id', payoutTransactionId);
         await adminClient.from('payout_transactions').update({ status: 'failed' }).eq('id', payoutTransactionId);
         return new Response(JSON.stringify({ error: 'Failed to link payments to payout' }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
-    // Step 6c: transfer
+    // Post-sweep re-sum so payout_transactions.amount and the Stripe transfer
+    // amount match exactly what got swept, not the pre-sweep balance estimate.
+    const { data: sweptRows, error: sweptError } = await adminClient
+      .from('payments').select('trainer_payout').eq('payout_transaction_id', payoutTransactionId);
+    if (sweptError) {
+      // Release the swept payments back to the pool. Without this they stay
+      // linked to a failed payout and no future payout can ever see them.
+      await adminClient.from('payments').update({ payout_transaction_id: null }).eq('payout_transaction_id', payoutTransactionId);
+      await adminClient.from('payout_transactions').update({ status: 'failed' }).eq('id', payoutTransactionId);
+      return new Response(JSON.stringify({ error: 'Failed to verify swept payments' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const sweptAmount = (sweptRows ?? []).reduce((sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout), 0);
+    if (sweptAmount <= 0) {
+      await adminClient.from('payments').update({ payout_transaction_id: null }).eq('payout_transaction_id', payoutTransactionId);
+      await adminClient.from('payout_transactions').update({ status: 'failed' }).eq('id', payoutTransactionId);
+      return new Response(JSON.stringify({ error: 'No earnings available to pay out' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    await adminClient.from('payout_transactions').update({ amount: sweptAmount }).eq('id', payoutTransactionId);
     let transfer: Stripe.Transfer;
     try {
       transfer = await stripe.transfers.create({
-        amount: Math.round(balance * 100), currency: 'usd', destination: stripeAccountId,
+        amount: Math.round(sweptAmount * 100), currency: 'usd', destination: stripeAccountId,
         metadata: { trainer_id: trainerProfile.id, payout_transaction_id: payoutTransactionId },
-      });
+      }, { idempotencyKey: payoutTransactionId });
     } catch (stripeErr) {
       const errorMessage = stripeErr instanceof Stripe.errors.StripeError ? stripeErr.message : 'Stripe transfer failed';
       const isInsufficientFunds = stripeErr instanceof Stripe.errors.StripeError && stripeErr.code === 'insufficient_funds';
@@ -177,23 +243,22 @@ Deno.serve(async (req) => {
         status: isInsufficientFunds ? 402 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    // Step 6d
     await adminClient.from('payout_transactions').update({ status: 'processing', stripe_transfer_id: transfer.id }).eq('id', payoutTransactionId);
-    // Step 7: email (non-blocking) — always sends to TARGET trainer's email (trainerProfile.user_id)
     try {
-      const { data: profileData } = await adminClient.from('profiles').select('email').eq('id', trainerProfile.user_id).single();
-      const trainerEmail = profileData?.email as string | undefined;
+      // profiles has no email column — the address lives in auth.users
+      const { data: userData } = await adminClient.auth.admin.getUserById(trainerProfile.user_id);
+      const trainerEmail = userData?.user?.email as string | undefined;
       if (trainerEmail && resendApiKey) {
         const emailRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: 'FitRush <noreply@resend.dev>', to: [trainerEmail], subject: 'Your FitRush payout has been initiated', html: `<p>Your payout of $${balance.toFixed(2)} has been initiated. Funds expected within 2 business days.</p>` }),
+          body: JSON.stringify({ from: 'FitRush <noreply@resend.dev>', to: [trainerEmail], subject: 'Your FitRush payout has been initiated', html: `<p>Your payout of $${sweptAmount.toFixed(2)} has been initiated. Funds expected within 2 business days.</p>` }),
         });
         if (!emailRes.ok) { const errBody = await emailRes.text(); console.warn('[create-payout] Resend email warning:', emailRes.status, errBody); }
       } else if (!resendApiKey) { console.log('[create-payout] No RESEND_API_KEY — skipping initiation email'); }
     } catch (emailErr) { console.warn('[create-payout] Email send failed (non-blocking):', emailErr); }
 
-    return new Response(JSON.stringify({ success: true, amount: balance, transferId: transfer.id }), {
+    return new Response(JSON.stringify({ success: true, amount: sweptAmount, transferId: transfer.id }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

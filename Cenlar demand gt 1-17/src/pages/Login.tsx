@@ -4,9 +4,18 @@ import { useAuthStore } from '@/stores/auth';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-// OAuth providers enabled in Supabase Dashboard (verified via /auth/v1/settings:
-// google + apple true, facebook false). These match the iOS app's providers.
-// The web redirect origin must be in Supabase Auth → URL Configuration → Redirect URLs.
+// OAuth providers that are fully configured for the WEB flow. A provider being
+// toggled on in Supabase is not enough to list it here: verify that
+// GET /auth/v1/authorize?provider=X returns a 302 to the provider first.
+//
+// Both verified 302-ing and reaching the provider's real sign-in page:
+//   google -> redirect URI added to the GCP OAuth client (859225105834).
+//   apple  -> web needs a Services ID + generated client secret that the iOS
+//             native flow does not. Services ID io.fitrush.web (primary App ID
+//             com.SIRXIII.FitRush, key XVAU47BZR4) is now configured in Supabase,
+//             and it must be FIRST in the provider's Client IDs list -- Supabase
+//             uses the first entry as the web client_id, and the iOS App ID is
+//             rejected there with "invalid_request Invalid client id".
 const ENABLED_PROVIDERS: string[] = ['google', 'apple'];
 
 const Login: React.FC = () => {

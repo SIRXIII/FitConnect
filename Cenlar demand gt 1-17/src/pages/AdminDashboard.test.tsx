@@ -129,7 +129,7 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
   });
 
   it('users table header uses multi-column grid', () => {
-    expect(SOURCE).toContain('grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px]');
+    expect(SOURCE).toContain('grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px_80px]');
   });
 
   it('TierBadge handles past_due status', () => {
