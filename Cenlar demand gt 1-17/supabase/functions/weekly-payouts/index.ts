@@ -169,13 +169,20 @@ Deno.serve(async (req) => {
 
       // Sweep exactly the payment rows counted above — not a fresh "all trainer bookings" query.
       if (eligiblePaymentIds.length > 0) {
+        // The IS NULL guard keeps a concurrent payout from re-claiming rows it
+        // already swept, so a payment can only ever belong to one payout.
         const { error: sweepError } = await adminClient
           .from('payments')
           .update({ payout_transaction_id: payoutTransactionId })
-          .in('id', eligiblePaymentIds);
+          .in('id', eligiblePaymentIds)
+          .is('payout_transaction_id', null);
 
         if (sweepError) {
           console.error(`[weekly-payouts] Failed to sweep payments for trainer ${trainerId}:`, sweepError.message);
+          await adminClient
+            .from('payments')
+            .update({ payout_transaction_id: null })
+            .eq('payout_transaction_id', payoutTransactionId);
           await adminClient
             .from('payout_transactions')
             .update({ status: 'failed' })
@@ -194,6 +201,12 @@ Deno.serve(async (req) => {
 
       if (sweptError) {
         console.error(`[weekly-payouts] Failed to verify swept payments for trainer ${trainerId}:`, sweptError.message);
+        // Release the swept payments back to the pool. Without this they stay
+        // linked to a failed payout and no future payout can ever see them.
+        await adminClient
+          .from('payments')
+          .update({ payout_transaction_id: null })
+          .eq('payout_transaction_id', payoutTransactionId);
         await adminClient
           .from('payout_transactions')
           .update({ status: 'failed' })
@@ -209,6 +222,10 @@ Deno.serve(async (req) => {
 
       if (sweptAmount <= 0) {
         console.log(`[weekly-payouts] Trainer ${trainerId} swept amount is zero — marking failed, skipping transfer`);
+        await adminClient
+          .from('payments')
+          .update({ payout_transaction_id: null })
+          .eq('payout_transaction_id', payoutTransactionId);
         await adminClient
           .from('payout_transactions')
           .update({ status: 'failed' })

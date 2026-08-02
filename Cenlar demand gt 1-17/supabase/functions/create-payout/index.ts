@@ -59,6 +59,18 @@ Deno.serve(async (req) => {
 
     const isAdminOverride = callerProfile.role === 'admin' && !!body.target_trainer_profile_id;
 
+    // MANUAL-ONLY PAYOUTS: an admin releases funds from the dashboard after
+    // reviewing completed sessions. Trainers cannot pull their own balance
+    // while this is in force. Set to false to restore trainer self-service.
+    const MANUAL_PAYOUTS_ONLY = true;
+    if (MANUAL_PAYOUTS_ONLY && !isAdminOverride) {
+      return new Response(JSON.stringify({
+        error: 'Payouts are released by FitRush after your sessions are completed. Your balance is held safely until then.',
+      }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     type TrainerRow = { id: string; stripe_account_id: string | null; user_id: string; payout_on_hold: boolean };
     let trainerProfile: TrainerRow;
     let initiatedBy: string;
@@ -180,10 +192,14 @@ Deno.serve(async (req) => {
     const payoutTransactionId = payoutRow.id as string;
     // Sweep exactly the payment rows counted above — not a fresh "all trainer bookings" query.
     if (eligiblePaymentIds.length > 0) {
+      // The IS NULL guard keeps a concurrent payout from re-claiming rows it
+      // already swept, so a payment can only ever belong to one payout.
       const { error: sweepError } = await adminClient.from('payments')
         .update({ payout_transaction_id: payoutTransactionId })
-        .in('id', eligiblePaymentIds);
+        .in('id', eligiblePaymentIds)
+        .is('payout_transaction_id', null);
       if (sweepError) {
+        await adminClient.from('payments').update({ payout_transaction_id: null }).eq('payout_transaction_id', payoutTransactionId);
         await adminClient.from('payout_transactions').update({ status: 'failed' }).eq('id', payoutTransactionId);
         return new Response(JSON.stringify({ error: 'Failed to link payments to payout' }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -195,6 +211,9 @@ Deno.serve(async (req) => {
     const { data: sweptRows, error: sweptError } = await adminClient
       .from('payments').select('trainer_payout').eq('payout_transaction_id', payoutTransactionId);
     if (sweptError) {
+      // Release the swept payments back to the pool. Without this they stay
+      // linked to a failed payout and no future payout can ever see them.
+      await adminClient.from('payments').update({ payout_transaction_id: null }).eq('payout_transaction_id', payoutTransactionId);
       await adminClient.from('payout_transactions').update({ status: 'failed' }).eq('id', payoutTransactionId);
       return new Response(JSON.stringify({ error: 'Failed to verify swept payments' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -202,6 +221,7 @@ Deno.serve(async (req) => {
     }
     const sweptAmount = (sweptRows ?? []).reduce((sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout), 0);
     if (sweptAmount <= 0) {
+      await adminClient.from('payments').update({ payout_transaction_id: null }).eq('payout_transaction_id', payoutTransactionId);
       await adminClient.from('payout_transactions').update({ status: 'failed' }).eq('id', payoutTransactionId);
       return new Response(JSON.stringify({ error: 'No earnings available to pay out' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
