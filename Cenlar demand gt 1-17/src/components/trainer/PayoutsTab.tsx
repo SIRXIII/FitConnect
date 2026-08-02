@@ -52,6 +52,7 @@ const PayoutsTab: React.FC = () => {
   const { trainerProfile } = useAuthStore();
 
   const [availableBalance, setAvailableBalance] = useState(0);
+  const [awaitingCompletion, setAwaitingCompletion] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,33 +77,54 @@ const PayoutsTab: React.FC = () => {
 
       if (bookingIds.length === 0) {
         setAvailableBalance(0);
+        setAwaitingCompletion(0);
         setPendingBalance(0);
         setTransactions([]);
         setLoading(false);
         return;
       }
 
-      // 2. Fetch payment rows (available + pending balance + transaction history)
+      // 2. Fetch payment rows (pending balance + transaction history)
       const { data: paymentRows, error: paymentError } = await supabase
         .from('payments')
-        .select('id, booking_id, trainer_payout, status, created_at')
+        .select('id, booking_id, trainer_payout, status, created_at, payout_transaction_id')
         .in('booking_id', bookingIds)
         .order('created_at', { ascending: false });
 
       if (paymentError) throw paymentError;
 
-      const payments = (paymentRows ?? []) as Array<{
+      // payout_transaction_id exists in the live DB but not yet in generated types
+      const payments = (paymentRows ?? []) as unknown as Array<{
         id: string;
         booking_id: string;
         trainer_payout: number;
         status: string;
         created_at: string;
+        payout_transaction_id: string | null;
       }>;
 
-      // 3. Available balance: succeeded payments
-      const available = payments
-        .filter((p) => p.status === 'succeeded')
+      // 3. Available balance: mirrors the create-payout release gate — succeeded,
+      // unswept payments whose booking is completed
+      const { data: availableRows, error: availableError } = await supabase
+        .from('payments')
+        .select('trainer_payout, bookings!inner(trainer_id, status)')
+        .eq('bookings.trainer_id', trainerProfile.id)
+        .eq('status', 'succeeded')
+        .is('payout_transaction_id', null)
+        .eq('bookings.status', 'completed');
+
+      if (availableError) throw availableError;
+
+      const available = (availableRows ?? []).reduce(
+        (sum, row) => sum + Number(row.trainer_payout),
+        0
+      );
+
+      // Succeeded, unswept payments not yet released (booking not completed)
+      const succeededUnswept = payments
+        .filter((p) => p.status === 'succeeded' && p.payout_transaction_id === null)
         .reduce((sum, p) => sum + Number(p.trainer_payout), 0);
+      const awaiting = Math.max(0, succeededUnswept - available);
 
       // 4. Pending balance: pending/processing payments
       const pending = payments
@@ -110,6 +132,7 @@ const PayoutsTab: React.FC = () => {
         .reduce((sum, p) => sum + Number(p.trainer_payout), 0);
 
       setAvailableBalance(available);
+      setAwaitingCompletion(awaiting);
       setPendingBalance(pending);
 
       // 5. Build payment transaction rows — need client names
@@ -269,6 +292,11 @@ const PayoutsTab: React.FC = () => {
         <div className="border border-ink/10 p-8 space-y-3">
           <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Available Balance</p>
           <p className="text-5xl serif font-light text-ink">{formatUSD(availableBalance)}</p>
+          {awaitingCompletion > 0 && (
+            <p className="text-[10px] text-ink/30">
+              {formatUSD(awaitingCompletion)} pending until session complete
+            </p>
+          )}
         </div>
 
         {/* Pending Balance */}
