@@ -56,6 +56,21 @@ Deno.serve(async (req) => {
     const supabaseUrl = requireEnv('SUPABASE_URL');
     const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 
+    // Service-role-only: every legitimate caller (booking/payment edge functions,
+    // send_booking_push()/notify_on_message() DB triggers) authenticates with the
+    // service_role key. No end-user JWT is valid here — user_ids is caller-supplied
+    // with no scoping, so a user-JWT mode would let any user push to anyone.
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '').trim();
+
+    if (token !== supabaseServiceRoleKey) {
+      console.error('[send-push-notification] Unauthorized: invalid service role key');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const body = (await req.json().catch(() => ({}))) as Partial<SendPushRequest>;
     const { user_ids, title, body: messageBody, data } = body;
 
