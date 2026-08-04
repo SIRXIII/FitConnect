@@ -5,13 +5,13 @@
 A luxury fitness marketplace that connects certified personal trainers' idle hours with clients at optimized (discounted) rates. Features real-time Uber-style trainer availability, Google Maps discovery with PostGIS spatial queries, AI-powered trainer-client matching, AI discount analytics, location-based notifications, session logging with progress tracking, and Google Calendar bidirectional sync. Trainers earn from sessions that would otherwise go unfilled. Clients access premium personal training below market rate. The platform sustains itself on a transparent 8% booking fee, subscription tiers (Pro $9/mo, Elite $29/mo), and grows via referral incentives.
 
 **App Name:** FitRush
-**Live URL:** https://fitconnect-2sn.pages.dev
+**Live URL:** https://fitrush.io (Cloudflare Pages; deploy origin https://fitconnect-2sn.pages.dev)
 **Version:** v6.0 complete
 **Next:** v6.1 Admin Portal Quality (executing)
 
 ## Current Milestone: v6.1 Admin Portal Quality
 
-**Goal:** Professional, accurate admin portal — crisp typography, zero broken fetches, no fake/hardcoded data, test data purged, and a working release pipeline with Cloudflare Pages (fitconnect-2sn.pages.dev) as the canonical host.
+**Goal:** Professional, accurate admin portal — crisp typography, zero broken fetches, no fake/hardcoded data, test data purged, and a working release pipeline with Cloudflare Pages (fitrush.io) as the canonical host.
 
 **Target outcomes:**
 - Cloudy fonts fixed (Inter data text + antialiasing; Cormorant kept for brand titles)
