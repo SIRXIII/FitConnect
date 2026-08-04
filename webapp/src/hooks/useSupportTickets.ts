@@ -157,12 +157,13 @@ export function useTicketMessages(ticketId: string | null) {
     if (!ticketId) return;
     setLoading(true);
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('support_messages')
       .select('*, sender:profiles!support_messages_sender_id_fkey(full_name)')
       .eq('ticket_id', ticketId)
       .order('created_at', { ascending: true });
 
+    if (error) console.error('[support] failed to load ticket messages:', error.message);
     setMessages((data ?? []) as unknown as SupportMessage[]);
     setLoading(false);
   }, [ticketId]);
