@@ -286,10 +286,12 @@ const TicketDetail: React.FC<{
 
 interface AdminSupportQueueProps {
   initialTicketId?: string | null;
+  /** Parent's ticket refetch (e.g. AdminDashboard badge), called whenever tickets change here. */
+  onTicketsChanged?: () => void;
 }
 
-const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId }) => {
-  const { tickets, loading, refetch, updateTicketStatus } = useSupportTickets(true);
+const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, onTicketsChanged }) => {
+  const { tickets, loading, refetch } = useSupportTickets(true);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -331,8 +333,12 @@ const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId }
           onBack={() => {
             setSelectedTicket(null);
             refetch();
+            onTicketsChanged?.();
           }}
-          onUpdate={refetch}
+          onUpdate={() => {
+            refetch();
+            onTicketsChanged?.();
+          }}
         />
       </div>
     );

@@ -199,7 +199,7 @@ const AdminDashboard: React.FC = () => {
   const [savedFee, setSavedFee] = useState('0.08');
   const [savingFee, setSavingFee] = useState(false);
   const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support' | 'pending-trainers' | 'sessions'>('analytics');
-  const { tickets: supportTickets } = useSupportTickets(true);
+  const { tickets: supportTickets, refetch: refetchSupportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
   const [loadingCerts, setLoadingCerts] = useState(false);
@@ -2748,7 +2748,10 @@ const AdminDashboard: React.FC = () => {
 
         {/* Support Tab */}
         {activeTab === 'support' && (
-          <AdminSupportQueue initialTicketId={supportInitialTicketId} />
+          <AdminSupportQueue
+            initialTicketId={supportInitialTicketId}
+            onTicketsChanged={refetchSupportTickets}
+          />
         )}
       </div>
     </div>
