@@ -2,3 +2,13 @@
 *.p8
 AuthKey_*.p8
 *.pem
+
+# Local env files. Even though VITE_* vars ship in the client bundle, keeping
+# .env untracked stops a future server-side secret from being committed here.
+.env
+.env.local
+
+# Supabase CLI scratch state (project ref, pooler URL, tool versions)
+supabase/.temp/
+
+.DS_Store

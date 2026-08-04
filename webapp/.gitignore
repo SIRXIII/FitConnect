@@ -33,3 +33,12 @@ ios/DerivedData/
 *.njsproj
 *.sln
 *.sw?
+
+# Local env. VITE_* vars are publishable and ship in the bundle, but the file
+# itself stays untracked so a future server-side secret cannot leak via it.
+.env
+.env.local
+
+# Supabase CLI scratch state (project ref, pooler URL, tool versions)
+.temp/
+supabase/.temp/
