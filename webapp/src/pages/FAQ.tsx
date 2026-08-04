@@ -192,7 +192,7 @@ const FAQ: React.FC = () => {
           <div className="w-8 h-px bg-ink/10 mx-auto" />
           <p className="text-sm text-ink/40">Still have questions?</p>
           <a
-            href="mailto:sirxiii@gmail.com?subject=FitRush Support"
+            href="mailto:ceofitrush@gmail.com?subject=FitRush Support"
             className="inline-block border border-ink/20 px-10 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300"
           >
             Contact Support
