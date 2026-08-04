@@ -65,7 +65,7 @@ const Privacy: React.FC = () => {
             <h2 className="text-lg serif font-light text-ink">7. Contact Us</h2>
             <p>
               If you have questions about this privacy policy or your data, please reach out
-              through the platform or email us at support@fitrush.app.
+              through the platform or email us at support@fitrush.io.
             </p>
           </section>
         </div>

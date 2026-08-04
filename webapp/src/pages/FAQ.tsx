@@ -197,7 +197,7 @@ const FAQ: React.FC = () => {
           >
             Contact Support
           </a>
-          <p className="text-[10px] text-ink/25 mt-2">support@fitrush.app</p>
+          <p className="text-[10px] text-ink/25 mt-2">support@fitrush.io</p>
         </div>
       </div>
     </div>

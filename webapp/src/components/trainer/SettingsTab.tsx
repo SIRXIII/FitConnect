@@ -411,7 +411,7 @@ const SettingsTab: React.FC = () => {
               Delete My Account
             </button>
             <p className="text-[10px] text-ink/30">
-              Or contact support@fitrush.app for assistance
+              Or contact support@fitrush.io for assistance
             </p>
           </div>
         </div>
