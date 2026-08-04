@@ -236,7 +236,18 @@ Deno.serve(async (req) => {
       }, { idempotencyKey: payoutTransactionId });
     } catch (stripeErr) {
       const errorMessage = stripeErr instanceof Stripe.errors.StripeError ? stripeErr.message : 'Stripe transfer failed';
-      const isInsufficientFunds = stripeErr instanceof Stripe.errors.StripeError && stripeErr.code === 'insufficient_funds';
+      // Stripe's code for "the platform balance can't cover this transfer" is
+      // balance_insufficient, not insufficient_funds — the latter never matched,
+      // so funding failures were reported as a bare 502.
+      const isInsufficientFunds = stripeErr instanceof Stripe.errors.StripeError
+        && (stripeErr.code === 'balance_insufficient' || stripeErr.code === 'insufficient_funds');
+      console.error('[create-payout] Stripe transfer failed:', {
+        payoutTransactionId,
+        destination: stripeAccountId,
+        amount: sweptAmount,
+        code: stripeErr instanceof Stripe.errors.StripeError ? stripeErr.code : undefined,
+        message: errorMessage,
+      });
       await adminClient.from('payout_transactions').update({ status: 'failed' }).eq('id', payoutTransactionId);
       await adminClient.from('payments').update({ payout_transaction_id: null }).eq('payout_transaction_id', payoutTransactionId);
       return new Response(JSON.stringify({ error: errorMessage }), {

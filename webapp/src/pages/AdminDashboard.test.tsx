@@ -166,3 +166,38 @@ describe('AdminDashboard current tab structure', () => {
     expect(SOURCE).toContain(`'${tab}'`);
   });
 });
+
+describe('Payouts Balance Summary', () => {
+  it('reads the platform balance from the stripe-balance edge function', () => {
+    expect(SOURCE).toContain("supabase.functions.invoke('stripe-balance')");
+  });
+
+  it('derives the summary from the shared, tested helper rather than inline math', () => {
+    expect(SOURCE).toContain('summarizePayoutFunding(stripeBalance, payoutBalances)');
+  });
+
+  it('loads the balance when the payouts tab opens and after a release', () => {
+    expect(SOURCE).toContain('fetchStripeBalance();');
+    expect(SOURCE).toContain('await fetchStripeBalance();');
+  });
+
+  it('surfaces the real edge function error instead of the generic non-2xx string', () => {
+    expect(SOURCE).toContain("edgeFunctionError(err, 'Could not read Stripe balance')");
+  });
+
+  it('names balance_insufficient so the warning matches what Stripe returns', () => {
+    expect(SOURCE).toContain('balance_insufficient');
+  });
+
+  it('flags automatic payouts draining the float', () => {
+    expect(SOURCE).toContain('recent_payouts.find((p) => p.automatic)');
+  });
+
+  it('warns when Stripe is in test mode', () => {
+    expect(SOURCE).toContain('Stripe test mode');
+  });
+
+  it('treats arrival_date as unix seconds', () => {
+    expect(SOURCE).toContain('autoPayout.arrival_date * 1000');
+  });
+});

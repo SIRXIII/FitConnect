@@ -7,10 +7,10 @@ plugins = []
 [functions."*"]
 
 [build]
-publish = "/Users/xfiles/Library/CloudStorage/GoogleDrive-sirxiii@gmail.com/My Drive/APP Projects/FitConnect/Cenlar demand gt 1-17/dist"
+publish = "/Volumes/Crucial X9/Developer/FitConnect/Cenlar demand gt 1-17/dist"
 publishOrigin = "ui"
 commandOrigin = "ui"
-base = "/Users/xfiles/Library/CloudStorage/GoogleDrive-sirxiii@gmail.com/My Drive/APP Projects/FitConnect/Cenlar demand gt 1-17"
+base = "/Volumes/Crucial X9/Developer/FitConnect/Cenlar demand gt 1-17"
 command = "npm run build"
 
 [build.environment]
@@ -28,6 +28,13 @@ command = "npm run build"
 [build.services]
 
 [[headers]]
+for = "/.well-known/*"
+
+[headers.values]
+Content-Type = "application/json"
+Cache-Control = "no-cache"
+
+[[headers]]
 for = "/index.html"
 
 [headers.values]
@@ -39,6 +46,18 @@ for = "/assets/*"
 
 [headers.values]
 Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+from = "/google732aa57f167a748a.html"
+to = "/google732aa57f167a748a.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
 
 [[redirects]]
 from = "/*"

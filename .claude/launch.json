@@ -4,13 +4,13 @@
     {
       "name": "fitconnect-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "Cenlar demand gt 1-17"],
+      "runtimeArgs": ["run", "dev", "--prefix", "webapp"],
       "port": 3000
     },
     {
       "name": "fitconnect-preview",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "--prefix", "Cenlar demand gt 1-17"],
+      "runtimeArgs": ["run", "preview", "--prefix", "webapp"],
       "port": 4173
     }
   ]

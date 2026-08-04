@@ -75,18 +75,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Supabase edge functions run with TZ=UTC, so an unqualified toLocale*
+    // renders UTC — which is nobody's wall clock. A 4:00 PM PT session printed
+    // as "11:00 PM", and anything from 5:00 PM PT onward printed the NEXT day's
+    // date. Format in the business timezone and always label it.
+    const APP_TIMEZONE = Deno.env.get('APP_TIMEZONE') || 'America/Los_Angeles';
     const startDate = new Date(session_date);
     const formattedDate = startDate.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
+      timeZone: APP_TIMEZONE,
     });
     const formattedTime = startDate.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
+      timeZone: APP_TIMEZONE,
+      timeZoneName: 'short',
     });
     const endTime = session_end
-      ? new Date(session_end).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+      ? new Date(session_end).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: APP_TIMEZONE,
+          timeZoneName: 'short',
+        })
       : '';
 
     const isRequest = mode === 'request';

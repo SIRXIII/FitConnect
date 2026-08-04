@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": ["/assets/*", "/google732aa57f167a748a.html", "/favicon.ico", "/robots.txt", "/sitemap.xml"]
+}

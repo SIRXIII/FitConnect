@@ -4,6 +4,24 @@ export interface AppError {
   recoverable: boolean;
 }
 
+/**
+ * supabase.functions.invoke() rejects with a FunctionsHttpError whose .message is
+ * always the generic "Edge Function returned a non-2xx status code". The real
+ * `{ error: "..." }` body our functions return lives on .context (a Response),
+ * so surface that instead of the generic string.
+ */
+export async function edgeFunctionError(error: unknown, fallback: string): Promise<string> {
+  const response = (error as { context?: Response }).context;
+  try {
+    const body = await response?.clone().json();
+    if (typeof body?.error === 'string') return body.error;
+  } catch {
+    // body was empty or not JSON, fall through
+  }
+  if (error instanceof Error && !error.message.includes('non-2xx')) return error.message;
+  return fallback;
+}
+
 export function mapError(error: unknown): AppError {
   if (error instanceof Error) {
     if (error.message.includes('JWT')) {

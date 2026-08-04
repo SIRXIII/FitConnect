@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- bench (upper back rests on it) -->
+  <rect x="4" y="28" width="22" height="8" rx="1"/>
+  <!-- barbell across hips -->
+  <line x1="8" y1="36" x2="56" y2="36"/>
+  <line x1="8" y1="32" x2="8" y2="40"/>
+  <line x1="56" y1="32" x2="56" y2="40"/>
+  <!-- head resting on bench -->
+  <circle cx="14" cy="26" r="4"/>
+  <!-- torso / hips raised -->
+  <line x1="14" y1="30" x2="38" y2="38"/>
+  <!-- arms on barbell -->
+  <line x1="22" y1="32" x2="20" y2="36"/>
+  <line x1="30" y1="34" x2="28" y2="38"/>
+  <!-- upper legs (thighs) -->
+  <line x1="38" y1="38" x2="30" y2="54"/>
+  <line x1="38" y1="38" x2="46" y2="54"/>
+  <!-- lower legs (feet on floor) -->
+  <line x1="30" y1="54" x2="28" y2="60"/>
+  <line x1="46" y1="54" x2="50" y2="60"/>
+</svg>

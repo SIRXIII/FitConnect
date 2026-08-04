@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- head -->
+  <circle cx="32" cy="10" r="4"/>
+  <!-- torso -->
+  <line x1="32" y1="14" x2="32" y2="36"/>
+  <!-- right arm curled up -->
+  <line x1="32" y1="22" x2="44" y2="28"/>
+  <line x1="44" y1="28" x2="40" y2="18"/>
+  <!-- dumbbell in right hand -->
+  <line x1="38" y1="16" x2="42" y2="20"/>
+  <line x1="38" y1="16" x2="36" y2="14"/>
+  <line x1="42" y1="20" x2="44" y2="22"/>
+  <!-- left arm at side -->
+  <line x1="32" y1="22" x2="20" y2="36"/>
+  <!-- dumbbell in left hand -->
+  <line x1="18" y1="34" x2="22" y2="38"/>
+  <!-- legs -->
+  <line x1="32" y1="36" x2="26" y2="54"/>
+  <line x1="32" y1="36" x2="38" y2="54"/>
+</svg>

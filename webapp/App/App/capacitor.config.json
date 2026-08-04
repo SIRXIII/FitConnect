@@ -1,0 +1,47 @@
+{
+	"appId": "com.SIRXIII.FitRush-Reserve",
+	"appName": "FitRush",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "https"
+	},
+	"ios": {
+		"contentInset": "automatic",
+		"preferredContentMode": "mobile",
+		"backgroundColor": "#FDFBF7",
+		"allowsLinkPreview": false,
+		"scrollEnabled": true
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"launchAutoHide": true,
+			"backgroundColor": "#FDFBF7",
+			"showSpinner": false,
+			"launchFadeOutDuration": 300
+		},
+		"StatusBar": {
+			"style": "DARK",
+			"backgroundColor": "#FDFBF7"
+		},
+		"Keyboard": {
+			"resize": "body",
+			"resizeOnFullScreen": true
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		}
+	},
+	"packageClassList": [
+		"HapticsPlugin",
+		"KeyboardPlugin",
+		"PushNotificationsPlugin",
+		"SplashScreenPlugin",
+		"StatusBarPlugin"
+	]
+}

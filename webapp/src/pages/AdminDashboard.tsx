@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 import { type TimeRange, getDateBounds, getBucketParam } from '@/lib/analytics';
 import { setAdminTierOverride } from '@/lib/subscription';
+import { edgeFunctionError } from '@/lib/errorMessages';
+import { summarizePayoutFunding, formatCents } from '@/lib/payoutFunding';
 // CERTIFICATION_TIERS / getCertificationByCode removed — cert catalog now comes from get_admin_pending_certs RPC fields (tier, accreditation, org, verify_url)
 import AdminSupportQueue from '@/components/support/AdminSupportQueue';
 import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
@@ -53,6 +55,20 @@ interface PayoutBalance {
   not_yet_completed_booking_count: number;
   pending_balance: number;
   unpaid_booking_count: number;
+}
+
+interface StripeBalanceResponse {
+  available_cents: number;
+  pending_cents: number;
+  currency: string;
+  livemode: boolean;
+  recent_payouts: Array<{
+    id: string;
+    amount_cents: number;
+    status: string;
+    automatic: boolean;
+    arrival_date: number; // unix epoch SECONDS
+  }>;
 }
 
 interface PayoutHistoryRow {
@@ -232,6 +248,9 @@ const AdminDashboard: React.FC = () => {
   const [payoutHistory, setPayoutHistory] = useState<PayoutHistoryRow[]>([]);
   const [loadingPayoutHistory, setLoadingPayoutHistory] = useState(false);
   const [processingPayoutTrainerId, setProcessingPayoutTrainerId] = useState<string | null>(null);
+  const [stripeBalance, setStripeBalance] = useState<StripeBalanceResponse | null>(null);
+  const [loadingStripeBalance, setLoadingStripeBalance] = useState(false);
+  const [stripeBalanceError, setStripeBalanceError] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [pendingTrainers, setPendingTrainers] = useState<PendingTrainer[]>([]);
@@ -433,6 +452,24 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
+  // The platform Stripe balance is the thing create-payout actually spends.
+  // Fetched separately from the trainer balances so a Stripe outage degrades
+  // the summary to "unknown" instead of blanking the whole Payouts tab.
+  const fetchStripeBalance = useCallback(async () => {
+    setLoadingStripeBalance(true);
+    setStripeBalanceError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-balance');
+      if (error) throw error;
+      setStripeBalance(data as StripeBalanceResponse);
+    } catch (err) {
+      setStripeBalance(null);
+      setStripeBalanceError(await edgeFunctionError(err, 'Could not read Stripe balance'));
+    } finally {
+      setLoadingStripeBalance(false);
+    }
+  }, []);
+
   const handleReleasePayout = async (balance: PayoutBalance) => {
     if (!balance.stripe_account_id) {
       toast.error(`${balance.trainer_name} has no Stripe account connected`);
@@ -456,8 +493,9 @@ const AdminDashboard: React.FC = () => {
       toast.success(`Payout of $${amount.toFixed(2)} initiated for ${balance.trainer_name}`);
       await fetchPayoutBalances();
       await fetchPayoutHistory();
+      await fetchStripeBalance();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Payout failed');
+      toast.error(await edgeFunctionError(err, 'Payout failed'));
     } finally {
       setProcessingPayoutTrainerId(null);
     }
@@ -600,7 +638,7 @@ const AdminDashboard: React.FC = () => {
     if (activeTab === 'analytics') fetchFreeMetrics();
   }, [activeTab, adminRange, fetchSessionCredits, fetchOpenSlots, fetchCompOwed, fetchFreeMetrics]);
 
-  useEffect(() => { if (activeTab === 'payouts') { fetchPayoutBalances(); fetchPayoutHistory(); } }, [activeTab, fetchPayoutBalances, fetchPayoutHistory]);
+  useEffect(() => { if (activeTab === 'payouts') { fetchPayoutBalances(); fetchPayoutHistory(); fetchStripeBalance(); } }, [activeTab, fetchPayoutBalances, fetchPayoutHistory, fetchStripeBalance]);
 
   const fetchPendingCerts = useCallback(async () => {
     setLoadingCerts(true);
@@ -1522,6 +1560,99 @@ const AdminDashboard: React.FC = () => {
         {/* Payouts Tab */}
         {activeTab === 'payouts' && (
           <div className="space-y-8">
+            {/* Balance Summary — can the platform actually fund what it owes? */}
+            {(() => {
+              const funding = summarizePayoutFunding(stripeBalance, payoutBalances);
+              const autoPayout = stripeBalance?.recent_payouts.find((p) => p.automatic);
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Balance Summary</p>
+                    <div className="flex items-center gap-3">
+                      {stripeBalance && !stripeBalance.livemode && (
+                        <span className="text-[10px] uppercase tracking-wider font-medium text-amber-700 border border-amber-400/40 px-2 py-0.5">
+                          Stripe test mode
+                        </span>
+                      )}
+                      <button
+                        onClick={fetchStripeBalance}
+                        disabled={loadingStripeBalance}
+                        className="text-[10px] uppercase tracking-[0.15em] text-ink/50 hover:text-ink disabled:opacity-40 transition-colors"
+                      >
+                        {loadingStripeBalance ? 'Refreshing...' : 'Refresh'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="border border-ink/10 px-6 py-5">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Available Now</p>
+                      <p className="text-2xl serif font-light text-ink tabular-nums mt-1">
+                        {stripeBalance ? formatCents(funding.availableCents) : '—'}
+                      </p>
+                      <p className="text-[10px] text-ink/40 mt-1">Transferable from Stripe today</p>
+                    </div>
+                    <div className="border border-ink/10 px-6 py-5">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Pending Settlement</p>
+                      <p className="text-2xl serif font-light text-ink tabular-nums mt-1">
+                        {stripeBalance ? formatCents(funding.pendingCents) : '—'}
+                      </p>
+                      <p className="text-[10px] text-ink/40 mt-1">Paid by clients, clears in ~2 business days</p>
+                    </div>
+                    <div className="border border-ink/10 px-6 py-5">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Releasable</p>
+                      <p className="text-2xl serif font-light text-ink tabular-nums mt-1">
+                        {formatCents(funding.releasableCents)}
+                      </p>
+                      <p className="text-[10px] text-ink/40 mt-1">Owed for completed sessions, excludes holds</p>
+                    </div>
+                    <div className={`border px-6 py-5 ${funding.shortfallCents > 0 ? 'border-red-400/40 bg-red-50/40' : 'border-ink/10'}`}>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Shortfall</p>
+                      <p className={`text-2xl serif font-light tabular-nums mt-1 ${funding.shortfallCents > 0 ? 'text-red-600' : 'text-ink'}`}>
+                        {stripeBalance ? formatCents(funding.shortfallCents) : '—'}
+                      </p>
+                      <p className="text-[10px] text-ink/40 mt-1">Missing before every release clears</p>
+                    </div>
+                  </div>
+
+                  {loadingStripeBalance ? (
+                    <p className="text-xs text-ink/50">Reading Stripe balance...</p>
+                  ) : stripeBalanceError ? (
+                    <p className="text-xs text-red-600">Stripe balance unavailable: {stripeBalanceError}</p>
+                  ) : funding.releasableCents === 0 ? (
+                    <p className="text-xs text-ink/50">Nothing is awaiting release right now.</p>
+                  ) : funding.canReleaseAll ? (
+                    <p className="text-xs text-emerald-700">
+                      Funded. {formatCents(funding.releasableCents)} can be released now.
+                    </p>
+                  ) : (
+                    <div className="border border-amber-400/40 bg-amber-50/40 px-4 py-3 space-y-1">
+                      <p className="text-xs text-amber-800">
+                        Release will fail with <span className="font-medium">balance_insufficient</span>: {formatCents(funding.releasableCents)} is
+                        owed but only {formatCents(funding.availableCents)} is available.
+                      </p>
+                      {funding.pendingCents >= funding.shortfallCents ? (
+                        <p className="text-[11px] text-amber-700">
+                          {formatCents(funding.pendingCents)} is still settling. Wait for it to clear, then release.
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-amber-700">
+                          Pending funds do not cover the gap. The platform balance needs a top-up.
+                        </p>
+                      )}
+                      {autoPayout && (
+                        <p className="text-[11px] text-amber-700">
+                          Automatic payouts are moving money to your bank (last: {formatCents(autoPayout.amount_cents)} on{' '}
+                          {new Date(autoPayout.arrival_date * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}).
+                          Switch the platform to manual payouts in Stripe to keep a float for trainer transfers.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Comp Sessions Owed */}
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Sessions — Platform Owes</p>
