@@ -182,16 +182,36 @@ const TrainerSessionsModal: React.FC<Props> = ({ open, trainer, availableCents, 
                       const eligible = isReleasableSession(s);
                       const pid = s.payment_id;
                       return (
-                        <label
+                        // Row is a div with ONE onClick, not a <label> wrapping
+                        // the <input>. A nested checkbox-in-label double-fires in
+                        // real browsers (the label re-forwards the click to the
+                        // input), so a click to deselect toggled twice and never
+                        // stuck — invisible in jsdom, broken on fitrush.io. The
+                        // checkbox is visual-only (pointer-events-none), so every
+                        // click resolves to exactly one toggle via the row.
+                        <div
                           key={s.booking_id}
+                          role="checkbox"
+                          aria-checked={!!pid && selected.has(pid)}
+                          aria-disabled={!eligible || !pid}
+                          tabIndex={eligible ? 0 : -1}
+                          onClick={() => { if (eligible && pid) toggle(pid); }}
+                          onKeyDown={(e) => {
+                            if ((e.key === ' ' || e.key === 'Enter') && eligible && pid) {
+                              e.preventDefault();
+                              toggle(pid);
+                            }
+                          }}
                           className={`grid grid-cols-[24px_130px_1fr_90px_110px] gap-3 items-center px-4 py-3 border-b border-ink/5 last:border-0 ${eligible ? 'cursor-pointer hover:bg-ink/[0.02]' : ''}`}
                         >
                           <input
                             type="checkbox"
+                            aria-hidden="true"
                             disabled={!eligible || !pid}
                             checked={!!pid && selected.has(pid)}
-                            onChange={() => pid && toggle(pid)}
-                            className="accent-emerald-600 disabled:opacity-30"
+                            readOnly
+                            tabIndex={-1}
+                            className="accent-emerald-600 disabled:opacity-30 pointer-events-none"
                           />
                           <span className="text-xs text-ink/70 tabular-nums">
                             {ptTime(s.start_time)}–{ptTime(s.end_time)}
@@ -203,7 +223,7 @@ const TrainerSessionsModal: React.FC<Props> = ({ open, trainer, availableCents, 
                           <span className={`justify-self-end text-[9px] uppercase tracking-wider font-medium px-2 py-0.5 ${chip.cls}`}>
                             {chip.label}
                           </span>
-                        </label>
+                        </div>
                       );
                     })}
                   </div>
