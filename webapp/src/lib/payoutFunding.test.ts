@@ -1,5 +1,27 @@
 import { describe, it, expect } from 'vitest';
-import { summarizePayoutFunding, formatCents } from './payoutFunding';
+import {
+  summarizePayoutFunding,
+  formatCents,
+  isReleasableSession,
+  sessionSelectionTotalCents,
+  type TrainerSession,
+} from './payoutFunding';
+
+const session = (over: Partial<TrainerSession> = {}): TrainerSession => ({
+  booking_id: 'b',
+  booking_status: 'completed',
+  is_comp: false,
+  start_time: '2026-07-29T18:00:00Z',
+  end_time: '2026-07-29T19:00:00Z',
+  client_name: 'Xman',
+  rate_charged: 43,
+  trainer_payout: 43,
+  payment_id: 'pay',
+  payment_status: 'succeeded',
+  payment_trainer_payout: 43,
+  payout_transaction_id: null,
+  ...over,
+});
 
 const row = (over: Partial<{ releasable_balance: number; not_yet_completed_balance: number; payout_on_hold: boolean }> = {}) => ({
   releasable_balance: 0,
@@ -61,5 +83,50 @@ describe('summarizePayoutFunding', () => {
     const f = summarizePayoutFunding(null, [row({ releasable_balance: 86 })]);
     expect(f.canReleaseAll).toBe(false);
     expect(f.shortfallCents).toBe(8600);
+  });
+});
+
+describe('isReleasableSession', () => {
+  it('accepts a completed, paid, unswept session', () => {
+    expect(isReleasableSession(session())).toBe(true);
+  });
+
+  it.each([
+    ['booking not completed', { booking_status: 'confirmed' }],
+    ['payment not succeeded', { payment_status: 'pending' }],
+    ['no payment row (comp)', { payment_id: null, payment_status: null, is_comp: true }],
+    ['already swept into a payout', { payout_transaction_id: 'po_1' }],
+  ])('rejects when %s', (_label, over) => {
+    expect(isReleasableSession(session(over as Partial<TrainerSession>))).toBe(false);
+  });
+});
+
+describe('sessionSelectionTotalCents', () => {
+  it("sums Derek's two selected sessions to $86.00", () => {
+    const sessions = [
+      session({ payment_id: 'a' }),
+      session({ payment_id: 'b' }),
+    ];
+    const total = sessionSelectionTotalCents(sessions, new Set(['a', 'b']));
+    expect(total).toBe(8600);
+    expect(formatCents(total)).toBe('$86.00');
+  });
+
+  it('counts only the ticked sessions', () => {
+    const sessions = [session({ payment_id: 'a' }), session({ payment_id: 'b' })];
+    expect(sessionSelectionTotalCents(sessions, new Set(['a']))).toBe(4300);
+  });
+
+  it('ignores sessions with no payment id', () => {
+    const sessions = [session({ payment_id: null, payment_trainer_payout: null })];
+    expect(sessionSelectionTotalCents(sessions, new Set())).toBe(0);
+  });
+
+  it('sums in cents so mixed rates cannot drift', () => {
+    const sessions = [
+      session({ payment_id: 'a', payment_trainer_payout: 0.1 }),
+      session({ payment_id: 'b', payment_trainer_payout: 0.2 }),
+    ];
+    expect(sessionSelectionTotalCents(sessions, new Set(['a', 'b']))).toBe(30);
   });
 });

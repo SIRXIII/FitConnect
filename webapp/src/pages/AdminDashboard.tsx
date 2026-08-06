@@ -13,6 +13,7 @@ import AdminSupportQueue from '@/components/support/AdminSupportQueue';
 import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
 import TrainerDetailCard, { type PendingTrainer } from '@/components/admin/TrainerDetailCard';
+import TrainerSessionsModal from '@/components/admin/TrainerSessionsModal';
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -251,6 +252,7 @@ const AdminDashboard: React.FC = () => {
   const [stripeBalance, setStripeBalance] = useState<StripeBalanceResponse | null>(null);
   const [loadingStripeBalance, setLoadingStripeBalance] = useState(false);
   const [stripeBalanceError, setStripeBalanceError] = useState<string | null>(null);
+  const [sessionsModalTrainer, setSessionsModalTrainer] = useState<PayoutBalance | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [pendingTrainers, setPendingTrainers] = useState<PendingTrainer[]>([]);
@@ -1693,7 +1695,7 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer Pending Balances</p>
               <div className="border border-ink/10">
-                <div className="grid grid-cols-[2fr_110px_120px_90px_100px_190px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+                <div className="grid grid-cols-[2fr_110px_120px_90px_100px_260px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Releasable</p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium" title="Payment received but session not yet marked complete">Awaiting Session</p>
@@ -1714,7 +1716,7 @@ const AdminDashboard: React.FC = () => {
                   payoutBalances.map((b) => (
                     <div
                       key={b.trainer_profile_id}
-                      className="grid grid-cols-[2fr_110px_120px_90px_100px_190px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
+                      className="grid grid-cols-[2fr_110px_120px_90px_100px_260px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <p className="text-sm text-ink truncate">{b.trainer_name}</p>
@@ -1737,11 +1739,18 @@ const AdminDashboard: React.FC = () => {
                       </span>
                       <div className="flex gap-2">
                         <button
+                          onClick={() => setSessionsModalTrainer(b)}
+                          className="px-3 py-1 text-[10px] uppercase tracking-wider font-medium bg-ink/5 text-ink/70 hover:bg-ink/10 transition-colors"
+                        >
+                          View
+                        </button>
+                        <button
                           onClick={() => handleReleasePayout(b)}
                           disabled={processingPayoutTrainerId === b.trainer_profile_id || !b.stripe_account_id || b.releasable_balance <= 0 || b.payout_on_hold}
+                          title="Release the trainer's entire releasable balance"
                           className="px-3 py-1 text-[10px] uppercase tracking-wider font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Release'}
+                          {processingPayoutTrainerId === b.trainer_profile_id ? 'Processing...' : 'Release all'}
                         </button>
                         <button
                           onClick={() => handleTogglePayoutHold(b)}
@@ -1756,6 +1765,14 @@ const AdminDashboard: React.FC = () => {
                 )}
               </div>
             </div>
+
+            <TrainerSessionsModal
+              open={sessionsModalTrainer !== null}
+              trainer={sessionsModalTrainer}
+              availableCents={stripeBalance?.available_cents ?? null}
+              onClose={() => setSessionsModalTrainer(null)}
+              onReleased={() => { fetchPayoutBalances(); fetchPayoutHistory(); fetchStripeBalance(); }}
+            />
 
             {/* Payout History */}
             <div className="space-y-3">

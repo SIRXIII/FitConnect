@@ -119,23 +119,53 @@ Deno.serve(async (req) => {
     }
     const stripeAccountId = trainerProfile.stripe_account_id as string;
 
+    // PARTIAL PAYOUT: an admin may pass payment_ids to release only specific
+    // completed sessions (picked in the weekly session view) instead of the
+    // whole balance. Ignored for trainer self-serve; omitted => full release,
+    // so the existing "Release all" button keeps working unchanged.
+    const requestedPaymentIds: string[] | null =
+      isAdminOverride && Array.isArray(body.payment_ids) && body.payment_ids.length > 0
+        ? (body.payment_ids as string[])
+        : null;
+
     // RELEASE GATE: only payments whose booking is 'completed' count toward a
     // payout. (Also inherently excludes cancelled/no_show.) The embedded-join
     // form is the PAYOUT-1 fix — never pass a query builder to .in().
-    const { data: eligibleRows, error: balanceError } = await adminClient
+    let eligibleQuery = adminClient
       .from('payments')
       .select('id, trainer_payout, bookings!inner(trainer_id, status)')
       .eq('bookings.trainer_id', trainerProfile.id)
       .eq('status', 'succeeded')
       .is('payout_transaction_id', null)
       .eq('bookings.status', 'completed');
+    if (requestedPaymentIds) {
+      eligibleQuery = eligibleQuery.in('id', requestedPaymentIds);
+    }
+    const { data: eligibleRows, error: balanceError } = await eligibleQuery;
     if (balanceError) {
       return new Response(JSON.stringify({ error: 'Failed to calculate balance' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const balance = (eligibleRows ?? []).reduce((sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout), 0);
     const eligiblePaymentIds = (eligibleRows ?? []).map((row: { id: string }) => row.id);
+
+    // Reject, don't silently filter. If any requested payment is no longer
+    // eligible (swept by a concurrent release, booking un-completed, or wrong
+    // trainer), fail loudly so we never transfer a different amount than the
+    // admin approved on screen.
+    if (requestedPaymentIds) {
+      const eligibleSet = new Set(eligiblePaymentIds);
+      const ineligible = requestedPaymentIds.filter((id) => !eligibleSet.has(id));
+      if (ineligible.length > 0) {
+        return new Response(JSON.stringify({
+          error: 'Some selected sessions are no longer releasable. Refresh and try again.',
+          ineligible_payment_ids: ineligible,
+        }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+    const balance = (eligibleRows ?? []).reduce((sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout), 0);
 
     if (balance <= 0) {
       return new Response(JSON.stringify({ error: 'No earnings available to pay out' }), {
@@ -254,7 +284,13 @@ Deno.serve(async (req) => {
         status: isInsufficientFunds ? 402 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    await adminClient.from('payout_transactions').update({ status: 'processing', stripe_transfer_id: transfer.id }).eq('id', payoutTransactionId);
+    // stripe.transfers.create is synchronous — a returned transfer means the
+    // money moved. Mark 'completed', not 'processing': the old 'processing'
+    // was never finalized, so uniq_payout_active_per_trainer stayed engaged and
+    // 409-blocked every later release for this trainer. Completing here frees
+    // the lock the moment the transfer lands, which is what makes sequential
+    // partial (weekly) payouts possible.
+    await adminClient.from('payout_transactions').update({ status: 'completed', stripe_transfer_id: transfer.id }).eq('id', payoutTransactionId);
     try {
       // profiles has no email column — the address lives in auth.users
       const { data: userData } = await adminClient.auth.admin.getUserById(trainerProfile.user_id);

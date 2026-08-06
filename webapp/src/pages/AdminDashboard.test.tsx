@@ -201,3 +201,30 @@ describe('Payouts Balance Summary', () => {
     expect(SOURCE).toContain('autoPayout.arrival_date * 1000');
   });
 });
+
+describe('Partial payouts / weekly session view', () => {
+  it('mounts the weekly TrainerSessionsModal', () => {
+    expect(SOURCE).toContain("import TrainerSessionsModal from '@/components/admin/TrainerSessionsModal'");
+    expect(SOURCE).toContain('<TrainerSessionsModal');
+  });
+
+  it('opens the modal per trainer via a View button', () => {
+    expect(SOURCE).toContain('setSessionsModalTrainer(b)');
+    expect(SOURCE).toMatch(/>\s*View\s*</);
+  });
+
+  it('relabels the whole-balance action to Release all', () => {
+    expect(SOURCE).toContain("'Release all'");
+  });
+
+  it('keeps the whole-balance release free of payment_ids (that path stays full-balance)', () => {
+    // handleReleasePayout must not narrow to specific sessions.
+    const start = SOURCE.indexOf('const handleReleasePayout');
+    const handler = SOURCE.slice(start, start + 900);
+    expect(handler).not.toContain('payment_ids');
+  });
+
+  it('passes the Stripe available balance to the modal for the funding guard', () => {
+    expect(SOURCE).toContain('availableCents={stripeBalance?.available_cents ?? null}');
+  });
+});
