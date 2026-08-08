@@ -18,6 +18,7 @@ const SPECIALTIES = [
 
 interface FormData {
   full_name: string;
+  phone: string;
   cert_confirmed: boolean;
   cert_number: string;
   cert_file: File | null;
@@ -47,6 +48,7 @@ const TrainerOnboarding: React.FC = () => {
 
   const [form, setForm] = useState<FormData>({
     full_name: profile?.full_name ?? '',
+    phone: profile?.phone ?? '',
     cert_confirmed: false,
     cert_number: '',
     cert_file: null,
@@ -74,7 +76,10 @@ const TrainerOnboarding: React.FC = () => {
   }
 
   const canProceed = () => {
-    if (step === 1) return form.full_name.trim().length > 0;
+    // ponytail: digit-count check, not a phone parser. libphonenumber if we ever go international.
+    if (step === 1) {
+      return form.full_name.trim().length > 0 && form.phone.replace(/\D/g, '').length >= 10;
+    }
     if (step === 2) return form.cert_confirmed;
     if (step === 3) return form.location.trim().length > 0;
     if (step === 5) return certUploaded;
@@ -157,6 +162,7 @@ const TrainerOnboarding: React.FC = () => {
 
       const profileUpdate: Record<string, unknown> = { onboarding_complete: true };
       if (form.full_name.trim()) profileUpdate.full_name = form.full_name.trim();
+      if (form.phone.trim()) profileUpdate.phone = form.phone.trim();
       if (form.avatar_url) profileUpdate.avatar_url = form.avatar_url;
       await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
 
@@ -237,6 +243,18 @@ const TrainerOnboarding: React.FC = () => {
               autoFocus
               className="w-full border-b border-ink/20 bg-transparent pb-3 text-xl font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
             />
+            <div className="space-y-2">
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="Phone number"
+                className="w-full border-b border-ink/20 bg-transparent pb-3 text-xl font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+              />
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                So the FitRush team can verify your account. Never shown to clients.
+              </p>
+            </div>
           </div>
         )}
 

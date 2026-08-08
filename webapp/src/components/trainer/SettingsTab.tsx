@@ -77,6 +77,7 @@ const SettingsTab: React.FC = () => {
 
   // Profile form state — initialised from store
   const [fullName, setFullName] = useState(profile?.full_name ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
   const [bio, setBio] = useState(trainerProfile?.bio ?? '');
   const [location, setLocation] = useState(trainerProfile?.location ?? '');
   const [specialty, setSpecialty] = useState(trainerProfile?.specialty ?? 'strength_training');
@@ -185,7 +186,7 @@ const SettingsTab: React.FC = () => {
     setSavingProfile(true);
     try {
       // Update profiles table (name + avatar already saved inline)
-      await updateProfile({ full_name: trimmedName });
+      await updateProfile({ full_name: trimmedName, phone: phone.trim() || null });
 
       // Update trainer_profiles table
       const { error } = await supabase
@@ -266,6 +267,17 @@ const SettingsTab: React.FC = () => {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Your public trainer name"
+            className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+          />
+        </Field>
+
+        {/* Phone */}
+        <Field label="Phone" hint="Used by the FitRush team to verify your account. Never shown to clients.">
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="310-200-9013"
             className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
           />
         </Field>

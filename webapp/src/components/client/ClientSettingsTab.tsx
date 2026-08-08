@@ -140,7 +140,7 @@ const ClientSettingsTab: React.FC = () => {
 
   // Profile form state
   const [fullName, setFullName] = useState(profile?.full_name ?? '');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url ?? '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -196,7 +196,7 @@ const ClientSettingsTab: React.FC = () => {
 
     setSavingProfile(true);
     try {
-      await updateProfile({ full_name: trimmedName });
+      await updateProfile({ full_name: trimmedName, phone: phone.trim() || null });
       await fetchProfile(user.id);
       toast.success('Profile saved.');
     } catch (err) {

@@ -196,14 +196,12 @@ Deno.serve(async (req) => {
 
         console.log('[stripe-webhook] payout.paid: marked payout_transaction completed', payoutTx.id, 'for trainer', trainer.id);
 
-        // Get trainer's email for completion notification
-        const { data: profile } = await adminClient
-          .from('profiles')
-          .select('email')
-          .eq('id', trainer.user_id)
-          .maybeSingle();
+        // profiles has no email column — the address lives in auth.users, so the
+        // old profiles.select('email') always came back empty and this never sent.
+        const { data: userData } = await adminClient.auth.admin.getUserById(trainer.user_id);
+        const trainerEmail = userData?.user?.email as string | undefined;
 
-        if (profile?.email) {
+        if (trainerEmail) {
           const resendApiKey = Deno.env.get('RESEND_API_KEY');
           if (resendApiKey) {
             const amount = Number(payoutTx.amount).toFixed(2);
@@ -215,7 +213,7 @@ Deno.serve(async (req) => {
               },
               body: JSON.stringify({
                 from: 'FitRush <noreply@resend.dev>',
-                to: [profile.email],
+                to: [trainerEmail],
                 subject: 'Your FitRush payout has arrived',
                 html: `<p>Your payout of $${amount} has arrived in your bank account.</p>`,
               }),
