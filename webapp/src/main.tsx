@@ -21,6 +21,11 @@ if (!rootElement) {
   throw new Error('Could not find root element to mount to');
 }
 
+// Stamps the served build onto <html data-build>. Production here has twice
+// been verified wrong by trusting a green build, so make "what is actually
+// live" readable straight from the page.
+document.documentElement.dataset.build = import.meta.env.VITE_BUILD_ID ?? 'dev';
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>

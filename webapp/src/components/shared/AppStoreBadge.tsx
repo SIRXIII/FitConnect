@@ -21,7 +21,7 @@ const AppStoreBadge: React.FC<AppStoreBadgeProps> = ({ className = '' }) => {
       className={`inline-block opacity-90 hover:opacity-100 transition-opacity duration-300 ${className}`}
     >
       <img
-        src="/assets/download-on-the-app-store.svg"
+        src="/download-on-the-app-store.svg"
         alt="Download FitRush on the App Store"
         width={144}
         height={48}

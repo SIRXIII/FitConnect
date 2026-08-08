@@ -6,5 +6,9 @@
   Cache-Control: no-cache, no-store, must-revalidate
   Pragma: no-cache
 
+# Deliberately NOT `immutable`, and only an hour. Filenames here are
+# content-hashed so long caching buys little, but a request that lands before a
+# new deploy has propagated gets the SPA fallback HTML, and `immutable` pinned
+# that wrong body for a year and blanked the entire site (2026-08-08).
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=3600

@@ -28,7 +28,9 @@ describe('AppStoreBadge', () => {
   it('serves the vendored official badge with reserved dimensions', () => {
     render(<AppStoreBadge />);
     const img = screen.getByAltText('Download FitRush on the App Store');
-    expect(img.getAttribute('src')).toBe('/assets/download-on-the-app-store.svg');
+    // Deliberately NOT under /assets/*: _headers marks that prefix immutable for a
+    // year, and a fallback response cached there once pinned a broken image.
+    expect(img.getAttribute('src')).toBe('/download-on-the-app-store.svg');
     // width/height reserve space so the badge cannot cause layout shift
     expect(img.getAttribute('width')).toBe('144');
     expect(img.getAttribute('height')).toBe('48');
