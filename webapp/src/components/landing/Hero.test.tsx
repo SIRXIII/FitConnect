@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Hero from './Hero';
 
 // Mock framer-motion to avoid animation complexity in tests
@@ -11,76 +11,47 @@ vi.mock('framer-motion', () => ({
   },
 }));
 
-// Mock sonner
-const mockToastSuccess = vi.fn();
-const mockToastError = vi.fn();
-vi.mock('sonner', () => ({
-  toast: {
-    success: (...args: any[]) => mockToastSuccess(...args),
-    error: (...args: any[]) => mockToastError(...args),
-  },
-}));
-
-// Mock import.meta.env
-vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co');
-
-describe('Hero waitlist', () => {
+describe('Hero', () => {
   beforeEach(() => {
+    cleanup();
     vi.restoreAllMocks();
-    mockToastSuccess.mockClear();
-    mockToastError.mockClear();
   });
 
-  it('renders email input and Get Early Access button in idle state', () => {
+  it('renders the headline and value proposition', () => {
     render(<Hero />);
-    expect(screen.getByPlaceholderText('Enter your email')).toBeTruthy();
-    expect(screen.getByText('Get Early Access')).toBeTruthy();
+    expect(screen.getByText(/Book Elite Trainers/)).toBeTruthy();
+    expect(screen.getByText(/Certified trainers with open availability/)).toBeTruthy();
   });
 
-  it('shows error on invalid email submit without calling fetch', async () => {
+  it('offers the App Store badge as the primary call to action', () => {
+    render(<Hero />);
+    const link = screen.getByRole('link', { name: 'Download FitRush on the App Store' });
+    expect(link.getAttribute('href')).toBe(
+      'https://apps.apple.com/us/app/fitrush-personal-trainer/id6766015234'
+    );
+  });
+
+  it('scrolls to the search section when Browse Trainers is clicked', () => {
+    const scrollIntoView = vi.fn();
+    vi.spyOn(document, 'getElementById').mockReturnValue({
+      scrollIntoView,
+    } as unknown as HTMLElement);
+
+    render(<Hero />);
+    fireEvent.click(screen.getByText('Browse Trainers'));
+
+    expect(document.getElementById).toHaveBeenCalledWith('search');
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' });
+  });
+
+  it('no longer renders the retired early-access waitlist', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     render(<Hero />);
-    const input = screen.getByPlaceholderText('Enter your email');
-    fireEvent.change(input, { target: { value: 'notanemail' } });
-    fireEvent.submit(input.closest('form')!);
-    await waitFor(() => {
-      expect(screen.getByText('Please enter a valid email address')).toBeTruthy();
-    });
+
+    expect(screen.queryByPlaceholderText('Enter your email')).toBeNull();
+    expect(screen.queryByText('Get Early Access')).toBeNull();
+    expect(screen.queryByText("I'm looking for a trainer")).toBeNull();
+    expect(document.querySelector('form')).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('calls waitlist-signup and transitions to submitted state on valid email', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ success: true }), { status: 200 })
-    );
-    render(<Hero />);
-    const input = screen.getByPlaceholderText('Enter your email');
-    fireEvent.change(input, { target: { value: 'test@example.com' } });
-    fireEvent.submit(input.closest('form')!);
-    await waitFor(() => {
-      expect(screen.getByText(/In\./)).toBeTruthy();
-    });
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      'https://test.supabase.co/functions/v1/waitlist-signup',
-      expect.objectContaining({ method: 'POST' })
-    );
-    expect(mockToastSuccess).toHaveBeenCalledWith('You are on the early access list.');
-  });
-
-  it('submitted state does not show position number', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ success: true }), { status: 200 })
-    );
-    render(<Hero />);
-    const input = screen.getByPlaceholderText('Enter your email');
-    fireEvent.change(input, { target: { value: 'test@example.com' } });
-    fireEvent.submit(input.closest('form')!);
-    await waitFor(() => {
-      expect(screen.getByText(/In\./)).toBeTruthy();
-    });
-    // Verify no position number text exists
-    const body = document.body.textContent ?? '';
-    expect(body).not.toMatch(/#\d+/);
-    expect(body.toLowerCase()).not.toContain('position');
   });
 });
