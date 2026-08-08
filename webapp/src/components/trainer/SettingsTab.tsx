@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Camera, Check, AlertTriangle } from 'lucide-react';
 import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import DeleteAccountModal from '@/components/shared/DeleteAccountModal';
@@ -92,6 +92,27 @@ const SettingsTab: React.FC = () => {
   const [savingProfile, setSavingProfile] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Suggested optimized rate — non-critical: any error, an empty result (non-
+  // trainer), or show_suggestion === false simply renders no chip.
+  const [suggestedRate, setSuggestedRate] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchSuggestion = async () => {
+      const { data, error } = await (supabase as any).rpc('get_trainer_suggested_rate');
+      if (cancelled || error) return;
+      const row = data?.[0];
+      if (!row || !row.show_suggestion || row.suggested_rate == null) return;
+      setSuggestedRate(Math.round(Number(row.suggested_rate)));
+    };
+
+    fetchSuggestion();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const initials = fullName.trim()
     ? fullName.trim().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -358,6 +379,15 @@ const SettingsTab: React.FC = () => {
               />
               <span className="text-ink/40 text-xs">/hr</span>
             </div>
+            {suggestedRate !== null && Number(optimizedRate) !== suggestedRate && (
+              <button
+                type="button"
+                onClick={() => setOptimizedRate(String(suggestedRate))}
+                className="border border-accent/30 text-accent px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] hover:border-accent transition-colors"
+              >
+                Suggested: ${suggestedRate}/hr
+              </button>
+            )}
           </Field>
         </div>
 

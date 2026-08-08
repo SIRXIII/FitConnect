@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Download } from 'lucide-react';
 import OptimizationSection from './OptimizationSection';
+import RevenueInsightCard from './RevenueInsightCard';
 import {
   AreaChart,
   Area,
@@ -361,6 +362,7 @@ const AnalyticsTab: React.FC = () => {
       </div>
 
       {/* ---- Section F: Optimization ---- */}
+      {trainerProfile && <RevenueInsightCard />}
       {trainerProfile && <OptimizationSection trainerId={trainerProfile.id} />}
 
       {/* ---- Section E: Export CSV ---- */}
