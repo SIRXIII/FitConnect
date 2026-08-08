@@ -17,16 +17,18 @@ const Footer: React.FC = () => {
             <p className="text-paper/40 text-sm font-light leading-relaxed max-w-sm">
               Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
             </p>
+            {/* Not links yet: href="#" with target="_blank" opened an empty tab.
+                Swap back to <a> once the real profile URLs exist. */}
             <div className="flex space-x-8">
-              <a href="#" target="_blank" rel="noopener noreferrer" title="Coming soon" className="text-paper/40 hover:text-accent transition-colors" aria-label="Instagram">
+              <span title="Coming soon" className="text-paper/40" role="img" aria-label="Instagram, coming soon">
                 <Instagram size={18} strokeWidth={1.5} />
-              </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" title="Coming soon" className="text-paper/40 hover:text-accent transition-colors" aria-label="Twitter">
+              </span>
+              <span title="Coming soon" className="text-paper/40" role="img" aria-label="Twitter, coming soon">
                 <Twitter size={18} strokeWidth={1.5} />
-              </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" title="Coming soon" className="text-paper/40 hover:text-accent transition-colors" aria-label="LinkedIn">
+              </span>
+              <span title="Coming soon" className="text-paper/40" role="img" aria-label="LinkedIn, coming soon">
                 <Linkedin size={18} strokeWidth={1.5} />
-              </a>
+              </span>
             </div>
           </div>
 

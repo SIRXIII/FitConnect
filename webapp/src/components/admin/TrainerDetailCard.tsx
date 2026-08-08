@@ -1,5 +1,10 @@
+import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+
+const REQUEST_DOC_NOTE =
+  'Please upload a photo or PDF of your certification card so we can verify it.';
 
 export interface PendingTrainerCertDoc {
   id: string;
@@ -77,6 +82,13 @@ export function computeMissingTrainerFields(trainer: PendingTrainer): string[] {
     )
   ) {
     missing.push('certifications');
+  } else if (
+    (trainer.cert_documents?.length ?? 0) > 0 &&
+    !trainer.cert_documents.some((d) => d.file_path || d.file_url) &&
+    !trainer.certification_url
+  ) {
+    // Certs claimed but nothing to verify against — can't approve on a name alone.
+    missing.push('certification files');
   }
   if (!trainer.intro_video_url) missing.push('intro video');
   if (!((trainer.gym_memberships?.length ?? 0) > 0)) missing.push('gym memberships');
@@ -93,6 +105,8 @@ interface Props {
   approvingId?: string | null;
   decliningId?: string | null;
   onMessageTrainer?: () => void;
+  /** Called after a cert decision so the parent can refetch this trainer. */
+  onCertReviewed?: () => void;
 }
 
 const TrainerDetailCard: React.FC<Props> = ({
@@ -103,7 +117,44 @@ const TrainerDetailCard: React.FC<Props> = ({
   approvingId,
   decliningId,
   onMessageTrainer,
+  onCertReviewed,
 }) => {
+  const [certNotes, setCertNotes] = useState<Record<string, string>>({});
+  const [reviewingCertId, setReviewingCertId] = useState<string | null>(null);
+
+  const reviewCert = async (
+    doc: PendingTrainerCertDoc,
+    decision: 'approved' | 'rejected' | 'needs_info',
+  ) => {
+    const notes = (certNotes[doc.id] ?? '').trim();
+    if (decision !== 'approved' && !notes) {
+      toast.error('Add a note so the trainer knows what to fix.');
+      return;
+    }
+    setReviewingCertId(doc.id);
+    try {
+      const { error } = await (supabase as any).rpc('admin_review_cert', {
+        p_cert_id: doc.id,
+        p_decision: decision,
+        p_notes: notes || null,
+      });
+      if (error) throw error;
+      toast.success(
+        decision === 'approved'
+          ? 'Certification approved.'
+          : decision === 'rejected'
+            ? 'Certification rejected.'
+            : 'Trainer notified — awaiting more info.',
+      );
+      setCertNotes((n) => { const copy = { ...n }; delete copy[doc.id]; return copy; });
+      onCertReviewed?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Review failed — please retry.');
+    } finally {
+      setReviewingCertId(null);
+    }
+  };
+
   const location = trainer.trainer_location ?? trainer.profile_location;
   const payoutLabel = !trainer.stripe_account_id
     ? 'Not connected'
@@ -156,7 +207,14 @@ const TrainerDetailCard: React.FC<Props> = ({
             </div>
             <p className="text-sm text-ink/60 truncate">
               <a href={`mailto:${trainer.email}`} className="hover:underline">{trainer.email}</a>
-              {trainer.phone ? ` · ${trainer.phone}` : ''}
+              {' · '}
+              {trainer.phone?.trim() ? (
+                <a href={`tel:${trainer.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">
+                  {trainer.phone}
+                </a>
+              ) : (
+                <span className="text-ink/40 italic">No phone on file</span>
+              )}
             </p>
             <p className="text-xs text-ink/50 mt-0.5">
               Signed up {new Date(trainer.created_at).toLocaleDateString()}
@@ -345,29 +403,79 @@ const TrainerDetailCard: React.FC<Props> = ({
         {trainer.cert_documents.length > 0 && (
           <div className="space-y-2 pt-1">
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium">Uploaded Documents</p>
-            {trainer.cert_documents.map((doc) => (
-              <div key={doc.id} className="flex items-start gap-3 flex-wrap">
-                <span className="text-sm text-ink">{doc.cert_name ?? doc.cert_code ?? 'Document'}</span>
-                {doc.cert_number && (
-                  <span className="text-xs text-ink/55">#{doc.cert_number}</span>
-                )}
-                <span className={`text-[10px] uppercase tracking-wider font-medium ${doc.status === 'approved' ? 'text-green-700' : doc.status === 'rejected' ? 'text-red-700' : 'text-amber-700'}`}>
-                  {doc.status}
-                </span>
-                {doc.expiry_date && (
-                  <span className="text-xs text-ink/55">expires {new Date(doc.expiry_date).toLocaleDateString()}</span>
-                )}
-                {(doc.file_path || doc.file_url) && (
-                  <button
-                    type="button"
-                    onClick={() => openCertDoc(doc)}
-                    className="text-sm text-ink underline decoration-ink/30 underline-offset-2 hover:text-accent transition-colors"
-                  >
-                    View file
-                  </button>
-                )}
-              </div>
-            ))}
+            {trainer.cert_documents.map((doc) => {
+              const hasFile = !!(doc.file_path || doc.file_url);
+              const busy = reviewingCertId === doc.id;
+              return (
+                <div key={doc.id} data-testid={`cert-doc-${doc.id}`} className="border border-ink/10 px-4 py-3 space-y-3">
+                  <div className="flex items-start gap-3 flex-wrap">
+                    <span className="text-sm text-ink">{doc.cert_name ?? doc.cert_code ?? 'Document'}</span>
+                    {doc.cert_number && (
+                      <span className="text-xs text-ink/55">#{doc.cert_number}</span>
+                    )}
+                    <span className={`text-[10px] uppercase tracking-wider font-medium ${doc.status === 'approved' ? 'text-green-700' : doc.status === 'rejected' ? 'text-red-700' : 'text-amber-700'}`}>
+                      {doc.status}
+                    </span>
+                    {doc.expiry_date && (
+                      <span className="text-xs text-ink/55">expires {new Date(doc.expiry_date).toLocaleDateString()}</span>
+                    )}
+                    {hasFile ? (
+                      <button
+                        type="button"
+                        onClick={() => openCertDoc(doc)}
+                        className="text-sm text-ink underline decoration-ink/30 underline-offset-2 hover:text-accent transition-colors"
+                      >
+                        View file
+                      </button>
+                    ) : (
+                      <span className="text-sm text-ink/40 italic">No document uploaded</span>
+                    )}
+                  </div>
+
+                  <textarea
+                    value={certNotes[doc.id] ?? ''}
+                    onChange={(e) => setCertNotes((n) => ({ ...n, [doc.id]: e.target.value }))}
+                    rows={2}
+                    placeholder="Note to the trainer (required to reject or request a document)"
+                    className="w-full border border-ink/15 bg-transparent p-2 text-xs font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/25 resize-none"
+                  />
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => reviewCert(doc, 'approved')}
+                      disabled={busy || !hasFile}
+                      title={hasFile ? undefined : 'No document to verify — reject or request one.'}
+                      className="px-3 py-1.5 bg-green-600 text-white text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-green-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!hasFile && !(certNotes[doc.id] ?? '').trim()) {
+                          setCertNotes((n) => ({ ...n, [doc.id]: REQUEST_DOC_NOTE }));
+                          return;
+                        }
+                        reviewCert(doc, 'needs_info');
+                      }}
+                      disabled={busy}
+                      className="px-3 py-1.5 border border-ink/20 text-ink/70 text-[10px] uppercase tracking-[0.2em] font-medium hover:border-ink/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      {hasFile ? 'Request info' : 'Request document'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => reviewCert(doc, 'rejected')}
+                      disabled={busy}
+                      className="px-3 py-1.5 border border-red-200 text-red-700 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

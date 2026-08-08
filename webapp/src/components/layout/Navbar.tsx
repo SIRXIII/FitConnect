@@ -247,6 +247,9 @@ const Navbar: React.FC = () => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-ink p-2"
+              aria-label={isOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
             >
               {isOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
             </button>
@@ -256,11 +259,12 @@ const Navbar: React.FC = () => {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden bg-paper fixed inset-0 z-[60] flex flex-col justify-center items-center space-y-8">
+        <div id="mobile-menu" className="md:hidden bg-paper fixed inset-0 z-[60] flex flex-col justify-center items-center space-y-8">
           {/* Close button */}
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-8 right-6 p-2 text-ink"
+            aria-label="Close menu"
           >
             <X size={20} strokeWidth={1.5} />
           </button>

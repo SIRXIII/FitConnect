@@ -2557,6 +2557,7 @@ const AdminDashboard: React.FC = () => {
                     onDecline={handleDeclineTrainer}
                     approvingId={approvingTrainerId}
                     decliningId={decliningTrainerId}
+                    onCertReviewed={fetchPendingTrainers}
                   />
                 ))}
               </div>
@@ -2802,6 +2803,7 @@ const AdminDashboard: React.FC = () => {
             <TrainerDetailCard
               trainer={viewingTrainer}
               onMessageTrainer={() => handleMessageTrainer(viewingTrainer.user_id, viewingTrainer.full_name || 'this trainer')}
+              onCertReviewed={() => openTrainerDetail(viewingTrainer.user_id)}
             />
           )}
         </div>

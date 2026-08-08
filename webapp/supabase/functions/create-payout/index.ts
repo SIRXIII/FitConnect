@@ -305,6 +305,34 @@ Deno.serve(async (req) => {
       } else if (!resendApiKey) { console.log('[create-payout] No RESEND_API_KEY — skipping initiation email'); }
     } catch (emailErr) { console.warn('[create-payout] Email send failed (non-blocking):', emailErr); }
 
+    // In-app bell + push. Resend still runs on the sandbox domain, so this is the
+    // channel the trainer actually receives. Non-blocking on purpose: the money
+    // has already moved, so a notify failure must never fail the response.
+    const sessionCount = (sweptRows ?? []).length;
+    const payoutTitle = 'Payout released';
+    const payoutBody = `Your payout of $${sweptAmount.toFixed(2)} for ${sessionCount} session${sessionCount === 1 ? '' : 's'} was released to your Stripe account.`;
+    try {
+      const { error: notifyError } = await adminClient.from('notifications').insert({
+        user_id: trainerProfile.user_id,
+        type: 'payout_released',
+        title: payoutTitle,
+        message: payoutBody,
+        link: '/trainer/dashboard',
+      });
+      if (notifyError) console.warn('[create-payout] Notification insert failed (non-blocking):', notifyError);
+    } catch (notifyErr) { console.warn('[create-payout] Notification insert threw (non-blocking):', notifyErr); }
+
+    fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${supabaseServiceRoleKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_ids: [trainerProfile.user_id],
+        title: payoutTitle,
+        body: payoutBody,
+        data: { type: 'payout_released' },
+      }),
+    }).catch((pushErr) => console.warn('[create-payout] Push failed (non-blocking):', pushErr));
+
     return new Response(JSON.stringify({ success: true, amount: sweptAmount, transferId: transfer.id }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
