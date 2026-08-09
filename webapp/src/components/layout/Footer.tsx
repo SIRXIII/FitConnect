@@ -1,4 +1,4 @@
-import { Instagram, Twitter, Linkedin } from 'lucide-react';
+import { Instagram, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isNativeiOS } from '@/lib/platform';
 
@@ -17,18 +17,18 @@ const Footer: React.FC = () => {
             <p className="text-paper/40 text-sm font-light leading-relaxed max-w-sm">
               Refining the standard of personal training. Connecting discerning individuals with certified mastery during exclusive downtime.
             </p>
-            {/* Not links yet: href="#" with target="_blank" opened an empty tab.
-                Swap back to <a> once the real profile URLs exist. */}
             <div className="flex space-x-8">
-              <span title="Coming soon" className="text-paper/40" role="img" aria-label="Instagram, coming soon">
+              <a href="https://www.instagram.com/fitrush.io/" target="_blank" rel="noopener noreferrer" className="text-paper/40 hover:text-paper/60 transition-colors" aria-label="Instagram">
                 <Instagram size={18} strokeWidth={1.5} />
-              </span>
-              <span title="Coming soon" className="text-paper/40" role="img" aria-label="Twitter, coming soon">
-                <Twitter size={18} strokeWidth={1.5} />
-              </span>
-              <span title="Coming soon" className="text-paper/40" role="img" aria-label="LinkedIn, coming soon">
-                <Linkedin size={18} strokeWidth={1.5} />
-              </span>
+              </a>
+              <a href="https://www.tiktok.com/@fitrush.io" target="_blank" rel="noopener noreferrer" className="text-paper/40 hover:text-paper/60 transition-colors" aria-label="TikTok">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+                </svg>
+              </a>
+              <a href="https://www.facebook.com/profile.php?id=61572141088424" target="_blank" rel="noopener noreferrer" className="text-paper/40 hover:text-paper/60 transition-colors" aria-label="Facebook">
+                <Facebook size={18} strokeWidth={1.5} />
+              </a>
             </div>
           </div>
 

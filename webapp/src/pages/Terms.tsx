@@ -39,7 +39,9 @@ const Terms: React.FC = () => {
             <p>
               All payments are processed securely through Stripe. By making a payment, you agree
               to Stripe's terms of service. Trainers receive payouts on a weekly basis for
-              completed sessions, minus applicable platform fees.
+              completed sessions, minus the FitRush platform fee (currently 13% per booking).
+              Founding Personal Trainers are exempt from the platform fee for the first 12 months
+              after joining. The platform fee rate is subject to change with notice.
             </p>
           </section>
 

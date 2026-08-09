@@ -110,8 +110,9 @@ const RoleSelect: React.FC = () => {
               <h3 className="text-xs uppercase tracking-[0.2em] font-semibold text-ink">
                 Certified Personal Trainer
               </h3>
+              {/* Keep the percentages in sync with platform_settings.platform_fee_pct */}
               <p className="text-sm text-ink/50 leading-relaxed font-light">
-                Fill your open hours with off-peak sessions. Keep 92% of every booking. Set your own rates and availability.
+                Fill your open hours with off-peak sessions. Keep 87% of every booking, or 100% for your first 12 months as a Founding Trainer. Set your own rates and availability.
               </p>
               <p className="text-[10px] uppercase tracking-[0.15em] text-accent/70 font-medium">
                 Requires valid CPT certification
