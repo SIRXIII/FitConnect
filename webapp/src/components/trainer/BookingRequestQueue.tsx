@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 import BookingRequestCard from './BookingRequestCard';
 
 interface BookingRequest {
@@ -34,6 +35,7 @@ interface BookingRequest {
 
 const BookingRequestQueue: React.FC = () => {
   const { trainerProfile } = useAuthStore();
+  const { feeFor } = usePlatformFee();
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -133,14 +135,17 @@ const BookingRequestQueue: React.FC = () => {
       return;
     }
 
-    // Create the actual booking via atomic RPC
+    // Create the actual booking via atomic RPC.
+    // Fee comes from platform_settings (0% during a founding trainer's first 12 months).
+    const rate = Number(trainerProfile.optimized_rate);
+    const platformFee = Math.round(rate * feeFor(trainerProfile.created_at) * 100) / 100;
     const { data: rpcData, error: rpcError } = await supabase.rpc('create_booking_atomic', {
       p_slot_id: request.slot_id,
       p_client_id: request.client_id,
       p_trainer_id: trainerProfile.id,
-      p_rate_charged: Number(trainerProfile.optimized_rate),
-      p_platform_fee: Math.round(Number(trainerProfile.optimized_rate) * 0.08 * 100) / 100,
-      p_trainer_payout: Math.round(Number(trainerProfile.optimized_rate) * 0.92 * 100) / 100,
+      p_rate_charged: rate,
+      p_platform_fee: platformFee,
+      p_trainer_payout: Math.round((rate - platformFee) * 100) / 100,
       p_notes: null,
     });
 

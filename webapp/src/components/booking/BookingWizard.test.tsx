@@ -38,7 +38,7 @@ const defaultProps = {
   stripeConfigured: true,
   handleBooking: vi.fn().mockResolvedValue('booking-1'),
   createPaymentIntent: vi.fn().mockResolvedValue('pi_secret_123'),
-  platformFeePct: 0.08,
+  platformFeePct: 0.13,
   referralDiscountPending: false,
 };
 

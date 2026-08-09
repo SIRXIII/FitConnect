@@ -196,9 +196,12 @@ const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<Stats>({ totalBookings: 0, totalRevenue: 0, activeUsers: 0, avgDiscount: 0 });
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState('');
-  const [platformFee, setPlatformFee] = useState('0.08');
-  const [savedFee, setSavedFee] = useState('0.08');
+  const [platformFee, setPlatformFee] = useState('0.13');
+  const [savedFee, setSavedFee] = useState('0.13');
   const [savingFee, setSavingFee] = useState(false);
+  const [foundingCutoff, setFoundingCutoff] = useState('2026-10-01');
+  const [savedCutoff, setSavedCutoff] = useState('2026-10-01');
+  const [savingCutoff, setSavingCutoff] = useState(false);
   const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support' | 'pending-trainers' | 'sessions'>('analytics');
   const { tickets: supportTickets, refetch: refetchSupportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
@@ -313,7 +316,7 @@ const AdminDashboard: React.FC = () => {
           .in('role', ['trainer', 'client'])
           .eq('is_suspended', false),
         supabase.from('trainer_profiles').select('discount_percentage'),
-        supabase.from('platform_settings').select('value').eq('key', 'platform_fee_pct').single(),
+        supabase.from('platform_settings').select('key, value').in('key', ['platform_fee_pct', 'founding_cutoff']),
       ]);
 
       const totalRevenue = (paymentResult.data ?? []).reduce((sum, p) => sum + p.amount, 0);
@@ -329,9 +332,14 @@ const AdminDashboard: React.FC = () => {
         avgDiscount,
       });
 
-      if (feeResult.data?.value) {
-        setPlatformFee(feeResult.data.value);
-        setSavedFee(feeResult.data.value);
+      for (const row of feeResult.data ?? []) {
+        if (row.key === 'platform_fee_pct' && row.value) {
+          setPlatformFee(row.value);
+          setSavedFee(row.value);
+        } else if (row.key === 'founding_cutoff' && row.value) {
+          setFoundingCutoff(row.value);
+          setSavedCutoff(row.value);
+        }
       }
     } catch {
       setStats({ totalBookings: 0, totalRevenue: 0, activeUsers: 0, avgDiscount: 0 });
@@ -1022,6 +1030,31 @@ const AdminDashboard: React.FC = () => {
 
     setSavedFee(parsed.toString());
     toast.success(`Platform fee updated to ${Math.round(parsed * 100)}%`);
+  };
+
+  const handleSaveCutoff = async () => {
+    if (isNaN(new Date(foundingCutoff).getTime())) {
+      toast.error('Enter a valid date (YYYY-MM-DD)');
+      return;
+    }
+
+    setSavingCutoff(true);
+    // Plain update: platform_settings RLS has no INSERT policy, and the
+    // founding_cutoff row is seeded in the database.
+    const { error } = await supabase
+      .from('platform_settings')
+      .update({ value: foundingCutoff, updated_at: new Date().toISOString() })
+      .eq('key', 'founding_cutoff');
+
+    setSavingCutoff(false);
+
+    if (error) {
+      toast.error('Failed to save founding cutoff');
+      return;
+    }
+
+    setSavedCutoff(foundingCutoff);
+    toast.success('Founding Trainer cutoff updated');
   };
 
   const handleOverride = async (trainerId: string, tier: 'free' | 'pro' | 'elite') => {
@@ -2733,7 +2766,7 @@ const AdminDashboard: React.FC = () => {
                       value={platformFee}
                       onChange={(e) => setPlatformFee(e.target.value)}
                       className="w-full border border-ink/10 px-4 py-3 text-sm text-ink bg-transparent focus:outline-none focus:border-ink/30"
-                      placeholder="0.08"
+                      placeholder="0.13"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-ink/50 uppercase tracking-widest">
                       {isNaN(parseFloat(platformFee)) ? '' : `${Math.round(parseFloat(platformFee) * 100)}%`}
@@ -2747,8 +2780,37 @@ const AdminDashboard: React.FC = () => {
                     {savingFee ? 'Saving…' : 'Save'}
                   </button>
                 </div>
-                <p className="text-[10px] text-ink/25">Enter as decimal (e.g. 0.08 = 8%). Max 0.5 (50%).</p>
+                <p className="text-[10px] text-ink/25">Enter as decimal (e.g. 0.13 = 13%). Max 0.5 (50%).</p>
                 <p className="text-[10px] text-ink/40 mt-1">Platform fee is the platform's commission — it does not make a session free. To give complimentary sessions, use the Sessions tab.</p>
+              </div>
+            </div>
+
+            <div className="border border-ink/10 p-8 max-w-lg space-y-6">
+              <div className="flex items-center gap-3">
+                <Settings size={16} strokeWidth={1.5} className="text-ink/40" />
+                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Founding Trainer Cutoff</p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-ink/50">
+                  Current: {savedCutoff}
+                </p>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="date"
+                    value={foundingCutoff}
+                    onChange={(e) => setFoundingCutoff(e.target.value)}
+                    className="flex-1 border border-ink/10 px-4 py-3 text-sm text-ink bg-transparent focus:outline-none focus:border-ink/30"
+                  />
+                  <button
+                    onClick={handleSaveCutoff}
+                    disabled={foundingCutoff === savedCutoff || savingCutoff}
+                    className="border border-accent text-accent px-8 py-3 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {savingCutoff ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-ink/40 mt-1">Trainers who joined before this date are Founding Trainers: 0% platform fee for their first 12 months, then the standard fee. Move the date to extend or end the promo.</p>
               </div>
             </div>
 

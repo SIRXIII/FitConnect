@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, Gift, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTrainerById, useTrainerBySlug } from '@/hooks/useTrainers';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { formatSpecialty } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
@@ -42,6 +43,7 @@ const TrainerProfile: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile } = useAuthStore();
+  const { isFounding } = usePlatformFee();
 
   // Call both hooks unconditionally (hook rules); only one will be active at a time
   const { trainer: trainerById, loading: loadingById } = useTrainerById(slug ? undefined : id);
@@ -370,6 +372,12 @@ const TrainerProfile: React.FC = () => {
   const avatar = trainer.profiles?.avatar_url;
   const rating = Number(trainer.rating);
   const certs = trainer.certifications || [];
+  const joinedDate = trainer.created_at ? new Date(trainer.created_at) : null;
+  const joinedLabel =
+    joinedDate && !isNaN(joinedDate.getTime())
+      ? joinedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      : null;
+  const foundingTrainer = isFounding(trainer.created_at);
 
   // Cheapest rate for sticky CTA (prefer discounted rate if present)
   const cheapestRate = (() => {
@@ -455,6 +463,15 @@ const TrainerProfile: React.FC = () => {
                     {trainer.location || 'Not specified'}
                   </div>
                 </div>
+                {joinedLabel && (
+                  <div className="flex items-center justify-between border-t border-ink/5 pt-4">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Joined</span>
+                    <div className="flex items-center gap-1 text-sm text-ink/60">
+                      <Calendar size={12} />
+                      {joinedLabel}
+                    </div>
+                  </div>
+                )}
                 {trainer.verified && (
                   <div className="flex items-center justify-between border-t border-ink/5 pt-4">
                     <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Verified</span>
@@ -543,6 +560,17 @@ const TrainerProfile: React.FC = () => {
                     <div className="flex items-center gap-1.5 pr-4">
                       <Shield size={11} className="text-accent flex-shrink-0" />
                       <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Verified</span>
+                    </div>
+                    <div className="h-3 border-r border-ink/15 mr-4" />
+                  </>
+                )}
+                {foundingTrainer && (
+                  <>
+                    <div className="flex items-center gap-1.5 pr-4">
+                      <Award size={11} className="text-accent flex-shrink-0" />
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">
+                        Founding Trainer{joinedLabel ? ` · Since ${joinedLabel}` : ''}
+                      </span>
                     </div>
                     <div className="h-3 border-r border-ink/15 mr-4" />
                   </>

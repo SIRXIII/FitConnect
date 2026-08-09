@@ -21,7 +21,7 @@ const TRAINER_FAQS: FAQItem[] = [
   {
     question: 'How does pricing work?',
     answer:
-      'You set your own rates. FitRush applies a small platform fee on each booking. The rest goes directly to your connected Stripe account. No surprise deductions.',
+      'You set your own rates. FitRush applies a 13% platform fee on each booking, so you keep 87% of every session, paid directly to your connected Stripe account. Founding Personal Trainers pay no commission at all for their first 12 months. No surprise deductions.',
   },
   {
     question: 'When and how do I get paid?',
@@ -74,7 +74,7 @@ const CLIENT_FAQS: FAQItem[] = [
   {
     question: 'How do payments work?',
     answer:
-      'You pay securely through Stripe at the time of booking. No card details are stored on FitRush. If you cancel more than 24 hours before your session, you get a full refund.',
+      'You pay securely through Stripe at the time of booking. The rate you see already includes the platform fee, so nothing extra is added at checkout. No card details are stored on FitRush. If you cancel more than 24 hours before your session, you get a full refund.',
   },
 ];
 

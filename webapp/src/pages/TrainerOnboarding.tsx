@@ -4,6 +4,7 @@ import { ChevronLeft, Check, ShieldCheck, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { trainerProfileSchema } from '@/lib/schemas';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
 import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
@@ -39,6 +40,10 @@ interface FormData {
 
 const TrainerOnboarding: React.FC = () => {
   const { user, profile, trainerProfile, updateProfile } = useAuthStore();
+  const { feeFor } = usePlatformFee();
+  // New signups join today, so this reflects the founding promo while it runs.
+  const onboardingFeePct = feeFor(new Date().toISOString());
+  const keepPct = Math.round((1 - onboardingFeePct) * 100);
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const TOTAL_STEPS = 5;
@@ -534,7 +539,10 @@ const TrainerOnboarding: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.2em] font-semibold text-accent">Optimized Rate</p>
-                    <p className="text-xs text-ink/40 mt-1 font-light">Discounted rate for off-peak bookings. You keep 92%.</p>
+                    <p className="text-xs text-ink/40 mt-1 font-light">
+                      Discounted rate for off-peak bookings. You keep {keepPct}%.
+                      {onboardingFeePct === 0 && ' Founding Trainer: 0% commission for your first 12 months.'}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-ink/40 text-sm">$</span>
@@ -547,7 +555,7 @@ const TrainerOnboarding: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-[11px] text-ink/40 font-light">
-                  You keep <strong className="text-ink">${(parseFloat(form.optimized_rate || '0') * 0.92).toFixed(2)}</strong> per session booked at optimized rate.
+                  You keep <strong className="text-ink">${(parseFloat(form.optimized_rate || '0') * (1 - onboardingFeePct)).toFixed(2)}</strong> per session booked at optimized rate.
                 </p>
               </div>
             </div>

@@ -49,7 +49,7 @@ const FAQ_SECTIONS: FAQSection[] = [
       {
         question: 'How does billing work?',
         answer:
-          'Payment is processed at the time of booking through our secure Stripe integration. The full session fee is charged immediately. Trainers receive their payout after the session is complete, minus the FitRush platform fee.',
+          'Payment is processed at the time of booking through our secure Stripe integration. The full session fee is charged immediately. Trainers receive their payout after the session is complete, minus the 13% FitRush platform fee. Founding Personal Trainers pay no commission for their first 12 months.',
       },
       {
         question: 'How do refunds work?',
@@ -64,7 +64,7 @@ const FAQ_SECTIONS: FAQSection[] = [
       {
         question: 'Are there any hidden fees?',
         answer:
-          'The price shown on the trainer\'s profile is the total you pay. There are no booking fees or hidden charges added at checkout.',
+          'The price shown on the trainer\'s profile is the total you pay. The 13% platform fee is already included in that price, so no booking fees or hidden charges are added at checkout.',
       },
     ],
   },

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { STRIPE_CONFIGURED } from '@/lib/stripe';
 import { useAuthStore } from '@/stores/auth';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { SkeletonLine, SkeletonRect } from '@/components/shared/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { BookingWizard } from '@/components/booking/BookingWizard';
@@ -123,7 +124,8 @@ const BookSession: React.FC = () => {
   const [slot, setSlot] = useState<SlotWithTrainer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [platformFeePct, setPlatformFeePct] = useState(0.08);
+  const { feeFor } = usePlatformFee();
+  const platformFeePct = feeFor(slot?.trainer_profiles?.created_at);
   const [referralDiscountPending, setReferralDiscountPending] = useState(false);
   const [bookedSlotIds, setBookedSlotIds] = useState<string[]>([]);
 
@@ -133,32 +135,21 @@ const BookSession: React.FC = () => {
     setError(null);
 
     try {
-      const [{ data: slotData, error: slotError }, { data: feeSettings }] = await Promise.all([
-        supabase
-          .from('availability_slots')
-          .select(`
+      const { data: slotData, error: slotError } = await supabase
+        .from('availability_slots')
+        .select(`
+          *,
+          trainer_profiles!availability_slots_trainer_id_fkey (
             *,
-            trainer_profiles!availability_slots_trainer_id_fkey (
-              *,
-              profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
-            )
-          `)
-          .eq('id', slotId)
-          .single(),
-        supabase
-          .from('platform_settings')
-          .select('value')
-          .eq('key', 'platform_fee_pct')
-          .single(),
-      ]);
+            profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
+          )
+        `)
+        .eq('id', slotId)
+        .single();
 
       if (slotError) throw slotError;
 
       setSlot(slotData as unknown as SlotWithTrainer | null);
-      if (feeSettings?.value) {
-        const parsed = parseFloat(feeSettings.value);
-        if (!isNaN(parsed)) setPlatformFeePct(parsed);
-      }
     } catch {
       setError('Failed to load session details.');
     } finally {
