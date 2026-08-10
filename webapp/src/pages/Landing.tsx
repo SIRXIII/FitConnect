@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Hero from '@/components/landing/Hero';
 import SearchSection from '@/components/search/SearchSection';
@@ -10,18 +8,8 @@ import TrainerTestimonials from '@/components/landing/TrainerTestimonials';
 import TrustSafety from '@/components/landing/TrustSafety';
 import ReferralLeaderboard from '@/components/landing/ReferralLeaderboard';
 import Partners from '@/components/landing/Partners';
-import { captureReferralCode } from '@/lib/referral';
 
 const Landing: React.FC = () => {
-  const [searchParams] = useSearchParams();
-
-  useEffect(() => {
-    const refCode = searchParams.get('ref');
-    if (refCode) {
-      captureReferralCode(refCode);
-    }
-  }, []);
-
   return (
     <motion.div
       initial={{ opacity: 0 }}

@@ -11,6 +11,7 @@ import DiscountSlider, { computeDiscountedRate } from '@/components/trainer/Disc
 import PayoutsTab from '@/components/trainer/PayoutsTab';
 import AnalyticsTab from '@/components/trainer/AnalyticsTab';
 import ReferralWidget from '@/components/shared/ReferralWidget';
+import { trainerPath } from '@/lib/trainerPath';
 import LockedFeatureBanner from '@/components/shared/LockedFeatureBanner';
 import SubscriptionTab from '@/components/subscription/SubscriptionTab';
 import CalendarExportCard from '@/components/calendar/CalendarExportCard';
@@ -403,7 +404,10 @@ const TrainerDashboard: React.FC = () => {
 
         {/* Referral Widget */}
         {profile?.referral_code && (
-          <ReferralWidget referralCode={profile.referral_code} />
+          <ReferralWidget
+            referralCode={profile.referral_code}
+            trainerPath={trainerProfile ? trainerPath(trainerProfile) : undefined}
+          />
         )}
 
         {/* Workout Locations */}

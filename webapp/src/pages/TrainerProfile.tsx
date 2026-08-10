@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, Gift, ChevronDown } from 'lucide-react';
+import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTrainerById, useTrainerBySlug } from '@/hooks/useTrainers';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
@@ -273,7 +273,7 @@ const TrainerProfile: React.FC = () => {
 
     // Page title
     const prevTitle = document.title;
-    document.title = `${trainerName} — ${specialty} | FitRush`;
+    document.title = `${trainerName}, ${specialty} | FitRush`;
 
     // Meta description — reuse the document's existing <meta name="description">
     // so we never create a second, competing tag. Create one only if absent.
@@ -589,16 +589,6 @@ const TrainerProfile: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Complimentary trial banner — new clients, hide on own profile */}
-            {!isOwnProfile && (
-              <div className="flex items-center gap-3 border border-accent/30 bg-accent/5 px-5 py-3">
-                <Gift size={14} className="text-accent flex-shrink-0" />
-                <p className="text-sm text-ink/70">
-                  New clients — your first two 30-minute sessions are complimentary.
-                </p>
-              </div>
-            )}
 
             {/* Rates */}
             <div className="border border-ink/10 p-8 flex flex-wrap gap-12">

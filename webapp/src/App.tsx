@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import UrlParamCapture from '@/components/shared/UrlParamCapture';
 import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
@@ -75,6 +76,7 @@ const App: React.FC = () => {
             },
           }}
         />
+        <UrlParamCapture />
         <Navbar />
         {profile?.role === 'trainer' && <TrialBanner />}
         <Routes>

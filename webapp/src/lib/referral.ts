@@ -18,3 +18,7 @@ export function clearReferralCode(): void {
 export function buildReferralLink(code: string): string {
   return `${window.location.origin}/?ref=${encodeURIComponent(code)}`;
 }
+
+export function buildTrainerReferralLink(code: string, trainerPath: string): string {
+  return `${window.location.origin}${trainerPath}?ref=${encodeURIComponent(code)}`;
+}

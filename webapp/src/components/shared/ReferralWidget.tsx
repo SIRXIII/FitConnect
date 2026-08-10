@@ -1,15 +1,20 @@
 import { useState } from 'react';
 import { Share2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { buildReferralLink } from '@/lib/referral';
+import { buildReferralLink, buildTrainerReferralLink } from '@/lib/referral';
 
 interface ReferralWidgetProps {
   referralCode: string;
+  // Trainer's own canonical profile path (from trainerPath()), e.g. "/personal-trainer/jane-doe".
+  // When provided, the copied link points at the trainer's profile instead of the homepage.
+  trainerPath?: string;
 }
 
-const ReferralWidget: React.FC<ReferralWidgetProps> = ({ referralCode }) => {
+const ReferralWidget: React.FC<ReferralWidgetProps> = ({ referralCode, trainerPath }) => {
   const [copied, setCopied] = useState(false);
-  const referralLink = buildReferralLink(referralCode);
+  const referralLink = trainerPath
+    ? buildTrainerReferralLink(referralCode, trainerPath)
+    : buildReferralLink(referralCode);
 
   const handleCopy = async () => {
     try {
