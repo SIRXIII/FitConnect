@@ -66,6 +66,29 @@ const RoleSelect: React.FC = () => {
             console.error('[RoleSelect] referral attribution error:', err);
           }
         }
+
+        // First-touch UTM attribution, best effort, never blocks signup
+        try {
+          const raw = localStorage.getItem('fitrush_first_touch');
+          if (raw && user) {
+            const firstTouch = JSON.parse(raw) as {
+              utm_source?: string | null;
+              utm_medium?: string | null;
+              utm_campaign?: string | null;
+            };
+            const utmUpdate = {
+              utm_source: firstTouch.utm_source ?? null,
+              utm_medium: firstTouch.utm_medium ?? null,
+              utm_campaign: firstTouch.utm_campaign ?? null,
+            };
+            // utm_* columns exist only in a not-yet-applied migration; generated
+            // Supabase types don't know about them yet, hence the (as any) cast.
+            await (supabase as any).from('profiles').update(utmUpdate).eq('id', user.id);
+          }
+        } catch (err) {
+          // Silent failure, never block role selection for attribution errors
+          console.error('[RoleSelect] first-touch attribution error:', err);
+        }
       }
 
       if (selected === 'trainer') {
