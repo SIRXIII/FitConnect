@@ -247,29 +247,42 @@ const TrainerBookings: React.FC = () => {
 
     setUpdatingId(bookingId);
 
-    const updatePayload: {
-      status: BookingStatus;
-      cancellation_reason?: string;
-      cancelled_by?: string;
-    } = { status };
+    // Booking status is server-locked (column-lockdown): every transition goes
+    // through its guarded path, never a direct bookings.status write.
+    const current = bookings.find((b) => b.id === bookingId);
+    let error: { message: string } | null = null;
 
-    if (status === 'cancelled') {
-      updatePayload.cancellation_reason = cancellationReason || 'Cancelled by trainer';
-      updatePayload.cancelled_by = user.id;
+    if (status === 'completed') {
+      // Guarded edge fn: verifies the caller is the trainer + (soon) the payment.
+      const res = await supabase.functions.invoke('complete-booking', { body: { booking_id: bookingId } });
+      error = res.error;
+    } else if (status === 'no_show') {
+      // Cast: these RPCs aren't in the generated types until prod types are regenerated post-apply.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const res = await (supabase as any).rpc('mark_booking_no_show', { p_booking_id: bookingId });
+      error = res.error;
+    } else if (status === 'cancelled' && current?.status === 'pending') {
+      // Decline an unpaid request — no refund needed.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const res = await (supabase as any).rpc('decline_pending_booking', { p_booking_id: bookingId });
+      error = res.error;
+    } else if (status === 'cancelled') {
+      // Confirmed (paid) cancel -> cancel-booking edge fn, which already handles the
+      // trainer-cancel branch (full rate refund, fee waived) + idempotency + slot release.
+      const res = await supabase.functions.invoke('cancel-booking', {
+        body: { booking_id: bookingId, reason: 'trainer_request' },
+      });
+      error = res.error;
+    } else {
+      error = { message: `Unsupported transition: ${status}` };
     }
-
-    const { error } = await supabase
-      .from('bookings')
-      .update(updatePayload)
-      .eq('id', bookingId)
-      .eq('trainer_id', trainerProfile.id);
 
     if (error) {
       toast.error('Failed to update booking status. Please try again.');
     } else {
       const statusLabel = status === 'confirmed' ? 'confirmed' : status === 'completed' ? 'marked complete' : status === 'no_show' ? 'marked as no-show' : 'cancelled';
       toast.success(`Booking ${statusLabel}.`);
-      setBookings((prev) => prev.map((booking) => (booking.id === bookingId ? { ...booking, ...updatePayload } : booking)));
+      setBookings((prev) => prev.map((booking) => (booking.id === bookingId ? { ...booking, status } : booking)));
 
       // Trigger referral reward processing (non-blocking — failure does not affect booking UI)
       if (status === 'completed' && user) {
@@ -584,14 +597,6 @@ const TrainerBookings: React.FC = () => {
                     <div className="flex flex-wrap gap-3 pt-2">
                       {canManagePending && (
                         <>
-                          <button
-                            onClick={() => updateStatus(booking.id, 'confirmed')}
-                            disabled={updatingId === booking.id}
-                            className="text-[10px] uppercase tracking-[0.2em] text-green-700 border border-green-200 px-4 py-2 hover:bg-green-50 transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                          >
-                            <CheckCircle2 size={10} />
-                            Confirm
-                          </button>
                           <button
                             onClick={() => updateStatus(booking.id, 'cancelled', 'Declined by trainer')}
                             disabled={updatingId === booking.id}

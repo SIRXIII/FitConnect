@@ -31,7 +31,11 @@ export default defineConfig(() => {
     test: {
       globals: true,
       environment: 'jsdom',
-      include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      include: [
+        'src/**/*.{test,spec}.{ts,tsx}',
+        // Edge-function pure helpers (import-free, so Vitest can run them too).
+        'supabase/functions/**/*.{test,spec}.{ts,tsx}',
+      ],
     },
   };
 });

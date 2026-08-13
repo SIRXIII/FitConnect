@@ -11,7 +11,9 @@
     "cap:sync": "npx cap sync ios",
     "cap:open": "npx cap open ios",
     "ios": "npm run build && npx cap sync ios && npx cap open ios",
-    "ios:dev": "npx cap run ios --livereload --external"
+    "ios:dev": "npx cap run ios --livereload --external",
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@capacitor/core": "^8.2.0",
