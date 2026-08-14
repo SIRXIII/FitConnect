@@ -36,30 +36,45 @@ const RoleSelect: React.FC = () => {
               .maybeSingle();
 
             if (referrer && referrer.id !== user.id) {
-              await supabase.from('referrals').insert({
+              const { error: referralInsertError } = await supabase.from('referrals').insert({
                 referrer_id: referrer.id,
                 referred_id: user.id,
                 referred_role: selected, // 'trainer' or 'client'
                 status: 'pending',
               });
-              clearReferralCode();
 
-              // Attribution-time notification: tell the referrer someone signed up
-              // (REFERRAL-06 requires notification at signup AND at reward time)
-              const { data: newUserProfile } = await supabase
-                .from('profiles')
-                .select('full_name')
-                .eq('id', user.id)
-                .maybeSingle();
+              if (!referralInsertError) {
+                clearReferralCode();
 
-              await supabase.from('notifications').insert({
-                user_id: referrer.id,
-                type: 'referral_new',
-                title: 'New referral',
-                message: `${newUserProfile?.full_name || 'Someone'} signed up with your referral link — earn your reward when they complete their first booking.`,
-                link: selected === 'trainer' ? '/trainer/dashboard' : '/trainers',
-                read: false,
-              });
+                // Give side of give/get: a referred client gets $5 off their
+                // first booking, set at signup (the get side is the referrer's
+                // reward, granted later by process-referral-reward). This is a
+                // self-update on the new user's own profiles row, already
+                // within profiles_update_own's existing RLS scope.
+                if (selected === 'client') {
+                  await supabase
+                    .from('profiles')
+                    .update({ referral_discount_pending: true })
+                    .eq('id', user.id);
+                }
+
+                // Attribution-time notification: tell the referrer someone signed up
+                // (REFERRAL-06 requires notification at signup AND at reward time)
+                const { data: newUserProfile } = await supabase
+                  .from('profiles')
+                  .select('full_name')
+                  .eq('id', user.id)
+                  .maybeSingle();
+
+                await supabase.from('notifications').insert({
+                  user_id: referrer.id,
+                  type: 'referral_new',
+                  title: 'New referral',
+                  message: `${newUserProfile?.full_name || 'Someone'} signed up with your referral link. Earn your reward when they complete their first booking.`,
+                  link: selected === 'trainer' ? '/trainer/dashboard' : '/trainers',
+                  read: false,
+                });
+              }
             }
           } catch (err) {
             // Silent failure — never block role selection for referral errors
