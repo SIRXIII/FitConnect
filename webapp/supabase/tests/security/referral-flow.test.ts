@@ -3,9 +3,11 @@ import { admin, createUser, cleanupUsers } from '../helpers/testClients';
 
 // Referral give-side DB harness. Mirrors the self-attribution writes RoleSelect
 // performs on signup: the referred user inserts their own referrals row, then
-// sets their own referral_discount_pending flag. Both are attempted through a
-// client authenticated AS the referred user (RLS applies), then verified via
-// the admin client.
+// claims their own referral_discount_pending flag via the
+// claim_signup_referral_discount() RPC (direct column writes are blocked by
+// the profiles lockdown trigger -- see referral-discount-lockdown.test.ts).
+// Both are attempted through a client authenticated AS the referred user
+// (RLS applies), then verified via the admin client.
 // Requires a local instance: `supabase start` before `npm run test:db`.
 
 afterAll(async () => {
@@ -13,7 +15,7 @@ afterAll(async () => {
 });
 
 describe('referral self-attribution (mirrors RoleSelect give-side writes)', () => {
-  it('a referred user can insert their own referrals row and set their own discount flag', async () => {
+  it('a referred user can insert their own referrals row and claim their own discount flag', async () => {
     const referrer = await createUser();
     const referred = await createUser();
 
@@ -35,11 +37,11 @@ describe('referral self-attribution (mirrors RoleSelect give-side writes)', () =
     expect(referralRow?.referred_id).toBe(referred.userId);
     expect(referralRow?.status).toBe('pending');
 
-    const { error: updateError } = await referred.client
-      .from('profiles')
-      .update({ referral_discount_pending: true })
-      .eq('id', referred.userId);
-    expect(updateError).toBeNull();
+    const { data: claimResult, error: claimError } = await referred.client.rpc(
+      'claim_signup_referral_discount',
+    );
+    expect(claimError).toBeNull();
+    expect(claimResult).toBe(true);
 
     const { data: profileRow } = await admin
       .from('profiles')

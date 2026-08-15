@@ -51,14 +51,15 @@ const RoleSelect: React.FC = () => {
 
                 // Give side of give/get: a referred client gets $5 off their
                 // first booking, set at signup (the get side is the referrer's
-                // reward, granted later by process-referral-reward). This is a
-                // self-update on the new user's own profiles row, already
-                // within profiles_update_own's existing RLS scope.
+                // reward, granted later by process-referral-reward). Direct
+                // column writes to referral_discount_pending are blocked by a
+                // profiles lockdown trigger, so the give side now goes through
+                // a SECURITY DEFINER RPC instead of a self-update.
                 if (selected === 'client') {
-                  await supabase
-                    .from('profiles')
-                    .update({ referral_discount_pending: true })
-                    .eq('id', user.id);
+                  // claim_signup_referral_discount isn't in the generated
+                  // Supabase types yet, hence the (as any) cast (same pattern
+                  // used below for the utm_* columns).
+                  await (supabase as any).rpc('claim_signup_referral_discount');
                 }
 
                 // Attribution-time notification: tell the referrer someone signed up
