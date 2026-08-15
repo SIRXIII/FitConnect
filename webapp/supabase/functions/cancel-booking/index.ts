@@ -1,3 +1,13 @@
+// ============================================================================
+// STALE — DO NOT DEPLOY THIS FILE. This repo copy is an OLD client-only version.
+// The DEPLOYED cancel-booking (v38) is canonical: it already supports
+// TRAINER-cancel with a full rate refund (fee waived), cancellation_events,
+// determineTier(), and CANCEL-1/2 idempotency. Deploying this file would roll
+// production back to the buggy client-only version (over-refund, fee-loss bugs).
+// Reconcile first: `supabase functions download cancel-booking` (CLI download is
+// currently failing with an eszip bug — fix the CLI or snapshot deployed v38 by
+// hand before touching this function). See .planning/security + gstack learnings.
+// ============================================================================
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import Stripe from 'npm:stripe@14.25.0';

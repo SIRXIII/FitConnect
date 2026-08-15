@@ -50,7 +50,8 @@ const ReferralWidget: React.FC<ReferralWidgetProps> = ({ referralCode, trainerPa
       </div>
       <p className="text-xs text-ink/30 font-light leading-relaxed">
         Trainers earn $10 credit when a referred client completes their first session.
-        Clients earn $5 off when a referred trainer completes their first session with you.
+        Clients earn $5 off when a referred trainer or referred friend completes their first session.
+        New clients who join through your link get $5 off their first booking.
       </p>
     </div>
   );

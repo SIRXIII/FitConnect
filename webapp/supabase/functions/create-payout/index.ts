@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import Stripe from 'npm:stripe@14.25.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { requireEnv } from '../_shared/env.ts';
+import { findInconsistentPayoutRows } from '../_shared/payoutValidation.ts';
 
 // 2026-08-01: synced from deployed v38 (repo copy had drifted), then added:
 //   * RELEASE GATE — only payments whose booking is 'completed' are payable
@@ -133,7 +134,7 @@ Deno.serve(async (req) => {
     // form is the PAYOUT-1 fix — never pass a query builder to .in().
     let eligibleQuery = adminClient
       .from('payments')
-      .select('id, trainer_payout, bookings!inner(trainer_id, status)')
+      .select('id, trainer_payout, platform_fee, amount, is_comp, bookings!inner(trainer_id, status)')
       .eq('bookings.trainer_id', trainerProfile.id)
       .eq('status', 'succeeded')
       .is('payout_transaction_id', null)
@@ -165,6 +166,26 @@ Deno.serve(async (req) => {
         });
       }
     }
+    // INTEGRITY GATE (money exit): every payable row must satisfy
+    // trainer_payout + platform_fee == amount. amount is what Stripe actually
+    // charged, so a row whose trainer_payout was inflated at booking time
+    // (browser-supplied p_trainer_payout) fails this and the WHOLE release is
+    // refused — never a partial or silently-filtered payout. Runs before any
+    // payout_transaction is created or payments are swept.
+    const inconsistentIds = findInconsistentPayoutRows(eligibleRows ?? []);
+    if (inconsistentIds.length > 0) {
+      console.error('[create-payout] payout integrity violation (trainer_payout + platform_fee != amount):', {
+        trainer_id: trainerProfile.id,
+        inconsistent_payment_ids: inconsistentIds,
+      });
+      return new Response(JSON.stringify({
+        error: 'Payout blocked: these earnings failed an integrity check and were not released. Contact support.',
+        inconsistent_payment_ids: inconsistentIds,
+      }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const balance = (eligibleRows ?? []).reduce((sum: number, row: { trainer_payout: number }) => sum + Number(row.trainer_payout), 0);
 
     if (balance <= 0) {
