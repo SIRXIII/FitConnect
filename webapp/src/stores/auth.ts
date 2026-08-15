@@ -35,7 +35,7 @@ interface AuthState {
   fetchProfile: (userId: string) => Promise<void>;
   signInWithProvider: (provider: 'google' | 'facebook' | 'apple') => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<{ existingAccount: boolean }>;
   signOut: () => Promise<void>;
   setRole: (role: UserRole) => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
@@ -134,6 +134,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
     if (error) throw error;
     if (data.user && data.session) await get().fetchProfile(data.user.id);
+    // Supabase anti-enumeration: signing up with an email that already has an
+    // account returns a fake success — a user object with an empty identities
+    // array and no session. Surface it so the UI doesn't promise a
+    // confirmation email that will never arrive.
+    return { existingAccount: !!data.user && (data.user.identities?.length ?? 0) === 0 };
   },
 
   signOut: async () => {

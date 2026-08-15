@@ -42,6 +42,10 @@ const Login: React.FC = () => {
       navigate('/admin', { replace: true });
     } else if (freshProfile?.role === 'trainer') {
       navigate('/trainer/dashboard', { replace: true });
+    } else if (freshProfile?.role === 'client' && !freshProfile.onboarding_complete) {
+      // The handle_new_user trigger defaults every signup to 'client', so an
+      // unfinished client has never actually chosen a role — show the choice.
+      navigate('/onboarding/role', { replace: true });
     } else if (freshProfile?.role) {
       navigate('/trainers', { replace: true });
     } else {
@@ -70,7 +74,17 @@ const Login: React.FC = () => {
     setSubmitting(true);
     try {
       if (isSignUp) {
-        await signUpWithEmail(email, password);
+        const { existingAccount } = await signUpWithEmail(email, password);
+        if (existingAccount) {
+          // Supabase returns a fake success for duplicate emails (anti-enumeration).
+          // Without this check the user is told to wait for a confirmation email
+          // that will never arrive.
+          toast.error(
+            'An account with this email already exists. Sign in instead — you may have originally signed up with Google or Apple.',
+          );
+          setIsSignUp(false);
+          return;
+        }
         // If auto-confirmed (session exists), navigate immediately
         const { user: newUser, profile: newProfile } = useAuthStore.getState();
         if (newUser) {
