@@ -49,7 +49,10 @@ const AuthCallback: React.FC = () => {
 
     // Give Supabase a moment to create the profile via trigger
     const timer = setTimeout(() => {
-      if (!profile?.role) {
+      if (!profile?.role || (profile.role === 'client' && !profile.onboarding_complete)) {
+        // The handle_new_user trigger defaults every signup to 'client', so an
+        // unfinished client has never actually chosen a role — show the
+        // trainer/trainee choice instead of funneling them into client onboarding.
         navigate('/onboarding/role', { replace: true });
       } else if (!profile.onboarding_complete) {
         // Role set but onboarding not finished -- resume it

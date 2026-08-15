@@ -24,8 +24,11 @@ const RoleSelect: React.FC = () => {
     try {
       await setRole(selected);
 
-      // Referral attribution — only for new users (profile.role was null before this selection)
-      if (!profile?.role) {
+      // Referral attribution — only for new users. The handle_new_user trigger
+      // pre-sets role to 'client', so role is never null here; "hasn't finished
+      // onboarding" is the real new-user signal. Referral double-insert is
+      // prevented by clearReferralCode() after first attribution.
+      if (!profile?.onboarding_complete) {
         const refCode = readReferralCode();
         if (refCode && user) {
           try {
