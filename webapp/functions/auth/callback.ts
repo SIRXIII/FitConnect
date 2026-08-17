@@ -16,10 +16,13 @@ export const onRequest: PagesFunction = async (context) => {
   const type = url.searchParams.get('type') ?? 'signup';
 
   if (!code) {
-    return new Response(
-      '<!DOCTYPE html><html><body><p>Invalid confirmation link.</p></body></html>',
-      { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
-    );
+    // No ?code= means this is NOT a native PKCE email link; it's the web
+    // app's implicit-flow OAuth/recovery redirect, whose tokens live in the
+    // URL #fragment and never reach the server. Serve the SPA so supabase-js
+    // can read the session out of the hash (returning the body in place keeps
+    // the fragment intact). Fetch '/' because '/index.html' 308-redirects on Pages.
+    const assets = (context.env as { ASSETS: { fetch: typeof fetch } }).ASSETS;
+    return assets.fetch(new URL('/', url).toString());
   }
 
   const schemeUrl = `fitrush://auth-callback?code=${encodeURIComponent(code)}&type=${encodeURIComponent(type)}`;
