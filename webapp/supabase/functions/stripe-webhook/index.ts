@@ -24,6 +24,7 @@ Deno.serve(async (req) => {
     const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
     const stripeSecretKey = requireEnv('STRIPE_SECRET_KEY');
     const stripeWebhookSecret = requireEnv('STRIPE_WEBHOOK_SECRET');
+    const stripeConnectWebhookSecret = Deno.env.get('STRIPE_CONNECT_WEBHOOK_SECRET');
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
@@ -40,7 +41,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const event = stripe.webhooks.constructEvent(body, signature, stripeWebhookSecret);
+    // Two Stripe endpoints (account-scoped and Connect-scoped) deliver to this
+    // function, each with its own signing secret.
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, stripeWebhookSecret);
+    } catch (err) {
+      if (stripeConnectWebhookSecret) {
+        event = stripe.webhooks.constructEvent(body, signature, stripeConnectWebhookSecret);
+      } else {
+        throw err;
+      }
+    }
 
     const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: { persistSession: false },
