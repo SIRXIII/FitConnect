@@ -61,6 +61,11 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
         .order('submitted_at', { ascending: false });
       if (error) throw error;
       setCerts(data ?? []);
+      // Returning trainers with certs on file must unblock the onboarding step 5 gate,
+      // since the gate only flips on a fresh upload otherwise.
+      if ((data ?? []).length > 0) {
+        onCertUploaded?.();
+      }
     } catch {
       // silently fail — table may not exist in local dev yet
     } finally {

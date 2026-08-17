@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Dumbbell, Leaf, Home, X } from 'lucide-react';
 import { useWorkoutLocations } from '@/hooks/useWorkoutLocations';
 import type { LocationType } from '@/types/map';
@@ -69,13 +68,16 @@ const GoLiveLocationPicker: React.FC<GoLiveLocationPickerProps> = ({
           {!loading && locations.length === 0 && (
             <div className="space-y-2 py-4 text-center">
               <p className="text-sm text-ink/60">Add a workout location first</p>
-              <Link
-                to="/trainer/dashboard"
-                onClick={onClose}
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  document.getElementById('workout-locations')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 className="text-[10px] uppercase tracking-[0.15em] text-accent hover:underline"
               >
-                Go to Dashboard
-              </Link>
+                Add a Location
+              </button>
             </div>
           )}
 
