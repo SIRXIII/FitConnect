@@ -203,7 +203,7 @@ const BookingRequestQueue: React.FC = () => {
     return (
       <div className="border border-dashed border-ink/10 p-12 text-center space-y-3">
         <h3 className="text-xl serif font-light text-ink italic">No pending requests</h3>
-        <p className="text-sm text-ink/40">
+        <p className="text-sm text-ink/60">
           Booking requests from clients will appear here.
         </p>
       </div>

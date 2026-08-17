@@ -51,19 +51,19 @@ const GoLiveLocationPicker: React.FC<GoLiveLocationPickerProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-ink/30 hover:text-ink transition-colors"
+          className="absolute top-4 right-4 text-ink/60 hover:text-ink transition-colors"
           aria-label="Close"
         >
           <X size={16} />
         </button>
 
         <div className="p-6 space-y-4">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/70">
             Where are you training today?
           </p>
 
           {loading && (
-            <p className="text-sm text-ink/40">Loading locations…</p>
+            <p className="text-sm text-ink/60">Loading locations…</p>
           )}
 
           {!loading && locations.length === 0 && (
@@ -104,9 +104,9 @@ const GoLiveLocationPicker: React.FC<GoLiveLocationPickerProps> = ({
                         {loc.nickname || loc.address}
                       </p>
                       {loc.nickname && (
-                        <p className="text-[11px] text-ink/40 truncate">{loc.address}</p>
+                        <p className="text-[11px] text-ink/60 truncate">{loc.address}</p>
                       )}
-                      <p className="text-[10px] uppercase tracking-[0.15em] text-ink/30 mt-0.5">
+                      <p className="text-[10px] uppercase tracking-[0.15em] text-ink/70 mt-0.5">
                         {loc.location_type}
                       </p>
                     </div>

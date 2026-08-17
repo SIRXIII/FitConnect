@@ -221,7 +221,7 @@ const AvailabilityHeader: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowOfflineWarning(false)}
-            className="text-[10px] uppercase tracking-[0.2em] font-medium text-stone-500 hover:text-white"
+            className="text-[10px] uppercase tracking-[0.2em] font-medium text-stone-400 hover:text-white"
           >
             Stay Live
           </button>

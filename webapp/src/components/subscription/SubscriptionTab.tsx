@@ -48,12 +48,12 @@ const SubscriptionTab: React.FC = () => {
           {isTrialing && ' — Trialing'}
         </p>
         {isTrialing && trialEndsAt && (
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-ink/70">
             until {formatDate(trialEndsAt)}
           </p>
         )}
         {tier === 'free' && (
-          <p className="text-sm text-ink/50 max-w-xs mx-auto">
+          <p className="text-sm text-ink/70 max-w-xs mx-auto">
             You are on the Free plan.
           </p>
         )}
@@ -65,7 +65,7 @@ const SubscriptionTab: React.FC = () => {
     <div className="space-y-8">
       {/* Tier Badge */}
       <div className="border border-ink/10 p-8 space-y-3">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">
           Current Plan
         </p>
         <p className="text-2xl serif font-light italic text-ink">
@@ -73,20 +73,20 @@ const SubscriptionTab: React.FC = () => {
           {isTrialing && ' \u2014 Trialing'}
         </p>
         {isTrialing && trialEndsAt && (
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-ink/70">
             until {formatDate(trialEndsAt)}
           </p>
         )}
         {!isTrialing &&
           trainerProfile?.subscription_status === 'active' &&
           trainerProfile.current_period_end && (
-            <p className="text-sm text-ink/50">
+            <p className="text-sm text-ink/70">
               {trainerProfile.cancel_at_period_end ? 'Cancels' : 'Renews'}{' '}
               {formatDate(trainerProfile.current_period_end)}
             </p>
           )}
         {tier === 'free' && (
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-ink/70">
             Start a trial to unlock more features
           </p>
         )}
@@ -106,7 +106,7 @@ const SubscriptionTab: React.FC = () => {
             <div>
               <button
                 onClick={() => setShowDowngradeModal(true)}
-                className="text-ink/40 text-[11px] uppercase tracking-[0.2em] hover:text-red-600 transition-colors"
+                className="text-ink/70 text-[11px] uppercase tracking-[0.2em] hover:text-red-600 transition-colors"
               >
                 Downgrade to Free
               </button>

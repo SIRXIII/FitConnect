@@ -84,19 +84,19 @@ const DiscountSlider: React.FC<DiscountSliderProps> = ({ currentDiscount, optimi
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Tag size={14} className="text-accent" />
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Session Discount</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Session Discount</p>
           </div>
           {value > 0 ? (
             <p className="text-sm text-ink/60">
               Clients see{' '}
-              <span className="line-through text-ink/30">${optimizedRate}</span>
+              <span className="line-through text-ink/60">${optimizedRate}</span>
               {' → '}
               <span className="text-accent font-medium">${discountedRate}/hr</span>
               {' '}
               <span className="text-[10px] uppercase tracking-[0.1em] text-accent/70">({value}% off)</span>
             </p>
           ) : (
-            <p className="text-sm text-ink/40">No discount — full optimized rate applied</p>
+            <p className="text-sm text-ink/60">No discount — full optimized rate applied</p>
           )}
         </div>
         <div className="text-right space-y-1">
@@ -104,11 +104,11 @@ const DiscountSlider: React.FC<DiscountSliderProps> = ({ currentDiscount, optimi
             {value > 0 ? (
               <span className="text-accent">{value}%</span>
             ) : (
-              <span className="text-ink/30">—</span>
+              <span className="text-ink/60">—</span>
             )}
           </p>
           {value > 0 && (
-            <p className="text-[10px] uppercase tracking-[0.1em] text-ink/30">off</p>
+            <p className="text-[10px] uppercase tracking-[0.1em] text-ink/70">off</p>
           )}
         </div>
       </div>

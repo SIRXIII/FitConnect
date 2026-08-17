@@ -352,7 +352,7 @@ const TrainerBookings: React.FC = () => {
         <div className="flex items-start justify-between gap-6">
           <div className="space-y-4">
             <h1 className="text-3xl serif font-light italic text-ink">Trainer Bookings</h1>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/70">
               Confirm and complete your session requests
             </p>
           </div>
@@ -368,7 +368,7 @@ const TrainerBookings: React.FC = () => {
           <button
             onClick={() => setActiveTab('action')}
             className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${
-              activeTab === 'action' ? 'text-ink border-b-2 border-accent' : 'text-ink/30 hover:text-ink/50'
+              activeTab === 'action' ? 'text-ink border-b-2 border-accent' : 'text-ink/60 hover:text-ink/50'
             }`}
           >
             Action Required ({actionRequired.length})
@@ -376,7 +376,7 @@ const TrainerBookings: React.FC = () => {
           <button
             onClick={() => setActiveTab('history')}
             className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${
-              activeTab === 'history' ? 'text-ink border-b-2 border-accent' : 'text-ink/30 hover:text-ink/50'
+              activeTab === 'history' ? 'text-ink border-b-2 border-accent' : 'text-ink/60 hover:text-ink/50'
             }`}
           >
             History ({history.length})
@@ -397,7 +397,7 @@ const TrainerBookings: React.FC = () => {
         ) : (activeTab === 'action' ? actionRequired : history).length === 0 ? (
           <div className="text-center py-20 border border-dashed border-ink/10">
             <h3 className="text-2xl serif font-light italic text-ink mb-3">No bookings in this view</h3>
-            <p className="text-sm text-ink/40">New requests will appear here in real time</p>
+            <p className="text-sm text-ink/60">New requests will appear here in real time</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -432,7 +432,7 @@ const TrainerBookings: React.FC = () => {
                       )}
                       <div className="space-y-1">
                         <p className="text-lg serif font-light text-ink">{clientName}</p>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Booking #{booking.id.slice(0, 8)}</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70">Booking #{booking.id.slice(0, 8)}</p>
                       </div>
                     </div>
                     <span
@@ -469,7 +469,7 @@ const TrainerBookings: React.FC = () => {
 
                   {booking.notes ? (
                     <div className="border border-ink/10 bg-ink/3 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/35 mb-1">Client Notes</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 mb-1">Client Notes</p>
                       <p className="text-sm text-ink/60">{booking.notes}</p>
                     </div>
                   ) : null}
@@ -546,7 +546,7 @@ const TrainerBookings: React.FC = () => {
                               <div>
                                 <p className="text-sm text-ink/80">{p.profiles?.full_name || 'Client'}</p>
                                 {p.client_profiles?.fitness_goals?.length ? (
-                                  <p className="text-[10px] text-ink/40">
+                                  <p className="text-[10px] text-ink/60">
                                     {p.client_profiles.fitness_goals.slice(0, 2).join(', ')}
                                   </p>
                                 ) : null}
@@ -554,7 +554,7 @@ const TrainerBookings: React.FC = () => {
                             </div>
                           ))}
                           {groupParticipants[booking.slot_id].length === 0 && (
-                            <p className="text-xs text-ink/30 italic">No participants yet</p>
+                            <p className="text-xs text-ink/60 italic">No participants yet</p>
                           )}
                         </div>
                       )}

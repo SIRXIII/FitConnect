@@ -48,8 +48,8 @@ const Section: React.FC<{ title: string; subtitle?: string; children: React.Reac
 }) => (
   <div className="border border-ink/10 p-8 space-y-6">
     <div className="space-y-1">
-      <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">{title}</p>
-      {subtitle && <p className="text-sm text-ink/50 font-light">{subtitle}</p>}
+      <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">{title}</p>
+      {subtitle && <p className="text-sm text-ink/70 font-light">{subtitle}</p>}
     </div>
     {children}
   </div>
@@ -62,9 +62,9 @@ const Field: React.FC<{ label: string; children: React.ReactNode; hint?: string 
   hint,
 }) => (
   <div className="space-y-2">
-    <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">{label}</label>
+    <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70">{label}</label>
     {children}
-    {hint && <p className="text-[10px] text-ink/30">{hint}</p>}
+    {hint && <p className="text-[10px] text-ink/60">{hint}</p>}
   </div>
 );
 
@@ -242,7 +242,7 @@ const SettingsTab: React.FC = () => {
             {avatarPreview ? (
               <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-2xl serif text-ink/30 font-light">{initials}</span>
+              <span className="text-2xl serif text-ink/70 font-light">{initials}</span>
             )}
             <div className="absolute inset-0 bg-ink/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
               <Camera size={18} className="text-white" />
@@ -257,7 +257,7 @@ const SettingsTab: React.FC = () => {
             <p className="text-sm text-ink/60 font-light">
               {uploadingAvatar ? 'Uploading...' : avatarPreview ? 'Click to change photo' : 'Click to add a photo'}
             </p>
-            <p className="text-[10px] text-ink/30">Auto-compressed to save space</p>
+            <p className="text-[10px] text-ink/60">Auto-compressed to save space</p>
           </div>
           <input
             ref={avatarInputRef}
@@ -386,7 +386,7 @@ const SettingsTab: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Standard Rate ($/hr)" hint="Your normal hourly rate">
             <div className="flex items-center gap-2 border-b border-ink/20 pb-2">
-              <span className="text-ink/40 text-sm">$</span>
+              <span className="text-ink/60 text-sm">$</span>
               <input
                 type="number"
                 min={20}
@@ -395,13 +395,13 @@ const SettingsTab: React.FC = () => {
                 onChange={(e) => setHourlyRate(e.target.value)}
                 className="flex-1 bg-transparent text-base font-light outline-none text-ink"
               />
-              <span className="text-ink/40 text-xs">/hr</span>
+              <span className="text-ink/60 text-xs">/hr</span>
             </div>
           </Field>
 
           <Field label="Optimized Rate ($/hr)" hint="Discounted rate for off-peak bookings">
             <div className="flex items-center gap-2 border-b border-accent/30 pb-2">
-              <span className="text-ink/40 text-sm">$</span>
+              <span className="text-ink/60 text-sm">$</span>
               <input
                 type="number"
                 min={20}
@@ -410,7 +410,7 @@ const SettingsTab: React.FC = () => {
                 onChange={(e) => setOptimizedRate(e.target.value)}
                 className="flex-1 bg-transparent text-base font-light outline-none text-accent"
               />
-              <span className="text-ink/40 text-xs">/hr</span>
+              <span className="text-ink/60 text-xs">/hr</span>
             </div>
             {suggestedRate !== null && Number(optimizedRate) !== suggestedRate && (
               <button
@@ -454,7 +454,7 @@ const SettingsTab: React.FC = () => {
         {trainerProfile?.id ? (
           <WorkoutLocationsManager trainerId={trainerProfile.id} />
         ) : (
-          <p className="text-sm text-ink/40 font-light">Loading trainer profile...</p>
+          <p className="text-sm text-ink/60 font-light">Loading trainer profile...</p>
         )}
       </Section>
 
@@ -464,7 +464,7 @@ const SettingsTab: React.FC = () => {
           <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" strokeWidth={1.5} />
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-red-400/80 font-medium">Danger Zone</p>
-            <p className="text-sm font-light text-ink/50">
+            <p className="text-sm font-light text-ink/70">
               Permanently delete your account and all associated data. This cannot be undone.
             </p>
             <button
@@ -473,7 +473,7 @@ const SettingsTab: React.FC = () => {
             >
               Delete My Account
             </button>
-            <p className="text-[10px] text-ink/30">
+            <p className="text-[10px] text-ink/60">
               Or contact support@fitrush.io for assistance
             </p>
           </div>
