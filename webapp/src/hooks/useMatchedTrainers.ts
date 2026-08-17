@@ -78,6 +78,7 @@ export function useMatchedTrainers(): UseMatchedTrainersResult {
           slug,
           optimized_rate,
           specialty,
+          specialties,
           profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
         `);
 

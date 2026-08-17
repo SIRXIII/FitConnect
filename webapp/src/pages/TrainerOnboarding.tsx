@@ -26,7 +26,7 @@ interface FormData {
   cert_url: string;
   bio: string;
   location: string;
-  specialty: string;
+  specialties: string[];
   hourly_rate: string;
   optimized_rate: string;
   avatar_file: File | null;
@@ -60,7 +60,9 @@ const TrainerOnboarding: React.FC = () => {
     cert_url: '',
     bio: '',
     location: '',
-    specialty: 'strength_training',
+    // Empty on purpose: force an intentional choice instead of silently
+    // mislabeling everyone as strength_training.
+    specialties: [],
     hourly_rate: '100',
     optimized_rate: '60',
     avatar_file: null,
@@ -86,7 +88,13 @@ const TrainerOnboarding: React.FC = () => {
       return form.full_name.trim().length > 0 && form.phone.replace(/\D/g, '').length >= 10;
     }
     if (step === 2) return form.cert_confirmed;
-    if (step === 3) return form.location.trim().length > 0;
+    if (step === 3) {
+      return (
+        form.location.trim().length > 0 &&
+        form.specialties.length > 0 &&
+        !!form.avatar_url
+      );
+    }
     if (step === 5) return certUploaded;
     return true;
   };
@@ -110,7 +118,7 @@ const TrainerOnboarding: React.FC = () => {
       setForm(f => ({ ...f, avatar_url: publicUrl }));
       toast.success('Photo uploaded!');
     } catch {
-      toast.error('Photo upload failed — you can add it later from your profile.');
+      toast.error('Photo upload failed. Please try again, a photo is required to continue.');
     } finally {
       setUploadingAvatar(false);
     }
@@ -153,7 +161,8 @@ const TrainerOnboarding: React.FC = () => {
         full_name: form.full_name.trim(),
         bio: form.bio.trim() || undefined,
         location: form.location.trim(),
-        specialty: form.specialty,
+        specialty: form.specialties[0],
+        specialties: form.specialties,
         hourly_rate: hourly,
         optimized_rate: Math.min(optimized, hourly),
       });
@@ -183,15 +192,20 @@ const TrainerOnboarding: React.FC = () => {
         .update({
           bio: form.bio.trim() || null,
           location: form.location.trim(),
-          specialty: form.specialty,
+          // First pick stays the primary specialty for legacy consumers.
+          specialty: form.specialties[0],
+          specialties: form.specialties,
           hourly_rate: hourly,
           optimized_rate: Math.min(optimized, hourly),
           certification_number: form.cert_number.trim() || null,
           certification_url: form.cert_url || null,
           years_experience: !isNaN(yearsExp) && yearsExp >= 0 ? yearsExp : null,
-          expertise_tags: expertiseTags.length > 0 ? expertiseTags : null,
+          // Empty arrays, never null: expertise_tags and faqs are NOT NULL
+          // columns, and an explicit null overrides their defaults (23502 —
+          // this exact line broke every web onboarding save).
+          expertise_tags: expertiseTags,
           success_story: form.success_story.trim() || null,
-          faqs: validFaqs.length > 0 ? validFaqs : null,
+          faqs: validFaqs,
         })
         .eq('user_id', user.id);
 
@@ -201,7 +215,8 @@ const TrainerOnboarding: React.FC = () => {
       setStep(5);
     } catch (err) {
       console.error('[TrainerOnboarding] save error:', err);
-      toast.error('Failed to save profile. Please try again.');
+      const detail = err instanceof Error && err.message ? ` (${err.message})` : '';
+      toast.error(`Failed to save profile. Please try again.${detail}`);
     } finally {
       setSaving(false);
     }
@@ -219,10 +234,10 @@ const TrainerOnboarding: React.FC = () => {
         {/* Progress */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-ink/40">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/60">
               Step {step} of {TOTAL_STEPS}
             </p>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">{stepLabels[step - 1]}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-ink/60">{stepLabels[step - 1]}</p>
           </div>
           <div className="flex gap-1">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
@@ -236,7 +251,7 @@ const TrainerOnboarding: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">What's your name?</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
                 Your public trainer name on FitRush
               </p>
             </div>
@@ -256,7 +271,7 @@ const TrainerOnboarding: React.FC = () => {
                 placeholder="Phone number"
                 className="w-full border-b border-ink/20 bg-transparent pb-3 text-xl font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
               />
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.2em] text-ink/60">
                 So the FitRush team can verify your account. Never shown to clients.
               </p>
             </div>
@@ -271,15 +286,15 @@ const TrainerOnboarding: React.FC = () => {
                 <ShieldCheck size={20} className="text-accent" strokeWidth={1.5} />
                 <h2 className="text-3xl serif font-light italic">Certification</h2>
               </div>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
                 FitRush is for certified personal trainers only
               </p>
             </div>
             <div className="space-y-6">
               {/* Cert number (optional) */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                  Certification Number <span className="normal-case text-ink/30">(optional)</span>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                  Certification Number <span className="normal-case text-ink/50">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -292,8 +307,8 @@ const TrainerOnboarding: React.FC = () => {
 
               {/* Cert file upload (optional) */}
               <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                  Upload Certificate <span className="normal-case text-ink/30">(optional — PDF or image)</span>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                  Upload Certificate <span className="normal-case text-ink/50">(optional — PDF or image)</span>
                 </p>
                 <input
                   ref={certFileInputRef}
@@ -314,6 +329,9 @@ const TrainerOnboarding: React.FC = () => {
                     ? `✓ ${form.cert_file.name}`
                     : 'Choose File'}
                 </button>
+                <p className="text-xs text-ink/50 font-light">
+                  Optional now, but verified certifications are the biggest factor in your search ranking.
+                </p>
               </div>
 
               <button
@@ -336,15 +354,18 @@ const TrainerOnboarding: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Your trainer profile</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">Visible to potential clients</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">Visible to potential clients</p>
             </div>
             <div className="space-y-6">
 
               {/* Avatar upload */}
               <div className="space-y-3">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                  Profile Photo <span className="normal-case text-ink/30">(optional)</span>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                  Profile Photo *
                 </label>
+                <p className="text-xs text-ink/50 font-light">
+                  A professional headshot works best: clear, well-lit, just you. Profiles with photos rank higher in search.
+                </p>
                 <div className="flex items-center gap-5">
                   <button
                     type="button"
@@ -359,7 +380,7 @@ const TrainerOnboarding: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl serif text-ink/30 font-light">{initials}</span>
+                      <span className="text-2xl serif text-ink/50 font-light">{initials}</span>
                     )}
                     <div className="absolute inset-0 bg-ink/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <Camera size={18} className="text-white" />
@@ -374,7 +395,7 @@ const TrainerOnboarding: React.FC = () => {
                     <p className="text-sm text-ink/60 font-light">
                       {form.avatar_url ? 'Photo uploaded ✓' : 'Click to add a photo'}
                     </p>
-                    <p className="text-[10px] text-ink/30">JPG, PNG or GIF · Max 5 MB</p>
+                    <p className="text-xs text-ink/50">JPG, PNG or GIF · Max 5 MB</p>
                   </div>
                 </div>
                 <input
@@ -387,29 +408,40 @@ const TrainerOnboarding: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Location *</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Location *</label>
                 <LocationAutocomplete
                   value={form.location}
                   onChange={(val) => setForm(f => ({ ...f, location: val }))}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Specialty</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Specialties *</label>
+                <p className="text-xs text-ink/50 font-light">Pick all that apply. Your first pick is shown as your primary.</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {SPECIALTIES.map(sp => (
-                    <button
-                      key={sp.value}
-                      onClick={() => setForm(f => ({ ...f, specialty: sp.value }))}
-                      className={`py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${form.specialty === sp.value ? 'border-accent bg-accent/5 text-accent' : 'border-ink/10 hover:border-ink/30 text-ink/60'}`}
-                    >
-                      {sp.label}
-                      {form.specialty === sp.value && <Check size={12} />}
-                    </button>
-                  ))}
+                  {SPECIALTIES.map(sp => {
+                    const selected = form.specialties.includes(sp.value);
+                    return (
+                      <button
+                        key={sp.value}
+                        onClick={() =>
+                          setForm(f => ({
+                            ...f,
+                            specialties: selected
+                              ? f.specialties.filter(v => v !== sp.value)
+                              : [...f.specialties, sp.value],
+                          }))
+                        }
+                        className={`py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${selected ? 'border-accent bg-accent/5 text-accent' : 'border-ink/10 hover:border-ink/30 text-ink/60'}`}
+                      >
+                        {sp.label}
+                        {selected && <Check size={12} />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Bio <span className="normal-case text-ink/30">(optional)</span></label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Bio <span className="normal-case text-ink/50">(optional)</span></label>
                 <textarea
                   value={form.bio}
                   onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
@@ -420,8 +452,8 @@ const TrainerOnboarding: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                  Years of Experience <span className="normal-case text-ink/30">(optional)</span>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                  Years of Experience <span className="normal-case text-ink/50">(optional)</span>
                 </label>
                 <input
                   type="number"
@@ -435,8 +467,8 @@ const TrainerOnboarding: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                  Areas of Expertise <span className="normal-case text-ink/30">(optional — comma-separated)</span>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                  Areas of Expertise <span className="normal-case text-ink/50">(optional — comma-separated)</span>
                 </label>
                 <input
                   type="text"
@@ -448,8 +480,8 @@ const TrainerOnboarding: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                  Success Story <span className="normal-case text-ink/30">(optional)</span>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                  Success Story <span className="normal-case text-ink/50">(optional)</span>
                 </label>
                 <textarea
                   value={form.success_story}
@@ -461,8 +493,8 @@ const TrainerOnboarding: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-                  FAQ <span className="normal-case text-ink/30">(optional)</span>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                  FAQ <span className="normal-case text-ink/50">(optional)</span>
                 </label>
                 {form.faqs.map((faq, i) => (
                   <div key={i} className="border border-ink/10 p-4 space-y-3">
@@ -489,7 +521,7 @@ const TrainerOnboarding: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setForm(f => ({ ...f, faqs: f.faqs.filter((_, idx) => idx !== i) }))}
-                      className="text-[10px] uppercase tracking-[0.15em] text-ink/30 hover:text-red-400 transition-colors"
+                      className="text-xs uppercase tracking-[0.15em] text-ink/50 hover:text-red-400 transition-colors"
                     >
                       × Remove
                     </button>
@@ -512,7 +544,7 @@ const TrainerOnboarding: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Your rates</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
                 Set what you earn per session
               </p>
             </div>
@@ -521,16 +553,16 @@ const TrainerOnboarding: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.2em] font-semibold">Standard Rate</p>
-                    <p className="text-xs text-ink/40 mt-1 font-light">What you normally charge per hour</p>
+                    <p className="text-xs text-ink/60 mt-1 font-light">What you normally charge per hour</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-ink/40 text-sm">$</span>
+                    <span className="text-ink/60 text-sm">$</span>
                     <input
                       type="number" min={20} max={500} value={form.hourly_rate}
                       onChange={e => setForm(f => ({ ...f, hourly_rate: e.target.value }))}
                       className="w-20 text-right text-xl font-light border-b border-ink/20 bg-transparent outline-none focus:border-ink/60 transition-colors"
                     />
-                    <span className="text-ink/40 text-xs">/hr</span>
+                    <span className="text-ink/60 text-xs">/hr</span>
                   </div>
                 </div>
               </div>
@@ -539,22 +571,22 @@ const TrainerOnboarding: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.2em] font-semibold text-accent">Optimized Rate</p>
-                    <p className="text-xs text-ink/40 mt-1 font-light">
+                    <p className="text-xs text-ink/60 mt-1 font-light">
                       Discounted rate for off-peak bookings. You keep {keepPct}%.
                       {onboardingFeePct === 0 && ' Founding Trainer: 0% commission for your first 12 months.'}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-ink/40 text-sm">$</span>
+                    <span className="text-ink/60 text-sm">$</span>
                     <input
                       type="number" min={20} max={parseInt(form.hourly_rate) || 100} value={form.optimized_rate}
                       onChange={e => setForm(f => ({ ...f, optimized_rate: e.target.value }))}
                       className="w-20 text-right text-xl font-light border-b border-accent/30 bg-transparent outline-none focus:border-accent transition-colors text-accent"
                     />
-                    <span className="text-ink/40 text-xs">/hr</span>
+                    <span className="text-ink/60 text-xs">/hr</span>
                   </div>
                 </div>
-                <p className="text-[11px] text-ink/40 font-light">
+                <p className="text-[11px] text-ink/60 font-light">
                   You keep <strong className="text-ink">${(parseFloat(form.optimized_rate || '0') * (1 - onboardingFeePct)).toFixed(2)}</strong> per session booked at optimized rate.
                 </p>
               </div>
@@ -570,7 +602,7 @@ const TrainerOnboarding: React.FC = () => {
                 <ShieldCheck size={20} className="text-accent" strokeWidth={1.5} />
                 <h2 className="text-3xl serif font-light italic">Upload Your Certification</h2>
               </div>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
                 FitRush only accepts NCCA-accredited certifications to ensure client safety
               </p>
             </div>
@@ -591,7 +623,7 @@ const TrainerOnboarding: React.FC = () => {
                 onCertUploaded={() => setCertUploaded(true)}
               />
             ) : (
-              <p className="text-sm text-ink/40 font-light">Loading profile…</p>
+              <p className="text-sm text-ink/60 font-light">Loading profile…</p>
             )}
 
             {certUploaded && (
@@ -609,7 +641,7 @@ const TrainerOnboarding: React.FC = () => {
         <div className="flex items-center justify-between pt-4">
           <button
             onClick={() => step > 1 ? setStep(s => s - 1) : navigate(-1)}
-            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors"
+            className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-ink/60 hover:text-ink transition-colors"
           >
             <ChevronLeft size={14} />
             Back

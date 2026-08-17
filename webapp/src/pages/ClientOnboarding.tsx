@@ -97,7 +97,7 @@ const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string, la
             </span>
           ) : 'Save Card'}
         </button>
-        <button type="button" onClick={onSkip} className="text-[10px] uppercase tracking-[0.15em] text-ink/40 hover:text-ink transition-colors">
+        <button type="button" onClick={onSkip} className="text-xs uppercase tracking-[0.15em] text-ink/60 hover:text-ink transition-colors">
           Skip for now
         </button>
       </div>
@@ -232,10 +232,10 @@ const ClientOnboarding: React.FC = () => {
         {/* Progress */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-ink/40">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/60">
               Step {step} of {TOTAL_STEPS}
             </p>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">{stepLabels[step - 1]}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-ink/60">{stepLabels[step - 1]}</p>
           </div>
           <div className="flex gap-1">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
@@ -252,7 +252,7 @@ const ClientOnboarding: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">What's your name?</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
                 This is how trainers will see you
               </p>
             </div>
@@ -272,13 +272,13 @@ const ClientOnboarding: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Your measurements</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
                 Helps trainers tailor sessions to you — optional
               </p>
             </div>
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Age</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Age</label>
                 <input
                   type="number" min={13} max={99} value={form.age}
                   onChange={e => setForm(f => ({ ...f, age: e.target.value }))}
@@ -287,7 +287,7 @@ const ClientOnboarding: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Weight (lbs)</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Weight (lbs)</label>
                 <input
                   type="number" min={60} max={500} value={form.weight_lbs}
                   onChange={e => setForm(f => ({ ...f, weight_lbs: e.target.value }))}
@@ -296,7 +296,7 @@ const ClientOnboarding: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Height</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Height</label>
                 <div className="flex gap-4">
                   <input
                     type="number" min={3} max={8} value={form.height_ft}
@@ -321,11 +321,11 @@ const ClientOnboarding: React.FC = () => {
           <div className="space-y-10">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Body type & fitness level</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">Select one of each</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">Select one of each</p>
             </div>
             <div className="space-y-6">
               <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Body Type</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Body Type</p>
                 <div className="grid grid-cols-2 gap-3">
                   {BODY_TYPES.map(bt => (
                     <button
@@ -334,13 +334,13 @@ const ClientOnboarding: React.FC = () => {
                       className={`text-left p-4 border transition-all ${form.body_type === bt.value ? 'border-accent bg-accent/5' : 'border-ink/10 hover:border-ink/30'}`}
                     >
                       <p className="text-[11px] uppercase tracking-[0.15em] font-semibold">{bt.label}</p>
-                      <p className="text-[11px] text-ink/40 mt-1 font-light">{bt.desc}</p>
+                      <p className="text-[11px] text-ink/60 mt-1 font-light">{bt.desc}</p>
                     </button>
                   ))}
                 </div>
               </div>
               <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Fitness Level</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Fitness Level</p>
                 <div className="space-y-2">
                   {FITNESS_LEVELS.map(fl => (
                     <button
@@ -350,7 +350,7 @@ const ClientOnboarding: React.FC = () => {
                     >
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.15em] font-semibold">{fl.label}</p>
-                        <p className="text-[11px] text-ink/40 font-light mt-0.5">{fl.desc}</p>
+                        <p className="text-[11px] text-ink/60 font-light mt-0.5">{fl.desc}</p>
                       </div>
                       {form.fitness_level === fl.value && <Check size={14} className="text-accent flex-shrink-0" />}
                     </button>
@@ -366,7 +366,7 @@ const ClientOnboarding: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">What are your goals?</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">Select all that apply</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">Select all that apply</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {GOALS.map(goal => (
@@ -390,7 +390,7 @@ const ClientOnboarding: React.FC = () => {
           <div className="space-y-10">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Your workout style</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">Select all that interest you</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">Select all that interest you</p>
             </div>
             <div className="space-y-8">
               <div className="grid grid-cols-2 gap-3">
@@ -409,7 +409,7 @@ const ClientOnboarding: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Preferred session length</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Preferred session length</p>
                 <div className="flex gap-3">
                   {SESSION_LENGTHS.map(len => (
                     <button
@@ -424,7 +424,7 @@ const ClientOnboarding: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/60">
                   Health notes <span className="normal-case">(injuries, limitations, anything trainers should know)</span>
                 </p>
                 <textarea
@@ -444,7 +444,7 @@ const ClientOnboarding: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Add a payment method</h2>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
                 Securely saved for instant booking — powered by Stripe
               </p>
             </div>
@@ -472,7 +472,7 @@ const ClientOnboarding: React.FC = () => {
           <div className="flex items-center justify-between pt-4">
             <button
               onClick={() => step > 1 ? setStep(s => s - 1) : navigate(-1)}
-              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors"
+              className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-ink/60 hover:text-ink transition-colors"
             >
               <ChevronLeft size={14} />
               Back

@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
       adminClient
         .from('trainer_profiles')
-        .select('id, specialty, bio, hourly_rate, optimized_rate, location, certifications, rating, review_count, created_at, updated_at')
+        .select('id, specialty, specialties, bio, hourly_rate, optimized_rate, location, certifications, rating, review_count, created_at, updated_at')
         .eq('user_id', user.id)
         .maybeSingle(),
 

@@ -549,7 +549,9 @@ const TrainerProfile: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Award size={14} className="text-accent" />
                 <span className="text-sm uppercase tracking-[0.2em] text-ink/50">
-                  {formatSpecialty(trainer.specialty)}
+                  {(trainer.specialties?.length ? trainer.specialties : [trainer.specialty])
+                    .map(formatSpecialty)
+                    .join(' · ')}
                 </span>
               </div>
 

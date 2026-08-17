@@ -129,7 +129,7 @@ const RoleSelect: React.FC = () => {
           <h1 className="text-3xl md:text-4xl serif font-light italic text-ink">
             Join as a trainer or trainee?
           </h1>
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/60">
             This sets up your experience on FitRush
           </p>
         </div>
@@ -145,7 +145,7 @@ const RoleSelect: React.FC = () => {
                 : 'border-ink/10 hover:border-ink/30'
             }`}
           >
-            <div className={`transition-colors ${selected === 'trainer' ? 'text-accent' : 'text-ink/40 group-hover:text-ink/60'}`}>
+            <div className={`transition-colors ${selected === 'trainer' ? 'text-accent' : 'text-ink/60 group-hover:text-ink/60'}`}>
               <Dumbbell size={28} strokeWidth={1} />
             </div>
             <div className="space-y-3">
@@ -156,7 +156,7 @@ const RoleSelect: React.FC = () => {
               <p className="text-sm text-ink/50 leading-relaxed font-light">
                 Fill your open hours with off-peak sessions. Keep 87% of every booking, or 100% for your first 12 months as a Founding Trainer. Set your own rates and availability.
               </p>
-              <p className="text-[10px] uppercase tracking-[0.15em] text-accent/70 font-medium">
+              <p className="text-xs uppercase tracking-[0.15em] text-accent/70 font-medium">
                 Requires valid CPT certification
               </p>
             </div>
@@ -171,7 +171,7 @@ const RoleSelect: React.FC = () => {
                 : 'border-ink/10 hover:border-ink/30'
             }`}
           >
-            <div className={`transition-colors ${selected === 'client' ? 'text-accent' : 'text-ink/40 group-hover:text-ink/60'}`}>
+            <div className={`transition-colors ${selected === 'client' ? 'text-accent' : 'text-ink/60 group-hover:text-ink/60'}`}>
               <User size={28} strokeWidth={1} />
             </div>
             <div className="space-y-3">
@@ -181,7 +181,7 @@ const RoleSelect: React.FC = () => {
               <p className="text-sm text-ink/50 leading-relaxed font-light">
                 Access elite certified trainers at optimized rates during their available hours. World-class coaching, smart pricing.
               </p>
-              <p className="text-[10px] uppercase tracking-[0.15em] text-ink/30 font-medium">
+              <p className="text-xs uppercase tracking-[0.15em] text-ink/50 font-medium">
                 Open to everyone
               </p>
             </div>
@@ -196,7 +196,7 @@ const RoleSelect: React.FC = () => {
             className={`px-16 py-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-all duration-300 ${
               selected
                 ? 'bg-ink text-white hover:bg-ink/80 cursor-pointer'
-                : 'bg-ink/10 text-ink/30 cursor-not-allowed'
+                : 'bg-ink/10 text-ink/50 cursor-not-allowed'
             }`}
           >
             {submitting ? (

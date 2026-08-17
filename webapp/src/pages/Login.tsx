@@ -152,11 +152,11 @@ const Login: React.FC = () => {
             {isSignUp ? 'Create Your Account' : 'Welcome Back'}
           </h1>
           {isSignUp ? (
-            <p className="text-xs text-ink/40 leading-relaxed">
+            <p className="text-xs text-ink/60 leading-relaxed">
               Join as a client to find trainers, or as a trainer to fill your open hours
             </p>
           ) : (
-            <p className="text-xs tracking-wide text-ink/40">
+            <p className="text-xs tracking-wide text-ink/60">
               Sign in to book discounted sessions with certified trainers
             </p>
           )}
@@ -169,7 +169,7 @@ const Login: React.FC = () => {
               Enter your email and we'll send you a reset link.
             </p>
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Email</label>
+              <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Email</label>
               <input
                 type="email"
                 value={resetEmail}
@@ -190,7 +190,7 @@ const Login: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowForgotPassword(false)}
-              className="w-full text-[10px] uppercase tracking-[0.15em] text-ink/40 hover:text-ink transition-colors pt-2"
+              className="w-full text-xs uppercase tracking-[0.15em] text-ink/60 hover:text-ink transition-colors pt-2"
             >
               Back to sign in
             </button>
@@ -244,7 +244,7 @@ const Login: React.FC = () => {
                 {/* Divider */}
                 <div className="flex items-center gap-4 py-2">
                   <div className="flex-1 h-px bg-ink/10" />
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/30">or</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-ink/50">or</span>
                   <div className="flex-1 h-px bg-ink/10" />
                 </div>
               </div>
@@ -253,7 +253,7 @@ const Login: React.FC = () => {
             {/* Email / Password form */}
             <form onSubmit={handleEmailSubmit} className="space-y-4 text-left">
               <div className="space-y-1">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Email</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -265,7 +265,7 @@ const Login: React.FC = () => {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Password</label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Password</label>
                 <input
                   type="password"
                   value={password}
@@ -287,7 +287,7 @@ const Login: React.FC = () => {
                       setResetEmail(email);
                       setShowForgotPassword(true);
                     }}
-                    className="text-[10px] uppercase tracking-[0.15em] text-ink/40 hover:text-ink transition-colors"
+                    className="text-xs uppercase tracking-[0.15em] text-ink/60 hover:text-ink transition-colors"
                   >
                     Forgot password?
                   </button>
@@ -313,7 +313,7 @@ const Login: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsSignUp(!isSignUp)}
-                  className="text-[10px] uppercase tracking-[0.15em] text-ink/40 hover:text-ink transition-colors"
+                  className="text-xs uppercase tracking-[0.15em] text-ink/60 hover:text-ink transition-colors"
                 >
                   {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                 </button>
@@ -322,7 +322,7 @@ const Login: React.FC = () => {
           </>
         )}
 
-        <p className="text-[10px] text-ink/30 leading-relaxed">
+        <p className="text-xs text-ink/50 leading-relaxed">
           By continuing, you agree to FitRush's Terms of Service and Privacy Policy.
         </p>
       </div>

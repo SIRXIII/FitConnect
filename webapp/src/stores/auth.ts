@@ -9,6 +9,7 @@ export type Profile = Tables<'profiles'>;
 export type TrainerProfile = Tables<'trainer_profiles'> & {
   years_experience?: number | null;
   expertise_tags?: string[] | null;
+  specialties?: string[] | null;
   success_story?: string | null;
   faqs?: { q: string; a: string }[] | null;
   slug?: string | null;
