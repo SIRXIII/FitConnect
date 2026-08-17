@@ -30,7 +30,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole,
     return <>{children}</>;
   }
 
-  if (!profile?.role) {
+  if (!profile?.role || (profile.role === 'client' && !profile.onboarding_complete)) {
+    // The handle_new_user trigger defaults every signup to 'client', so an
+    // unfinished client has never actually chosen a role. Send them to the
+    // trainer/trainee choice (same pattern as AuthCallback and Login).
     return <Navigate to="/onboarding/role" replace />;
   }
 
