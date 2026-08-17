@@ -82,7 +82,8 @@ Deno.serve(async (req) => {
           trainer_profiles!bookings_trainer_id_fkey (
             id,
             user_id,
-            stripe_account_id
+            stripe_account_id,
+            payouts_enabled
           ),
           profiles!bookings_client_id_fkey (
             full_name
@@ -151,6 +152,16 @@ Deno.serve(async (req) => {
     if (!connectedAccountId) {
       return new Response(
         JSON.stringify({ error: 'Trainer has not completed payout setup yet' }),
+        {
+          status: 409,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    if (trainerProfile?.payouts_enabled !== true) {
+      return new Response(
+        JSON.stringify({ error: 'Trainer has not completed payout setup yet.' }),
         {
           status: 409,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

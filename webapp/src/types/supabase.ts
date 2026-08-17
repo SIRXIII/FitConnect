@@ -71,6 +71,8 @@ export type Database = {
           rating: number;
           review_count: number;
           stripe_account_id: string | null;
+          payouts_enabled: boolean;
+          stripe_details_submitted: boolean;
           certification_number: string | null;
           certification_url: string | null;
           created_at: string;
@@ -111,6 +113,8 @@ export type Database = {
           rating?: number;
           review_count?: number;
           stripe_account_id?: string | null;
+          payouts_enabled?: boolean;
+          stripe_details_submitted?: boolean;
           certification_number?: string | null;
           certification_url?: string | null;
           created_at?: string;
@@ -151,6 +155,8 @@ export type Database = {
           rating?: number;
           review_count?: number;
           stripe_account_id?: string | null;
+          payouts_enabled?: boolean;
+          stripe_details_submitted?: boolean;
           certification_number?: string | null;
           certification_url?: string | null;
           created_at?: string;

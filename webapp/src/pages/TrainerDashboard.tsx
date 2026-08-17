@@ -27,6 +27,7 @@ import VideoUploader from '@/components/trainer/VideoUploader';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 import ClientSupportTab from '@/components/support/ClientSupportTab';
 import type { TrainerCertification } from '@/lib/certifications';
+import { stripeSetupState } from '@/lib/stripeStatus';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -59,6 +60,33 @@ const TrainerDashboard: React.FC = () => {
   useEffect(() => {
     if (searchParams.get('welcome') === 'true') {
       navigateTo('/trainer/dashboard', { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Returning from Stripe onboarding/dashboard — strip ?stripe_return=1 and sync live status
+  useEffect(() => {
+    if (searchParams.get('stripe_return') === '1' && user) {
+      navigateTo('/trainer/dashboard', { replace: true });
+      (async () => {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          if (!token || !SUPABASE_URL) return;
+
+          await fetch(`${SUPABASE_URL}/functions/v1/create-connect-account`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ sync_only: true }),
+          });
+
+          await fetchProfile(user.id);
+        } catch {
+          // Best-effort — the next Manage/Continue Setup click re-syncs anyway
+        }
+      })();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -164,8 +192,8 @@ const TrainerDashboard: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          return_url: window.location.href,
-          refresh_url: window.location.href,
+          return_url: `${window.location.origin}/trainer/dashboard?stripe_return=1`,
+          refresh_url: `${window.location.origin}/trainer/dashboard?stripe_return=1`,
         }),
       });
 
@@ -202,6 +230,7 @@ const TrainerDashboard: React.FC = () => {
 
   const availableSlots = slots.filter((s) => !s.is_booked).length;
   const bookedSlots = slots.filter((s) => s.is_booked).length;
+  const stripeState = stripeSetupState(trainerProfile);
 
   return (
     <div className="min-h-screen bg-paper pt-24 md:pt-48 pb-20 px-4 sm:px-6">
@@ -324,18 +353,25 @@ const TrainerDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Payment Setup</p>
-                {trainerProfile?.stripe_account_id ? (
+                {stripeState === 'connected' && (
                   <p className="text-sm text-green-700 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
                     Stripe account connected
                   </p>
-                ) : (
+                )}
+                {stripeState === 'incomplete' && (
+                  <p className="text-sm text-amber-700 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                    Finish payment setup to start accepting paid bookings
+                  </p>
+                )}
+                {stripeState === 'none' && (
                   <p className="text-sm text-ink/70">
                     Connect your Stripe account to receive payouts from bookings
                   </p>
                 )}
               </div>
-              {!trainerProfile?.stripe_account_id && (
+              {stripeState === 'none' && (
                 <button
                   onClick={handleStripeConnect}
                   disabled={stripeLoading}
@@ -344,7 +380,16 @@ const TrainerDashboard: React.FC = () => {
                   {stripeLoading ? 'Setting up...' : 'Set Up Payments'}
                 </button>
               )}
-              {trainerProfile?.stripe_account_id && (
+              {stripeState === 'incomplete' && (
+                <button
+                  onClick={handleStripeConnect}
+                  disabled={stripeLoading}
+                  className="border border-amber-600/50 text-amber-700 px-8 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-amber-600 hover:text-white transition-all duration-300 disabled:opacity-50"
+                >
+                  {stripeLoading ? 'Loading...' : 'Continue Setup'}
+                </button>
+              )}
+              {stripeState === 'connected' && (
                 <button
                   onClick={handleStripeConnect}
                   disabled={stripeLoading}
@@ -412,7 +457,7 @@ const TrainerDashboard: React.FC = () => {
 
         {/* Workout Locations */}
         {trainerProfile && (
-          <div className="border border-ink/10 p-8">
+          <div id="workout-locations" className="border border-ink/10 p-8">
             <WorkoutLocationsManager trainerId={trainerProfile.id} />
           </div>
         )}
