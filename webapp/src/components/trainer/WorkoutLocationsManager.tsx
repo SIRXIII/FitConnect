@@ -109,13 +109,13 @@ const AddLocationForm: React.FC<AddFormProps> = ({ trainerId, onSave, onCancel, 
 
   return (
     <div className="border border-ink/10 p-4 space-y-4">
-      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">
+      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/70">
         Add Location
       </p>
 
       {/* Address autocomplete */}
       <div className="relative">
-        <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/40 mb-1">
+        <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/70 mb-1">
           Address
         </label>
         <input
@@ -167,7 +167,7 @@ const AddLocationForm: React.FC<AddFormProps> = ({ trainerId, onSave, onCancel, 
 
       {/* Location type toggle */}
       <div>
-        <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/40 mb-2">
+        <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/70 mb-2">
           Type
         </label>
         <div className="flex gap-2">
@@ -181,7 +181,7 @@ const AddLocationForm: React.FC<AddFormProps> = ({ trainerId, onSave, onCancel, 
                 className={`flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.15em] font-medium border transition-all duration-200 ${
                   selected
                     ? 'text-white border-transparent'
-                    : 'text-ink/50 border-ink/10 hover:border-ink/25'
+                    : 'text-ink/70 border-ink/10 hover:border-ink/25'
                 }`}
                 style={selected ? { backgroundColor: PIN_COLORS[value] } : undefined}
               >
@@ -195,7 +195,7 @@ const AddLocationForm: React.FC<AddFormProps> = ({ trainerId, onSave, onCancel, 
 
       {/* Nickname */}
       <div>
-        <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/40 mb-1">
+        <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/70 mb-1">
           Nickname (optional)
         </label>
         <input
@@ -224,7 +224,7 @@ const AddLocationForm: React.FC<AddFormProps> = ({ trainerId, onSave, onCancel, 
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-ink/15 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/50 hover:text-ink hover:border-ink/30 transition-colors"
+          className="px-4 py-2 border border-ink/15 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/60 hover:text-ink hover:border-ink/30 transition-colors"
         >
           Cancel
         </button>
@@ -257,17 +257,17 @@ const WorkoutLocationsManagerInner: React.FC<WorkoutLocationsManagerProps> = ({ 
 
   return (
     <div className="space-y-4">
-      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">
+      <p className="text-xs uppercase tracking-[0.2em] font-semibold text-ink/70">
         Workout Locations
       </p>
 
       {loading && (
-        <p className="text-sm text-ink/40">Loading locations…</p>
+        <p className="text-sm text-ink/60">Loading locations…</p>
       )}
 
       {/* Saved locations list */}
       {!loading && locations.length === 0 && !isAdding && (
-        <p className="text-sm text-ink/40">
+        <p className="text-sm text-ink/60">
           No locations saved. Add your first workout spot.
         </p>
       )}
@@ -282,9 +282,9 @@ const WorkoutLocationsManagerInner: React.FC<WorkoutLocationsManagerProps> = ({ 
                   {loc.nickname || loc.address}
                 </p>
                 {loc.nickname && (
-                  <p className="text-[11px] text-ink/40 truncate">{loc.address}</p>
+                  <p className="text-[11px] text-ink/60 truncate">{loc.address}</p>
                 )}
-                <p className="text-[10px] uppercase tracking-[0.15em] text-ink/30 mt-0.5">
+                <p className="text-[10px] uppercase tracking-[0.15em] text-ink/70 mt-0.5">
                   {loc.location_type}
                 </p>
               </div>
@@ -319,7 +319,7 @@ const WorkoutLocationsManagerInner: React.FC<WorkoutLocationsManagerProps> = ({ 
                 <button
                   type="button"
                   onClick={() => setDeleteConfirmId(null)}
-                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/40 hover:text-ink"
+                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/60 hover:text-ink"
                 >
                   Cancel
                 </button>
@@ -354,7 +354,7 @@ const WorkoutLocationsManagerInner: React.FC<WorkoutLocationsManagerProps> = ({ 
             Add Location
           </button>
           {!canAddMore && (
-            <span className="ml-2 text-[10px] text-ink/40 italic">
+            <span className="ml-2 text-[10px] text-ink/60 italic">
               Maximum 5 locations reached
             </span>
           )}

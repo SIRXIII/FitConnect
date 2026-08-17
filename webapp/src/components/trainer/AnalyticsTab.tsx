@@ -194,7 +194,7 @@ const AnalyticsTab: React.FC = () => {
             className={`px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${
               range === r
                 ? 'border-b-2 border-ink text-ink -mb-px'
-                : 'text-ink/40 hover:text-ink'
+                : 'text-ink/60 hover:text-ink'
             }`}
           >
             {r}
@@ -206,30 +206,30 @@ const AnalyticsTab: React.FC = () => {
       {metrics ? (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="border border-ink/10 p-6 space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Gross Earnings</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Gross Earnings</p>
             <p className="text-2xl serif font-light text-ink">${metrics.gross_earnings.toFixed(2)}</p>
           </div>
           <div className="border border-ink/10 p-6 space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Net Earnings</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Net Earnings</p>
             <p className="text-2xl serif font-light text-ink">${metrics.net_earnings.toFixed(2)}</p>
           </div>
           <div className="border border-ink/10 p-6 space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Bookings</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Bookings</p>
             <p className="text-2xl serif font-light text-ink">{metrics.booking_count}</p>
           </div>
           <div className="border border-ink/10 p-6 space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Avg Price</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Avg Price</p>
             <p className="text-2xl serif font-light text-ink">${metrics.avg_price.toFixed(2)}</p>
           </div>
           <div className="border border-ink/10 p-6 space-y-1">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Discount Adoption</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Discount Adoption</p>
             <p className="text-2xl serif font-light text-ink">{metrics.discount_adoption_pct}%</p>
-            <p className="text-[8px] text-ink/30">bookings with active discount</p>
+            <p className="text-[8px] text-ink/60">bookings with active discount</p>
           </div>
         </div>
       ) : (
         <div className="border border-ink/10 p-8 text-center">
-          <p className="text-sm text-ink/40">No bookings in this period.</p>
+          <p className="text-sm text-ink/60">No bookings in this period.</p>
         </div>
       )}
 
@@ -237,7 +237,7 @@ const AnalyticsTab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Trend */}
         <div className="border border-ink/10 p-6 space-y-3">
-          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Revenue Trend</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Revenue Trend</p>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={trendData}>
               <CartesianGrid stroke={chartColors.grid} vertical={false} />
@@ -267,7 +267,7 @@ const AnalyticsTab: React.FC = () => {
 
         {/* Booking Count */}
         <div className="border border-ink/10 p-6 space-y-3">
-          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Booking Count</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Booking Count</p>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={trendData}>
               <CartesianGrid stroke={chartColors.grid} vertical={false} />
@@ -291,14 +291,14 @@ const AnalyticsTab: React.FC = () => {
 
       {/* ---- Section D: Peak Hours Heatmap ---- */}
       <div className="border border-ink/10 p-6 space-y-4">
-        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Peak Booking Hours</p>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Peak Booking Hours</p>
 
         <div className="overflow-x-auto">
           <div className="flex gap-2" style={{ minWidth: 600 }}>
             {/* Day labels */}
             <div className="flex flex-col gap-[2px] justify-around" style={{ minWidth: 28 }}>
               {DAYS.map((day) => (
-                <span key={day} className="text-[8px] text-ink/40 text-right pr-1 leading-none" style={{ height: 16, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                <span key={day} className="text-[8px] text-ink/60 text-right pr-1 leading-none" style={{ height: 16, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                   {day}
                 </span>
               ))}
@@ -349,7 +349,7 @@ const AnalyticsTab: React.FC = () => {
                 {Array.from({ length: 24 }, (_, hour) => (
                   <span
                     key={hour}
-                    className="text-[7px] text-ink/30 text-center"
+                    className="text-[7px] text-ink/60 text-center"
                     style={{ minWidth: 0 }}
                   >
                     {[0, 6, 12, 18, 23].includes(hour) ? hour : ''}

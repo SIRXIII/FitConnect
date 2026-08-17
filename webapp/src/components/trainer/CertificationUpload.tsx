@@ -61,6 +61,11 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
         .order('submitted_at', { ascending: false });
       if (error) throw error;
       setCerts(data ?? []);
+      // Returning trainers with certs on file must unblock the onboarding step 5 gate,
+      // since the gate only flips on a fresh upload otherwise.
+      if ((data ?? []).length > 0) {
+        onCertUploaded?.();
+      }
     } catch {
       // silently fail — table may not exist in local dev yet
     } finally {
@@ -162,7 +167,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
       {/* Upload form */}
       <div className="space-y-6">
         <div className="space-y-2">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70">
             Select Certification *
           </label>
           <select
@@ -190,7 +195,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
             </p>
           )}
           {selectedCertInfo && (
-            <p className="text-[11px] text-ink/40 font-light">
+            <p className="text-[11px] text-ink/60 font-light">
               {selectedCertInfo.org}
               {(selectedCertInfo.accreditation === 'NCCA' || selectedCertInfo.accreditation === 'DEAC') && (
                 <span className="ml-2 text-green-600">Accepted for verification</span>
@@ -200,7 +205,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70">
             Certificate Document *
           </label>
           <input
@@ -220,7 +225,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
             {selectedFile ? (
               <span className="text-[11px] text-ink/70">{selectedFile.name}</span>
             ) : (
-              <span className="text-[11px] text-ink/40 uppercase tracking-[0.15em]">
+              <span className="text-[11px] text-ink/70 uppercase tracking-[0.15em]">
                 PDF, JPG or PNG — max 10 MB
               </span>
             )}
@@ -228,8 +233,8 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
-            Expiry Date <span className="normal-case text-ink/30">(optional)</span>
+          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70">
+            Expiry Date <span className="normal-case text-ink/60">(optional)</span>
           </label>
           <input
             type="date"
@@ -258,7 +263,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
       {/* Existing certifications */}
       {!loadingCerts && certs.length > 0 && (
         <div className="space-y-4">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-ink/40 font-medium">
+          <p className="text-[10px] uppercase tracking-[0.25em] text-ink/70 font-medium">
             Your Certifications
           </p>
           <div className="space-y-3">
@@ -267,7 +272,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-ink">{cert.cert_name}</p>
-                    <p className="text-[10px] text-ink/40 uppercase tracking-[0.1em]">
+                    <p className="text-[10px] text-ink/70 uppercase tracking-[0.1em]">
                       {cert.cert_code}
                       {cert.expiry_date && ` · Expires ${new Date(cert.expiry_date).toLocaleDateString()}`}
                     </p>
@@ -284,7 +289,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
                   <button
                     type="button"
                     onClick={() => handleViewDoc(cert)}
-                    className="text-[10px] uppercase tracking-[0.15em] text-ink/40 hover:text-accent transition-colors"
+                    className="text-[10px] uppercase tracking-[0.15em] text-ink/70 hover:text-accent transition-colors"
                   >
                     View Document
                   </button>

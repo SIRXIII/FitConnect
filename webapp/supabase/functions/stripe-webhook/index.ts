@@ -228,6 +228,24 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case 'account.updated': {
+        const account = event.data.object as Stripe.Account;
+
+        const { error: syncError } = await adminClient
+          .from('trainer_profiles')
+          .update({
+            payouts_enabled: account.payouts_enabled === true,
+            stripe_details_submitted: account.details_submitted === true,
+          })
+          .eq('stripe_account_id', account.id);
+
+        if (syncError) {
+          console.error('[stripe-webhook] account.updated: failed to sync trainer_profiles for account', account.id, syncError.message);
+        }
+
+        break;
+      }
+
       default:
         break;
     }

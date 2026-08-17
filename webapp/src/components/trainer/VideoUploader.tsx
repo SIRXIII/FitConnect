@@ -135,7 +135,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Intro Video</h3>
+        <h3 className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Intro Video</h3>
         {hasVideo && !uploading && (
           <button
             onClick={handleRemove}
@@ -182,8 +182,8 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
           </svg>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/50 group-hover:text-ink transition-colors">Upload Intro Video</p>
-            <p className="text-[10px] text-ink/30 mt-1">MP4, WebM, or MOV — max 30 sec, 50MB</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-ink/60 group-hover:text-ink transition-colors">Upload Intro Video</p>
+            <p className="text-[10px] text-ink/60 mt-1">MP4, WebM, or MOV — max 30 sec, 50MB</p>
           </div>
         </button>
       )}
@@ -208,7 +208,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-[10px] uppercase tracking-[0.15em] text-ink/40">Uploading...</p>
+          <p className="text-[10px] uppercase tracking-[0.15em] text-ink/70">Uploading...</p>
         </div>
       )}
 

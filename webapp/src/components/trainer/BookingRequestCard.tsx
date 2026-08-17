@@ -139,7 +139,7 @@ const BookingRequestCard: React.FC<BookingRequestCardProps> = ({
         </button>
         <button
           onClick={() => onDecline(request.id)}
-          className="border border-ink/10 text-ink/40 hover:text-ink w-full min-h-[44px] text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300"
+          className="border border-ink/10 text-ink/60 hover:text-ink w-full min-h-[44px] text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300"
         >
           Decline
         </button>

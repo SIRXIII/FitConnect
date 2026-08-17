@@ -13,20 +13,20 @@ export const BillingToggle: React.FC<BillingToggleProps> = ({ interval, onToggle
       <div className="flex">
         <button
           type="button"
-          className={`${base} ${interval === 'month' ? 'bg-ink text-white' : 'text-ink/40 hover:text-ink'}`}
+          className={`${base} ${interval === 'month' ? 'bg-ink text-white' : 'text-ink/60 hover:text-ink'}`}
           onClick={() => onToggle('month')}
         >
           Monthly
         </button>
         <button
           type="button"
-          className={`${base} ${interval === 'year' ? 'bg-ink text-white' : 'text-ink/40 hover:text-ink'}`}
+          className={`${base} ${interval === 'year' ? 'bg-ink text-white' : 'text-ink/60 hover:text-ink'}`}
           onClick={() => onToggle('year')}
         >
           Annual
         </button>
       </div>
-      <span className={`text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${interval === 'year' ? 'text-accent' : 'text-ink/30'}`}>
+      <span className={`text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${interval === 'year' ? 'text-accent' : 'text-ink/70'}`}>
         Save 20%
       </span>
     </div>

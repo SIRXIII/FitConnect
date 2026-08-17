@@ -44,7 +44,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
       return (
         <div>
           <span className="text-3xl font-light">$0</span>
-          <p className="text-xs text-ink/40 mt-1">Free forever</p>
+          <p className="text-xs text-ink/60 mt-1">Free forever</p>
         </div>
       );
     }
@@ -53,7 +53,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
       return (
         <div>
           <span className="text-3xl font-light">${plan.monthlyPrice}</span>
-          <span className="text-sm text-ink/40">/mo</span>
+          <span className="text-sm text-ink/60">/mo</span>
         </div>
       );
     }
@@ -61,8 +61,8 @@ export const PlanCard: React.FC<PlanCardProps> = ({
     return (
       <div>
         <span className="text-3xl font-light">${plan.annualMonthly.toFixed(2)}</span>
-        <span className="text-sm text-ink/40">/mo</span>
-        <p className="text-xs text-ink/40 mt-1">billed ${plan.annualPrice.toFixed(2)}/year</p>
+        <span className="text-sm text-ink/60">/mo</span>
+        <p className="text-xs text-ink/60 mt-1">billed ${plan.annualPrice.toFixed(2)}/year</p>
       </div>
     );
   };
@@ -74,7 +74,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
       // Only show "Current Plan" for authenticated users actually on free tier
       if (isAuthenticated && (currentTier === 'free' || currentTier === null)) {
         return (
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 text-center">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 text-center">
             Current Plan
           </p>
         );
@@ -96,7 +96,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
     // Active subscriber on this tier
     if (isCurrentPlan) {
       return (
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 text-center">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 text-center">
           Current Plan
         </p>
       );
@@ -119,7 +119,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
       // If trialing a different tier, don't show another trial button
       if (isTrialing && !isCurrentPlan) {
         return (
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 text-center">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 text-center">
             Manage Subscription
           </p>
         );
@@ -139,7 +139,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
 
     // Authenticated, already subscribed to a different paid tier
     return (
-      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 text-center">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 text-center">
         Manage Subscription
       </p>
     );

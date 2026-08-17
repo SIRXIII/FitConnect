@@ -145,7 +145,7 @@ const AvailabilityManager: React.FC = () => {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="space-y-1">
           <h2 className="text-2xl serif font-light italic text-ink">Availability</h2>
-          <p className="text-xs text-ink/40 uppercase tracking-[0.2em]">
+          <p className="text-xs text-ink/70 uppercase tracking-[0.2em]">
             Click cells to toggle 1-on-1 slots — or add a group session below
           </p>
         </div>
@@ -181,7 +181,7 @@ const AvailabilityManager: React.FC = () => {
               <div />
               {weekDays.map((day, i) => (
                 <div key={i} className="text-center py-3 space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">{DAYS[i]}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70">{DAYS[i]}</p>
                   <p className="text-sm font-medium">{day.getDate()}</p>
                 </div>
               ))}
@@ -190,7 +190,7 @@ const AvailabilityManager: React.FC = () => {
             {/* Hour rows */}
             {HOURS.map((hour) => (
               <div key={hour} className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-ink/5">
-                <div className="py-3 pr-3 text-right text-[10px] text-ink/30 uppercase tracking-wider">
+                <div className="py-3 pr-3 text-right text-[10px] text-ink/70 uppercase tracking-wider">
                   {hour === 0 ? '12am' : hour < 12 ? `${hour}am` : hour === 12 ? '12pm' : `${hour - 12}pm`}
                 </div>
                 {weekDays.map((_, dayIndex) => {
@@ -269,7 +269,7 @@ const AvailabilityManager: React.FC = () => {
           <form onSubmit={handleAddGroupSlot} className="border-t border-ink/10 px-6 py-6 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">Date</label>
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Date</label>
                 <input
                   type="date"
                   required
@@ -280,7 +280,7 @@ const AvailabilityManager: React.FC = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">Time</label>
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Time</label>
                 <div className="flex items-center gap-2">
                   <select
                     value={groupFormStartHour}
@@ -293,7 +293,7 @@ const AvailabilityManager: React.FC = () => {
                       </option>
                     ))}
                   </select>
-                  <span className="text-ink/30 text-sm">to</span>
+                  <span className="text-ink/60 text-sm">to</span>
                   <select
                     value={groupFormEndHour}
                     onChange={e => setGroupFormEndHour(e.target.value)}
@@ -308,7 +308,7 @@ const AvailabilityManager: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">
                   Max Participants (2–10)
                 </label>
                 <input
@@ -322,7 +322,7 @@ const AvailabilityManager: React.FC = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">
                   Per-Person Rate ($)
                 </label>
                 <input
@@ -348,7 +348,7 @@ const AvailabilityManager: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowGroupForm(false)}
-                className="text-[11px] text-ink/40 hover:text-ink/70 transition-colors uppercase tracking-[0.2em]"
+                className="text-[11px] text-ink/70 hover:text-ink/70 transition-colors uppercase tracking-[0.2em]"
               >
                 Cancel
               </button>
@@ -358,7 +358,7 @@ const AvailabilityManager: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-6 text-[10px] uppercase tracking-[0.2em] text-ink/40">
+      <div className="flex flex-wrap items-center gap-6 text-[10px] uppercase tracking-[0.2em] text-ink/70">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-accent/10 border-l-2 border-l-accent" />
           1-on-1 Available

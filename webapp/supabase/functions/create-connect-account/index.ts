@@ -7,6 +7,7 @@ import { requireEnv } from '../_shared/env.ts';
 interface ConnectAccountRequest {
   return_url?: string;
   refresh_url?: string;
+  sync_only?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -86,6 +87,59 @@ Deno.serve(async (req) => {
 
     let stripeAccountId = trainerProfile.stripe_account_id as string | null;
 
+    if (stripeAccountId) {
+      const account = await stripe.accounts.retrieve(stripeAccountId);
+
+      const { error: syncError } = await adminClient
+        .from('trainer_profiles')
+        .update({
+          payouts_enabled: account.payouts_enabled === true,
+          stripe_details_submitted: account.details_submitted === true,
+        })
+        .eq('id', trainerProfile.id);
+
+      if (syncError) {
+        console.error('[create-connect-account] Failed to sync Stripe status:', syncError.message);
+      }
+
+      if (body.sync_only) {
+        return new Response(
+          JSON.stringify({
+            accountId: stripeAccountId,
+            payouts_enabled: account.payouts_enabled === true,
+            details_submitted: account.details_submitted === true,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      if (account.details_submitted) {
+        const loginLink = await stripe.accounts.createLoginLink(stripeAccountId);
+
+        return new Response(
+          JSON.stringify({
+            url: loginLink.url,
+            accountId: stripeAccountId,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    } else if (body.sync_only) {
+      return new Response(
+        JSON.stringify({ accountId: null, payouts_enabled: false, details_submitted: false }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     if (!stripeAccountId) {
       const account = await stripe.accounts.create({
         type: 'express',
@@ -116,11 +170,29 @@ Deno.serve(async (req) => {
       }
     }
 
+    let onboardingReturnUrl = returnUrl;
+    try {
+      const url = new URL(returnUrl);
+      url.searchParams.set('stripe_return', '1');
+      onboardingReturnUrl = url.toString();
+    } catch {
+      onboardingReturnUrl = returnUrl;
+    }
+
+    let onboardingRefreshUrl = refreshUrl;
+    try {
+      const url = new URL(refreshUrl);
+      url.searchParams.set('stripe_return', '1');
+      onboardingRefreshUrl = url.toString();
+    } catch {
+      onboardingRefreshUrl = refreshUrl;
+    }
+
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
       type: 'account_onboarding',
-      return_url: returnUrl,
-      refresh_url: refreshUrl,
+      return_url: onboardingReturnUrl,
+      refresh_url: onboardingRefreshUrl,
     });
 
     return new Response(

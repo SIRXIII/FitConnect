@@ -294,7 +294,7 @@ const TrainerOnboarding: React.FC = () => {
               {/* Cert number (optional) */}
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
-                  Certification Number <span className="normal-case text-ink/50">(optional)</span>
+                  Certification Number <span className="normal-case text-ink/70">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -308,7 +308,7 @@ const TrainerOnboarding: React.FC = () => {
               {/* Cert file upload (optional) */}
               <div className="space-y-3">
                 <p className="text-xs uppercase tracking-[0.2em] text-ink/60">
-                  Upload Certificate <span className="normal-case text-ink/50">(optional — PDF or image)</span>
+                  Upload Certificate <span className="normal-case text-ink/70">(optional — PDF or image)</span>
                 </p>
                 <input
                   ref={certFileInputRef}
@@ -321,7 +321,7 @@ const TrainerOnboarding: React.FC = () => {
                   type="button"
                   onClick={() => certFileInputRef.current?.click()}
                   disabled={uploadingCert}
-                  className="border border-ink/15 px-6 py-2.5 text-[11px] uppercase tracking-[0.2em] text-ink/50 hover:border-ink/30 hover:text-ink transition-all disabled:opacity-50"
+                  className="border border-ink/15 px-6 py-2.5 text-[11px] uppercase tracking-[0.2em] text-ink/60 hover:border-ink/30 hover:text-ink transition-all disabled:opacity-50"
                 >
                   {uploadingCert
                     ? 'Uploading…'
@@ -329,7 +329,7 @@ const TrainerOnboarding: React.FC = () => {
                     ? `✓ ${form.cert_file.name}`
                     : 'Choose File'}
                 </button>
-                <p className="text-xs text-ink/50 font-light">
+                <p className="text-xs text-ink/70 font-light">
                   Optional now, but verified certifications are the biggest factor in your search ranking.
                 </p>
               </div>
@@ -363,7 +363,7 @@ const TrainerOnboarding: React.FC = () => {
                 <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
                   Profile Photo *
                 </label>
-                <p className="text-xs text-ink/50 font-light">
+                <p className="text-xs text-ink/70 font-light">
                   A professional headshot works best: clear, well-lit, just you. Profiles with photos rank higher in search.
                 </p>
                 <div className="flex items-center gap-5">
@@ -380,7 +380,7 @@ const TrainerOnboarding: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl serif text-ink/50 font-light">{initials}</span>
+                      <span className="text-2xl serif text-ink/70 font-light">{initials}</span>
                     )}
                     <div className="absolute inset-0 bg-ink/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <Camera size={18} className="text-white" />
@@ -395,7 +395,7 @@ const TrainerOnboarding: React.FC = () => {
                     <p className="text-sm text-ink/60 font-light">
                       {form.avatar_url ? 'Photo uploaded ✓' : 'Click to add a photo'}
                     </p>
-                    <p className="text-xs text-ink/50">JPG, PNG or GIF · Max 5 MB</p>
+                    <p className="text-xs text-ink/70">JPG, PNG or GIF · Max 5 MB</p>
                   </div>
                 </div>
                 <input
@@ -416,7 +416,7 @@ const TrainerOnboarding: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Specialties *</label>
-                <p className="text-xs text-ink/50 font-light">Pick all that apply. Your first pick is shown as your primary.</p>
+                <p className="text-xs text-ink/70 font-light">Pick all that apply. Your first pick is shown as your primary.</p>
                 <div className="grid grid-cols-2 gap-2">
                   {SPECIALTIES.map(sp => {
                     const selected = form.specialties.includes(sp.value);
@@ -441,7 +441,7 @@ const TrainerOnboarding: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Bio <span className="normal-case text-ink/50">(optional)</span></label>
+                <label className="text-xs uppercase tracking-[0.2em] text-ink/60">Bio <span className="normal-case text-ink/70">(optional)</span></label>
                 <textarea
                   value={form.bio}
                   onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
@@ -453,7 +453,7 @@ const TrainerOnboarding: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
-                  Years of Experience <span className="normal-case text-ink/50">(optional)</span>
+                  Years of Experience <span className="normal-case text-ink/70">(optional)</span>
                 </label>
                 <input
                   type="number"
@@ -468,7 +468,7 @@ const TrainerOnboarding: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
-                  Areas of Expertise <span className="normal-case text-ink/50">(optional — comma-separated)</span>
+                  Areas of Expertise <span className="normal-case text-ink/70">(optional — comma-separated)</span>
                 </label>
                 <input
                   type="text"
@@ -481,7 +481,7 @@ const TrainerOnboarding: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
-                  Success Story <span className="normal-case text-ink/50">(optional)</span>
+                  Success Story <span className="normal-case text-ink/70">(optional)</span>
                 </label>
                 <textarea
                   value={form.success_story}
@@ -494,7 +494,7 @@ const TrainerOnboarding: React.FC = () => {
 
               <div className="space-y-3">
                 <label className="text-xs uppercase tracking-[0.2em] text-ink/60">
-                  FAQ <span className="normal-case text-ink/50">(optional)</span>
+                  FAQ <span className="normal-case text-ink/70">(optional)</span>
                 </label>
                 {form.faqs.map((faq, i) => (
                   <div key={i} className="border border-ink/10 p-4 space-y-3">
@@ -521,7 +521,7 @@ const TrainerOnboarding: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setForm(f => ({ ...f, faqs: f.faqs.filter((_, idx) => idx !== i) }))}
-                      className="text-xs uppercase tracking-[0.15em] text-ink/50 hover:text-red-400 transition-colors"
+                      className="text-xs uppercase tracking-[0.15em] text-ink/70 hover:text-red-400 transition-colors"
                     >
                       × Remove
                     </button>
@@ -530,7 +530,7 @@ const TrainerOnboarding: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setForm(f => ({ ...f, faqs: [...f.faqs, { q: '', a: '' }] }))}
-                  className="border border-ink/15 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-ink/50 hover:border-ink/30 hover:text-ink transition-all"
+                  className="border border-ink/15 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-ink/60 hover:border-ink/30 hover:text-ink transition-all"
                 >
                   + Add FAQ
                 </button>
