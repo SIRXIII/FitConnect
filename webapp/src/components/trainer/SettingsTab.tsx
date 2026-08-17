@@ -80,7 +80,11 @@ const SettingsTab: React.FC = () => {
   const [phone, setPhone] = useState(profile?.phone ?? '');
   const [bio, setBio] = useState(trainerProfile?.bio ?? '');
   const [location, setLocation] = useState(trainerProfile?.location ?? '');
-  const [specialty, setSpecialty] = useState(trainerProfile?.specialty ?? 'strength_training');
+  const [specialties, setSpecialties] = useState<string[]>(
+    trainerProfile?.specialties?.length
+      ? trainerProfile.specialties
+      : [trainerProfile?.specialty ?? 'strength_training']
+  );
   const [hourlyRate, setHourlyRate] = useState(String(trainerProfile?.hourly_rate ?? 100));
   const [optimizedRate, setOptimizedRate] = useState(String(trainerProfile?.optimized_rate ?? 60));
   const [yearsExperience, setYearsExperience] = useState(
@@ -194,11 +198,14 @@ const SettingsTab: React.FC = () => {
         .update({
           bio: trimmedBio || null,
           location: trimmedLocation,
-          specialty,
+          // First pick stays the primary specialty for legacy consumers.
+          specialty: specialties[0],
+          specialties,
           hourly_rate: hourly,
           optimized_rate: Math.min(optimized, hourly),
           years_experience: parsedYearsExperience,
-          expertise_tags: parsedExpertiseTags.length > 0 ? parsedExpertiseTags : null,
+          // Empty array, never null: NOT NULL column, explicit null = 23502.
+          expertise_tags: parsedExpertiseTags,
           success_story: trimmedSuccessStory || null,
         })
         .eq('user_id', user.id);
@@ -210,7 +217,8 @@ const SettingsTab: React.FC = () => {
       toast.success('Profile saved.');
     } catch (err) {
       console.error('[SettingsTab] save profile error:', err);
-      toast.error('Failed to save profile — please try again.');
+      const detail = err instanceof Error && err.message ? ` (${err.message})` : '';
+      toast.error(`Failed to save profile, please try again.${detail}`);
     } finally {
       setSavingProfile(false);
     }
@@ -305,24 +313,37 @@ const SettingsTab: React.FC = () => {
           />
         </Field>
 
-        {/* Specialty */}
-        <Field label="Specialty">
+        {/* Specialties (multi-select; first pick is the primary) */}
+        <Field label="Specialties">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {SPECIALTIES.map((sp) => (
-              <button
-                key={sp.value}
-                type="button"
-                onClick={() => setSpecialty(sp.value)}
-                className={`py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
-                  specialty === sp.value
-                    ? 'border-accent bg-accent/5 text-accent'
-                    : 'border-ink/10 hover:border-ink/30 text-ink/60'
-                }`}
-              >
-                {sp.label}
-                {specialty === sp.value && <Check size={12} />}
-              </button>
-            ))}
+            {SPECIALTIES.map((sp) => {
+              const selected = specialties.includes(sp.value);
+              return (
+                <button
+                  key={sp.value}
+                  type="button"
+                  onClick={() => {
+                    if (selected && specialties.length === 1) {
+                      toast.error('Keep at least one specialty.');
+                      return;
+                    }
+                    setSpecialties(
+                      selected
+                        ? specialties.filter((v) => v !== sp.value)
+                        : [...specialties, sp.value]
+                    );
+                  }}
+                  className={`py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
+                    selected
+                      ? 'border-accent bg-accent/5 text-accent'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                  }`}
+                >
+                  {sp.label}
+                  {selected && <Check size={12} />}
+                </button>
+              );
+            })}
           </div>
         </Field>
 

@@ -61,6 +61,11 @@ export const trainerProfileSchema = z.object({
   bio: z.string().max(1000, 'Bio must be under 1000 characters').optional(),
   location: z.string().min(1, 'Location is required').max(100, 'Location must be under 100 characters'),
   specialty: z.enum(SPECIALTIES, { message: 'Please select a valid specialty' }),
+  specialties: z
+    .array(z.enum(SPECIALTIES))
+    .min(1, 'Pick at least one specialty')
+    .max(5, 'Maximum 5 specialties')
+    .optional(),
   hourly_rate: z.number().min(10, 'Minimum rate is $10').max(10000, 'Maximum rate is $10,000'),
   optimized_rate: z.number().min(5, 'Minimum optimized rate is $5').max(10000, 'Maximum rate is $10,000'),
   certifications: z.array(z.string().max(50)).max(10, 'Maximum 10 certifications').optional(),

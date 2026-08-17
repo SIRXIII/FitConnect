@@ -79,7 +79,9 @@ export function useTrainers(options: UseTrainersOptions = {}) {
       .order('rank_score', { ascending: false });
 
     if (options.specialty) {
-      query = query.eq('specialty', options.specialty);
+      // Match any of the trainer's specialties (backfilled from the primary),
+      // so multi-specialty trainers surface under each one they chose.
+      query = query.contains('specialties', [options.specialty]);
     }
     if (options.maxRate) {
       query = query.lte('optimized_rate', options.maxRate);

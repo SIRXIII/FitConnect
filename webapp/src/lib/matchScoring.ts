@@ -17,6 +17,7 @@ export interface TrainerMatchInput {
   slug?: string | null;
   optimized_rate: number;
   specialty: string;
+  specialties?: string[] | null;
   profiles: { full_name: string; avatar_url: string | null };
 }
 
@@ -77,7 +78,9 @@ export function scoreTrainer(client: ClientMatchInput, trainer: TrainerMatchInpu
   let goalScore = 0;
   let goalReason: string | null = null;
 
-  const trainerWorkouts = specialtyToWorkoutTypes[trainer.specialty] ?? [];
+  // Union workout types across every specialty the trainer offers.
+  const trainerSpecialties = trainer.specialties?.length ? trainer.specialties : [trainer.specialty];
+  const trainerWorkouts = [...new Set(trainerSpecialties.flatMap(s => specialtyToWorkoutTypes[s] ?? []))];
   const clientInterests = [...client.goals_ranked, ...client.workout_types];
   const matches = trainerWorkouts.filter(w => clientInterests.includes(w));
 
