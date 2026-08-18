@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { INTENSITY_LEVEL_VALUES } from '@/lib/profileConstants';
+import { US_STATE_CODES } from '@/lib/usStates';
 
 // --- Existing Schemas ---
 
@@ -145,6 +146,39 @@ export const waitlistSchema = z.object({
 });
 
 export type WaitlistInput = z.infer<typeof waitlistSchema>;
+
+// --- City Demand Nominations ---
+
+const optionalTrimmedString = (max: number, message: string) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().max(max, message).optional()
+  );
+
+export const nominationSchema = z.object({
+  first_name: z
+    .string()
+    .trim()
+    .min(1, 'First name is required')
+    .max(80, 'First name is too long'),
+  city: z
+    .string()
+    .trim()
+    .min(1, 'City is required')
+    .max(100, 'City is too long'),
+  state: z
+    .string()
+    .min(1, 'Please select a state')
+    .refine((v) => US_STATE_CODES.includes(v), { message: 'Please select a valid state' }),
+  nominee_name: optionalTrimmedString(120, 'Name is too long'),
+  nominee_email: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().max(320, 'Email is too long').email('Please enter a valid email address').optional()
+  ),
+  nominee_phone: optionalTrimmedString(40, 'Phone number is too long'),
+});
+
+export type NominationInput = z.infer<typeof nominationSchema>;
 
 // --- Phase 23.1: Client Profile Enhancement ---
 

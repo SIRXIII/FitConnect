@@ -6,6 +6,7 @@ import FeaturedTrainers from '@/components/landing/FeaturedTrainers';
 import HowItWorks from '@/components/landing/HowItWorks';
 import TrainerTestimonials from '@/components/landing/TrainerTestimonials';
 import TrustSafety from '@/components/landing/TrustSafety';
+import NominateCTA from '@/components/landing/NominateCTA';
 import ReferralLeaderboard from '@/components/landing/ReferralLeaderboard';
 import Partners from '@/components/landing/Partners';
 
@@ -24,6 +25,7 @@ const Landing: React.FC = () => {
         <HowItWorks />
         <TrainerTestimonials />
         <TrustSafety />
+        <NominateCTA />
         <ReferralLeaderboard />
         <Partners />
       </main>

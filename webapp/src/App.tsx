@@ -26,6 +26,7 @@ import ClientPassport from '@/pages/ClientPassport';
 import NotFound from '@/pages/NotFound';
 import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
+import NominateTrainer from '@/pages/NominateTrainer';
 import TrialBanner from '@/components/subscription/TrialBanner';
 import GoogleCalendarCallback from '@/pages/GoogleCalendarCallback';
 import ResetPassword from '@/pages/ResetPassword';
@@ -89,6 +90,7 @@ const App: React.FC = () => {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/nominate" element={<NominateTrainer />} />
 
           {/* Onboarding (requires auth) */}
           <Route path="/onboarding/role" element={<ProtectedRoute skipRoleCheck><RoleSelect /></ProtectedRoute>} />
