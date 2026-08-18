@@ -85,8 +85,8 @@ const NominateTrainer: React.FC = () => {
             <h2 className="text-xl font-medium text-ink mb-2">Nomination Received</h2>
             <p className="text-sm text-ink/50">
               {cityCount !== null
-                ? `You're vote #${cityCount} for ${votedCity}.`
-                : `Thanks for putting ${votedCity} on the map.`}
+                ? <>You're vote #{cityCount} for <span className="capitalize">{votedCity}</span>.</>
+                : <>Thanks for putting <span className="capitalize">{votedCity}</span> on the map.</>}
             </p>
             <p className="text-xs text-ink/30 mt-3">
               We use nomination counts to decide where to recruit trainers next.

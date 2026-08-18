@@ -68,6 +68,7 @@ describe('NominateTrainer', () => {
     expect(String(url)).toContain('/functions/v1/nominate-trainer');
     expect(options.headers.Authorization).toContain('test-anon-key');
 
-    expect(await screen.findByText("You're vote #7 for Fresno.")).toBeTruthy();
+    const successMsg = await screen.findByRole('heading', { level: 2, name: 'Nomination Received' });
+    expect(successMsg.parentElement?.textContent).toContain("You're vote #7 for Fresno");
   });
 });
