@@ -56,10 +56,15 @@ Deno.serve(async (req) => {
 
     // Rate limit by hashed caller IP. Hashed (never stored raw) so the table
     // itself carries no PII beyond what the submitter chose to type in.
+    // cf-connecting-ip is set by the platform to the real client IP and is
+    // not spoofable by callers (verified live: client-supplied
+    // x-forwarded-for values are stripped at the edge, and the last XFF hop
+    // is a varying accelerator IP, so neither end of XFF is a stable key).
+    // First XFF entry is the fallback since the platform rewrites the chain.
     const forwardedFor = req.headers.get('x-forwarded-for') || '';
-    // Supabase's proxy appends the real client IP as the last hop; earlier
-    // entries are client-supplied and can be spoofed, so take the last one.
-    const ip = forwardedFor.split(',').map((s) => s.trim()).filter(Boolean).pop() ?? 'unknown';
+    const ip =
+      req.headers.get('cf-connecting-ip') ??
+      (forwardedFor.split(',')[0]?.trim() || 'unknown');
     const salt = Deno.env.get('IP_HASH_SALT') ?? 'fitrush-nominate';
     const ipHash = await sha256Hex(`${ip}:${salt}`);
 
