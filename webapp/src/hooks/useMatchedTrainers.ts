@@ -79,8 +79,10 @@ export function useMatchedTrainers(): UseMatchedTrainersResult {
           optimized_rate,
           specialty,
           specialties,
-          profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
-        `);
+          profiles!trainer_profiles_user_id_fkey!inner (full_name, avatar_url)
+        `)
+        // Exclude suspended trainers from recommendations (see useTrainers).
+        .eq('profiles.is_suspended', false);
 
       const ranked = rankAndFilter(cp, trainers ?? [], 3);
 
