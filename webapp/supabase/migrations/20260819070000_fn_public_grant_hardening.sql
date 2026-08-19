@@ -159,25 +159,32 @@ BEGIN
 END $$;
 
 -- ============================================================
--- 4. update_updated_at was the last repo-defined function without a pinned
---    search_path (function_search_path_mutable).
+-- 4. Document the one new rls_enabled_no_policy finding (INFO). Matches the
+--    four already documented in 20260808210000: RLS on, no policy, written
+--    only by service_role, so no client-facing policy is wanted.
+--    nominate_trainer_submit is the sole writer and is service_role-only.
 -- ============================================================
-ALTER FUNCTION public.update_updated_at() SET search_path = public, extensions, pg_temp;
+COMMENT ON TABLE public.trainer_nominations IS 'RLS enabled with no policies BY DESIGN: rows written only by nominate_trainer_submit (service_role); no client reads/writes.';
 
 -- ============================================================
--- 5. trainer_review_stats ran with definer semantics (owner postgres),
---    flagged security_definer_view. reviews_select_public is USING (true),
---    reviews are world-readable, so invoker semantics return identical rows.
--- ============================================================
-ALTER VIEW public.trainer_review_stats SET (security_invoker = true);
-
--- ============================================================
--- 6. Document the intentional public-read tables (advisor context; RLS
---    policies untouched).
+-- 5. Document the intentional public-read tables (advisor context; RLS
+--    policies untouched). These are NOT advisor findings; recorded per the
+--    hardening review so the deliberate anon-read surface is explicit.
 -- ============================================================
 COMMENT ON TABLE public.availability_slots IS 'SELECT open to anon BY DESIGN: public marketplace slot browse. Writes are trainer-scoped via RLS; trainer-scoped RPCs derive the trainer from auth.uid(), never a parameter.';
 COMMENT ON TABLE public.trainer_profiles IS 'SELECT open to anon BY DESIGN: public trainer directory. Writes guarded by RLS and the rank/approval guard triggers.';
 COMMENT ON TABLE public.reviews IS 'SELECT open to anon BY DESIGN (reviews_select_public): reviews render on public trainer pages. Inserts restricted to completed-booking clients; moderation admin-only.';
+
+-- ============================================================
+-- 6. NOT cleared by this migration, ACCEPTED as by-design (authenticated_
+--    security_definer_function_executable / lint 0029): the admin dashboard,
+--    trainer settings, and logged-in booking flow legitimately call these
+--    SECURITY DEFINER RPCs as the `authenticated` role. Each guards its own
+--    admin/owner check internally and needs definer rights to bypass RLS, so
+--    revoking authenticated would break the app. get_visible_slots and
+--    get_slot_booking_count additionally stay anon-callable (0028) for the
+--    logged-out marketplace browse. send_email_notification is a live-only
+--    definer helper (no repo migration) left to the mobile owner.
 
 NOTIFY pgrst, 'reload schema';
 
