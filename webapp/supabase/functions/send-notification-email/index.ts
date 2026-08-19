@@ -23,27 +23,32 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = requireEnv('SUPABASE_URL');
-    const supabaseAnonKey = requireEnv('SUPABASE_ANON_KEY');
 
-    // Verify caller is authenticated
+    // Verify caller is authenticated (user JWT or service_role key)
     const authHeader = req.headers.get('Authorization') || '';
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: authHeader },
-      },
-      auth: { persistSession: false },
-    });
+    const token = authHeader.replace('Bearer ', '');
+    const isServiceRole = token === requireEnv('SUPABASE_SERVICE_ROLE_KEY');
 
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser();
-
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!isServiceRole) {
+      const supabaseAnonKey = requireEnv('SUPABASE_ANON_KEY');
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+        auth: { persistSession: false },
       });
+
+      const {
+        data: { user },
+        error: userError,
+      } = await userClient.auth.getUser(token);
+
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Validate required body fields
@@ -72,7 +77,6 @@ Deno.serve(async (req) => {
 
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) {
-      // Fallback to logging if no API key configured (dev mode)
       console.log('[send-notification-email] No RESEND_API_KEY, logging:', {
         to: body.to,
         subject: body.subject,
@@ -94,7 +98,6 @@ Deno.serve(async (req) => {
       if (!res.ok) {
         const errBody = await res.text();
         console.error('[send-notification-email] Resend error:', res.status, errBody);
-        // Still return success to caller — email failure should not block operations
       }
     }
 

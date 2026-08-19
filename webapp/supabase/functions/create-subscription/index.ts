@@ -4,6 +4,17 @@ import Stripe from 'npm:stripe@14.25.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { requireEnv } from '../_shared/env.ts';
 
+// ---------------------------------------------------------------------------
+// Price ID mapping: tier + interval → Stripe Price ID
+// ---------------------------------------------------------------------------
+const PRICE_MAP: Record<string, string> = {
+  'pro_month':   'price_1TDE8rPHPNL68BKAeDSjGAwP',
+  'elite_month': 'price_1TDECkPHPNL68BKAqzNqLV4K',
+  // Annual prices — add here when created in Stripe
+  // 'pro_year':   'price_xxx',
+  // 'elite_year': 'price_xxx',
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -22,19 +33,29 @@ Deno.serve(async (req) => {
     const supabaseServiceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
     const stripeSecretKey = requireEnv('STRIPE_SECRET_KEY');
 
-    // Price lookup: resolve tier+interval to Stripe price ID
-    const PRICE_MAP: Record<string, string> = {
-      'pro:month':   Deno.env.get('STRIPE_PRICE_PRO_MONTHLY')!,
-      'pro:year':    Deno.env.get('STRIPE_PRICE_PRO_YEARLY')!,
-      'elite:month': Deno.env.get('STRIPE_PRICE_ELITE_MONTHLY')!,
-      'elite:year':  Deno.env.get('STRIPE_PRICE_ELITE_YEARLY')!,
-    };
-
-    // Step 1: Parse request body — accepts priceId directly OR tier+interval
+    // Step 1: Parse request body — accept { tier, interval } or legacy { priceId }
     let priceId: string;
     try {
       const body = await req.json();
-      priceId = body?.priceId ?? PRICE_MAP[`${body?.tier}:${body?.interval}`];
+      if (body?.priceId) {
+        // Legacy direct priceId
+        priceId = body.priceId;
+      } else if (body?.tier && body?.interval) {
+        const key = `${body.tier}_${body.interval}`;
+        const mapped = PRICE_MAP[key];
+        if (!mapped) {
+          return new Response(JSON.stringify({ error: `No price configured for ${key}. Contact support.` }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        priceId = mapped;
+      } else {
+        return new Response(JSON.stringify({ error: 'tier + interval (or priceId) is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid request body' }), {
         status: 400,
@@ -42,15 +63,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!priceId) {
-      return new Response(JSON.stringify({ error: 'Provide priceId or valid tier+interval' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     // Step 2: Authenticate the trainer via JWT
     const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false },
@@ -59,7 +74,7 @@ Deno.serve(async (req) => {
     const {
       data: { user },
       error: userError,
-    } = await userClient.auth.getUser();
+    } = await userClient.auth.getUser(token);
 
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -107,16 +122,13 @@ Deno.serve(async (req) => {
     let customerId: string;
 
     if (trainerProfile.stripe_customer_id) {
-      // Reuse existing customer
       customerId = trainerProfile.stripe_customer_id;
     } else {
-      // Create new Stripe customer
       const newCustomer = await stripe.customers.create({
         email: user.email,
         metadata: { trainer_id: trainerProfile.id },
       });
 
-      // Write stripe_customer_id to DB (only safe field to write here)
       const { error: updateError } = await adminClient
         .from('trainer_profiles')
         .update({ stripe_customer_id: newCustomer.id })
@@ -133,7 +145,6 @@ Deno.serve(async (req) => {
     }
 
     // Step 7: Create subscription with 30-day trial
-    // DO NOT write subscription_tier or subscription_status — the webhook is the single writer of subscription state
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
@@ -144,7 +155,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    // Step 8: Return subscriptionId and status (will be 'trialing')
+    // Step 8: Return subscriptionId and status
     return new Response(
       JSON.stringify({ subscriptionId: subscription.id, status: subscription.status }),
       {
