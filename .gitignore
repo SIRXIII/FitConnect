@@ -13,3 +13,12 @@ supabase/.temp/
 
 .DS_Store
 .gstack/
+
+# Local tool state — reproducible output, never track
+.playwright-cli/
+.playwright-mcp/
+.wrangler/
+.impeccable/
+
+# Ad-hoc QA captures (screenshots/recordings) — keep outside the repo
+Examples/
