@@ -12,3 +12,4 @@ AuthKey_*.p8
 supabase/.temp/
 
 .DS_Store
+.gstack/

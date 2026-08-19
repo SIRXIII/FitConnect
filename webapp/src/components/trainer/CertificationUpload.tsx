@@ -46,6 +46,8 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
   const [selectedCode, setSelectedCode] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [expiryDate, setExpiryDate] = useState('');
+  const [certNumber, setCertNumber] = useState('');
+  const [otherCertName, setOtherCertName] = useState('');
   const [uploading, setUploading] = useState(false);
   const [certs, setCerts] = useState<TrainerCertification[]>([]);
   const [loadingCerts, setLoadingCerts] = useState(true);
@@ -80,6 +82,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
   const selectedCertInfo = catalogGroups
     .flatMap(group => group.certs)
     .find(c => c.cert_code === selectedCode) ?? null;
+  const isOtherCert = selectedCode === 'OTHER';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,6 +96,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
 
   const handleUpload = async () => {
     if (!selectedCode || !selectedFile || !user) return;
+    if (isOtherCert && !otherCertName.trim()) return;
 
     setUploading(true);
     try {
@@ -114,7 +118,8 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
         .insert({
           trainer_id: trainerId,
           cert_code: selectedCode,
-          cert_name: selectedCertInfo?.display_name ?? selectedCode,
+          cert_name: isOtherCert ? otherCertName.trim() : (selectedCertInfo?.display_name ?? selectedCode),
+          cert_number: certNumber.trim() || null,
           file_path: filePath,
           expiry_date: expiryDate || null,
           status: 'pending',
@@ -126,6 +131,8 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
       setSelectedCode('');
       setSelectedFile(null);
       setExpiryDate('');
+      setCertNumber('');
+      setOtherCertName('');
       if (fileInputRef.current) fileInputRef.current.value = '';
       await fetchCerts();
       onCertUploaded?.();
@@ -160,7 +167,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
     }
   };
 
-  const canSubmit = selectedCode && selectedFile && !uploading;
+  const canSubmit = selectedCode && selectedFile && !uploading && (!isOtherCert || otherCertName.trim().length > 0);
 
   return (
     <div className="space-y-8">
@@ -204,6 +211,21 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
           )}
         </div>
 
+        {isOtherCert && (
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70">
+              Certificate or License Name *
+            </label>
+            <input
+              type="text"
+              value={otherCertName}
+              onChange={e => setOtherCertName(e.target.value)}
+              placeholder="e.g. State Massage Therapy License"
+              className="w-full border-b border-ink/20 bg-transparent pb-2 text-sm font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+            />
+          </div>
+        )}
+
         <div className="space-y-2">
           <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70">
             Certificate Document *
@@ -230,6 +252,18 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
               </span>
             )}
           </button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70">
+            Certification Number <span className="normal-case text-ink/60">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={certNumber}
+            onChange={e => setCertNumber(e.target.value)}
+            className="w-full border-b border-ink/20 bg-transparent pb-2 text-sm font-light outline-none focus:border-ink/60 transition-colors"
+          />
         </div>
 
         <div className="space-y-2">
@@ -279,7 +313,7 @@ const CertificationUpload: React.FC<Props> = ({ trainerId, onCertUploaded }) => 
                   </div>
                   <StatusBadge status={cert.status} />
                 </div>
-                {cert.status === 'rejected' && cert.admin_notes && (
+                {(cert.status === 'rejected' || cert.status === 'needs_info') && cert.admin_notes && (
                   <div className="flex gap-2 mt-2 p-3 bg-red-50 border border-red-100">
                     <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
                     <p className="text-xs text-red-700 font-light">{cert.admin_notes}</p>

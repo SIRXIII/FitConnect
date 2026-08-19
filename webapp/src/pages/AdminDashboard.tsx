@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy, UserPlus, CreditCard, Activity, Wallet, Zap } from 'lucide-react';
+import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy, UserPlus, CreditCard, Activity, Wallet, Zap, ChevronDown } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
@@ -12,6 +12,7 @@ import { summarizePayoutFunding, formatCents } from '@/lib/payoutFunding';
 import AdminSupportQueue from '@/components/support/AdminSupportQueue';
 import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import { useSupportTickets } from '@/hooks/useSupportTickets';
+import { useCertificationCatalog } from '@/hooks/useCertificationCatalog';
 import TrainerDetailCard, { type PendingTrainer } from '@/components/admin/TrainerDetailCard';
 import TrainerSessionsModal from '@/components/admin/TrainerSessionsModal';
 
@@ -91,8 +92,9 @@ interface CertReviewItem {
   file_path: string | null;
   file_url: string | null;
   expiry_date: string | null;
-  status: 'pending' | 'needs_info';
+  status: 'pending' | 'needs_info' | 'approved' | 'rejected' | 'expired';
   submitted_at: string;
+  reviewed_at: string | null;
   admin_notes: string | null;
   trainer_name: string | null;
   trainer_last_name: string | null;
@@ -103,6 +105,11 @@ interface CertReviewItem {
   kind: string | null;
   verify_url: string | null;
   verify_fields: string | null;
+  verification_status: 'unverified' | 'verified_match' | 'verified_mismatch' | 'not_found' | 'blocked' | 'error';
+  verification_notes: string | null;
+  verification_checked_at: string | null;
+  missing_document: boolean;
+  missing_cert_number: boolean | null;
 }
 
 interface AuditLogEntry {
@@ -192,6 +199,25 @@ interface Stats {
   avgDiscount: number;
 }
 
+const CERT_STATUS_FILTERS: Array<[string, string]> = [
+  ['queue', 'Queue'],
+  ['pending', 'Pending'],
+  ['needs_info', 'Needs Info'],
+  ['approved', 'Approved'],
+  ['rejected', 'Rejected'],
+  ['expired', 'Expired'],
+  ['all', 'All'],
+];
+
+const CERT_TIER_ORDER = ['gold', 'strong', 'acceptable', 'safety', 'other'] as const;
+const CERT_TIER_LABELS: Record<string, string> = {
+  gold: 'Gold',
+  strong: 'Strong',
+  acceptable: 'Acceptable',
+  safety: 'Safety (CPR/AED)',
+  other: 'Other',
+};
+
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<Stats>({ totalBookings: 0, totalRevenue: 0, activeUsers: 0, avgDiscount: 0 });
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -205,9 +231,15 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support' | 'pending-trainers' | 'sessions'>('analytics');
   const { tickets: supportTickets, refetch: refetchSupportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
+  const { catalog: certCatalogList, loading: certCatalogLoading } = useCertificationCatalog();
+  const certCatalogByTier = CERT_TIER_ORDER
+    .map(tier => ({ tier, certs: certCatalogList.filter(c => c.tier === tier) }))
+    .filter(group => group.certs.length > 0);
   const [pendingCerts, setPendingCerts] = useState<CertReviewItem[]>([]);
   const [loadingCerts, setLoadingCerts] = useState(false);
   const [certsError, setCertsError] = useState<string | null>(null);
+  const [certStatusFilter, setCertStatusFilter] = useState<string>('queue');
+  const [showCertCatalog, setShowCertCatalog] = useState(false);
   const [certNotes, setCertNotes] = useState<Record<string, string>>({});
   const [certDecisionOpen, setCertDecisionOpen] = useState<Record<string, 'reject' | 'needs_info' | null>>({});
   const [certChecklist, setCertChecklist] = useState<Record<string, Record<string, boolean>>>({});
@@ -654,7 +686,7 @@ const AdminDashboard: React.FC = () => {
     setLoadingCerts(true);
     setCertsError(null);
     try {
-      const { data, error } = await (supabase as any).rpc('get_admin_pending_certs');
+      const { data, error } = await (supabase as any).rpc('get_admin_pending_certs', { p_status: certStatusFilter });
       if (error) throw error;
       setPendingCerts((data ?? []) as CertReviewItem[]);
     } catch (err) {
@@ -665,7 +697,7 @@ const AdminDashboard: React.FC = () => {
     } finally {
       setLoadingCerts(false);
     }
-  }, []);
+  }, [certStatusFilter]);
 
   const handleCertReview = async (certId: string, decision: 'approved' | 'rejected' | 'needs_info') => {
     const notes = (certNotes[certId] ?? '').trim();
@@ -2230,6 +2262,90 @@ const AdminDashboard: React.FC = () => {
               </a>
             </div>
 
+            {/* Accepted Certifications reference panel */}
+            <div className="border border-ink/10">
+              <button
+                type="button"
+                onClick={() => setShowCertCatalog(prev => !prev)}
+                className="w-full flex items-center justify-between px-6 py-4 text-left"
+              >
+                <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-ink/60">Accepted Certifications</p>
+                <ChevronDown
+                  size={16}
+                  className={`text-ink/40 flex-shrink-0 transition-transform duration-200 ${showCertCatalog ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {showCertCatalog && (
+                <div className="border-t border-ink/10 px-6 py-5 space-y-6">
+                  {certCatalogLoading && (
+                    <p className="text-xs text-ink/50 font-light">Loading catalog…</p>
+                  )}
+                  {!certCatalogLoading && certCatalogByTier.map(group => (
+                    <div key={group.tier} className="space-y-3">
+                      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/50">
+                        {CERT_TIER_LABELS[group.tier]}
+                      </p>
+                      <div className="space-y-2">
+                        {group.certs.map(c => {
+                          const catAccredClass = c.accreditation === 'NCCA'
+                            ? 'text-green-700 border-green-300 bg-green-50'
+                            : c.accreditation === 'DEAC'
+                            ? 'text-teal-700 border-teal-300 bg-teal-50'
+                            : '';
+                          return (
+                            <div key={c.cert_code} className="flex flex-wrap items-center gap-2 text-xs text-ink/70">
+                              <span className="font-medium text-ink">{c.display_name}</span>
+                              <span className="text-ink/40">·</span>
+                              <span className="text-ink/60">{c.org}</span>
+                              {(c.accreditation === 'NCCA' || c.accreditation === 'DEAC') && (
+                                <span className={`text-[10px] uppercase tracking-[0.15em] font-semibold border px-2 py-0.5 ${catAccredClass}`}>
+                                  {c.accreditation}
+                                </span>
+                              )}
+                              <span className="text-[10px] uppercase tracking-[0.12em] text-ink/60 border border-ink/15 px-2 py-0.5">
+                                {c.kind}
+                              </span>
+                              {c.verify_fields && (
+                                <span className="text-ink/50">Search by: {c.verify_fields}</span>
+                              )}
+                              {c.verify_url && (
+                                <a
+                                  href={c.verify_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-accent hover:underline"
+                                >
+                                  Registry ↗
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Status filter chips */}
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status:</p>
+              {CERT_STATUS_FILTERS.map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => setCertStatusFilter(value)}
+                  className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
+                    certStatusFilter === value
+                      ? 'border-ink text-ink bg-ink/5'
+                      : 'border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             {/* Error state */}
             {certsError && (
               <div className="border border-red-200 bg-red-50 px-6 py-4 flex items-center gap-4">
@@ -2305,6 +2421,34 @@ const AdminDashboard: React.FC = () => {
               const isPdf = fileExt === 'pdf';
 
               const decisionMode = certDecisionOpen[cert.id] ?? null;
+              const isReviewable = cert.status === 'pending' || cert.status === 'needs_info';
+
+              const missingBoth = cert.missing_document && cert.missing_cert_number === true;
+              const missingBadgeText = missingBoth
+                ? 'document and cert number'
+                : cert.missing_document
+                ? 'document'
+                : cert.missing_cert_number === true
+                ? 'cert number'
+                : null;
+              const missingTemplateText = missingBoth
+                ? 'the certificate document and your certification number'
+                : cert.missing_document
+                ? 'the certificate document'
+                : cert.missing_cert_number === true
+                ? 'your certification number'
+                : null;
+              const needsInfoTemplate = missingTemplateText
+                ? `Hi! To verify your ${cert.cert_name} we still need ${missingTemplateText}. Please add it from your trainer dashboard. Thank you!`
+                : null;
+
+              const decisionLabel = cert.status === 'approved'
+                ? 'Approved'
+                : cert.status === 'rejected'
+                ? 'Rejected'
+                : cert.status === 'expired'
+                ? 'Expired'
+                : cert.status;
 
               return (
                 <div key={cert.id} className="border border-ink/10 p-8 space-y-6">
@@ -2352,6 +2496,11 @@ const AdminDashboard: React.FC = () => {
                           Submitted {new Date(cert.submitted_at).toLocaleDateString()}
                         </span>
                       </div>
+                      {missingBadgeText && (
+                        <p className="text-[11px] text-amber-700 font-medium mt-2">
+                          Incomplete: missing {missingBadgeText}
+                        </p>
+                      )}
                     </div>
 
                     {/* Document + verify links */}
@@ -2461,7 +2610,48 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Registry verification badge */}
+                  {cert.verification_status !== 'unverified' && (
+                    <div
+                      className={`border px-5 py-4 space-y-1 ${
+                        cert.verification_status === 'verified_match'
+                          ? 'border-green-200 bg-green-50'
+                          : cert.verification_status === 'verified_mismatch'
+                          ? 'border-red-200 bg-red-50'
+                          : cert.verification_status === 'not_found' || cert.verification_status === 'blocked'
+                          ? 'border-amber-200 bg-amber-50'
+                          : 'border-ink/10 bg-ink/[0.02]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`text-[10px] uppercase tracking-[0.15em] font-semibold ${
+                            cert.verification_status === 'verified_match'
+                              ? 'text-green-700'
+                              : cert.verification_status === 'verified_mismatch'
+                              ? 'text-red-700'
+                              : cert.verification_status === 'not_found' || cert.verification_status === 'blocked'
+                              ? 'text-amber-700'
+                              : 'text-ink/60'
+                          }`}
+                        >
+                          Registry check: {cert.verification_status.replace(/_/g, ' ')}
+                        </span>
+                        {cert.verification_checked_at && (
+                          <span className="text-[10px] text-ink/40">
+                            {new Date(cert.verification_checked_at).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      {cert.verification_notes && (
+                        <p className="text-xs text-ink/60 font-light">{cert.verification_notes}</p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Admin checklist */}
+                  {isReviewable ? (
+                  <>
                   <div className="space-y-2 border-t border-ink/5 pt-5">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium mb-3">Review Checklist</p>
                     {checkItems.map(item => (
@@ -2497,7 +2687,13 @@ const AdminDashboard: React.FC = () => {
                         {processingCertId === cert.id ? '…' : 'Approve'}
                       </button>
                       <button
-                        onClick={() => setCertDecisionOpen(d => ({ ...d, [cert.id]: d[cert.id] === 'needs_info' ? null : 'needs_info' }))}
+                        onClick={() => {
+                          const opening = decisionMode !== 'needs_info';
+                          setCertDecisionOpen(d => ({ ...d, [cert.id]: opening ? 'needs_info' : null }));
+                          if (opening && needsInfoTemplate && !(certNotes[cert.id] ?? '').trim()) {
+                            setCertNotes(n => ({ ...n, [cert.id]: needsInfoTemplate }));
+                          }
+                        }}
                         disabled={processingCertId === cert.id}
                         className={`py-2.5 px-6 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors disabled:opacity-30 ${
                           decisionMode === 'needs_info'
@@ -2557,6 +2753,18 @@ const AdminDashboard: React.FC = () => {
                       </p>
                     )}
                   </div>
+                  </>
+                  ) : (
+                    <div className="border-t border-ink/5 pt-5 space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">
+                        {decisionLabel}
+                        {cert.reviewed_at && ` · ${new Date(cert.reviewed_at).toLocaleDateString()}`}
+                      </p>
+                      {cert.admin_notes && (
+                        <p className="text-xs text-ink/60 font-light">{cert.admin_notes}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
