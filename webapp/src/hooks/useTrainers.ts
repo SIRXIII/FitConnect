@@ -74,8 +74,11 @@ export function useTrainers(options: UseTrainersOptions = {}) {
       .from('trainer_profiles')
       .select(`
         *,
-        profiles!trainer_profiles_user_id_fkey (full_name, avatar_url)
+        profiles!trainer_profiles_user_id_fkey!inner (full_name, avatar_url)
       `)
+      // Hide suspended trainers from the marketplace. !inner drops the parent row
+      // (not just the embed) when the profile is suspended.
+      .eq('profiles.is_suspended', false)
       .order('rank_score', { ascending: false });
 
     if (options.specialty) {
