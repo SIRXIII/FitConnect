@@ -1,3 +1,19 @@
+// create-payment-intent-web — the WEBAPP's booking-first payment intent.
+//
+// 2026-08-18: split off the shared `create-payment-intent` slug after the
+// Aug 17 webapp bulk deploy clobbered the mobile app's slot-first version
+// there (broke booking in the shipped App Store build). The mobile app owns
+// `create-payment-intent`; the webapp (BookSession.tsx) calls THIS slug with
+// {booking_id} of a pre-created pending booking and receives {clientSecret}.
+//
+// Model B (2026-06-18 cutover): PLATFORM-ONLY charge — no transfer_data /
+// application_fee_amount. Money holds on the platform; create-payout /
+// weekly-payouts transfer the trainer's share later. Destination charges
+// here would double-pay trainers.
+//
+// stripe-webhook's payment_intent.succeeded webapp branch (metadata.booking_id,
+// no slot_id) flips the pre-created payments + bookings rows on success.
+
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import Stripe from 'npm:stripe@14.25.0';
@@ -212,7 +228,6 @@ Deno.serve(async (req) => {
     }
 
     const amountCents = Math.round(Number(booking.rate_charged) * 100);
-    const feeCents = Math.round(Number(booking.platform_fee) * 100);
 
     if (amountCents <= 0) {
       return new Response(JSON.stringify({ error: 'Invalid booking amount' }), {
@@ -226,16 +241,15 @@ Deno.serve(async (req) => {
         amount: amountCents,
         currency: 'usd',
         automatic_payment_methods: { enabled: true },
-        application_fee_amount: feeCents,
-        transfer_data: {
-          destination: connectedAccountId,
-        },
+        // Model B: platform-only charge — no transfer_data / application_fee.
+        // Trainer payout happens via create-payout / weekly-payouts.
         metadata: {
           booking_id: booking.id,
           trainer_id: booking.trainer_id,
           client_id: booking.client_id,
+          connect_mode: 'platform_only',
         },
-        description: `FitConnect booking ${booking.id}`,
+        description: `FitRush booking ${booking.id}`,
       },
       {
         idempotencyKey: `fitconnect_booking_${booking.id}`,
@@ -309,7 +323,7 @@ Deno.serve(async (req) => {
         error: error instanceof Error ? error.message : 'Internal server error',
       }),
       {
-        status: 500,
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );

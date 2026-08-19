@@ -305,7 +305,10 @@ const BookSession: React.FC = () => {
       const token = session?.session?.access_token;
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`,
+        // 2026-08-18: webapp-owned slug — the shared `create-payment-intent`
+        // belongs to the mobile app (slot-first contract). See supabase/functions
+        // ownership note in CLAUDE.md.
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent-web`,
         {
           method: 'POST',
           headers: {
