@@ -113,15 +113,26 @@ BEGIN
     END LOOP;
 
     -- Drop the manager FOR ALL policy now that all commands are rebuilt.
-    EXECUTE (
+    -- Null-guarded: on re-run (or when the table was already split live, as on
+    -- 2026-08-19 when this was applied to prod via MCP) there is no FOR ALL
+    -- policy left and EXECUTE NULL would abort the whole transaction.
+    DECLARE
+      v_drop_sql text;
+    BEGIN
       SELECT format('DROP POLICY %I ON public.%I', policyname, v_tbl)
+        INTO v_drop_sql
       FROM pg_policies
       WHERE schemaname='public' AND tablename=v_tbl AND cmd='ALL'
         AND permissive='PERMISSIVE'
         AND NOT (roles::text[] && array['service_role','postgres'])
-      LIMIT 1
-    );
-    RAISE NOTICE 'split FOR ALL on %', v_tbl;
+      LIMIT 1;
+      IF v_drop_sql IS NOT NULL THEN
+        EXECUTE v_drop_sql;
+        RAISE NOTICE 'split FOR ALL on %', v_tbl;
+      ELSE
+        RAISE NOTICE 'no FOR ALL policy on % (already split) — skipping', v_tbl;
+      END IF;
+    END;
   END LOOP;
 END $$;
 
