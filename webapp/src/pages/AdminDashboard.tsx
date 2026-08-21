@@ -15,6 +15,7 @@ import { useSupportTickets } from '@/hooks/useSupportTickets';
 import { useCertificationCatalog } from '@/hooks/useCertificationCatalog';
 import TrainerDetailCard, { type PendingTrainer } from '@/components/admin/TrainerDetailCard';
 import TrainerSessionsModal from '@/components/admin/TrainerSessionsModal';
+import ClientDetailCard, { type AdminClientDetail } from '@/components/admin/ClientDetailCard';
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -297,6 +298,9 @@ const AdminDashboard: React.FC = () => {
   const [viewingTrainerId, setViewingTrainerId] = useState<string | null>(null);
   const [viewingTrainer, setViewingTrainer] = useState<PendingTrainer | null>(null);
   const [loadingTrainerDetail, setLoadingTrainerDetail] = useState(false);
+  const [viewingClientId, setViewingClientId] = useState<string | null>(null);
+  const [viewingClient, setViewingClient] = useState<AdminClientDetail | null>(null);
+  const [loadingClientDetail, setLoadingClientDetail] = useState(false);
   const [supportInitialTicketId, setSupportInitialTicketId] = useState<string | null>(null);
   const [healthChecks, setHealthChecks] = useState<Record<string, 'operational' | 'degraded' | 'down'>>({
     Database: 'operational',
@@ -770,6 +774,26 @@ const AdminDashboard: React.FC = () => {
   const closeTrainerDetail = () => {
     setViewingTrainerId(null);
     setViewingTrainer(null);
+  };
+
+  const openClientDetail = async (userId: string) => {
+    setViewingClientId(userId);
+    setViewingClient(null);
+    setLoadingClientDetail(true);
+    try {
+      const { data, error } = await (supabase as any).rpc('get_admin_client_detail', { p_user_id: userId });
+      if (error) throw error;
+      setViewingClient((data ?? null) as AdminClientDetail | null);
+    } catch {
+      toast.error('Failed to load client detail.');
+    } finally {
+      setLoadingClientDetail(false);
+    }
+  };
+
+  const closeClientDetail = () => {
+    setViewingClientId(null);
+    setViewingClient(null);
   };
 
   const handleMessageTrainer = async (trainerUserId: string, trainerName: string) => {
@@ -2068,6 +2092,15 @@ const AdminDashboard: React.FC = () => {
                           <Eye size={12} /> View
                         </button>
                       )}
+                      {user.role === 'client' && (
+                        <button
+                          data-testid="view-client-btn"
+                          onClick={() => openClientDetail(user.id)}
+                          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/50 hover:text-ink transition-colors"
+                        >
+                          <Eye size={12} /> View
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))
@@ -3075,6 +3108,38 @@ const AdminDashboard: React.FC = () => {
               onMessageTrainer={() => handleMessageTrainer(viewingTrainer.user_id, viewingTrainer.full_name || 'this trainer')}
               onCertReviewed={() => openTrainerDetail(viewingTrainer.user_id)}
             />
+          )}
+        </div>
+      </div>
+    )}
+
+    {viewingClientId && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6" onClick={closeClientDetail}>
+        <div
+          data-testid="client-detail-modal"
+          className="bg-paper max-w-3xl w-full max-h-[85vh] overflow-y-auto"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-ink/10 sticky top-0 bg-paper">
+            <h3 className="text-xl serif font-light italic text-ink">Client Detail</h3>
+            <button
+              onClick={closeClientDetail}
+              className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+
+          {loadingClientDetail && (
+            <p className="px-6 py-12 text-[10px] text-ink/30 uppercase tracking-widest text-center">Loading…</p>
+          )}
+
+          {!loadingClientDetail && !viewingClient && (
+            <p className="px-6 py-12 text-sm font-light text-ink/40 text-center">Client profile not found.</p>
+          )}
+
+          {!loadingClientDetail && viewingClient && (
+            <ClientDetailCard client={viewingClient} />
           )}
         </div>
       </div>
