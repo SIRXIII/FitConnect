@@ -29,3 +29,6 @@ Rules:
   FROM live (repo copies were stale — live has the working hardcoded PRICE_MAP and the
   service-role auth path respectively). `delete-account` could not be diffed (Supabase
   returns 500 on its bundle download); treat live as canonical until re-deployed.
+
+## Error digest / user problem reports
+Weekly error digest push or any user-reported problem: run /fitrush-triage (user-global skill at ~/.claude/skills/fitrush-triage/SKILL.md; protocol table in Obsidian "Projects/FitRush/Notification Playbook.md").
