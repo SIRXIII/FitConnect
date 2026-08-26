@@ -24,6 +24,8 @@ Deno.serve(async (req) => {
 
     // Authenticate caller
     const authHeader = req.headers.get('Authorization') || '';
+    // deployed v(live) passes the token explicitly — keep that semantic
+    const token = authHeader.replace('Bearer ', '');
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false },
@@ -32,7 +34,7 @@ Deno.serve(async (req) => {
     const {
       data: { user },
       error: userError,
-    } = await userClient.auth.getUser();
+    } = await userClient.auth.getUser(token);
 
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -48,6 +50,7 @@ Deno.serve(async (req) => {
     // Collect all personal data in parallel
     const [
       profileResult,
+      privateDetailsResult,
       trainerProfileResult,
       bookingsResult,
       reviewsResult,
@@ -59,6 +62,13 @@ Deno.serve(async (req) => {
         .select('*')
         .eq('id', user.id)
         .single(),
+
+      // phone lives in profile_private_details (profiles.phone is kept NULL)
+      adminClient
+        .from('profile_private_details')
+        .select('phone')
+        .eq('user_id', user.id)
+        .maybeSingle(),
 
       adminClient
         .from('trainer_profiles')
@@ -101,7 +111,9 @@ Deno.serve(async (req) => {
       exported_at: new Date().toISOString(),
       user_id: user.id,
       email: user.email,
-      profile: profileResult.data,
+      profile: profileResult.data
+        ? { ...profileResult.data, phone: privateDetailsResult.data?.phone ?? null }
+        : null,
       trainer_profile: trainerProfileResult.data,
       bookings: bookingsResult.data || [],
       reviews: reviewsResult.data || [],

@@ -94,7 +94,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .eq('id', userId)
       .single();
 
-    set({ profile: profile as Profile | null });
+    // profiles.phone is publicly selectable and kept permanently NULL — the
+    // real value lives in profile_private_details (self-only RLS). Overlay it
+    // so every consumer of profile.phone keeps working unchanged.
+    const { data: priv } = await supabase
+      .from('profile_private_details')
+      .select('phone')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    set({
+      profile: profile
+        ? ({ ...profile, phone: priv?.phone ?? null } as Profile)
+        : null,
+    });
 
     if (profile?.role === 'trainer') {
       const { data: trainerProfile } = await supabase
@@ -181,12 +194,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = get().user;
     if (!user) return;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id);
+    // phone is stored in profile_private_details (profiles.phone is public and
+    // kept NULL). Key presence — not truthiness — decides: phone: null = clear.
+    const hasPhone = Object.prototype.hasOwnProperty.call(updates, 'phone');
+    const { phone, ...profileUpdates } = updates;
 
-    if (error) throw error;
+    if (Object.keys(profileUpdates).length > 0) {
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileUpdates)
+        .eq('id', user.id);
+
+      if (error) throw error;
+    }
+
+    if (hasPhone) {
+      const { error } = await supabase
+        .from('profile_private_details')
+        .upsert(
+          { user_id: user.id, phone: phone ?? null, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id' },
+        );
+
+      if (error) throw error;
+    }
 
     await get().fetchProfile(user.id);
   },
