@@ -13,6 +13,8 @@ export type Database = {
         Row: {
           user_id: string;
           phone: string | null;
+          // service-role-write-only (authenticated column grants exclude it)
+          stripe_customer_id: string | null;
           updated_at: string;
         };
         Insert: {
