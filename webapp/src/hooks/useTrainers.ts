@@ -80,10 +80,10 @@ export function useTrainers(options: UseTrainersOptions = {}) {
       // (not just the embed) when the profile is suspended.
       .eq('profiles.is_suspended', false)
       // Only surface trainers an admin has approved (approval_status defaults to
-      // 'pending') who have also finished onboarding. RLS enforces the same gate;
-      // kept explicit here as the self-documenting marketplace filter.
+      // 'pending'). RLS enforces the same gate; kept explicit here as the
+      // self-documenting marketplace filter. (onboarding_complete is NOT gated on:
+      // it is unset for most real, actively-booked trainers.)
       .eq('approval_status', 'approved')
-      .eq('profiles.onboarding_complete', true)
       .order('rank_score', { ascending: false });
 
     if (options.specialty) {
