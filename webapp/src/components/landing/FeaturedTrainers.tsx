@@ -26,7 +26,9 @@ const FeaturedTrainers: React.FC = () => {
         profiles!trainer_profiles_user_id_fkey (full_name, avatar_url, role)
       `)
       .eq('subscription_tier', 'elite')
-      .eq('verified', true)
+      // Approval writes approval_status (the legacy `verified` column is never set,
+      // so the old .eq('verified', true) silently matched nobody). Gate on approval.
+      .eq('approval_status', 'approved')
       .order('rating', { ascending: false })
       .limit(6)
       .then(({ data }) => {

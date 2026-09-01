@@ -82,7 +82,9 @@ export function useMatchedTrainers(): UseMatchedTrainersResult {
           profiles!trainer_profiles_user_id_fkey!inner (full_name, avatar_url)
         `)
         // Exclude suspended trainers from recommendations (see useTrainers).
-        .eq('profiles.is_suspended', false);
+        .eq('profiles.is_suspended', false)
+        // Approved only (mirrors useTrainers / RLS).
+        .eq('approval_status', 'approved');
 
       const ranked = rankAndFilter(cp, trainers ?? [], 3);
 

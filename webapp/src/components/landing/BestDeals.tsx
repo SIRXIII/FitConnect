@@ -36,7 +36,9 @@ const BestDeals: React.FC = () => {
           id, slug, specialty, optimized_rate, discount_percentage, rating,
           profiles!trainer_profiles_user_id_fkey (full_name, avatar_url, role)
         `)
-        .gt('discount_percentage', 0);
+        .gt('discount_percentage', 0)
+        // Approved trainers only (RLS also enforces; explicit for the deals strip).
+        .eq('approval_status', 'approved');
 
       // Filter out users who are no longer trainers
       const activeTrainers = trainers?.filter((t: any) => {
