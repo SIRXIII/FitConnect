@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { clientProfileSchema } from '@/lib/schemas';
 import { isNativeiOS } from '@/lib/platform';
+import type { TablesInsert } from '@/types/supabase';
 
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
 const stripePromise = stripeKey && !isNativeiOS() ? loadStripe(stripeKey) : null;
@@ -49,7 +50,7 @@ const FITNESS_LEVELS = [
 ];
 
 // ─── Payment step (inner Stripe component) ────────────────
-const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string, last4: string, brand: string) => void; onSkip: () => void }> = ({ clientSecret, onSuccess, onSkip }) => {
+const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string) => void; onSkip: () => void }> = ({ clientSecret, onSuccess, onSkip }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [saving, setSaving] = useState(false);
@@ -70,15 +71,9 @@ const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string, la
     const pmId = typeof setupIntent.payment_method === 'string'
       ? setupIntent.payment_method
       : setupIntent.payment_method?.id ?? '';
-    // Fetch last4 & brand
-    try {
-      const pm = await stripe.retrievePaymentMethod(pmId) as { paymentMethod?: { card?: { last4?: string; brand?: string } } };
-      const last4 = pm?.paymentMethod?.card?.last4 ?? '••••';
-      const brand = pm?.paymentMethod?.card?.brand ?? 'card';
-      onSuccess(pmId, last4, brand);
-    } catch {
-      onSuccess(pmId, '••••', 'card');
-    }
+    // Stripe.js has no retrievePaymentMethod; card details live in the stored
+    // client_profiles.stripe_payment_last4 / stripe_payment_brand.
+    onSuccess(pmId);
   };
 
   return (
@@ -127,7 +122,7 @@ const ClientOnboarding: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState<string | null>(null);
-  const [paymentData, setPaymentData] = useState<{ pmId: string; last4: string; brand: string } | null>(null);
+  const [paymentData, setPaymentData] = useState<{ pmId: string } | null>(null);
 
   const toggle = (arr: string[], val: string): string[] =>
     arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val];
@@ -179,11 +174,7 @@ const ClientOnboarding: React.FC = () => {
         return;
       }
 
-      const profileUpdate: Record<string, unknown> = { onboarding_complete: true };
-      if (form.full_name.trim()) profileUpdate.full_name = form.full_name.trim();
-      await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
-
-      const clientData: Record<string, unknown> = {
+      const clientData: TablesInsert<'client_profiles'> = {
         user_id: user.id,
         fitness_goals: form.fitness_goals,
         workout_types: form.workout_types,
@@ -196,14 +187,16 @@ const ClientOnboarding: React.FC = () => {
       if (form.height_in) clientData.height_in = parseInt(form.height_in);
       if (form.body_type) clientData.body_type = form.body_type;
       if (form.fitness_level) clientData.fitness_level = form.fitness_level;
-      if (payment) {
-        clientData.stripe_payment_method_id = payment.pmId;
-        clientData.stripe_payment_last4 = payment.last4;
-        clientData.stripe_payment_brand = payment.brand;
-      }
+      if (payment) clientData.stripe_payment_method_id = payment.pmId;
 
       const { error } = await supabase.from('client_profiles').upsert(clientData, { onConflict: 'user_id' });
       if (error) throw error;
+
+      // Details row first; only then flag onboarding as complete so a failed
+      // save leaves the user in onboarding with the form state intact.
+      const profileUpdate: Record<string, unknown> = { onboarding_complete: true };
+      if (form.full_name.trim()) profileUpdate.full_name = form.full_name.trim();
+      await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
 
       toast.success('Profile complete! Welcome to FitRush.');
       navigate('/trainers', { replace: true });
@@ -452,9 +445,9 @@ const ClientOnboarding: React.FC = () => {
               <Elements stripe={stripePromise} options={{ clientSecret: setupClientSecret, appearance: { theme: 'flat', variables: { fontFamily: 'Inter, sans-serif', colorPrimary: '#1a1a1a' } } }}>
                 <PaymentStep
                   clientSecret={setupClientSecret}
-                  onSuccess={(pmId, last4, brand) => {
-                    setPaymentData({ pmId, last4, brand });
-                    saveProfile({ pmId, last4, brand });
+                  onSuccess={(pmId) => {
+                    setPaymentData({ pmId });
+                    saveProfile({ pmId });
                   }}
                   onSkip={() => saveProfile(null)}
                 />

@@ -1,3 +1,21 @@
+// calendar-export — ICS feed of a trainer's upcoming bookings, keyed by a
+// secret per-trainer token (`?token=`).
+//
+// 2026-09-05 (v3): the token is resolved via `trainer_private_details`
+// (owner-only RLS) and the trainer profile is then loaded by `user_id`. The
+// old `trainer_profiles.calendar_export_token` column carried anon +
+// authenticated SELECT grants, so anyone browsing the marketplace could read
+// every trainer's feed token; it is being rotated away. Migration 1 copies the
+// existing values into the private table (same token values during the
+// release window, so no dual lookup is needed); migration 2 rotates them and
+// nulls the public column.
+//
+// Deployed with verify_jwt=false: calendar clients (Google/Apple/Outlook
+// subscriptions) fetch the URL with no Authorization header, so the token IS
+// the credential. Responses are `Cache-Control: private, no-store` so shared
+// caches never hold a feed. The feed is trainer-facing, so it keeps client
+// names and booking notes.
+
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -91,11 +109,24 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     });
 
-    // Look up trainer by calendar_export_token
+    // Resolve the token in trainer_private_details, then load the trainer by user_id
+    const { data: tokenRow, error: tokenError } = await adminClient
+      .from('trainer_private_details')
+      .select('user_id')
+      .eq('calendar_export_token', token)
+      .maybeSingle();
+
+    if (tokenError || !tokenRow) {
+      return new Response(JSON.stringify({ error: 'Trainer not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { data: trainer, error: trainerError } = await adminClient
       .from('trainer_profiles')
       .select('id, user_id, profiles!trainer_profiles_user_id_fkey(full_name)')
-      .eq('calendar_export_token', token)
+      .eq('user_id', tokenRow.user_id)
       .maybeSingle();
 
     if (trainerError || !trainer) {
@@ -105,7 +136,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const trainerName = (trainer.profiles as { full_name: string } | null)?.full_name || 'Trainer';
+    const trainerName =
+      (trainer.profiles as unknown as { full_name: string } | null)?.full_name || 'Trainer';
 
     // Query bookings for this trainer (past week onward)
     const oneWeekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
@@ -133,7 +165,7 @@ Deno.serve(async (req) => {
         ...corsHeaders,
         'Content-Type': 'text/calendar; charset=utf-8',
         'Content-Disposition': 'attachment; filename="fitrush-schedule.ics"',
-        'Cache-Control': 'public, max-age=300',
+        'Cache-Control': 'private, no-store',
       },
     });
   } catch (error) {

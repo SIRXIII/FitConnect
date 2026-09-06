@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, AlertCircle } from 'lucide-react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -11,6 +11,7 @@ import { SkeletonLine, SkeletonRect } from '@/components/shared/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { BookingWizard } from '@/components/booking/BookingWizard';
 import type { SlotWithTrainer } from '@/components/booking/BookingWizard';
+import type { ServerQuote } from '@/lib/bookingQuote';
 
 /** Fire-and-forget: notify trainer about a new booking via email + push */
 function notifyTrainer(
@@ -125,9 +126,12 @@ const BookSession: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { feeFor } = usePlatformFee();
-  const platformFeePct = feeFor(slot?.trainer_profiles?.created_at);
+  const platformFeePct = feeFor(slot?.trainer_profiles);
   const [referralDiscountPending, setReferralDiscountPending] = useState(false);
   const [bookedSlotIds, setBookedSlotIds] = useState<string[]>([]);
+  // Slot id of the booking this session just created — the realtime listener below
+  // must not grey out our own reservation while we're mid-checkout.
+  const ownBookedSlotIdRef = useRef<string | null>(null);
 
   const fetchSlot = useCallback(async () => {
     if (!slotId) return;
@@ -190,8 +194,14 @@ const BookSession: React.FC = () => {
           filter: `trainer_id=eq.${trainerProfile.id}`,
         },
         (payload) => {
+          const updatedSlotId = payload.new.id as string;
           if (payload.new.is_booked) {
-            setBookedSlotIds((prev) => [...new Set([...prev, payload.new.id as string])]);
+            // Ignore our own just-created reservation -- it shouldn't grey out
+            // the session the user is mid-checkout on.
+            if (updatedSlotId === ownBookedSlotIdRef.current) return;
+            setBookedSlotIds((prev) => [...new Set([...prev, updatedSlotId])]);
+          } else {
+            setBookedSlotIds((prev) => prev.filter((id) => id !== updatedSlotId));
           }
         }
       )
@@ -202,8 +212,11 @@ const BookSession: React.FC = () => {
     };
   }, [slot?.trainer_profiles?.id]);
 
-  // Create booking in DB -- returns booking ID or null on failure
-  const handleBooking = useCallback(async (notes: string): Promise<string | null> => {
+  // Create booking in DB -- returns the booking id + the server's authoritative
+  // quote, or null on failure
+  const handleBooking = useCallback(async (
+    notes: string
+  ): Promise<{ bookingId: string; quote: ServerQuote } | null> => {
     if (!slot || !user) return null;
 
     const trainerProfile = slot.trainer_profiles;
@@ -269,8 +282,15 @@ const BookSession: React.FC = () => {
       return null;
     }
 
-    // data is { booking_id: string } | { error: string } — use type narrowing
-    const rpcResult = data as { booking_id?: string; error?: string } | null;
+    // data is the server quote + booking_id on success, or { error: string } on failure
+    const rpcResult = data as {
+      booking_id?: string;
+      rate_charged?: number;
+      platform_fee?: number;
+      total?: number;
+      trainer_payout?: number;
+      error?: string;
+    } | null;
 
     if (rpcResult?.error === 'slot_taken') {
       toast.error(slot.slot_type === 'group' ? 'This group session is now full.' : 'This slot was just booked. Pick another time.');
@@ -278,13 +298,16 @@ const BookSession: React.FC = () => {
       return null;
     }
 
-    if (rpcResult?.error === 'slot_deleted' || rpcResult?.error === 'slot_not_found') {
+    if (rpcResult?.error === 'slot_deleted' || rpcResult?.error === 'slot_not_found' || rpcResult?.error === 'slot_gcal_blocked') {
       toast.error('This slot is no longer available.');
       fetchSlot();
       return null;
     }
 
     if (!rpcResult?.booking_id) return null;
+
+    // Track our own reservation so the realtime listener above doesn't grey it out.
+    ownBookedSlotIdRef.current = slot.id;
 
     notifyTrainer(slot, profile?.full_name || 'A client', finalRate, 'instant');
 
@@ -295,7 +318,15 @@ const BookSession: React.FC = () => {
         .eq('id', user.id);
     }
 
-    return rpcResult.booking_id;
+    return {
+      bookingId: rpcResult.booking_id,
+      quote: {
+        rate_charged: Number(rpcResult.rate_charged),
+        platform_fee: Number(rpcResult.platform_fee),
+        total: Number(rpcResult.total),
+        trainer_payout: Number(rpcResult.trainer_payout),
+      },
+    };
   }, [slot, user, platformFeePct, fetchSlot]);
 
   // Create Stripe payment intent -- returns client_secret or null on failure
@@ -327,8 +358,8 @@ const BookSession: React.FC = () => {
 
       return result.clientSecret;
     } catch {
-      // Payment intent failed -- delete the orphaned pending booking
-      await supabase.from('bookings').delete().eq('id', bookingId);
+      // Payment intent failed -- release the orphaned pending booking so the slot frees up
+      await supabase.rpc('release_pending_booking', { p_booking_id: bookingId });
       toast.error('Payment setup failed. The session is still available -- please try again.');
       return null;
     }

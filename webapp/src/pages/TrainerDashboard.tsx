@@ -51,7 +51,10 @@ const TrainerDashboard: React.FC = () => {
   const [stripeError, setStripeError] = useState<string | null>(null);
   // Capture first-visit flag ONCE at mount so URL cleanup doesn't flip it back to false
   const [isFirstVisit] = useState(() => searchParams.get('welcome') === 'true');
-  const [calendarToken, setCalendarToken] = useState(trainerProfile?.calendar_export_token || '');
+  // Loaded via get_calendar_export_token() (trainer_private_details); the public
+  // trainer_profiles column is retired by the 2026-09-05 migrations.
+  const [calendarToken, setCalendarToken] = useState('');
+  const [calendarNotice, setCalendarNotice] = useState(false);
   const [bufferMinutes, setBufferMinutes] = useState(trainerProfile?.buffer_minutes || 0);
   const [showCertUpload, setShowCertUpload] = useState(false);
   const [certSummary, setCertSummary] = useState<TrainerCertification[]>([]);
@@ -89,6 +92,45 @@ const TrainerDashboard: React.FC = () => {
       })();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Calendar tab: private token + "feed link changed" notice
+  useEffect(() => {
+    if (activeTab !== 'calendar' || !user || calendarToken) return;
+    let cancelled = false;
+    (async () => {
+      const [{ data: token }, { data: priv }] = await Promise.all([
+        supabase.rpc('get_calendar_export_token'),
+        supabase
+          .from('trainer_private_details')
+          .select('calendar_token_rotated_at, calendar_token_notice_acked_at')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+      ]);
+      if (cancelled) return;
+      // Release-window fallback: the public column is nulled once the rotation migration runs.
+      const resolved = token || trainerProfile?.calendar_export_token || '';
+      if (resolved) setCalendarToken(resolved);
+      const rotatedAt = priv?.calendar_token_rotated_at;
+      const ackedAt = priv?.calendar_token_notice_acked_at;
+      setCalendarNotice(Boolean(rotatedAt && (!ackedAt || new Date(ackedAt) < new Date(rotatedAt))));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, user?.id, calendarToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const acknowledgeCalendarNotice = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('trainer_private_details')
+      .update({ calendar_token_notice_acked_at: new Date().toISOString() })
+      .eq('user_id', user.id);
+    if (error) {
+      toast.error('Could not save. Please try again.');
+      return;
+    }
+    setCalendarNotice(false);
+  };
 
   const fetchBookingCount = async () => {
     if (!trainerProfile) return;
@@ -546,6 +588,8 @@ const TrainerDashboard: React.FC = () => {
             <CalendarExportCard
               token={calendarToken}
               onTokenReset={(newToken) => setCalendarToken(newToken)}
+              reconnectNotice={calendarNotice}
+              onAcknowledgeNotice={acknowledgeCalendarNotice}
             />
             <BufferTimeSelector
               currentBuffer={bufferMinutes}

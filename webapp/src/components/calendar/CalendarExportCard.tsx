@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Calendar, Download, RefreshCw, Copy } from 'lucide-react';
+import { Calendar, Download, RefreshCw, Copy, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -8,9 +8,16 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 interface CalendarExportCardProps {
   token: string;
   onTokenReset: (newToken: string) => void;
+  reconnectNotice?: boolean;
+  onAcknowledgeNotice?: () => void;
 }
 
-const CalendarExportCard: React.FC<CalendarExportCardProps> = ({ token, onTokenReset }) => {
+const CalendarExportCard: React.FC<CalendarExportCardProps> = ({
+  token,
+  onTokenReset,
+  reconnectNotice,
+  onAcknowledgeNotice,
+}) => {
   const [resetting, setResetting] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -70,6 +77,26 @@ const CalendarExportCard: React.FC<CalendarExportCardProps> = ({ token, onTokenR
   return (
     <div className="bg-white border border-ink/10 rounded-lg p-6 space-y-6">
       <h3 className="text-xl serif font-light italic text-ink">Calendar Export</h3>
+
+      {reconnectNotice && (
+        <div className="flex items-start gap-2 px-4 py-3 border border-amber-200 bg-amber-50 rounded">
+          <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1 space-y-2">
+            <p className="text-xs text-amber-800">
+              Your calendar feed URL changed for security reasons. Update your calendar
+              subscription with the new URL below.
+            </p>
+            {onAcknowledgeNotice && (
+              <button
+                onClick={onAcknowledgeNotice}
+                className="text-[10px] uppercase tracking-[0.2em] font-medium text-amber-800 hover:text-amber-900"
+              >
+                Got it
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Feed URL */}
       <div className="space-y-3">

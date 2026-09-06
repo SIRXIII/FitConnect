@@ -13,6 +13,15 @@
 //
 // stripe-webhook's payment_intent.succeeded webapp branch (metadata.booking_id,
 // no slot_id) flips the pre-created payments + bookings rows on success.
+//
+// 2026-09-05 (v2) fee-on-top: the client pays rate_charged + platform_fee
+// (both set server-side on the booking row by create_booking_atomic via
+// quote_booking_price); trainer_payout = rate_charged. The payments ledger
+// row stores amount = the gross charged (rate + fee), matching
+// auto_complete_past_bookings and create-payout's integrity gate
+// (trainer_payout + platform_fee == amount). Previously this slug charged only
+// rate_charged and wrote amount = rate_charged, which was correct only while
+// the live platform fee was 0%.
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
@@ -127,17 +136,11 @@ Deno.serve(async (req) => {
     if (booking.slot_id) {
       const { data: slot } = await adminClient
         .from('availability_slots')
-        .select('slot_type, max_capacity, group_rate, is_available')
+        .select('slot_type, max_capacity')
         .eq('id', booking.slot_id)
         .single();
 
       if (slot?.slot_type === 'group') {
-        if (!slot.is_available) {
-          return new Response(JSON.stringify({ error: 'Slot is no longer available' }), {
-            status: 409,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
         // Check current booking count for this slot (excluding this booking)
         const { data: countResult } = await adminClient
           .rpc('get_slot_booking_count', { p_slot_id: booking.slot_id });
@@ -227,7 +230,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    const amountCents = Math.round(Number(booking.rate_charged) * 100);
+    // Fee-on-top: the client is charged rate + platform fee; the trainer keeps rate.
+    const priceCents = Math.round(Number(booking.rate_charged) * 100);
+    const platformFeeCents = Math.round(Number(booking.platform_fee ?? 0) * 100);
+    const amountCents = Math.round(
+      (Number(booking.rate_charged) + Number(booking.platform_fee ?? 0)) * 100
+    );
 
     if (amountCents <= 0) {
       return new Response(JSON.stringify({ error: 'Invalid booking amount' }), {
@@ -248,6 +256,8 @@ Deno.serve(async (req) => {
           trainer_id: booking.trainer_id,
           client_id: booking.client_id,
           connect_mode: 'platform_only',
+          price_cents: String(priceCents),
+          platform_fee_cents: String(platformFeeCents),
         },
         description: `FitRush booking ${booking.id}`,
       },
@@ -264,7 +274,7 @@ Deno.serve(async (req) => {
         {
           booking_id: booking.id,
           stripe_payment_intent_id: paymentIntent.id,
-          amount: Number(booking.rate_charged),
+          amount: amountCents / 100,
           platform_fee: Number(booking.platform_fee),
           trainer_payout: Number(booking.trainer_payout),
           currency: 'usd',
