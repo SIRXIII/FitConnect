@@ -461,7 +461,7 @@ const MyBookings: React.FC = () => {
         return;
       }
 
-      toast.success(result.refunded ? 'Booking cancelled and refund issued.' : 'Booking cancelled.');
+      toast.success(result.refunded_amount_cents > 0 ? 'Booking cancelled and refund issued.' : 'Booking cancelled.');
       setBookings((prev) =>
         prev.map((b) => (b.id === bookingId ? { ...b, status: 'cancelled' } : b))
       );

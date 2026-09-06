@@ -195,7 +195,8 @@ interface FreeMetrics {
 
 interface Stats {
   totalBookings: number;
-  totalRevenue: number;
+  /** Gross charged: sum of payments.amount (session price + platform fee). */
+  grossCharged: number;
   activeUsers: number;
   avgDiscount: number;
 }
@@ -220,7 +221,7 @@ const CERT_TIER_LABELS: Record<string, string> = {
 };
 
 const AdminDashboard: React.FC = () => {
-  const [stats, setStats] = useState<Stats>({ totalBookings: 0, totalRevenue: 0, activeUsers: 0, avgDiscount: 0 });
+  const [stats, setStats] = useState<Stats>({ totalBookings: 0, grossCharged: 0, activeUsers: 0, avgDiscount: 0 });
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState('');
   const [platformFee, setPlatformFee] = useState('0.13');
@@ -355,7 +356,7 @@ const AdminDashboard: React.FC = () => {
         supabase.from('platform_settings').select('key, value').in('key', ['platform_fee_pct', 'founding_cutoff']),
       ]);
 
-      const totalRevenue = (paymentResult.data ?? []).reduce((sum, p) => sum + p.amount, 0);
+      const grossCharged = (paymentResult.data ?? []).reduce((sum, p) => sum + p.amount, 0);
       const discounts = trainerResult.data ?? [];
       const avgDiscount = discounts.length
         ? Math.round(discounts.reduce((sum, t) => sum + t.discount_percentage, 0) / discounts.length)
@@ -363,7 +364,7 @@ const AdminDashboard: React.FC = () => {
 
       setStats({
         totalBookings: bookingResult.count ?? 0,
-        totalRevenue,
+        grossCharged,
         activeUsers: userResult.count ?? 0,
         avgDiscount,
       });
@@ -378,7 +379,7 @@ const AdminDashboard: React.FC = () => {
         }
       }
     } catch {
-      setStats({ totalBookings: 0, totalRevenue: 0, activeUsers: 0, avgDiscount: 0 });
+      setStats({ totalBookings: 0, grossCharged: 0, activeUsers: 0, avgDiscount: 0 });
       toast.error('Failed to load platform stats');
     } finally {
       setLoadingStats(false);
@@ -440,7 +441,8 @@ const AdminDashboard: React.FC = () => {
 
       const rows: TransactionRow[] = (data ?? []).map((b: any) => ({
         id: b.id,
-        amount: Number(b.rate_charged || 0),
+        // Charged = what the client paid (fee on top); pre-fee rows carry platform_fee 0.
+        amount: Number(b.rate_charged || 0) + Number(b.platform_fee || 0),
         platform_fee: Number(b.platform_fee || 0),
         trainer_payout: Number(b.trainer_payout || 0),
         status: b.status,
@@ -1582,7 +1584,7 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Client</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Type</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Amount</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Charged</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Fee</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Payout</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status</p>

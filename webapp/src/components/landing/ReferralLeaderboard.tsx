@@ -19,7 +19,7 @@ const ReferralLeaderboard: React.FC = () => {
       try {
         const { data, error } = await supabase.rpc('get_referral_leaderboard');
         if (!error && data) {
-          setEntries(data as LeaderboardEntry[]);
+          setEntries(data as unknown as LeaderboardEntry[]);
         }
       } catch {
         // RPC may not exist yet — silently skip

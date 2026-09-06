@@ -61,7 +61,7 @@ const Field: React.FC<{ label: string; children: React.ReactNode; hint?: string 
 
 // ---- Stripe setup form (inner component, rendered inside <Elements>) ----
 interface SetupFormProps {
-  onSuccess: (pmId: string, last4: string, brand: string) => void;
+  onSuccess: (pmId: string) => void;
   onCancel: () => void;
 }
 
@@ -92,14 +92,9 @@ const SetupForm: React.FC<SetupFormProps> = ({ onSuccess, onCancel }) => {
       ? setupIntent.payment_method
       : setupIntent.payment_method?.id ?? '';
 
-    try {
-      const pm = await stripe.retrievePaymentMethod(pmId) as { paymentMethod?: { card?: { last4?: string; brand?: string } } };
-      const last4 = pm?.paymentMethod?.card?.last4 ?? '••••';
-      const brand = pm?.paymentMethod?.card?.brand ?? 'card';
-      onSuccess(pmId, last4, brand);
-    } catch {
-      onSuccess(pmId, '••••', 'card');
-    }
+    // Stripe.js has no retrievePaymentMethod; card details are read from the
+    // stored client_profiles.stripe_payment_last4 / stripe_payment_brand.
+    onSuccess(pmId);
   };
 
   return (
@@ -233,20 +228,23 @@ const ClientSettingsTab: React.FC = () => {
     }
   };
 
-  const handlePaymentSuccess = async (pmId: string, last4: string, brand: string) => {
+  const handlePaymentSuccess = async (pmId: string) => {
     if (!user) return;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from('client_profiles').upsert(
-        {
-          user_id: user.id,
-          stripe_payment_method_id: pmId,
-          stripe_payment_last4: last4,
-          stripe_payment_brand: brand,
-        },
+      const { error } = await supabase.from('client_profiles').upsert(
+        { user_id: user.id, stripe_payment_method_id: pmId },
         { onConflict: 'user_id' },
       );
-      setSavedCard({ last4, brand });
+      if (error) throw error;
+      const { data: stored } = await supabase
+        .from('client_profiles')
+        .select('stripe_payment_last4, stripe_payment_brand')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      setSavedCard({
+        last4: stored?.stripe_payment_last4 ?? '••••',
+        brand: stored?.stripe_payment_brand ?? 'card',
+      });
       setSetupClientSecret(null);
       toast.success('Payment method saved.');
     } catch (err) {

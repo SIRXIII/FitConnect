@@ -8,6 +8,7 @@ import { StepSuccess } from './StepSuccess';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import type { TrainerProfile } from '@/stores/auth';
 import { isNativeiOS } from '@/lib/platform';
+import { computeDisplayQuote, applyServerQuote, type DisplayQuote, type ServerQuote } from '@/lib/bookingQuote';
 
 export interface SlotWithTrainer extends AvailabilitySlot {
   trainer_profiles: TrainerProfile & {
@@ -28,7 +29,7 @@ interface BookingWizardProps {
   slot: SlotWithTrainer;
   onComplete: () => void;
   stripeConfigured: boolean;
-  handleBooking: (notes: string) => Promise<string | null>;
+  handleBooking: (notes: string) => Promise<{ bookingId: string; quote: ServerQuote } | null>;
   createPaymentIntent: (bookingId: string) => Promise<string | null>;
   platformFeePct: number;
   referralDiscountPending: boolean;
@@ -105,34 +106,52 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
 
   const trainerData = slot.trainer_profiles;
   const trainerName = trainerData.profiles?.full_name || 'Trainer';
-  const baseRate = Number(trainerData.optimized_rate);
-  const discountPct = trainerData.discount_percentage ?? 0;
-  const rate =
-    discountPct > 0
-      ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
-      : baseRate;
-  const displayRate = referralDiscountPending ? Math.max(0, rate - 5) : rate;
+
+  // Client-side estimate before the booking exists; swapped for the RPC's
+  // authoritative quote once handleBooking succeeds.
+  const displayQuote = useMemo(
+    () =>
+      computeDisplayQuote({
+        slot,
+        trainerProfile: trainerData,
+        // platformFeePct is already the effective (post-founding-discount) fee
+        // resolved by usePlatformFee's feeFor(), so isFounding stays false here
+        // to avoid recomputing it a second time.
+        feePct: platformFeePct,
+        isFounding: false,
+        referralPending: referralDiscountPending,
+      }),
+    [slot, trainerData, platformFeePct, referralDiscountPending]
+  );
+  const [serverQuote, setServerQuote] = useState<DisplayQuote | null>(null);
+  const quote = serverQuote ?? displayQuote;
 
   const handleConfirm = async () => {
     setLoading(true);
     setPaymentError(null);
 
-    const newBookingId = await handleBooking(notes);
-    if (!newBookingId) {
-      setLoading(false);
-      setPaymentError('Booking failed. The session may no longer be available.');
-      return;
+    let currentBookingId = bookingId;
+
+    if (!currentBookingId) {
+      const result = await handleBooking(notes);
+      if (!result) {
+        setLoading(false);
+        setPaymentError('Booking failed. The session may no longer be available.');
+        return;
+      }
+
+      currentBookingId = result.bookingId;
+      setBookingId(currentBookingId);
+      setServerQuote(applyServerQuote(displayQuote, result.quote));
+
+      // Fire-and-forget: push booking to trainer's Google Calendar (if connected)
+      supabase.functions.invoke('sync-booking-to-gcal', {
+        body: { booking_id: currentBookingId },
+      }).catch(() => { /* GCal sync is best-effort — never block booking */ });
     }
 
-    setBookingId(newBookingId);
-
-    // Fire-and-forget: push booking to trainer's Google Calendar (if connected)
-    supabase.functions.invoke('sync-booking-to-gcal', {
-      body: { booking_id: newBookingId },
-    }).catch(() => { /* GCal sync is best-effort — never block booking */ });
-
     if (showPayment) {
-      const secret = await createPaymentIntent(newBookingId);
+      const secret = await createPaymentIntent(currentBookingId);
       if (!secret) {
         setLoading(false);
         setPaymentError('Payment setup failed. The session is still available -- please try again.');
@@ -177,12 +196,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             onConfirm={handleConfirm}
             onBack={goBack}
             loading={loading}
-            baseRate={baseRate}
-            discountPct={discountPct}
-            rate={rate}
-            displayRate={displayRate}
-            referralDiscountPending={referralDiscountPending}
-            platformFeePct={platformFeePct}
+            quote={quote}
             paymentError={paymentError}
             stripeConfigured={showPayment}
             bookingMode={slot.trainer_profiles.booking_mode}
@@ -192,7 +206,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
         return clientSecret && PaymentFormComponent ? (
           <StepPayment
             clientSecret={clientSecret}
-            amount={displayRate}
+            amount={quote.total}
             onSuccess={handlePaymentSuccess}
             onBack={handlePaymentBack}
             PaymentFormComponent={PaymentFormComponent}
@@ -204,7 +218,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             trainerName={trainerName}
             sessionDate={slot.start_time}
             sessionEndDate={slot.end_time}
-            rate={rate}
+            rate={quote.total}
             stripeConfigured={showPayment}
           />
         );

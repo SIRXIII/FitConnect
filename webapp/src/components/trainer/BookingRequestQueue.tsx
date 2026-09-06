@@ -3,7 +3,6 @@ import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
-import { usePlatformFee } from '@/hooks/usePlatformFee';
 import BookingRequestCard from './BookingRequestCard';
 
 interface BookingRequest {
@@ -35,7 +34,6 @@ interface BookingRequest {
 
 const BookingRequestQueue: React.FC = () => {
   const { trainerProfile } = useAuthStore();
-  const { feeFor } = usePlatformFee();
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -121,46 +119,31 @@ const BookingRequestQueue: React.FC = () => {
     const request = requests.find((r) => r.id === requestId);
     if (!request || !trainerProfile) return;
 
-    // Mark request as accepted
-    const { error: updateError } = await supabase
-      .from('booking_requests')
-      .update({
-        status: 'accepted',
-        accepted_at: new Date().toISOString(),
-      })
-      .eq('id', requestId);
+    // One server-side transaction: flips the request to accepted and creates the
+    // booking at the server quote (replaces the update + create_booking_atomic pair).
+    const { data, error } = await supabase.rpc('accept_booking_request', {
+      p_request_id: requestId,
+    });
 
-    if (updateError) {
+    if (error) {
       toast.error('Failed to accept request. Please try again.');
       return;
     }
 
-    // Create the actual booking via atomic RPC.
-    // Fee comes from platform_settings (0% during a founding trainer's first 12 months).
-    const rate = Number(trainerProfile.optimized_rate);
-    const platformFee = Math.round(rate * feeFor(trainerProfile.created_at) * 100) / 100;
-    const { data: rpcData, error: rpcError } = await supabase.rpc('create_booking_atomic', {
-      p_slot_id: request.slot_id,
-      p_client_id: request.client_id,
-      p_trainer_id: trainerProfile.id,
-      p_rate_charged: rate,
-      p_platform_fee: platformFee,
-      p_trainer_payout: Math.round((rate - platformFee) * 100) / 100,
-      p_notes: null,
-    });
-
-    if (rpcError) {
-      toast.error('Request accepted but booking creation failed. Please contact support.');
+    const result = data as { booking_id?: string; error?: string } | null;
+    if (!result?.booking_id) {
+      toast.error(
+        result?.error === 'slot_taken'
+          ? 'That slot was booked in the meantime.'
+          : 'Failed to accept request. Please try again.'
+      );
       return;
     }
 
     // Fire-and-forget: push booking to trainer's Google Calendar (if connected)
-    const result = rpcData as { booking_id?: string } | null;
-    if (result?.booking_id) {
-      supabase.functions.invoke('sync-booking-to-gcal', {
-        body: { booking_id: result.booking_id },
-      }).catch(() => { /* GCal sync is best-effort */ });
-    }
+    supabase.functions.invoke('sync-booking-to-gcal', {
+      body: { booking_id: result.booking_id },
+    }).catch(() => { /* GCal sync is best-effort */ });
 
     const clientName = request.client?.full_name || 'client';
     toast.success(`Booking confirmed with ${clientName}`);

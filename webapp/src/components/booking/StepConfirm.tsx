@@ -1,5 +1,6 @@
 import { AlertCircle } from 'lucide-react';
 import type { SlotWithTrainer } from './BookingWizard';
+import type { DisplayQuote } from '@/lib/bookingQuote';
 
 interface StepConfirmProps {
   slot: SlotWithTrainer;
@@ -7,12 +8,7 @@ interface StepConfirmProps {
   onConfirm: () => Promise<void>;
   onBack: () => void;
   loading: boolean;
-  baseRate: number;
-  discountPct: number;
-  rate: number;
-  displayRate: number;
-  referralDiscountPending: boolean;
-  platformFeePct: number;
+  quote: DisplayQuote;
   paymentError: string | null;
   stripeConfigured: boolean;
   bookingMode?: 'instant' | 'request';
@@ -24,17 +20,12 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
   onConfirm,
   onBack,
   loading,
-  baseRate,
-  discountPct,
-  rate,
-  displayRate,
-  referralDiscountPending,
-  platformFeePct,
+  quote,
   paymentError,
   stripeConfigured,
   bookingMode,
 }) => {
-  const platformFee = Math.round(displayRate * platformFeePct * 100) / 100;
+  const { baseRate, discountPct, rate, referralDiscount, feePct, platformFee, total } = quote;
   const trainerName = slot.trainer_profiles.profiles?.full_name || 'Trainer';
   const startTime = new Date(slot.start_time);
   const endTime = new Date(slot.end_time);
@@ -74,25 +65,25 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
         )}
         <div className="flex items-center justify-between">
           <span className="text-sm text-ink/50">
-            {discountPct > 0 ? `Session Rate (${discountPct}% off)` : 'Optimized Rate'}
+            {discountPct > 0 ? `Session Price (${discountPct}% off)` : 'Session Price'}
           </span>
           <span className="text-sm text-accent">${rate}</span>
         </div>
-        {referralDiscountPending && (
+        {referralDiscount > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-sm text-ink/50">Referral Discount</span>
-            <span className="text-sm text-green-600">-$5.00</span>
+            <span className="text-sm text-green-600">-${referralDiscount.toFixed(2)}</span>
           </div>
         )}
         <div className="flex items-center justify-between">
           <span className="text-sm text-ink/50">
-            Platform Fee ({Math.round(platformFeePct * 100)}%)
+            Platform Fee ({Math.round(feePct * 100)}%)
           </span>
           <span className="text-sm">${platformFee.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between border-t border-ink/10 pt-4">
           <span className="text-sm font-medium">Total</span>
-          <span className="text-xl serif font-light text-accent">${displayRate}</span>
+          <span className="text-xl serif font-light text-accent">${total}</span>
         </div>
       </div>
 

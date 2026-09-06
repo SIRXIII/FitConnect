@@ -19,19 +19,29 @@ export function isFoundingTrainer(
 }
 
 /**
- * Effective platform fee for a trainer. Founding trainers pay 0% for their
- * first FOUNDING_FREE_MONTHS months from their join date, then the standard fee.
+ * Effective platform fee for a trainer. Mirrors quote_booking_price(): founding
+ * trainers pay 0% until FOUNDING_FREE_MONTHS after their benefit started
+ * (trainer_profiles.founding_benefit_started_at, set by the first paid booking);
+ * while it has not started yet the fee is also 0%.
  */
 export function effectivePlatformFee(
   feePct: number,
-  trainerCreatedAt?: string | null,
-  foundingCutoff?: string | null,
+  foundingStartedAt?: string | null,
+  isFounding = false,
   now: Date = new Date()
 ): number {
-  if (!isFoundingTrainer(trainerCreatedAt, foundingCutoff)) return feePct;
-  const freeUntil = new Date(trainerCreatedAt as string);
+  if (!isFounding) return feePct;
+  if (!foundingStartedAt) return 0;
+  const freeUntil = new Date(foundingStartedAt);
+  if (isNaN(freeUntil.getTime())) return 0;
   freeUntil.setMonth(freeUntil.getMonth() + FOUNDING_FREE_MONTHS);
   return now < freeUntil ? 0 : feePct;
+}
+
+/** The two trainer_profiles columns the fee depends on. */
+export interface FeeTrainer {
+  created_at?: string | null;
+  founding_benefit_started_at?: string | null;
 }
 
 /**
@@ -65,15 +75,19 @@ export function usePlatformFee() {
     };
   }, []);
 
-  const feeFor = useCallback(
-    (trainerCreatedAt?: string | null) =>
-      effectivePlatformFee(feePct, trainerCreatedAt, foundingCutoff),
-    [feePct, foundingCutoff]
-  );
-
   const isFounding = useCallback(
     (trainerCreatedAt?: string | null) => isFoundingTrainer(trainerCreatedAt, foundingCutoff),
     [foundingCutoff]
+  );
+
+  const feeFor = useCallback(
+    (trainer?: FeeTrainer | null) =>
+      effectivePlatformFee(
+        feePct,
+        trainer?.founding_benefit_started_at,
+        isFoundingTrainer(trainer?.created_at, foundingCutoff)
+      ),
+    [feePct, foundingCutoff]
   );
 
   return { feePct, foundingCutoff, feeFor, isFounding };

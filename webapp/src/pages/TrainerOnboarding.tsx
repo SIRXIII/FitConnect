@@ -42,7 +42,7 @@ const TrainerOnboarding: React.FC = () => {
   const { user, profile, trainerProfile, updateProfile } = useAuthStore();
   const { feeFor } = usePlatformFee();
   // New signups join today, so this reflects the founding promo while it runs.
-  const onboardingFeePct = feeFor(new Date().toISOString());
+  const onboardingFeePct = feeFor({ created_at: new Date().toISOString(), founding_benefit_started_at: null });
   const keepPct = Math.round((1 - onboardingFeePct) * 100);
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -174,12 +174,6 @@ const TrainerOnboarding: React.FC = () => {
         return;
       }
 
-      const profileUpdate: Record<string, unknown> = { onboarding_complete: true };
-      if (form.full_name.trim()) profileUpdate.full_name = form.full_name.trim();
-      if (form.phone.trim()) profileUpdate.phone = form.phone.trim();
-      if (form.avatar_url) profileUpdate.avatar_url = form.avatar_url;
-      await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
-
       const yearsExp = parseInt(form.years_experience, 10);
       const expertiseTags = form.expertise_tags_raw
         .split(',')
@@ -210,6 +204,14 @@ const TrainerOnboarding: React.FC = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      // Details row first; only then flag onboarding as complete so a failed
+      // save leaves the user in onboarding with the form state intact.
+      const profileUpdate: Record<string, unknown> = { onboarding_complete: true };
+      if (form.full_name.trim()) profileUpdate.full_name = form.full_name.trim();
+      if (form.phone.trim()) profileUpdate.phone = form.phone.trim();
+      if (form.avatar_url) profileUpdate.avatar_url = form.avatar_url;
+      await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
 
       toast.success('Profile saved!');
       setStep(5);
