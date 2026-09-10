@@ -30,9 +30,10 @@ export interface AdminClientDetail {
 
 interface Props {
   client: AdminClientDetail;
+  onMessageClient?: () => void;
 }
 
-const ClientDetailCard: React.FC<Props> = ({ client }) => {
+const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
   return (
     <div className="border border-ink/10">
 
@@ -76,6 +77,16 @@ const ClientDetailCard: React.FC<Props> = ({ client }) => {
             </p>
           </div>
         </div>
+        {onMessageClient && (
+          <div className="flex flex-col gap-2 shrink-0 w-[220px]">
+            <button
+              onClick={onMessageClient}
+              className="w-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+            >
+              Message Client
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── SECTION 2: Booking Summary ── */}
