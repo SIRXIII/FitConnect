@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Camera, AlertTriangle, CreditCard, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Camera, AlertTriangle, CreditCard } from 'lucide-react';
 import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import DeleteAccountModal from '@/components/shared/DeleteAccountModal';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { stripePromise, STRIPE_CONFIGURED } from '@/lib/stripe';
 import { isNativeiOS } from '@/lib/platform';
+import { setupPaymentMethod, listPaymentMethods, detachPaymentMethod, type SavedCard } from '@/lib/paymentMethods';
 
 // ---- Image compression (mirrors SettingsTab pattern) ----
 async function compressImage(file: File, maxSize = 400, quality = 0.7): Promise<Blob> {
@@ -61,7 +62,7 @@ const Field: React.FC<{ label: string; children: React.ReactNode; hint?: string 
 
 // ---- Stripe setup form (inner component, rendered inside <Elements>) ----
 interface SetupFormProps {
-  onSuccess: (pmId: string) => void;
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
@@ -77,7 +78,7 @@ const SetupForm: React.FC<SetupFormProps> = ({ onSuccess, onCancel }) => {
     setSaving(true);
     setError(null);
 
-    const { setupIntent, error: stripeError } = await stripe.confirmSetup({
+    const { error: stripeError } = await stripe.confirmSetup({
       elements,
       redirect: 'if_required',
     });
@@ -88,13 +89,7 @@ const SetupForm: React.FC<SetupFormProps> = ({ onSuccess, onCancel }) => {
       return;
     }
 
-    const pmId = typeof setupIntent.payment_method === 'string'
-      ? setupIntent.payment_method
-      : setupIntent.payment_method?.id ?? '';
-
-    // Stripe.js has no retrievePaymentMethod; card details are read from the
-    // stored client_profiles.stripe_payment_last4 / stripe_payment_brand.
-    onSuccess(pmId);
+    onSuccess();
   };
 
   return (
@@ -145,7 +140,21 @@ const ClientSettingsTab: React.FC = () => {
   // Payment method state
   const [setupClientSecret, setSetupClientSecret] = useState<string | null>(null);
   const [loadingSetupIntent, setLoadingSetupIntent] = useState(false);
-  const [savedCard, setSavedCard] = useState<{ last4: string; brand: string } | null>(null);
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  // Throws on failure — callers that just mutated a card must not report success
+  // until the list they render has actually caught up.
+  const refreshCards = async () => {
+    setSavedCards(await listPaymentMethods());
+  };
+
+  useEffect(() => {
+    if (!STRIPE_CONFIGURED || isNativeiOS() || !user) return;
+    refreshCards().catch((err) => {
+      console.error('[ClientSettingsTab] list payment methods error:', err);
+    });
+  }, [user]);
 
   const initials = fullName.trim()
     ? fullName.trim().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -207,19 +216,7 @@ const ClientSettingsTab: React.FC = () => {
     if (!stripePromise || !user) return;
     setLoadingSetupIntent(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-setup-intent`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${session?.access_token}` },
-        },
-      );
-      const json = await res.json();
-      if (!res.ok || !json.clientSecret) {
-        throw new Error(json.error ?? 'Failed to initialize payment setup');
-      }
-      setSetupClientSecret(json.clientSecret);
+      setSetupClientSecret(await setupPaymentMethod());
     } catch (err) {
       console.error('[ClientSettingsTab] setup intent error:', err);
       toast.error(err instanceof Error ? err.message : 'Payment setup failed — please try again.');
@@ -228,28 +225,31 @@ const ClientSettingsTab: React.FC = () => {
     }
   };
 
-  const handlePaymentSuccess = async (pmId: string) => {
-    if (!user) return;
+  // Reload the list BEFORE dismissing the Stripe form: dismissing first would
+  // render the "No payment method saved" empty state next to the success toast
+  // for the length of the round trip, and forever if the reload failed.
+  const handlePaymentSuccess = async () => {
     try {
-      const { error } = await supabase.from('client_profiles').upsert(
-        { user_id: user.id, stripe_payment_method_id: pmId },
-        { onConflict: 'user_id' },
-      );
-      if (error) throw error;
-      const { data: stored } = await supabase
-        .from('client_profiles')
-        .select('stripe_payment_last4, stripe_payment_brand')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      setSavedCard({
-        last4: stored?.stripe_payment_last4 ?? '••••',
-        brand: stored?.stripe_payment_brand ?? 'card',
-      });
-      setSetupClientSecret(null);
+      await refreshCards();
       toast.success('Payment method saved.');
     } catch (err) {
-      console.error('[ClientSettingsTab] save payment method error:', err);
-      toast.error('Card saved with Stripe but failed to store details — please refresh.');
+      console.error('[ClientSettingsTab] refresh after save error:', err);
+      toast.error('Card saved with Stripe, but the list failed to reload — refresh the page.');
+    } finally {
+      setSetupClientSecret(null);
+    }
+  };
+
+  const handleRemoveCard = async (id: string) => {
+    setRemovingId(id);
+    try {
+      await detachPaymentMethod(id);
+      await refreshCards();
+      toast.success('Card removed.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to remove card.');
+    } finally {
+      setRemovingId(null);
     }
   };
 
@@ -347,16 +347,23 @@ const ClientSettingsTab: React.FC = () => {
           title="Payment Method"
           subtitle="Your saved card is used at checkout when booking sessions."
         >
-          {savedCard && (
-            <div className="flex items-center gap-3 py-3 px-4 border border-green-200 bg-green-50/50">
+          {savedCards.map(card => (
+            <div key={card.id} className="flex items-center gap-3 py-3 px-4 border border-green-200 bg-green-50/50">
               <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
               <CreditCard size={14} className="text-green-600 shrink-0" />
               <p className="text-sm font-light text-green-800 capitalize">
-                {savedCard.brand} ending in {savedCard.last4}
+                {card.brand} ending in {card.last4}
               </p>
-              <Check size={14} className="text-green-600 ml-auto shrink-0" />
+              <button
+                type="button"
+                onClick={() => handleRemoveCard(card.id)}
+                disabled={removingId === card.id}
+                className="ml-auto text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-red-600 transition-colors disabled:opacity-50"
+              >
+                Remove
+              </button>
             </div>
-          )}
+          ))}
 
           {setupClientSecret && stripePromise ? (
             <Elements
@@ -373,7 +380,7 @@ const ClientSettingsTab: React.FC = () => {
             </Elements>
           ) : (
             <div className="space-y-4">
-              {!savedCard && (
+              {savedCards.length === 0 && (
                 <p className="text-sm text-ink/50 font-light leading-relaxed">
                   No payment method saved. Add a card to speed up the checkout process when booking sessions.
                 </p>
@@ -390,8 +397,8 @@ const ClientSettingsTab: React.FC = () => {
                       <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
                       Loading...
                     </span>
-                  ) : savedCard ? (
-                    'Update Payment Method'
+                  ) : savedCards.length > 0 ? (
+                    'Add Another Card'
                   ) : (
                     'Add Payment Method'
                   )}
