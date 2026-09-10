@@ -342,10 +342,17 @@ const ClientSettingsTab: React.FC = () => {
       <AccountSecuritySection />
 
       {/* ── Section 3: Payment Method — hidden on iOS per App Store 3.1.1 ── */}
+      {/*
+        The subtitle must not promise a faster checkout. create-payment-intent-web
+        builds the booking PaymentIntent with no `customer`, and BookSession renders
+        a bare PaymentElement, so Stripe cannot offer a saved card on the web — the
+        client re-enters it every time. Only re-word this once that fn passes a
+        customer (it is mobile-parity work, and the fn is owned by this repo).
+      */}
       {!isNativeiOS() && (
         <Section
           title="Payment Method"
-          subtitle="Your saved card is used at checkout when booking sessions."
+          subtitle="Cards kept on file with Stripe. Checkout still asks for your card details."
         >
           {savedCards.map(card => (
             <div key={card.id} className="flex items-center gap-3 py-3 px-4 border border-green-200 bg-green-50/50">
@@ -382,7 +389,7 @@ const ClientSettingsTab: React.FC = () => {
             <div className="space-y-4">
               {savedCards.length === 0 && (
                 <p className="text-sm text-ink/50 font-light leading-relaxed">
-                  No payment method saved. Add a card to speed up the checkout process when booking sessions.
+                  No payment method saved. Add a card to keep one on file with Stripe.
                 </p>
               )}
 

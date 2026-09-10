@@ -427,7 +427,7 @@ const ClientOnboarding: React.FC = () => {
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Add a payment method</h2>
               <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
-                Securely saved for instant booking — powered by Stripe
+                Securely saved with Stripe — optional, and changeable later in Settings
               </p>
             </div>
             {setupClientSecret ? (
