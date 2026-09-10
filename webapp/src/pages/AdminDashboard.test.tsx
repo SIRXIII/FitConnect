@@ -129,7 +129,7 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
   });
 
   it('users table header uses multi-column grid', () => {
-    expect(SOURCE).toContain('grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px_80px]');
+    expect(SOURCE).toContain('grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_80px]');
   });
 
   it('TierBadge handles past_due status', () => {
@@ -144,6 +144,28 @@ describe('AdminDashboard TierBadge (Task 2)', () => {
     // The conditional rendering pattern
     expect(SOURCE).toContain("user.role === 'trainer'");
     expect(SOURCE).toContain('user.subscription_tier');
+  });
+});
+
+describe('AdminDashboard message client (admin welcome + push)', () => {
+  it('wires ClientDetailCard onMessageClient to handleMessageClient', () => {
+    expect(SOURCE).toContain('onMessageClient={() => handleMessageClient(');
+  });
+
+  it('finds or creates the admin<->client thread under the shared subject', () => {
+    expect(SOURCE).toContain("'Message from FitRush Admin'");
+  });
+
+  it('clears the seeded welcome draft once AdminSupportQueue consumes it', () => {
+    expect(SOURCE).toContain('onDraftConsumed=');
+  });
+
+  it('guards handleMessageTrainer/handleMessageClient against double-click re-entrancy', () => {
+    expect(SOURCE).toContain('messageThreadInFlight');
+  });
+
+  it('degrades gracefully to the oldest matching ticket if a duplicate thread exists', () => {
+    expect(SOURCE).toContain('.limit(1)');
   });
 });
 

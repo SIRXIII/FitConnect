@@ -52,19 +52,28 @@ const StatusBadge: React.FC<{ status: string; size?: 'sm' | 'xs' }> = ({
 
 const TicketDetail: React.FC<{
   ticket: SupportTicket;
+  initialDraftMessage?: string | null;
+  onDraftConsumed?: () => void;
   onBack: () => void;
   onUpdate: () => void;
-}> = ({ ticket, onBack, onUpdate }) => {
+}> = ({ ticket, initialDraftMessage, onDraftConsumed, onBack, onUpdate }) => {
   const { user } = useAuthStore();
   const { sendMessage, updateTicketStatus, updateTicketPriority } = useSupportTickets(true);
   const { messages, loading: messagesLoading, refetch } = useTicketMessages(ticket.id);
 
-  const [reply, setReply] = useState('');
+  const [reply, setReply] = useState(initialDraftMessage ?? '');
   const [adminNotes, setAdminNotes] = useState(ticket.admin_notes ?? '');
   const [sending, setSending] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<TicketStatus>(ticket.status);
   const [currentPriority, setCurrentPriority] = useState<TicketPriority>(ticket.priority);
+
+  // Consume the seeded draft on mount so a remount of this same ticket (admin
+  // backs out and reopens, or tabs away and back) doesn't get re-seeded with a
+  // stale welcome message that could be resent.
+  useEffect(() => {
+    if (initialDraftMessage) onDraftConsumed?.();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSend = async () => {
     const text = reply.trim();
@@ -286,11 +295,15 @@ const TicketDetail: React.FC<{
 
 interface AdminSupportQueueProps {
   initialTicketId?: string | null;
+  /** Draft text to prefill the reply box with when initialTicketId is freshly opened (e.g. the canned welcome message). */
+  initialDraftMessage?: string | null;
+  /** Called once the seeded initialDraftMessage has been consumed, so the parent can clear it. */
+  onDraftConsumed?: () => void;
   /** Parent's ticket refetch (e.g. AdminDashboard badge), called whenever tickets change here. */
   onTicketsChanged?: () => void;
 }
 
-const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, onTicketsChanged }) => {
+const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, initialDraftMessage, onDraftConsumed, onTicketsChanged }) => {
   const { tickets, loading, refetch } = useSupportTickets(true);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -330,6 +343,8 @@ const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, 
       <div className="p-6">
         <TicketDetail
           ticket={selectedTicket}
+          initialDraftMessage={selectedTicket.id === initialTicketId ? initialDraftMessage : null}
+          onDraftConsumed={onDraftConsumed}
           onBack={() => {
             setSelectedTicket(null);
             refetch();

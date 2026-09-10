@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy, UserPlus, CreditCard, Activity, Wallet, Zap, ChevronDown } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -16,6 +16,9 @@ import { useCertificationCatalog } from '@/hooks/useCertificationCatalog';
 import TrainerDetailCard, { type PendingTrainer } from '@/components/admin/TrainerDetailCard';
 import TrainerSessionsModal from '@/components/admin/TrainerSessionsModal';
 import ClientDetailCard, { type AdminClientDetail } from '@/components/admin/ClientDetailCard';
+
+const WELCOME_MESSAGE =
+  "Welcome to FitRush 🎉 I'm Xavier, the founder. Reply here anytime — happy to help you find the right trainer.";
 
 type ProfileRow = Tables<'profiles'>;
 
@@ -37,6 +40,7 @@ interface UserRow {
   is_suspended: boolean;
   created_at: string;
   avatar_url: string | null;
+  phone: string | null;
   email?: string;
   last_sign_in_at?: string | null;
   subscription_tier?: 'free' | 'pro' | 'elite' | null;
@@ -303,6 +307,8 @@ const AdminDashboard: React.FC = () => {
   const [viewingClient, setViewingClient] = useState<AdminClientDetail | null>(null);
   const [loadingClientDetail, setLoadingClientDetail] = useState(false);
   const [supportInitialTicketId, setSupportInitialTicketId] = useState<string | null>(null);
+  const [supportInitialDraftMessage, setSupportInitialDraftMessage] = useState<string | null>(null);
+  const messageThreadInFlight = useRef(false);
   const [healthChecks, setHealthChecks] = useState<Record<string, 'operational' | 'degraded' | 'down'>>({
     Database: 'operational',
     Auth: 'operational',
@@ -799,6 +805,8 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleMessageTrainer = async (trainerUserId: string, trainerName: string) => {
+    if (messageThreadInFlight.current) return;
+    messageThreadInFlight.current = true;
     try {
       const { data: existing, error: findError } = await (supabase as any)
         .from('support_tickets')
@@ -806,6 +814,8 @@ const AdminDashboard: React.FC = () => {
         .eq('user_id', trainerUserId)
         .eq('subject', 'Message from FitRush Admin')
         .not('status', 'in', '("resolved","closed")')
+        .order('created_at', { ascending: true })
+        .limit(1)
         .maybeSingle();
       if (findError) throw findError;
 
@@ -829,9 +839,58 @@ const AdminDashboard: React.FC = () => {
 
       closeTrainerDetail();
       setSupportInitialTicketId(ticketId ?? null);
+      setSupportInitialDraftMessage(null);
       setActiveTab('support');
     } catch {
       toast.error('Failed to open message thread.');
+    } finally {
+      messageThreadInFlight.current = false;
+    }
+  };
+
+  const handleMessageClient = async (clientUserId: string, clientName: string) => {
+    if (messageThreadInFlight.current) return;
+    messageThreadInFlight.current = true;
+    try {
+      const { data: existing, error: findError } = await (supabase as any)
+        .from('support_tickets')
+        .select('id')
+        .eq('user_id', clientUserId)
+        .eq('subject', 'Message from FitRush Admin')
+        .not('status', 'in', '("resolved","closed")')
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (findError) throw findError;
+
+      let ticketId = existing?.id as string | undefined;
+      let isNewTicket = false;
+      if (!ticketId) {
+        const { data: created, error: insertError } = await (supabase as any)
+          .from('support_tickets')
+          .insert({
+            user_id: clientUserId,
+            category: 'other',
+            subject: 'Message from FitRush Admin',
+            description: 'Direct thread between FitRush admin and ' + clientName,
+            status: 'open',
+            priority: 'normal',
+          })
+          .select('id')
+          .single();
+        if (insertError) throw insertError;
+        ticketId = created?.id;
+        isNewTicket = true;
+      }
+
+      closeClientDetail();
+      setSupportInitialTicketId(ticketId ?? null);
+      setSupportInitialDraftMessage(isNewTicket ? WELCOME_MESSAGE : null);
+      setActiveTab('support');
+    } catch {
+      toast.error('Failed to open message thread.');
+    } finally {
+      messageThreadInFlight.current = false;
     }
   };
 
@@ -1963,9 +2022,10 @@ const AdminDashboard: React.FC = () => {
 
             <div className="border border-ink/10">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px_80px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+              <div className="grid grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_80px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Name</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Email</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Phone</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Role</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Tier</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Joined</p>
@@ -1987,7 +2047,7 @@ const AdminDashboard: React.FC = () => {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className="grid grid-cols-[1fr_180px_80px_100px_100px_100px_120px_140px_80px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
+                    className="grid grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_80px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       {user.avatar_url ? (
@@ -2016,6 +2076,15 @@ const AdminDashboard: React.FC = () => {
                       </p>
                     </div>
                     <p className="text-xs text-ink/50 truncate">{user.email ?? '—'}</p>
+                    <p className="text-xs text-ink/50 truncate">
+                      {user.phone?.trim() ? (
+                        <a href={`tel:${user.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">
+                          {user.phone}
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                    </p>
                     <p className="text-[10px] uppercase tracking-widest text-ink/50">{user.role}</p>
                     <div>
                       {user.role === 'trainer' && user.subscription_tier ? (
@@ -3073,6 +3142,8 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'support' && (
           <AdminSupportQueue
             initialTicketId={supportInitialTicketId}
+            initialDraftMessage={supportInitialDraftMessage}
+            onDraftConsumed={() => setSupportInitialDraftMessage(null)}
             onTicketsChanged={refetchSupportTickets}
           />
         )}
@@ -3141,7 +3212,10 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {!loadingClientDetail && viewingClient && (
-            <ClientDetailCard client={viewingClient} />
+            <ClientDetailCard
+              client={viewingClient}
+              onMessageClient={() => handleMessageClient(viewingClient.user_id, viewingClient.full_name || 'this client')}
+            />
           )}
         </div>
       </div>
