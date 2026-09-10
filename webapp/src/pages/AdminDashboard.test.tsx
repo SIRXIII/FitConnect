@@ -155,6 +155,18 @@ describe('AdminDashboard message client (admin welcome + push)', () => {
   it('finds or creates the admin<->client thread under the shared subject', () => {
     expect(SOURCE).toContain("'Message from FitRush Admin'");
   });
+
+  it('clears the seeded welcome draft once AdminSupportQueue consumes it', () => {
+    expect(SOURCE).toContain('onDraftConsumed=');
+  });
+
+  it('guards handleMessageTrainer/handleMessageClient against double-click re-entrancy', () => {
+    expect(SOURCE).toContain('messageThreadInFlight');
+  });
+
+  it('degrades gracefully to the oldest matching ticket if a duplicate thread exists', () => {
+    expect(SOURCE).toContain('.limit(1)');
+  });
 });
 
 describe('AdminDashboard current tab structure', () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy, UserPlus, CreditCard, Activity, Wallet, Zap, ChevronDown } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -308,6 +308,7 @@ const AdminDashboard: React.FC = () => {
   const [loadingClientDetail, setLoadingClientDetail] = useState(false);
   const [supportInitialTicketId, setSupportInitialTicketId] = useState<string | null>(null);
   const [supportInitialDraftMessage, setSupportInitialDraftMessage] = useState<string | null>(null);
+  const messageThreadInFlight = useRef(false);
   const [healthChecks, setHealthChecks] = useState<Record<string, 'operational' | 'degraded' | 'down'>>({
     Database: 'operational',
     Auth: 'operational',
@@ -804,6 +805,8 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleMessageTrainer = async (trainerUserId: string, trainerName: string) => {
+    if (messageThreadInFlight.current) return;
+    messageThreadInFlight.current = true;
     try {
       const { data: existing, error: findError } = await (supabase as any)
         .from('support_tickets')
@@ -811,6 +814,8 @@ const AdminDashboard: React.FC = () => {
         .eq('user_id', trainerUserId)
         .eq('subject', 'Message from FitRush Admin')
         .not('status', 'in', '("resolved","closed")')
+        .order('created_at', { ascending: true })
+        .limit(1)
         .maybeSingle();
       if (findError) throw findError;
 
@@ -834,13 +839,18 @@ const AdminDashboard: React.FC = () => {
 
       closeTrainerDetail();
       setSupportInitialTicketId(ticketId ?? null);
+      setSupportInitialDraftMessage(null);
       setActiveTab('support');
     } catch {
       toast.error('Failed to open message thread.');
+    } finally {
+      messageThreadInFlight.current = false;
     }
   };
 
   const handleMessageClient = async (clientUserId: string, clientName: string) => {
+    if (messageThreadInFlight.current) return;
+    messageThreadInFlight.current = true;
     try {
       const { data: existing, error: findError } = await (supabase as any)
         .from('support_tickets')
@@ -848,6 +858,8 @@ const AdminDashboard: React.FC = () => {
         .eq('user_id', clientUserId)
         .eq('subject', 'Message from FitRush Admin')
         .not('status', 'in', '("resolved","closed")')
+        .order('created_at', { ascending: true })
+        .limit(1)
         .maybeSingle();
       if (findError) throw findError;
 
@@ -877,6 +889,8 @@ const AdminDashboard: React.FC = () => {
       setActiveTab('support');
     } catch {
       toast.error('Failed to open message thread.');
+    } finally {
+      messageThreadInFlight.current = false;
     }
   };
 
@@ -3129,6 +3143,7 @@ const AdminDashboard: React.FC = () => {
           <AdminSupportQueue
             initialTicketId={supportInitialTicketId}
             initialDraftMessage={supportInitialDraftMessage}
+            onDraftConsumed={() => setSupportInitialDraftMessage(null)}
             onTicketsChanged={refetchSupportTickets}
           />
         )}
