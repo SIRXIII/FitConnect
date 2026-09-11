@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { clientProfileSchema } from '@/lib/schemas';
 import { isNativeiOS } from '@/lib/platform';
+import { setupPaymentMethod } from '@/lib/paymentMethods';
 import type { TablesInsert } from '@/types/supabase';
 
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
@@ -50,7 +51,7 @@ const FITNESS_LEVELS = [
 ];
 
 // ─── Payment step (inner Stripe component) ────────────────
-const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string) => void; onSkip: () => void }> = ({ clientSecret, onSuccess, onSkip }) => {
+const PaymentStep: React.FC<{ clientSecret: string; onSuccess: () => void; onSkip: () => void }> = ({ clientSecret, onSuccess, onSkip }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [saving, setSaving] = useState(false);
@@ -59,7 +60,7 @@ const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string) =>
     e.preventDefault();
     if (!stripe || !elements) return;
     setSaving(true);
-    const { setupIntent, error } = await stripe.confirmSetup({
+    const { error } = await stripe.confirmSetup({
       elements,
       redirect: 'if_required',
     });
@@ -68,12 +69,7 @@ const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string) =>
       setSaving(false);
       return;
     }
-    const pmId = typeof setupIntent.payment_method === 'string'
-      ? setupIntent.payment_method
-      : setupIntent.payment_method?.id ?? '';
-    // Stripe.js has no retrievePaymentMethod; card details live in the stored
-    // client_profiles.stripe_payment_last4 / stripe_payment_brand.
-    onSuccess(pmId);
+    onSuccess();
   };
 
   return (
@@ -122,7 +118,6 @@ const ClientOnboarding: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState<string | null>(null);
-  const [paymentData, setPaymentData] = useState<{ pmId: string } | null>(null);
 
   const toggle = (arr: string[], val: string): string[] =>
     arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val];
@@ -130,15 +125,10 @@ const ClientOnboarding: React.FC = () => {
   const loadSetupIntent = async () => {
     if (!stripePromise || setupClientSecret) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-setup-intent`,
-        { method: 'POST', headers: { Authorization: `Bearer ${session?.access_token}` } },
-      );
-      const json = await res.json();
-      if (json.clientSecret) setSetupClientSecret(json.clientSecret);
+      setSetupClientSecret(await setupPaymentMethod());
     } catch (err) {
       console.error('[ClientOnboarding] setup intent error:', err);
+      toast.error(err instanceof Error ? err.message : 'Payment setup failed — you can add a card later in Settings.');
     }
   };
 
@@ -149,10 +139,10 @@ const ClientOnboarding: React.FC = () => {
       return;
     }
     if (step < TOTAL_STEPS) { setStep(s => s + 1); return; }
-    await saveProfile(null);
+    await saveProfile();
   };
 
-  const saveProfile = async (payment: typeof paymentData) => {
+  const saveProfile = async () => {
     if (!user) return;
     setSaving(true);
     try {
@@ -187,7 +177,6 @@ const ClientOnboarding: React.FC = () => {
       if (form.height_in) clientData.height_in = parseInt(form.height_in);
       if (form.body_type) clientData.body_type = form.body_type;
       if (form.fitness_level) clientData.fitness_level = form.fitness_level;
-      if (payment) clientData.stripe_payment_method_id = payment.pmId;
 
       const { error } = await supabase.from('client_profiles').upsert(clientData, { onConflict: 'user_id' });
       if (error) throw error;
@@ -438,23 +427,25 @@ const ClientOnboarding: React.FC = () => {
             <div className="space-y-3">
               <h2 className="text-3xl serif font-light italic">Add a payment method</h2>
               <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
-                Securely saved for instant booking — powered by Stripe
+                Securely saved with Stripe — optional, and changeable later in Settings
               </p>
             </div>
             {setupClientSecret ? (
               <Elements stripe={stripePromise} options={{ clientSecret: setupClientSecret, appearance: { theme: 'flat', variables: { fontFamily: 'Inter, sans-serif', colorPrimary: '#1a1a1a' } } }}>
                 <PaymentStep
                   clientSecret={setupClientSecret}
-                  onSuccess={(pmId) => {
-                    setPaymentData({ pmId });
-                    saveProfile({ pmId });
-                  }}
-                  onSkip={() => saveProfile(null)}
+                  onSuccess={() => saveProfile()}
+                  onSkip={() => saveProfile()}
                 />
               </Elements>
             ) : (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+              <div className="space-y-6">
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-5 h-5 border border-accent border-t-transparent rounded-full animate-spin" />
+                </div>
+                <button type="button" onClick={() => saveProfile()} disabled={saving} className="text-xs uppercase tracking-[0.15em] text-ink/60 hover:text-ink transition-colors">
+                  Skip for now
+                </button>
               </div>
             )}
           </div>
