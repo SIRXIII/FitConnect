@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import type { SupportTicket, SupportMessage, TicketStatus, TicketCategory, TicketPriority } from '@/types/support';
+import type { Database } from '@/types/supabase';
 
 export function useSupportTickets(isAdmin = false) {
   const { user, profile } = useAuthStore();
@@ -95,7 +96,7 @@ export function useSupportTickets(isAdmin = false) {
     status: TicketStatus,
     adminNotes?: string
   ): Promise<void> => {
-    const updates: Record<string, unknown> = {
+    const updates: Database['public']['Tables']['support_tickets']['Update'] = {
       status,
       updated_at: new Date().toISOString(),
     };
