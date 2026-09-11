@@ -231,7 +231,7 @@ const BookSession: React.FC = () => {
       ? Math.round(baseRate * (1 - discountPct / 100) * 100) / 100
       : baseRate;
 
-    let finalRate = rate;
+    let finalRate = slot.is_intro ? 0 : rate;
     let hadReferralDiscount = false;
 
     const { data: clientProfile } = await supabase
@@ -240,7 +240,7 @@ const BookSession: React.FC = () => {
       .eq('id', user.id)
       .single();
 
-    if (clientProfile?.referral_discount_pending) {
+    if (!slot.is_intro && clientProfile?.referral_discount_pending) {
       finalRate = Math.max(0, rate - 5);
       hadReferralDiscount = true;
     }

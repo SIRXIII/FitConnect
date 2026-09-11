@@ -12,6 +12,7 @@ interface StepConfirmProps {
   paymentError: string | null;
   stripeConfigured: boolean;
   bookingMode?: 'instant' | 'request';
+  isIntro?: boolean;
 }
 
 export const StepConfirm: React.FC<StepConfirmProps> = ({
@@ -24,6 +25,7 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
   paymentError,
   stripeConfigured,
   bookingMode,
+  isIntro,
 }) => {
   const { baseRate, discountPct, rate, referralDiscount, feePct, platformFee, total } = quote;
   const trainerName = slot.trainer_profiles.profiles?.full_name || 'Trainer';
@@ -32,6 +34,12 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
 
   return (
     <div className="space-y-8">
+      {isIntro && (
+        <div className="border border-accent/30 bg-accent/5 text-accent text-sm text-center p-4">
+          Complimentary intro session, no card required
+        </div>
+      )}
+
       {/* Session summary */}
       <div className="border border-ink/10 p-6 space-y-2">
         <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
@@ -110,18 +118,22 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
         >
           {loading
             ? 'Processing...'
-            : bookingMode === 'request'
-              ? 'Request to Book'
-              : stripeConfigured
-                ? 'Continue to Payment'
-                : 'Confirm Booking'}
+            : isIntro
+              ? 'Confirm free session'
+              : bookingMode === 'request'
+                ? 'Request to Book'
+                : stripeConfigured
+                  ? 'Continue to Payment'
+                  : 'Confirm Booking'}
         </button>
       </div>
 
       <p className="text-[10px] text-ink/30 text-center">
-        {stripeConfigured
-          ? 'Your payment is secured by Stripe. You can cancel free of charge up to 24 hours before the session.'
-          : 'Payment will be collected after the trainer confirms your booking. You can cancel free of charge up to 24 hours before the session.'}
+        {isIntro
+          ? 'This session is complimentary. You can cancel free of charge up to 24 hours before the session.'
+          : stripeConfigured
+            ? 'Your payment is secured by Stripe. You can cancel free of charge up to 24 hours before the session.'
+            : 'Payment will be collected after the trainer confirms your booking. You can cancel free of charge up to 24 hours before the session.'}
       </p>
     </div>
   );

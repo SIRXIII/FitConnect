@@ -9,6 +9,7 @@ import { useTier } from '@/hooks/useTier';
 import { bioLimitForTier } from '@/lib/tierGates';
 import WorkoutLocationsManager from '@/components/trainer/WorkoutLocationsManager';
 import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
+import IntroOfferCard from '@/components/trainer/IntroOfferCard';
 
 // ---- Image compression (mirrors ClientPassport pattern) ----
 async function compressImage(file: File, maxSize = 400, quality = 0.7): Promise<Blob> {
@@ -95,6 +96,8 @@ const SettingsTab: React.FC = () => {
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url ?? '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [offersFreeIntro, setOffersFreeIntro] = useState(!!trainerProfile?.offers_free_intro);
+  const [savingIntroOffer, setSavingIntroOffer] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -221,6 +224,31 @@ const SettingsTab: React.FC = () => {
       toast.error(`Failed to save profile, please try again.${detail}`);
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  // ---- Save intro offer (immediate, mirrors BufferTimeSelector.tsx) ----
+  const handleToggleIntroOffer = async (next: boolean) => {
+    if (!user) return;
+    setOffersFreeIntro(next);
+    setSavingIntroOffer(true);
+    try {
+      // offers_free_intro is not in generated types yet, same (supabase as
+      // any) cast used elsewhere in this repo for new columns.
+      const { error } = await (supabase as any)
+        .from('trainer_profiles')
+        .update({ offers_free_intro: next })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await fetchProfile(user.id);
+      toast.success(next ? 'Complimentary intro offer enabled.' : 'Complimentary intro offer disabled.');
+    } catch {
+      setOffersFreeIntro(!next);
+      toast.error('Failed to update intro offer, please try again.');
+    } finally {
+      setSavingIntroOffer(false);
     }
   };
 
@@ -443,10 +471,19 @@ const SettingsTab: React.FC = () => {
         </div>
       </Section>
 
-      {/* ── Section 2: Account Security ── */}
+      {/* ── Section 2: Complimentary Intro Offer ── */}
+      <Section
+        title="Complimentary Intro Offer"
+        subtitle="Give new clients a free 30-minute session to try you out."
+      >
+        <IntroOfferCard enabled={offersFreeIntro} onChange={handleToggleIntroOffer} />
+        {savingIntroOffer && <p className="text-[10px] text-ink/60">Saving…</p>}
+      </Section>
+
+      {/* ── Section 3: Account Security ── */}
       <AccountSecuritySection />
 
-      {/* ── Section 3: Workout Locations ── */}
+      {/* ── Section 4: Workout Locations ── */}
       <Section
         title="Workout Locations"
         subtitle="Pin the gyms, parks, and in-home areas where you train clients."
@@ -458,7 +495,7 @@ const SettingsTab: React.FC = () => {
         )}
       </Section>
 
-      {/* ── Section 4: Danger Zone ── */}
+      {/* ── Section 5: Danger Zone ── */}
       <div className="border border-red-200/60 p-8 space-y-4">
         <div className="flex items-start gap-3">
           <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" strokeWidth={1.5} />

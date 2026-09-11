@@ -72,6 +72,25 @@ describe('computeDisplayQuote', () => {
     expect(expired.platformFee).toBe(7.02);
   });
 
+  it('returns an all-zero quote for a complimentary intro slot', () => {
+    const q = computeDisplayQuote({
+      slot: { ...individual, is_intro: true },
+      trainerProfile: trainer,
+      ...base,
+      referralPending: true,
+    });
+    expect(q.isGroup).toBe(false);
+    expect(q.baseRate).toBe(0);
+    expect(q.discountPct).toBe(0);
+    expect(q.rate).toBe(0);
+    expect(q.referralDiscount).toBe(0);
+    expect(q.rateCharged).toBe(0);
+    expect(q.feePct).toBe(0);
+    expect(q.platformFee).toBe(0);
+    expect(q.total).toBe(0);
+    expect(q.trainerPayout).toBe(0);
+  });
+
   it('rounds the 13% fee to cents: $43 -> $5.59 fee / $48.59 total', () => {
     const q = computeDisplayQuote({
       slot: individual,

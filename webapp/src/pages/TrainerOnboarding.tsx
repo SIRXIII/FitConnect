@@ -8,6 +8,7 @@ import { usePlatformFee } from '@/hooks/usePlatformFee';
 import { trainerProfileSchema } from '@/lib/schemas';
 import CertificationUpload from '@/components/trainer/CertificationUpload';
 import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
+import IntroOfferCard from '@/components/trainer/IntroOfferCard';
 
 const SPECIALTIES = [
   { value: 'strength_training', label: 'Strength Training' },
@@ -36,6 +37,7 @@ interface FormData {
   expertise_tags_raw: string;
   success_story: string;
   faqs: { q: string; a: string }[];
+  offers_free_intro: boolean;
 }
 
 const TrainerOnboarding: React.FC = () => {
@@ -46,7 +48,7 @@ const TrainerOnboarding: React.FC = () => {
   const keepPct = Math.round((1 - onboardingFeePct) * 100);
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 6;
   const [certUploaded, setCertUploaded] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const certFileInputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +74,8 @@ const TrainerOnboarding: React.FC = () => {
     expertise_tags_raw: '',
     success_story: '',
     faqs: [],
+    // Pre-checked: the enticement pitch is the default, trainers opt out.
+    offers_free_intro: true,
   });
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -95,7 +99,7 @@ const TrainerOnboarding: React.FC = () => {
         !!form.avatar_url
       );
     }
-    if (step === 5) return certUploaded;
+    if (step === 6) return certUploaded;
     return true;
   };
 
@@ -181,7 +185,9 @@ const TrainerOnboarding: React.FC = () => {
         .filter((t) => t.length > 0);
       const validFaqs = form.faqs.filter((f) => f.q.trim() && f.a.trim());
 
-      const { error } = await supabase
+      // offers_free_intro is not in generated types yet, same (supabase as
+      // any) cast used elsewhere in this repo for new columns.
+      const { error } = await (supabase as any)
         .from('trainer_profiles')
         .update({
           bio: form.bio.trim() || null,
@@ -200,6 +206,7 @@ const TrainerOnboarding: React.FC = () => {
           expertise_tags: expertiseTags,
           success_story: form.success_story.trim() || null,
           faqs: validFaqs,
+          offers_free_intro: form.offers_free_intro,
         })
         .eq('user_id', user.id);
 
@@ -214,7 +221,7 @@ const TrainerOnboarding: React.FC = () => {
       await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
 
       toast.success('Profile saved!');
-      setStep(5);
+      setStep(6);
     } catch (err) {
       console.error('[TrainerOnboarding] save error:', err);
       const detail = err instanceof Error && err.message ? ` (${err.message})` : '';
@@ -224,7 +231,7 @@ const TrainerOnboarding: React.FC = () => {
     }
   };
 
-  const stepLabels = ['Name', 'Certification', 'Profile', 'Rates', 'Upload Cert'];
+  const stepLabels = ['Name', 'Certification', 'Profile', 'Rates', 'Intro Offer', 'Upload Cert'];
   const initials = form.full_name.trim()
     ? form.full_name.trim().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : '?';
@@ -596,8 +603,24 @@ const TrainerOnboarding: React.FC = () => {
           </div>
         )}
 
-        {/* ── Step 5: Upload Certification ── */}
+        {/* ── Step 5: Intro Offer ── */}
         {step === 5 && (
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-3xl serif font-light italic">Intro offer</h2>
+              <p className="text-xs uppercase tracking-[0.25em] text-ink/60">
+                Turn a free first session into a repeat client
+              </p>
+            </div>
+            <IntroOfferCard
+              enabled={form.offers_free_intro}
+              onChange={(enabled) => setForm(f => ({ ...f, offers_free_intro: enabled }))}
+            />
+          </div>
+        )}
+
+        {/* ── Step 6: Upload Certification ── */}
+        {step === 6 && (
           <div className="space-y-8">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
@@ -650,7 +673,7 @@ const TrainerOnboarding: React.FC = () => {
           </button>
           <button
             onClick={
-              step === 4
+              step === 5
                 ? async () => { await handleFinish(); }
                 : step < TOTAL_STEPS
                 ? () => setStep(s => s + 1)
@@ -664,7 +687,7 @@ const TrainerOnboarding: React.FC = () => {
                 <span className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
                 Saving…
               </span>
-            ) : step === TOTAL_STEPS ? 'Go to Dashboard' : step === 4 ? 'Save & Continue' : 'Continue'}
+            ) : step === TOTAL_STEPS ? 'Go to Dashboard' : step === 5 ? 'Save & Continue' : 'Continue'}
           </button>
         </div>
       </div>

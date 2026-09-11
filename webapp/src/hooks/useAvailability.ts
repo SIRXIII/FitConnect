@@ -37,13 +37,16 @@ export function useAvailability() {
       slot_type?: 'individual' | 'group';
       max_capacity?: number | null;
       group_rate?: number | null;
+      is_intro?: boolean;
     }
   ) => {
     if (!trainerProfile) return;
 
-    const slotType = options?.slot_type ?? 'individual';
+    const slotType = options?.is_intro ? 'individual' : options?.slot_type ?? 'individual';
 
-    const { error } = await supabase
+    // is_intro is not in generated types yet, same (supabase as any) cast used
+    // elsewhere in this repo for new columns.
+    const { error } = await (supabase as any)
       .from('availability_slots')
       .insert({
         trainer_id: trainerProfile.id,
@@ -52,6 +55,7 @@ export function useAvailability() {
         slot_type: slotType,
         max_capacity: slotType === 'group' ? (options?.max_capacity ?? null) : null,
         group_rate: slotType === 'group' ? (options?.group_rate ?? null) : null,
+        is_intro: options?.is_intro ?? false,
       });
 
     if (error) throw error;

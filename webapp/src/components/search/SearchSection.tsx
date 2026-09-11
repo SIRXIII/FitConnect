@@ -41,6 +41,7 @@ function dbTrainerToCardData(t: TrainerWithProfile, idleSlotCount = 0): Trainer 
     bookingMode: t.booking_mode as 'instant' | 'request',
     intro_video_url: t.intro_video_url ?? null,
     credentialScore: t.credential_score ?? null,
+    offersFreeIntro: t.offers_free_intro ?? false,
   };
 }
 
@@ -53,7 +54,7 @@ const SearchSection: React.FC = () => {
   const [hasSearched, setHasSearched] = useState(false);
 
   // Query Supabase for trainers with filters
-  const { trainers: dbTrainers, loading, error, idleSlotCounts } = useTrainers({
+  const { trainers: dbTrainers, loading, error, idleSlotCounts, introActive, freeIntroUntil } = useTrainers({
     specialty: specialty
       ? DB_SPECIALTIES.find(
           (s) => formatSpecialty(s) === specialty
@@ -66,6 +67,12 @@ const SearchSection: React.FC = () => {
         : undefined,
     location: location || undefined,
   });
+
+  const freeIntroUntilLabel = useMemo(() => {
+    if (!freeIntroUntil) return null;
+    const d = new Date(freeIntroUntil);
+    return isNaN(d.getTime()) ? null : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }, [freeIntroUntil]);
 
   const displayTrainers = useMemo(() => {
     // DB trainers — additional client-side price filtering for premium range
@@ -84,6 +91,11 @@ const SearchSection: React.FC = () => {
         <div className="text-center mb-10 md:mb-20">
           <h2 className="text-4xl md:text-5xl serif font-light text-ink mb-6 italic">The Collective</h2>
           <p className="text-sm uppercase tracking-[0.3em] text-ink/40">Curated certified professionals</p>
+          {introActive && freeIntroUntilLabel && (
+            <p className="mt-6 text-xs uppercase tracking-[0.2em] text-accent">
+              Try a trainer free until {freeIntroUntilLabel}.
+            </p>
+          )}
         </div>
 
         {/* Search Bar */}

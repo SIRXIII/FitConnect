@@ -24,6 +24,7 @@ export interface Trainer {
   bookingMode?: 'instant' | 'request';
   intro_video_url?: string | null;
   credentialScore?: number | null;
+  offersFreeIntro?: boolean;
 }
 
 // DB specialty enum values

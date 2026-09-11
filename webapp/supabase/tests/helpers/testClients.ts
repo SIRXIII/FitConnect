@@ -66,7 +66,7 @@ export async function createUser(): Promise<TestUser> {
   return newAuthedUser();
 }
 
-export async function createTrainer(): Promise<TestTrainer> {
+export async function createTrainer(opts: { offersFreeIntro?: boolean } = {}): Promise<TestTrainer> {
   const user = await newAuthedUser();
   // Fixture only — inserted via service role (bypasses RLS). The exploit tests
   // then act through `user.client`, which does NOT bypass RLS.
@@ -79,6 +79,7 @@ export async function createTrainer(): Promise<TestTrainer> {
       optimized_rate: 50,
       location: 'Test City',
       availability_status: 'live', // create_booking_atomic requires the trainer be 'live'
+      offers_free_intro: opts.offersFreeIntro ?? false,
     })
     .select('id')
     .single();
@@ -135,6 +136,32 @@ export async function createBooking(opts: {
   const result = data as { booking_id?: string; error?: string } | null;
   if (!result?.booking_id) throw new Error(`create_booking_atomic returned no id: ${JSON.stringify(result)}`);
   return result.booking_id;
+}
+
+/**
+ * Fixture: a complimentary-intro slot (is_intro true) for a trainer. Same
+ * 30-minute window shape as createSlot (default free_intro_minutes), so it
+ * satisfies enforce_intro_slot_shape without extra options. Pass
+ * `minutes` to build an intentionally wrong-length slot for the trigger's
+ * rejection case.
+ */
+export async function createIntroSlot(trainerProfileId: string, minutes = 30): Promise<string> {
+  const n = ++slotSeq;
+  const start = new Date(Date.now() - (n + 1) * 3600_000);
+  const end = new Date(start.getTime() + minutes * 60_000);
+  const { data, error } = await admin
+    .from('availability_slots')
+    .insert({
+      trainer_id: trainerProfileId,
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+      slot_type: 'individual',
+      is_intro: true,
+    })
+    .select('id')
+    .single();
+  if (error || !data) throw new Error(`createIntroSlot failed: ${error?.message}`);
+  return data.id as string;
 }
 
 /** Delete every user created during the run (cascades to their rows). */

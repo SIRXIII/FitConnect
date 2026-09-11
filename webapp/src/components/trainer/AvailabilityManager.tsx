@@ -1,7 +1,12 @@
-import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Users } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Users, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAvailability, type AvailabilitySlot } from '@/hooks/useAvailability';
+import { useAuthStore } from '@/stores/auth';
+import { supabase } from '@/lib/supabase';
+
+// is_intro is not in generated types yet, same cast pattern used in useAvailability.ts.
+type SlotWithIntro = AvailabilitySlot & { is_intro?: boolean };
 
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 6); // 6am to 7pm
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -18,6 +23,7 @@ function formatDate(date: Date): string {
 }
 
 const AvailabilityManager: React.FC = () => {
+  const { trainerProfile } = useAuthStore();
   const { slots, loading, addSlot, removeSlot } = useAvailability();
   const [currentWeek, setCurrentWeek] = useState(() => getWeekStart(new Date()));
   const [adding, setAdding] = useState(false);
@@ -31,6 +37,31 @@ const AvailabilityManager: React.FC = () => {
   const [groupRate, setGroupRate] = useState<number | ''>('');
   const [addingGroup, setAddingGroup] = useState(false);
 
+  // Complimentary intro slot creation form state
+  const [freeIntroMinutes, setFreeIntroMinutes] = useState(30);
+  const [showIntroForm, setShowIntroForm] = useState(false);
+  const [introFormDate, setIntroFormDate] = useState('');
+  const [introFormStartHour, setIntroFormStartHour] = useState('9');
+  const [addingIntro, setAddingIntro] = useState(false);
+
+  useEffect(() => {
+    if (!trainerProfile?.offers_free_intro) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('platform_settings')
+        .select('value')
+        .eq('key', 'free_intro_minutes')
+        .maybeSingle();
+      if (cancelled || !data?.value) return;
+      const parsed = parseInt(data.value, 10);
+      if (!isNaN(parsed)) setFreeIntroMinutes(parsed);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [trainerProfile?.offers_free_intro]);
+
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(currentWeek);
@@ -41,7 +72,7 @@ const AvailabilityManager: React.FC = () => {
 
   // Map slots to grid positions
   const slotsByDayHour = useMemo(() => {
-    const map: Record<string, AvailabilitySlot> = {};
+    const map: Record<string, SlotWithIntro> = {};
     slots.forEach((slot) => {
       const start = new Date(slot.start_time);
       const day = start.getDay();
@@ -139,6 +170,33 @@ const AvailabilityManager: React.FC = () => {
     }
   };
 
+  const handleAddIntroSlot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!introFormDate) {
+      toast.error('Please pick a date for the intro slot.');
+      return;
+    }
+    setAddingIntro(true);
+    try {
+      const startH = parseInt(introFormStartHour, 10);
+      const slotDate = new Date(introFormDate + 'T00:00:00');
+      const startTime = new Date(slotDate);
+      startTime.setHours(startH, 0, 0, 0);
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + freeIntroMinutes);
+
+      await addSlot(startTime, endTime, { is_intro: true });
+
+      toast.success('Complimentary intro slot created.');
+      setShowIntroForm(false);
+      setIntroFormDate('');
+    } catch {
+      toast.error('Failed to create intro slot. Please try again.');
+    } finally {
+      setAddingIntro(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Week navigation */}
@@ -213,6 +271,8 @@ const AvailabilityManager: React.FC = () => {
                       title={
                         slot?.slot_type === 'group'
                           ? `Group session (${slot.max_capacity} capacity)`
+                          : slot?.is_intro
+                          ? `Complimentary intro (${freeIntroMinutes} min)`
                           : slot?.is_booked
                           ? 'Booked — cannot modify'
                           : slot
@@ -227,12 +287,17 @@ const AvailabilityManager: React.FC = () => {
                           Group
                         </span>
                       )}
+                      {slot?.is_intro && slot?.slot_type !== 'group' && (
+                        <span className="text-[9px] uppercase tracking-wider text-emerald-600 font-semibold block">
+                          Free · {freeIntroMinutes} min
+                        </span>
+                      )}
                       {slot?.is_booked && slot?.slot_type !== 'group' && (
                         <span className="text-[9px] uppercase tracking-wider text-accent font-semibold">
                           Booked
                         </span>
                       )}
-                      {slot && !slot.is_booked && slot?.slot_type !== 'group' && (
+                      {slot && !slot.is_booked && slot?.slot_type !== 'group' && !slot?.is_intro && (
                         <span className="text-[9px] uppercase tracking-wider text-accent/60">
                           Available
                         </span>
@@ -356,6 +421,78 @@ const AvailabilityManager: React.FC = () => {
           </form>
         )}
       </div>
+
+      {/* Complimentary intro slot creation */}
+      {trainerProfile?.offers_free_intro && (
+        <div className="border border-ink/10">
+          <button
+            type="button"
+            onClick={() => setShowIntroForm(v => !v)}
+            className="w-full flex items-center justify-between px-6 py-4 hover:bg-ink/3 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Gift size={16} className="text-emerald-600" />
+              <span className="text-[11px] uppercase tracking-[0.2em] font-medium text-ink/70">
+                Add Complimentary Intro Slot
+              </span>
+            </div>
+            <Plus
+              size={14}
+              className={`text-ink/40 transition-transform ${showIntroForm ? 'rotate-45' : ''}`}
+            />
+          </button>
+
+          {showIntroForm && (
+            <form onSubmit={handleAddIntroSlot} className="border-t border-ink/10 px-6 py-6 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={introFormDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={e => setIntroFormDate(e.target.value)}
+                    className="w-full border border-ink/20 px-3 py-2 text-sm focus:outline-none focus:border-accent/40 bg-transparent"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">
+                    Start Time ({freeIntroMinutes} min session)
+                  </label>
+                  <select
+                    value={introFormStartHour}
+                    onChange={e => setIntroFormStartHour(e.target.value)}
+                    className="w-full border border-ink/20 px-2 py-2 text-sm focus:outline-none focus:border-accent/40 bg-transparent"
+                  >
+                    {HOURS.map(h => (
+                      <option key={h} value={h}>
+                        {h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h - 12}pm`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={addingIntro}
+                  className="border border-emerald-600/50 text-emerald-600 px-8 py-2.5 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-emerald-600 hover:text-white transition-all duration-300 disabled:opacity-50"
+                >
+                  {addingIntro ? 'Creating…' : 'Create Intro Slot'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowIntroForm(false)}
+                  className="text-[11px] text-ink/70 hover:text-ink/70 transition-colors uppercase tracking-[0.2em]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-6 text-[10px] uppercase tracking-[0.2em] text-ink/70">

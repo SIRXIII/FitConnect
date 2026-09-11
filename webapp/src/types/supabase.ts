@@ -64,6 +64,7 @@ export type Database = {
           id: string
           is_booked: boolean
           is_gcal_blocked: boolean
+          is_intro: boolean
           is_trial_eligible: boolean
           max_capacity: number | null
           slot_type: string
@@ -79,6 +80,7 @@ export type Database = {
           id?: string
           is_booked?: boolean
           is_gcal_blocked?: boolean
+          is_intro?: boolean
           is_trial_eligible?: boolean
           max_capacity?: number | null
           slot_type?: string
@@ -94,6 +96,7 @@ export type Database = {
           id?: string
           is_booked?: boolean
           is_gcal_blocked?: boolean
+          is_intro?: boolean
           is_trial_eligible?: boolean
           max_capacity?: number | null
           slot_type?: string
@@ -183,6 +186,7 @@ export type Database = {
           gcal_event_id: string | null
           id: string
           is_comp: boolean
+          is_intro: boolean
           notes: string | null
           payment_type: string
           platform_fee: number
@@ -210,6 +214,7 @@ export type Database = {
           gcal_event_id?: string | null
           id?: string
           is_comp?: boolean
+          is_intro?: boolean
           notes?: string | null
           payment_type?: string
           platform_fee: number
@@ -237,6 +242,7 @@ export type Database = {
           gcal_event_id?: string | null
           id?: string
           is_comp?: boolean
+          is_intro?: boolean
           notes?: string | null
           payment_type?: string
           platform_fee?: number
@@ -2243,6 +2249,7 @@ export type Database = {
           latitude: number | null
           location: string
           longitude: number | null
+          offers_free_intro: boolean
           optimized_rate: number
           payout_hold_reason: string | null
           payout_hold_set_at: string | null
@@ -2312,6 +2319,7 @@ export type Database = {
           latitude?: number | null
           location: string
           longitude?: number | null
+          offers_free_intro?: boolean
           optimized_rate: number
           payout_hold_reason?: string | null
           payout_hold_set_at?: string | null
@@ -2380,6 +2388,7 @@ export type Database = {
           latitude?: number | null
           location?: string
           longitude?: number | null
+          offers_free_intro?: boolean
           optimized_rate?: number
           payout_hold_reason?: string | null
           payout_hold_set_at?: string | null

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, ChevronDown } from 'lucide-react';
+import { Star, MapPin, Award, Shield, ChevronLeft, Calendar, Clock, MessageSquare, Flag, Reply, Lock, ChevronDown, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTrainerById, useTrainerBySlug } from '@/hooks/useTrainers';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
@@ -577,6 +577,17 @@ const TrainerProfile: React.FC = () => {
                     <div className="h-3 border-r border-ink/15 mr-4" />
                   </>
                 )}
+                {trainer.offers_free_intro && (
+                  <>
+                    <div className="flex items-center gap-1.5 pr-4">
+                      <Sparkles size={11} className="text-accent flex-shrink-0" />
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">
+                        Complimentary 30-min intro
+                      </span>
+                    </div>
+                    <div className="h-3 border-r border-ink/15 mr-4" />
+                  </>
+                )}
                 <CredentialsVerifiedBadge verifiedCertCount={trainer.verified_cert_count} />
                 <CredentialBadge credentialScore={trainer.credential_score} />
                 <SuperFitBadge trainerId={trainer.id} />
@@ -751,6 +762,7 @@ const TrainerProfile: React.FC = () => {
                           const spotsLeft = isGroup ? ((slot.max_capacity ?? 0) - bookingCount) : null;
                           const isFull = isGroup && spotsLeft !== null && spotsLeft <= 0;
                           const displayRate = isGroup ? slot.group_rate : null;
+                          const isIntroSlot = slot.is_intro === true;
 
                           return (
                             <Link
@@ -772,6 +784,9 @@ const TrainerProfile: React.FC = () => {
                                 {timeStr}
                                 {isBuffer && !isGroup && (
                                   <span className="text-[8px] uppercase tracking-widest text-amber-600/60">Soon</span>
+                                )}
+                                {isIntroSlot && (
+                                  <span className="text-[8px] uppercase tracking-widest text-accent/70">Free · 30 min</span>
                                 )}
                               </div>
                               {isGroup && (

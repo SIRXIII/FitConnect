@@ -1,4 +1,4 @@
-import { Star, MapPin, Award, Clock } from 'lucide-react';
+import { Star, MapPin, Award, Clock, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Trainer } from '@/types';
 import { optimizedUrl } from '@/lib/imageUtils';
@@ -52,6 +52,12 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
               {trainer.location}
             </div>
             <CredentialBadge credentialScore={trainer.credentialScore} />
+            {trainer.offersFreeIntro && (
+              <div className="inline-flex items-center gap-1.5 border border-accent/40 text-accent px-3 py-1 rounded-full mr-4">
+                <Sparkles size={11} />
+                <span className="text-[10px] uppercase tracking-[0.15em] font-medium">Complimentary 30-min intro</span>
+              </div>
+            )}
           </div>
           <div className="text-right space-y-0.5">
             {trainer.discountPercentage > 0 ? (

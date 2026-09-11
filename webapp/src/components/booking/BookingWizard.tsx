@@ -88,7 +88,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   referralDiscountPending,
   PaymentFormComponent,
 }) => {
-  const showPayment = stripeConfigured && !isNativeiOS();
+  const isIntro = slot.is_intro === true;
+  const showPayment = stripeConfigured && !isNativeiOS() && !isIntro;
   const steps = useMemo(
     () => ['Review', 'Confirm', ...(showPayment ? ['Payment'] : []), 'Complete'],
     [showPayment]
@@ -200,6 +201,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             paymentError={paymentError}
             stripeConfigured={showPayment}
             bookingMode={slot.trainer_profiles.booking_mode}
+            isIntro={isIntro}
           />
         );
       case 'Payment':
@@ -220,6 +222,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
             sessionEndDate={slot.end_time}
             rate={quote.total}
             stripeConfigured={showPayment}
+            isIntro={isIntro}
           />
         );
       default:

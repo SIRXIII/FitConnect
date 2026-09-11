@@ -16,6 +16,7 @@ import { useCertificationCatalog } from '@/hooks/useCertificationCatalog';
 import TrainerDetailCard, { type PendingTrainer } from '@/components/admin/TrainerDetailCard';
 import TrainerSessionsModal from '@/components/admin/TrainerSessionsModal';
 import ClientDetailCard, { type AdminClientDetail } from '@/components/admin/ClientDetailCard';
+import DateSlider from '@/components/admin/DateSlider';
 
 const WELCOME_MESSAGE =
   "Welcome to FitRush 🎉 I'm Xavier, the founder. Reply here anytime — happy to help you find the right trainer.";
@@ -47,6 +48,7 @@ interface UserRow {
   subscription_status?: 'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused' | 'incomplete' | null;
   tier_overridden_by?: string | null;
   tier_overridden_at?: string | null;
+  offers_free_intro?: boolean;
 }
 
 interface PayoutBalance {
@@ -234,6 +236,15 @@ const AdminDashboard: React.FC = () => {
   const [foundingCutoff, setFoundingCutoff] = useState('2026-10-01');
   const [savedCutoff, setSavedCutoff] = useState('2026-10-01');
   const [savingCutoff, setSavingCutoff] = useState(false);
+  const [freeIntroUntil, setFreeIntroUntil] = useState('2026-12-01');
+  const [savedFreeIntroUntil, setSavedFreeIntroUntil] = useState('2026-12-01');
+  const [savingFreeIntroUntil, setSavingFreeIntroUntil] = useState(false);
+  const [freeIntroMinutes, setFreeIntroMinutes] = useState('30');
+  const [savedFreeIntroMinutes, setSavedFreeIntroMinutes] = useState('30');
+  const [savingFreeIntroMinutes, setSavingFreeIntroMinutes] = useState(false);
+  const [freeIntroMaxPerClient, setFreeIntroMaxPerClient] = useState('2');
+  const [savedFreeIntroMaxPerClient, setSavedFreeIntroMaxPerClient] = useState('2');
+  const [savingFreeIntroMaxPerClient, setSavingFreeIntroMaxPerClient] = useState(false);
   const [activeTab, setActiveTab] = useState<'analytics' | 'transactions' | 'payouts' | 'users' | 'reviews' | 'certifications' | 'audit' | 'settings' | 'support' | 'pending-trainers' | 'sessions'>('analytics');
   const { tickets: supportTickets, refetch: refetchSupportTickets } = useSupportTickets(true);
   const openSupportCount = supportTickets.filter((t) => t.status === 'open' || t.status === 'in_progress').length;
@@ -296,6 +307,7 @@ const AdminDashboard: React.FC = () => {
   const [sessionsModalTrainer, setSessionsModalTrainer] = useState<PayoutBalance | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectAllVisibleTrainers, setSelectAllVisibleTrainers] = useState(false);
   const [pendingTrainers, setPendingTrainers] = useState<PendingTrainer[]>([]);
   const [loadingPendingTrainers, setLoadingPendingTrainers] = useState(false);
   const [approvingTrainerId, setApprovingTrainerId] = useState<string | null>(null);
@@ -359,7 +371,7 @@ const AdminDashboard: React.FC = () => {
           .in('role', ['trainer', 'client'])
           .eq('is_suspended', false),
         supabase.from('trainer_profiles').select('discount_percentage'),
-        supabase.from('platform_settings').select('key, value').in('key', ['platform_fee_pct', 'founding_cutoff']),
+        supabase.from('platform_settings').select('key, value').in('key', ['platform_fee_pct', 'founding_cutoff', 'free_intro_until', 'free_intro_minutes', 'free_intro_max_per_client']),
       ]);
 
       const grossCharged = (paymentResult.data ?? []).reduce((sum, p) => sum + p.amount, 0);
@@ -382,6 +394,15 @@ const AdminDashboard: React.FC = () => {
         } else if (row.key === 'founding_cutoff' && row.value) {
           setFoundingCutoff(row.value);
           setSavedCutoff(row.value);
+        } else if (row.key === 'free_intro_until' && row.value) {
+          setFreeIntroUntil(row.value);
+          setSavedFreeIntroUntil(row.value);
+        } else if (row.key === 'free_intro_minutes' && row.value) {
+          setFreeIntroMinutes(row.value);
+          setSavedFreeIntroMinutes(row.value);
+        } else if (row.key === 'free_intro_max_per_client' && row.value) {
+          setFreeIntroMaxPerClient(row.value);
+          setSavedFreeIntroMaxPerClient(row.value);
         }
       }
     } catch {
@@ -395,9 +416,20 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = useCallback(async () => {
     setLoadingUsers(true);
     try {
-      const { data, error } = await (supabase as any).rpc('get_admin_user_list');
+      const [{ data, error }, introResult] = await Promise.all([
+        (supabase as any).rpc('get_admin_user_list'),
+        (supabase as any).from('trainer_profiles').select('user_id, offers_free_intro'),
+      ]);
       if (error) throw error;
-      let rows = (data ?? []) as UserRow[];
+      const introByUserId = new Map<string, boolean>(
+        ((introResult.data ?? []) as Array<{ user_id: string; offers_free_intro: boolean }>).map(
+          (t) => [t.user_id, t.offers_free_intro] as [string, boolean]
+        )
+      );
+      let rows = ((data ?? []) as UserRow[]).map((u) => ({
+        ...u,
+        offers_free_intro: introByUserId.get(u.id) ?? false,
+      }));
 
       // Client-side filtering (RPC returns all users, filter in JS for responsiveness)
       if (roleFilter !== 'all') {
@@ -1125,6 +1157,41 @@ const AdminDashboard: React.FC = () => {
     toast.success(next ? `${user.full_name} suspended` : `${user.full_name} reinstated`);
   };
 
+  const handleToggleOffersFreeIntro = async (user: UserRow) => {
+    const next = !user.offers_free_intro;
+    const { error } = await (supabase as any).rpc('admin_set_offers_free_intro', {
+      p_user_ids: [user.id],
+      p_enabled: next,
+    });
+
+    if (error) {
+      toast.error('Failed to update complimentary intro offer');
+      return;
+    }
+
+    setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, offers_free_intro: next } : u));
+    toast.success(next ? `${user.full_name} now offers a complimentary intro` : `Complimentary intro turned off for ${user.full_name}`);
+  };
+
+  const handleBulkSetOffersFreeIntro = async (enabled: boolean) => {
+    const ids = users.map((u) => u.id);
+    if (ids.length === 0) return;
+
+    const { error } = await (supabase as any).rpc('admin_set_offers_free_intro', {
+      p_user_ids: ids,
+      p_enabled: enabled,
+    });
+
+    if (error) {
+      toast.error('Failed to update complimentary intro offer');
+      return;
+    }
+
+    toast.success(`Complimentary intro ${enabled ? 'enabled' : 'disabled'} for ${ids.length} trainer${ids.length === 1 ? '' : 's'}`);
+    setSelectAllVisibleTrainers(false);
+    fetchUsers();
+  };
+
   const handleSaveFee = async () => {
     const parsed = parseFloat(platformFee);
     if (isNaN(parsed) || parsed < 0 || parsed > 0.5) {
@@ -1149,8 +1216,8 @@ const AdminDashboard: React.FC = () => {
     toast.success(`Platform fee updated to ${Math.round(parsed * 100)}%`);
   };
 
-  const handleSaveCutoff = async () => {
-    if (isNaN(new Date(foundingCutoff).getTime())) {
+  const handleSaveCutoff = async (nextValue: string) => {
+    if (isNaN(new Date(nextValue).getTime())) {
       toast.error('Enter a valid date (YYYY-MM-DD)');
       return;
     }
@@ -1160,7 +1227,7 @@ const AdminDashboard: React.FC = () => {
     // founding_cutoff row is seeded in the database.
     const { error } = await supabase
       .from('platform_settings')
-      .update({ value: foundingCutoff, updated_at: new Date().toISOString() })
+      .update({ value: nextValue, updated_at: new Date().toISOString() })
       .eq('key', 'founding_cutoff');
 
     setSavingCutoff(false);
@@ -1170,8 +1237,83 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    setSavedCutoff(foundingCutoff);
+    setFoundingCutoff(nextValue);
+    setSavedCutoff(nextValue);
     toast.success('Founding Trainer cutoff updated');
+  };
+
+  const handleSaveFreeIntroUntil = async (nextValue: string) => {
+    if (isNaN(new Date(nextValue).getTime())) {
+      toast.error('Enter a valid date (YYYY-MM-DD)');
+      return;
+    }
+
+    setSavingFreeIntroUntil(true);
+    const { error } = await supabase
+      .from('platform_settings')
+      .update({ value: nextValue, updated_at: new Date().toISOString() })
+      .eq('key', 'free_intro_until');
+
+    setSavingFreeIntroUntil(false);
+
+    if (error) {
+      toast.error('Failed to save complimentary intro window');
+      return;
+    }
+
+    setFreeIntroUntil(nextValue);
+    setSavedFreeIntroUntil(nextValue);
+    toast.success('Complimentary intro window updated');
+  };
+
+  const handleSaveFreeIntroMinutes = async () => {
+    const parsed = parseInt(freeIntroMinutes, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      toast.error('Enter a whole number of minutes greater than 0');
+      return;
+    }
+
+    setSavingFreeIntroMinutes(true);
+    const { error } = await supabase
+      .from('platform_settings')
+      .update({ value: parsed.toString(), updated_at: new Date().toISOString() })
+      .eq('key', 'free_intro_minutes');
+
+    setSavingFreeIntroMinutes(false);
+
+    if (error) {
+      toast.error('Failed to save intro session length');
+      return;
+    }
+
+    setFreeIntroMinutes(parsed.toString());
+    setSavedFreeIntroMinutes(parsed.toString());
+    toast.success('Intro session length updated');
+  };
+
+  const handleSaveFreeIntroMaxPerClient = async () => {
+    const parsed = parseInt(freeIntroMaxPerClient, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      toast.error('Enter a whole number greater than 0');
+      return;
+    }
+
+    setSavingFreeIntroMaxPerClient(true);
+    const { error } = await supabase
+      .from('platform_settings')
+      .update({ value: parsed.toString(), updated_at: new Date().toISOString() })
+      .eq('key', 'free_intro_max_per_client');
+
+    setSavingFreeIntroMaxPerClient(false);
+
+    if (error) {
+      toast.error('Failed to save complimentary intro cap');
+      return;
+    }
+
+    setFreeIntroMaxPerClient(parsed.toString());
+    setSavedFreeIntroMaxPerClient(parsed.toString());
+    toast.success('Complimentary intro cap updated');
   };
 
   const handleOverride = async (trainerId: string, tier: 'free' | 'pro' | 'elite') => {
@@ -2020,9 +2162,37 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* Bulk complimentary-intro bar (trainer rows only) */}
+            {roleFilter === 'trainer' && (
+              <div className="flex flex-wrap items-center gap-4 px-6 py-3 border border-ink/10 bg-ink/[0.02]">
+                <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectAllVisibleTrainers}
+                    onChange={(e) => setSelectAllVisibleTrainers(e.target.checked)}
+                  />
+                  Select all visible ({users.length})
+                </label>
+                <button
+                  onClick={() => handleBulkSetOffersFreeIntro(true)}
+                  disabled={!selectAllVisibleTrainers || users.length === 0}
+                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Enable free intro
+                </button>
+                <button
+                  onClick={() => handleBulkSetOffersFreeIntro(false)}
+                  disabled={!selectAllVisibleTrainers || users.length === 0}
+                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Disable free intro
+                </button>
+              </div>
+            )}
+
             <div className="border border-ink/10">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_80px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
+              <div className="grid grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_110px_80px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Name</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Email</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Phone</p>
@@ -2032,6 +2202,7 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Last Login</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Override</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Free Intro</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Detail</p>
               </div>
 
@@ -2047,7 +2218,7 @@ const AdminDashboard: React.FC = () => {
                 users.map((user) => (
                   <div
                     key={user.id}
-                    className="grid grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_80px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
+                    className="grid grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_110px_80px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       {user.avatar_url ? (
@@ -2151,6 +2322,20 @@ const AdminDashboard: React.FC = () => {
                             )}
                           </div>
                         )
+                      )}
+                    </div>
+                    <div>
+                      {user.role === 'trainer' && (
+                        <button
+                          onClick={() => handleToggleOffersFreeIntro(user)}
+                          className={`flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors ${
+                            user.offers_free_intro
+                              ? 'text-green-600 hover:text-green-700'
+                              : 'text-ink/50 hover:text-ink'
+                          }`}
+                        >
+                          {user.offers_free_intro ? 'On' : 'Off'}
+                        </button>
                       )}
                     </div>
                     <div>
@@ -3107,22 +3292,64 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-[10px] uppercase tracking-widest text-ink/50">
                   Current: {savedCutoff}
                 </p>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="date"
-                    value={foundingCutoff}
-                    onChange={(e) => setFoundingCutoff(e.target.value)}
-                    className="flex-1 border border-ink/10 px-4 py-3 text-sm text-ink bg-transparent focus:outline-none focus:border-ink/30"
-                  />
-                  <button
-                    onClick={handleSaveCutoff}
-                    disabled={foundingCutoff === savedCutoff || savingCutoff}
-                    className="border border-accent text-accent px-8 py-3 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {savingCutoff ? 'Saving…' : 'Save'}
-                  </button>
-                </div>
+                <DateSlider value={foundingCutoff} saving={savingCutoff} onSave={handleSaveCutoff} />
                 <p className="text-[10px] text-ink/40 mt-1">Trainers who joined before this date are Founding Trainers: 0% platform fee for their first 12 months, then the standard fee. Move the date to extend or end the promo.</p>
+              </div>
+            </div>
+
+            <div className="border border-ink/10 p-8 max-w-lg space-y-6">
+              <div className="flex items-center gap-3">
+                <Settings size={16} strokeWidth={1.5} className="text-ink/40" />
+                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Complimentary Intro Window</p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-ink/50">
+                  Current: {savedFreeIntroUntil}
+                </p>
+                <DateSlider value={freeIntroUntil} saving={savingFreeIntroUntil} onSave={handleSaveFreeIntroUntil} />
+                <p className="text-[10px] text-ink/40 mt-1">Trainers who opt in can offer a free 30-minute intro session to new clients until this date.</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-ink/10">
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-widest text-ink/50">Intro length (minutes)</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      value={freeIntroMinutes}
+                      onChange={(e) => setFreeIntroMinutes(e.target.value)}
+                      className="w-full border border-ink/10 px-4 py-3 text-sm text-ink bg-transparent focus:outline-none focus:border-ink/30"
+                    />
+                    <button
+                      onClick={handleSaveFreeIntroMinutes}
+                      disabled={freeIntroMinutes === savedFreeIntroMinutes || savingFreeIntroMinutes}
+                      className="border border-accent text-accent px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {savingFreeIntroMinutes ? '…' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-widest text-ink/50">Max per client</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      value={freeIntroMaxPerClient}
+                      onChange={(e) => setFreeIntroMaxPerClient(e.target.value)}
+                      className="w-full border border-ink/10 px-4 py-3 text-sm text-ink bg-transparent focus:outline-none focus:border-ink/30"
+                    />
+                    <button
+                      onClick={handleSaveFreeIntroMaxPerClient}
+                      disabled={freeIntroMaxPerClient === savedFreeIntroMaxPerClient || savingFreeIntroMaxPerClient}
+                      className="border border-accent text-accent px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {savingFreeIntroMaxPerClient ? '…' : 'Save'}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 

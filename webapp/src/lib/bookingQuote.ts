@@ -6,6 +6,7 @@ export const REFERRAL_DISCOUNT = 5;
 export interface QuoteSlot {
   slot_type?: string | null;
   group_rate?: number | string | null;
+  is_intro?: boolean | null;
 }
 
 export interface QuoteTrainer {
@@ -46,6 +47,7 @@ const cents = (n: number) => Math.round(n * 100) / 100;
 /**
  * Client-side mirror of public.quote_booking_price(), used for display before
  * the booking exists (the RPC quote replaces it afterwards).
+ * - complimentary intro slots: all-zero, no fee, no discount
  * - group slots: group_rate, no trainer or referral discount
  * - individual: optimized_rate minus discount_percentage, minus the referral
  *   discount when pending
@@ -70,6 +72,20 @@ export function computeDisplayQuote({
   now?: Date;
 }): DisplayQuote {
   const isGroup = slot.slot_type === 'group';
+  if (slot.is_intro) {
+    return {
+      isGroup,
+      baseRate: 0,
+      discountPct: 0,
+      rate: 0,
+      referralDiscount: 0,
+      rateCharged: 0,
+      feePct: 0,
+      platformFee: 0,
+      total: 0,
+      trainerPayout: 0,
+    };
+  }
   const baseRate = isGroup ? Number(slot.group_rate ?? 0) : Number(trainerProfile.optimized_rate);
   const discountPct = isGroup ? 0 : (trainerProfile.discount_percentage ?? 0);
   const rate = discountPct > 0 ? cents(baseRate * (1 - discountPct / 100)) : baseRate;

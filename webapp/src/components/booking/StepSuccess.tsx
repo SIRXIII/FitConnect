@@ -7,6 +7,7 @@ interface StepSuccessProps {
   sessionEndDate: string;
   rate: number;
   stripeConfigured: boolean;
+  isIntro?: boolean;
 }
 
 export const StepSuccess: React.FC<StepSuccessProps> = ({
@@ -15,6 +16,7 @@ export const StepSuccess: React.FC<StepSuccessProps> = ({
   sessionEndDate,
   rate,
   stripeConfigured,
+  isIntro,
 }) => {
   const startTime = new Date(sessionDate);
   const endTime = new Date(sessionEndDate);
@@ -26,12 +28,14 @@ export const StepSuccess: React.FC<StepSuccessProps> = ({
       </div>
       <div className="space-y-3">
         <h1 className="text-3xl serif font-light italic text-ink">
-          {stripeConfigured ? 'Booking Confirmed' : 'Session Requested'}
+          {isIntro ? 'Complimentary session confirmed' : stripeConfigured ? 'Booking Confirmed' : 'Session Requested'}
         </h1>
         <p className="text-sm text-ink/50">
-          {stripeConfigured
-            ? `Your session with ${trainerName} has been booked and payment processed.`
-            : `Your booking request has been sent to ${trainerName}. You'll be notified once they confirm.`}
+          {isIntro
+            ? `Your complimentary session with ${trainerName} is confirmed.`
+            : stripeConfigured
+              ? `Your session with ${trainerName} has been booked and payment processed.`
+              : `Your booking request has been sent to ${trainerName}. You'll be notified once they confirm.`}
         </p>
       </div>
 
@@ -52,7 +56,7 @@ export const StepSuccess: React.FC<StepSuccessProps> = ({
           {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} -{' '}
           {endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
         </div>
-        <p className="text-lg serif font-light text-accent">${rate}</p>
+        <p className="text-lg serif font-light text-accent">{isIntro ? 'Complimentary' : `$${rate}`}</p>
       </div>
 
       <div className="flex gap-4 justify-center">

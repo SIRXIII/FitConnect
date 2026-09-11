@@ -17,6 +17,7 @@ export type TrainerProfile = Tables<'trainer_profiles'> & {
   gym_memberships?: string[] | null;
   booking_count?: number | null;
   is_verified?: boolean | null;
+  offers_free_intro?: boolean | null;
   credential_score?: number | null;
   verified_cert_count?: number | null;
   credentials_verified_at?: string | null;

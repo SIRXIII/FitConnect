@@ -60,11 +60,28 @@ export function rankTrainers(
   return scored.sort((a, b) => b.score - a.score).map((s) => s.trainer);
 }
 
+/** True while the complimentary-intro promo window (platform_settings.free_intro_until) is still running. */
+function isIntroWindowActive(freeIntroUntil: string | null, now: Date = new Date()): boolean {
+  if (!freeIntroUntil) return false;
+  const until = new Date(freeIntroUntil);
+  return !isNaN(until.getTime()) && now < until;
+}
+
+/** Opted-in trainers first while the intro window runs -- the browse "featured placement" promise. */
+function boostIntroTrainers<T extends { offers_free_intro?: boolean | null }>(
+  ranked: T[],
+  introActive: boolean
+): T[] {
+  if (!introActive) return ranked;
+  return [...ranked].sort((a, b) => Number(!!b.offers_free_intro) - Number(!!a.offers_free_intro));
+}
+
 export function useTrainers(options: UseTrainersOptions = {}) {
   const [trainers, setTrainers] = useState<TrainerWithProfile[]>([]);
   const [idleSlotCounts, setIdleSlotCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [freeIntroUntil, setFreeIntroUntil] = useState<string | null>(null);
 
   const fetchTrainers = useCallback(async () => {
     setLoading(true);
@@ -104,7 +121,11 @@ export function useTrainers(options: UseTrainersOptions = {}) {
       }
     }
 
-    const { data, error: fetchError } = await query;
+    const [{ data, error: fetchError }, { data: introSetting }] = await Promise.all([
+      query,
+      supabase.from('platform_settings').select('value').eq('key', 'free_intro_until').maybeSingle(),
+    ]);
+    setFreeIntroUntil(introSetting?.value ?? null);
 
     if (fetchError) {
       setError(fetchError.message);
@@ -140,7 +161,8 @@ export function useTrainers(options: UseTrainersOptions = {}) {
     }
 
     setIdleSlotCounts(idleCounts);
-    setTrainers(rankTrainers(raw, slotCounts, options.location));
+    const ranked = rankTrainers(raw, slotCounts, options.location);
+    setTrainers(boostIntroTrainers(ranked, isIntroWindowActive(introSetting?.value ?? null)));
     setLoading(false);
   }, [options.specialty, options.maxRate, options.minRating, options.location]);
 
@@ -148,7 +170,15 @@ export function useTrainers(options: UseTrainersOptions = {}) {
     fetchTrainers();
   }, [fetchTrainers]);
 
-  return { trainers, loading, error, refetch: fetchTrainers, idleSlotCounts };
+  return {
+    trainers,
+    loading,
+    error,
+    refetch: fetchTrainers,
+    idleSlotCounts,
+    freeIntroUntil,
+    introActive: isIntroWindowActive(freeIntroUntil),
+  };
 }
 
 /** Returns true for mock/demo IDs like '1', '2', '3' (non-UUID strings) */
