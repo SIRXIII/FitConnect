@@ -10,7 +10,7 @@ interface VideoUploaderProps {
   onUploadComplete: (videoUrl: string, thumbnailUrl: string) => void;
 }
 
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+const MAX_SIZE_BYTES = 300 * 1024 * 1024; // 300MB
 
 const VideoUploader: React.FC<VideoUploaderProps> = ({
   userId,
@@ -29,12 +29,12 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
 
     // Size check
     if (file.size > MAX_SIZE_BYTES) {
-      setError('Video must be 50MB or smaller.');
+      setError('Video must be 300MB or smaller.');
       return;
     }
 
     // Duration check
-    const durationError = await validateVideoDuration(file, 30);
+    const durationError = await validateVideoDuration(file, 180);
     if (durationError) {
       setError(durationError);
       return;
@@ -69,7 +69,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
       // Upload video
       const { error: videoError } = await supabase.storage
         .from('trainer-videos')
-        .upload(`${userId}/intro.mp4`, file, { upsert: true });
+        .upload(`${userId}/intro.mp4`, file, { contentType: file.type || 'video/mp4', upsert: true });
 
       if (videoError) throw videoError;
       setProgress(80);
@@ -183,7 +183,7 @@ const VideoUploader: React.FC<VideoUploaderProps> = ({
           </svg>
           <div className="text-center">
             <p className="text-xs uppercase tracking-[0.2em] text-ink/60 group-hover:text-ink transition-colors">Upload Intro Video</p>
-            <p className="text-[10px] text-ink/60 mt-1">MP4, WebM, or MOV — max 30 sec, 50MB</p>
+            <p className="text-[10px] text-ink/60 mt-1">MP4, WebM, or MOV — max 3 min, 300MB</p>
           </div>
         </button>
       )}
