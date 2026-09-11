@@ -278,7 +278,8 @@ const BookSession: React.FC = () => {
     });
 
     if (error) {
-      toast.error('Connection lost. Check your signal and try again.');
+      const friendly = error.code === 'P0001' && error.message.startsWith('This trainer');
+      toast.error(friendly ? error.message : 'Connection lost. Check your signal and try again.');
       return null;
     }
 
