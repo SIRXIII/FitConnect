@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Camera, AlertTriangle, CreditCard, Check } from 'lucide-react';
 import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import DeleteAccountModal from '@/components/shared/DeleteAccountModal';
@@ -92,8 +92,8 @@ const SetupForm: React.FC<SetupFormProps> = ({ onSuccess, onCancel }) => {
       ? setupIntent.payment_method
       : setupIntent.payment_method?.id ?? '';
 
-    // Stripe.js has no retrievePaymentMethod; card details are read from the
-    // stored client_profiles.stripe_payment_last4 / stripe_payment_brand.
+    // Stripe.js has no retrievePaymentMethod; card details are read back
+    // from Stripe via manage-payment-methods.
     onSuccess(pmId);
   };
 
@@ -150,6 +150,26 @@ const ClientSettingsTab: React.FC = () => {
   const initials = fullName.trim()
     ? fullName.trim().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : (profile?.full_name ?? '?')[0].toUpperCase();
+
+  // This function is owned by the FitRush-Flutter repo (supabase/functions/manage-payment-methods);
+  // the web only calls its read-only 'list' action.
+  const loadSavedCard = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-payment-methods', {
+        body: { action: 'list' },
+      });
+      if (error) throw error;
+      const pm = data?.paymentMethods?.[0];
+      setSavedCard(pm ? { brand: pm.card.brand, last4: pm.card.last4 } : null);
+    } catch (err) {
+      console.error('[ClientSettingsTab] load saved card error:', err);
+      setSavedCard(null);
+    }
+  };
+
+  useEffect(() => {
+    if (user) loadSavedCard();
+  }, [user]);
 
   // ---- Avatar upload ----
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,28 +248,15 @@ const ClientSettingsTab: React.FC = () => {
     }
   };
 
-  const handlePaymentSuccess = async (pmId: string) => {
+  const handlePaymentSuccess = async (_pmId: string) => {
     if (!user) return;
     try {
-      const { error } = await supabase.from('client_profiles').upsert(
-        { user_id: user.id, stripe_payment_method_id: pmId },
-        { onConflict: 'user_id' },
-      );
-      if (error) throw error;
-      const { data: stored } = await supabase
-        .from('client_profiles')
-        .select('stripe_payment_last4, stripe_payment_brand')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      setSavedCard({
-        last4: stored?.stripe_payment_last4 ?? '••••',
-        brand: stored?.stripe_payment_brand ?? 'card',
-      });
+      await loadSavedCard();
       setSetupClientSecret(null);
       toast.success('Payment method saved.');
     } catch (err) {
       console.error('[ClientSettingsTab] save payment method error:', err);
-      toast.error('Card saved with Stripe but failed to store details — please refresh.');
+      toast.error('Card saved with Stripe but the list did not refresh. Please reload.');
     }
   };
 
@@ -345,7 +352,7 @@ const ClientSettingsTab: React.FC = () => {
       {!isNativeiOS() && (
         <Section
           title="Payment Method"
-          subtitle="Your saved card is used at checkout when booking sessions."
+          subtitle="Cards saved here also appear in the FitRush iOS app."
         >
           {savedCard && (
             <div className="flex items-center gap-3 py-3 px-4 border border-green-200 bg-green-50/50">

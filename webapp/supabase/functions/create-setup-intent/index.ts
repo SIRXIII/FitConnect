@@ -30,9 +30,10 @@ Deno.serve(async (req) => {
   if (authError || !user) return new Response('Unauthorized', { status: 401 });
 
   try {
-    // Get or create Stripe customer
+    // Customer mapping lives in profile_private_details, shared with the
+    // mobile app (2026-09-11), never client_profiles.
     const { data: clientProfile } = await supabase
-      .from('client_profiles')
+      .from('profile_private_details')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
       .maybeSingle();
@@ -49,13 +50,13 @@ Deno.serve(async (req) => {
       const customer = await stripe.customers.create({
         email: user.email,
         name: profile?.full_name ?? undefined,
-        metadata: { supabase_user_id: user.id },
+        metadata: { supabase_uid: user.id },
       });
       customerId = customer.id;
 
-      // Upsert customer ID into client_profiles
-      await supabase.from('client_profiles').upsert(
-        { user_id: user.id, stripe_customer_id: customerId },
+      // Upsert customer ID into profile_private_details
+      await supabase.from('profile_private_details').upsert(
+        { user_id: user.id, stripe_customer_id: customerId, updated_at: new Date().toISOString() },
         { onConflict: 'user_id' },
       );
     }

@@ -71,8 +71,8 @@ const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string) =>
     const pmId = typeof setupIntent.payment_method === 'string'
       ? setupIntent.payment_method
       : setupIntent.payment_method?.id ?? '';
-    // Stripe.js has no retrievePaymentMethod; card details live in the stored
-    // client_profiles.stripe_payment_last4 / stripe_payment_brand.
+    // Stripe.js has no retrievePaymentMethod; card details are read back
+    // from Stripe via manage-payment-methods.
     onSuccess(pmId);
   };
 
@@ -122,7 +122,6 @@ const ClientOnboarding: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState<string | null>(null);
-  const [paymentData, setPaymentData] = useState<{ pmId: string } | null>(null);
 
   const toggle = (arr: string[], val: string): string[] =>
     arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val];
@@ -149,10 +148,10 @@ const ClientOnboarding: React.FC = () => {
       return;
     }
     if (step < TOTAL_STEPS) { setStep(s => s + 1); return; }
-    await saveProfile(null);
+    await saveProfile();
   };
 
-  const saveProfile = async (payment: typeof paymentData) => {
+  const saveProfile = async () => {
     if (!user) return;
     setSaving(true);
     try {
@@ -187,7 +186,6 @@ const ClientOnboarding: React.FC = () => {
       if (form.height_in) clientData.height_in = parseInt(form.height_in);
       if (form.body_type) clientData.body_type = form.body_type;
       if (form.fitness_level) clientData.fitness_level = form.fitness_level;
-      if (payment) clientData.stripe_payment_method_id = payment.pmId;
 
       const { error } = await supabase.from('client_profiles').upsert(clientData, { onConflict: 'user_id' });
       if (error) throw error;
@@ -445,11 +443,8 @@ const ClientOnboarding: React.FC = () => {
               <Elements stripe={stripePromise} options={{ clientSecret: setupClientSecret, appearance: { theme: 'flat', variables: { fontFamily: 'Inter, sans-serif', colorPrimary: '#1a1a1a' } } }}>
                 <PaymentStep
                   clientSecret={setupClientSecret}
-                  onSuccess={(pmId) => {
-                    setPaymentData({ pmId });
-                    saveProfile({ pmId });
-                  }}
-                  onSkip={() => saveProfile(null)}
+                  onSuccess={() => saveProfile()}
+                  onSkip={() => saveProfile()}
                 />
               </Elements>
             ) : (
