@@ -8,6 +8,7 @@ import { formatSpecialty } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { classifySlot } from '@/lib/scheduling';
+import { resolveIntroVideo } from '@/utils/introVideo';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import { ProfileSkeleton } from '@/components/skeleton/ProfileSkeleton';
 import { SkeletonRect } from '@/components/shared/Skeleton';
@@ -673,23 +674,53 @@ const TrainerProfile: React.FC = () => {
             )}
 
             {/* Intro Video */}
-            {trainer.intro_video_url && (
-              <section className="mb-8">
-                <h3 className="font-cormorant text-xl text-white mb-3">Meet {name}</h3>
-                <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-w-lg">
-                  <video
-                    src={trainer.intro_video_url}
-                    poster={trainer.intro_video_thumbnail_url ?? undefined}
-                    controls
-                    preload="metadata"
-                    playsInline
-                    className="w-full h-full object-cover"
-                    onMouseEnter={(e) => { e.currentTarget.muted = true; e.currentTarget.play().catch(() => {}); }}
-                    onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
-                  />
-                </div>
-              </section>
-            )}
+            {trainer.intro_video_url && (() => {
+              const intro = resolveIntroVideo(trainer.intro_video_url);
+              return (
+                <section className="mb-8">
+                  <h3 className="font-cormorant text-xl text-white mb-3">Meet {name}</h3>
+                  <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-w-lg">
+                    {intro.kind === 'file' ? (
+                      <video
+                        src={intro.src}
+                        poster={trainer.intro_video_thumbnail_url ?? undefined}
+                        controls
+                        preload="metadata"
+                        playsInline
+                        className="w-full h-full object-cover"
+                        onMouseEnter={(e) => { e.currentTarget.muted = true; e.currentTarget.play().catch(() => {}); }}
+                        onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                      />
+                    ) : intro.kind === 'embed' ? (
+                      <iframe
+                        src={intro.src}
+                        title="Intro video"
+                        className="absolute inset-0 w-full h-full"
+                        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                        allowFullScreen
+                        loading="lazy"
+                      />
+                    ) : intro.src ? (
+                      <a
+                        href={intro.src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-sm"
+                      >
+                        {trainer.intro_video_thumbnail_url && (
+                          <img
+                            src={trainer.intro_video_thumbnail_url}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover opacity-60"
+                          />
+                        )}
+                        <span className="relative z-10 uppercase tracking-[0.15em]">Watch intro ↗</span>
+                      </a>
+                    ) : null}
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* Workout Locations Manager (trainer's own profile only) */}
             {trainer?.id && trainer.user_id === user?.id && (
