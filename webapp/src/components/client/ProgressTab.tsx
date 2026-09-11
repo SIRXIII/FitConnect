@@ -153,7 +153,7 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
     return (
       <div className="border border-dashed border-ink/10 p-12 text-center">
         <h2 className="text-xl serif font-light italic text-ink mb-2">No sessions yet</h2>
-        <p className="text-sm text-ink/40">
+        <p className="text-sm text-ink/68">
           Your training history will appear here after your first completed session.
         </p>
         <Link
@@ -201,7 +201,7 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
           return (
             <div key={session.id} className="flex gap-4 items-start border-b border-ink/5 py-4">
               {/* Date column */}
-              <p className="text-xs text-ink/40 w-20 shrink-0 pt-0.5">{dateLabel}</p>
+              <p className="text-xs text-ink/68 w-20 shrink-0 pt-0.5">{dateLabel}</p>
 
               {/* Content column */}
               <div className="flex-1">
@@ -209,9 +209,9 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
                   {session.trainer_name ?? 'Unknown Trainer'}
                 </p>
                 {session.notes && (
-                  <p className="text-sm text-ink/60 mt-1 line-clamp-2">{session.notes}</p>
+                  <p className="text-sm text-ink/80 mt-1 line-clamp-2">{session.notes}</p>
                 )}
-                <p className="text-xs text-ink/30 mt-1">{exerciseLabel}</p>
+                <p className="text-xs text-ink/60 mt-1">{exerciseLabel}</p>
               </div>
             </div>
           );
@@ -221,12 +221,12 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
       {/* ---- Section 2: Progress Chart ---- */}
       {weeklyData.length > 0 && (
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-ink/40 mb-4">Training Trends</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-ink/68 mb-4">Training Trends</p>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={weeklyData}>
               <XAxis
                 dataKey="week"
-                tick={{ fontSize: 12, fill: 'rgba(26,26,26,0.4)' }}
+                tick={{ fontSize: 12, fill: 'rgba(26,26,26,0.65)' }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -242,7 +242,7 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
               <Legend
                 iconType="circle"
                 iconSize={8}
-                wrapperStyle={{ fontSize: 12, color: 'rgba(26,26,26,0.4)' }}
+                wrapperStyle={{ fontSize: 12, color: 'rgba(26,26,26,0.65)' }}
               />
               <Line
                 type="monotone"

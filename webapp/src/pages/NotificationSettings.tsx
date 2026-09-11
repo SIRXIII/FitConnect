@@ -58,17 +58,17 @@ const NotificationSettings: React.FC = () => {
   };
 
   if (loading) {
-    return <p className="text-sm text-ink/40">Loading settings…</p>;
+    return <p className="text-sm text-ink/68">Loading settings…</p>;
   }
 
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">
+        <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/68">
           Push Notifications
         </p>
         <h2 className="text-2xl serif font-light italic text-ink">Notification Settings</h2>
-        <p className="text-sm text-ink/50">
+        <p className="text-sm text-ink/75">
           Manage how you receive alerts on this device
         </p>
       </div>
@@ -79,7 +79,7 @@ const NotificationSettings: React.FC = () => {
             <p className="text-xs uppercase tracking-[0.2em] font-medium text-ink">
               Push Notifications
             </p>
-            <p className="text-[11px] text-ink/40 mt-1">
+            <p className="text-[11px] text-ink/68 mt-1">
               Receive alerts on this device
             </p>
           </div>
@@ -111,7 +111,7 @@ const NotificationSettings: React.FC = () => {
         <p className="text-xs uppercase tracking-[0.2em] font-medium text-ink mb-2">
           You will receive pushes for:
         </p>
-        <ul className="space-y-1 text-sm text-ink/50 font-light">
+        <ul className="space-y-1 text-sm text-ink/75 font-light">
           <li>• New booking confirmations</li>
           <li>• Booking cancellations</li>
           <li>• Trainers going live near your area</li>

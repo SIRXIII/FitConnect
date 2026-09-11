@@ -38,12 +38,12 @@ const ReferralLeaderboard: React.FC = () => {
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Trophy size={16} className="text-accent" />
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/40 font-medium">Top Referrers</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/68 font-medium">Top Referrers</p>
           </div>
           <h2 className="text-2xl md:text-3xl serif font-light italic text-ink">
             This Month's Leaders
           </h2>
-          <p className="text-sm text-ink/40 font-light">
+          <p className="text-sm text-ink/68 font-light">
             Earn rewards by sharing FitRush with friends and trainers.
           </p>
         </div>
@@ -67,7 +67,7 @@ const ReferralLeaderboard: React.FC = () => {
                 className="flex items-center justify-between border border-ink/10 p-5 hover:border-ink/20 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <span className={`text-sm font-light w-6 text-center ${entry.rank <= 3 ? 'text-accent font-medium' : 'text-ink/30'}`}>
+                  <span className={`text-sm font-light w-6 text-center ${entry.rank <= 3 ? 'text-accent font-medium' : 'text-ink/60'}`}>
                     {entry.rank}
                   </span>
                   {entry.avatar_url ? (
@@ -80,7 +80,7 @@ const ReferralLeaderboard: React.FC = () => {
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-ink/10 flex items-center justify-center">
-                      <span className="text-xs text-ink/40 font-medium">
+                      <span className="text-xs text-ink/68 font-medium">
                         {entry.full_name.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -89,7 +89,7 @@ const ReferralLeaderboard: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-light text-ink">{entry.referral_count}</span>
-                  <p className="text-[10px] uppercase tracking-[0.15em] text-ink/30">
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-ink/60">
                     {entry.referral_count === 1 ? 'referral' : 'referrals'}
                   </p>
                 </div>

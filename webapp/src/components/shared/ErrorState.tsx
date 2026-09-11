@@ -22,7 +22,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
     </div>
     <div className="space-y-2">
       <h3 className="text-xl serif font-light italic text-ink">{title}</h3>
-      <p className="text-sm text-ink/50 max-w-md">{message}</p>
+      <p className="text-sm text-ink/75 max-w-md">{message}</p>
     </div>
     <div className="flex gap-4">
       {onRetry && (

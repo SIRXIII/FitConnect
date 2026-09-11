@@ -7,12 +7,12 @@ const NominateCTA: React.FC = () => {
       <div className="max-w-3xl mx-auto space-y-6 text-center">
         <div className="flex items-center justify-center gap-2">
           <MapPin size={16} className="text-accent" />
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/40 font-medium">Bring FitRush Here</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/68 font-medium">Bring FitRush Here</p>
         </div>
         <h2 className="text-2xl md:text-3xl serif font-light italic text-ink">
           Want FitRush trainers in your city?
         </h2>
-        <p className="text-sm text-ink/40 font-light max-w-lg mx-auto">
+        <p className="text-sm text-ink/68 font-light max-w-lg mx-auto">
           Nominate your city and help us decide where to recruit next. It takes ten seconds and no account is required.
         </p>
         <Link

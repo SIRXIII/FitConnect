@@ -140,7 +140,7 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
       {/* Expand/collapse toggle */}
       <button
         onClick={onToggle}
-        className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-ink/40 hover:text-ink/70 transition-colors"
+        className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-ink/68 hover:text-ink/85 transition-colors"
       >
         {isLocked ? (
           <Lock size={12} />
@@ -167,14 +167,14 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
 
               {/* ---- Session Notes ---- */}
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/40">Session Notes</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/68">Session Notes</p>
 
                 {isLocked ? (
                   <div className="space-y-1">
-                    <p className="text-sm text-ink/60">{notes || <span className="italic text-ink/30">No notes recorded.</span>}</p>
+                    <p className="text-sm text-ink/80">{notes || <span className="italic text-ink/60">No notes recorded.</span>}</p>
                     <div className="flex items-center gap-1 mt-2">
-                      <Lock size={10} className="text-ink/30" />
-                      <p className="text-xs text-ink/30">Editing closed 24 hours after the session.</p>
+                      <Lock size={10} className="text-ink/60" />
+                      <p className="text-xs text-ink/60">Editing closed 24 hours after the session.</p>
                     </div>
                   </div>
                 ) : (
@@ -190,10 +190,10 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
 
               {/* ---- Workout Log ---- */}
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/40">Workout Log</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/68">Workout Log</p>
 
                 {exercises.length === 0 && (
-                  <p className="text-xs text-ink/30 italic">No exercises logged yet.</p>
+                  <p className="text-xs text-ink/60 italic">No exercises logged yet.</p>
                 )}
 
                 <AnimatePresence>
@@ -207,7 +207,7 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
                       className="flex gap-2 items-center"
                     >
                       {isLocked ? (
-                        <p className="text-sm text-ink/70 flex-1">
+                        <p className="text-sm text-ink/85 flex-1">
                           {ex.name} — {ex.sets} × {ex.reps}
                         </p>
                       ) : (
@@ -237,7 +237,7 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
                             }
                             className="border border-ink/10 text-center w-16 h-9 text-sm bg-paper focus:outline-none focus:border-ink/30"
                           />
-                          <span className="text-ink/30 text-xs">×</span>
+                          <span className="text-ink/60 text-xs">×</span>
                           <input
                             type="number"
                             value={ex.reps}
@@ -254,7 +254,7 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
                           <button
                             onClick={() => handleRemoveExercise(index)}
                             aria-label="Remove exercise"
-                            className="text-ink/30 hover:text-red-500 transition-colors"
+                            className="text-ink/60 hover:text-red-500 transition-colors"
                           >
                             <X size={14} />
                           </button>
@@ -285,7 +285,7 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
                       min={1}
                       className="border border-ink/10 text-center w-16 h-9 text-sm bg-paper focus:outline-none focus:border-ink/30"
                     />
-                    <span className="text-ink/30 text-xs">×</span>
+                    <span className="text-ink/60 text-xs">×</span>
                     <input
                       type="number"
                       value={newReps}
@@ -301,7 +301,7 @@ const SessionLogPanel: React.FC<SessionLogPanelProps> = ({
                 {!isLocked && (
                   <button
                     onClick={handleAddExercise}
-                    className="flex items-center gap-1 text-xs text-ink/40 hover:text-ink/70 mt-2 transition-colors"
+                    className="flex items-center gap-1 text-xs text-ink/68 hover:text-ink/85 mt-2 transition-colors"
                   >
                     <Plus size={12} />
                     Add exercise

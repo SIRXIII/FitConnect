@@ -15,12 +15,12 @@ const STATUS_STYLES: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700 border-amber-200',
   waiting_on_user: 'bg-purple-50 text-purple-700 border-purple-200',
   resolved: 'bg-green-50 text-green-700 border-green-200',
-  closed: 'bg-ink/5 text-ink/40 border-ink/10',
+  closed: 'bg-ink/5 text-ink/68 border-ink/10',
 };
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => (
   <span
-    className={`inline-flex items-center px-2.5 py-0.5 text-xs border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/40 border-ink/10'}`}
+    className={`inline-flex items-center px-2.5 py-0.5 text-xs border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/68 border-ink/10'}`}
   >
     {STATUS_LABELS[status as keyof typeof STATUS_LABELS] ?? status}
   </span>
@@ -65,12 +65,12 @@ const TicketThread: React.FC = () => {
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() => navigate('/help/tickets')}
-            className="flex items-center gap-1.5 text-sm text-ink/40 hover:text-ink transition-colors mb-8"
+            className="flex items-center gap-1.5 text-sm text-ink/68 hover:text-ink transition-colors mb-8"
           >
             <ArrowLeft size={14} />
             My Tickets
           </button>
-          <p className="text-sm text-ink/50">Ticket not found.</p>
+          <p className="text-sm text-ink/75">Ticket not found.</p>
         </div>
       </div>
     );
@@ -82,7 +82,7 @@ const TicketThread: React.FC = () => {
         {/* Back */}
         <button
           onClick={() => navigate('/help/tickets')}
-          className="flex items-center gap-1.5 text-sm text-ink/40 hover:text-ink transition-colors mb-6"
+          className="flex items-center gap-1.5 text-sm text-ink/68 hover:text-ink transition-colors mb-6"
         >
           <ArrowLeft size={14} />
           My Tickets
@@ -94,7 +94,7 @@ const TicketThread: React.FC = () => {
             <h2 className="text-base font-medium text-ink leading-snug">{ticket.subject}</h2>
             <StatusBadge status={ticket.status} />
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-xs text-ink/40">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-ink/68">
             <span>{CATEGORY_LABELS[ticket.category]}</span>
             <span>·</span>
             <span>
@@ -109,7 +109,7 @@ const TicketThread: React.FC = () => {
             <span className="font-mono">{ticket.id.slice(0, 8).toUpperCase()}</span>
           </div>
           {ticket.description && (
-            <p className="text-sm text-ink/60 leading-relaxed pt-1 border-t border-ink/5 mt-2">
+            <p className="text-sm text-ink/80 leading-relaxed pt-1 border-t border-ink/5 mt-2">
               {ticket.description}
             </p>
           )}
@@ -119,10 +119,10 @@ const TicketThread: React.FC = () => {
         <div className="flex-1 space-y-3 mb-4 overflow-y-auto">
           {messagesLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 size={20} className="animate-spin text-ink/30" />
+              <Loader2 size={20} className="animate-spin text-ink/60" />
             </div>
           ) : messages.length === 0 ? (
-            <p className="text-sm text-ink/30 text-center py-8">
+            <p className="text-sm text-ink/60 text-center py-8">
               No messages yet. Our team will respond shortly.
             </p>
           ) : (
@@ -152,7 +152,7 @@ const TicketThread: React.FC = () => {
                     <p>{msg.message}</p>
                     <p
                       className={`text-xs mt-1.5 ${
-                        isOwnMessage || msg.is_admin ? 'opacity-50' : 'text-ink/30'
+                        isOwnMessage || msg.is_admin ? 'opacity-50' : 'text-ink/60'
                       }`}
                     >
                       {new Date(msg.created_at).toLocaleTimeString('en-US', {
@@ -195,7 +195,7 @@ const TicketThread: React.FC = () => {
         )}
 
         {(ticket.status === 'closed' || ticket.status === 'resolved') && (
-          <p className="text-xs text-ink/30 text-center py-4 border-t border-ink/5 mt-4">
+          <p className="text-xs text-ink/60 text-center py-4 border-t border-ink/5 mt-4">
             This ticket has been {ticket.status}. If you need further assistance, please submit a new ticket.
           </p>
         )}
@@ -218,7 +218,7 @@ const TicketListItem: React.FC<{ ticket: SupportTicket; onClick: () => void }> =
       <div className="flex items-center gap-2 mb-1">
         <p className="text-sm font-medium text-ink truncate">{ticket.subject}</p>
       </div>
-      <div className="flex items-center gap-2 text-xs text-ink/40">
+      <div className="flex items-center gap-2 text-xs text-ink/68">
         <span>{CATEGORY_LABELS[ticket.category]}</span>
         <span>·</span>
         <span>
@@ -230,7 +230,7 @@ const TicketListItem: React.FC<{ ticket: SupportTicket; onClick: () => void }> =
       </div>
     </div>
     <StatusBadge status={ticket.status} />
-    <ChevronRight size={14} className="text-ink/20 flex-shrink-0" />
+    <ChevronRight size={14} className="text-ink/45 flex-shrink-0" />
   </button>
 );
 
@@ -243,7 +243,7 @@ const MyTicketsList: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         <button
           onClick={() => navigate('/help')}
-          className="flex items-center gap-1.5 text-sm text-ink/40 hover:text-ink transition-colors mb-8"
+          className="flex items-center gap-1.5 text-sm text-ink/68 hover:text-ink transition-colors mb-8"
         >
           <ArrowLeft size={14} />
           Help Center
@@ -262,11 +262,11 @@ const MyTicketsList: React.FC = () => {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 size={24} className="animate-spin text-ink/30" />
+            <Loader2 size={24} className="animate-spin text-ink/60" />
           </div>
         ) : tickets.length === 0 ? (
           <div className="text-center py-20 space-y-4">
-            <p className="text-sm text-ink/40">You haven't submitted any tickets yet.</p>
+            <p className="text-sm text-ink/68">You haven't submitted any tickets yet.</p>
             <button
               onClick={() => navigate('/help/new-ticket')}
               className="px-5 py-2.5 text-sm bg-accent text-white hover:bg-accent/90 transition-colors"

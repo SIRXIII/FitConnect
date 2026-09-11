@@ -152,7 +152,7 @@ function MapInner({
   if (error) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-sm text-ink/60 text-center">
+        <p className="text-sm text-ink/80 text-center">
           Map unavailable. Check your connection and reload.
         </p>
       </div>
@@ -214,7 +214,7 @@ function MapInner({
           }}
         >
           <p className="text-lg serif font-light text-ink italic">No trainers available nearby</p>
-          <p className="text-[11px] uppercase tracking-[0.15em] text-ink/40 mt-2">
+          <p className="text-[11px] uppercase tracking-[0.15em] text-ink/68 mt-2">
             No trainers are live in this area right now. Try expanding your search or check back soon.
           </p>
         </div>
@@ -368,7 +368,7 @@ export function MapView({ filters }: MapViewProps) {
               border: '1px solid rgba(26, 26, 26, 0.08)',
             }}
           >
-            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/70 mb-2">
+            <div className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/85 mb-2">
               Within {distanceMiles} mi
             </div>
             <input
@@ -397,7 +397,7 @@ export function MapView({ filters }: MapViewProps) {
               border: '1px solid rgba(26, 26, 26, 0.08)',
             }}
           >
-            <p className="text-[10px] uppercase tracking-[0.15em] text-ink/50">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-ink/75">
               Enable location for distance filter
             </p>
           </div>
@@ -417,7 +417,7 @@ export function MapView({ filters }: MapViewProps) {
               padding: '12px 20px',
             }}
           >
-            <p className="text-[11px] uppercase tracking-[0.2em] text-ink/60">Loading trainers...</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-ink/80">Loading trainers...</p>
           </div>
         )}
 

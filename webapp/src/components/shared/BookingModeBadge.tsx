@@ -12,7 +12,7 @@ const BookingModeBadge: React.FC<BookingModeBadgeProps> = ({ mode }) => {
   }
 
   return (
-    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
       Request to Book
     </span>
   );

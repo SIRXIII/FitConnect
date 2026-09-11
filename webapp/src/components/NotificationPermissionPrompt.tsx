@@ -97,7 +97,7 @@ const NotificationPermissionPrompt: React.FC<Props> = ({ userId }) => {
             <button
               type="button"
               onClick={dismiss}
-              className="absolute top-4 right-4 text-ink/30 hover:text-ink/60 transition-colors"
+              className="absolute top-4 right-4 text-ink/60 hover:text-ink/80 transition-colors"
               aria-label="Dismiss"
             >
               <X size={16} />
@@ -114,7 +114,7 @@ const NotificationPermissionPrompt: React.FC<Props> = ({ userId }) => {
             </h2>
 
             {/* Body */}
-            <p className="text-sm text-ink/50 font-light leading-relaxed mb-8">
+            <p className="text-sm text-ink/75 font-light leading-relaxed mb-8">
               Get instant alerts when a client books a session, when bookings are confirmed, and when
               your schedule changes — right to your device.
             </p>
@@ -132,7 +132,7 @@ const NotificationPermissionPrompt: React.FC<Props> = ({ userId }) => {
               <button
                 type="button"
                 onClick={dismiss}
-                className="flex-1 border border-ink/15 px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-medium text-ink/60 hover:border-ink/30 hover:text-ink transition-colors"
+                className="flex-1 border border-ink/15 px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-medium text-ink/80 hover:border-ink/30 hover:text-ink transition-colors"
               >
                 Not now
               </button>

@@ -16,7 +16,7 @@ export const ProfileHeroPhoto: React.FC<ProfileHeroPhotoProps> = ({ avatar, name
         className="w-full h-full object-cover"
       />
     ) : (
-      <div className="w-full h-full flex items-center justify-center text-6xl serif text-ink/20">
+      <div className="w-full h-full flex items-center justify-center text-6xl serif text-ink/45">
         {name.charAt(0)}
       </div>
     )}

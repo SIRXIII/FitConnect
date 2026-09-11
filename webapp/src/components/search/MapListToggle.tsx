@@ -14,7 +14,7 @@ export function MapListToggle({ viewMode, onChange }: MapListToggleProps) {
         className={`px-5 py-2 text-[10px] uppercase tracking-[0.2em] font-semibold rounded-full transition-all ${
           viewMode === 'list'
             ? 'bg-ink text-white'
-            : 'text-ink/40 hover:text-ink/60'
+            : 'text-ink/68 hover:text-ink/80'
         }`}
       >
         List
@@ -24,7 +24,7 @@ export function MapListToggle({ viewMode, onChange }: MapListToggleProps) {
         className={`px-5 py-2 text-[10px] uppercase tracking-[0.2em] font-semibold rounded-full transition-all ${
           viewMode === 'map'
             ? 'bg-ink text-white'
-            : 'text-ink/40 hover:text-ink/60'
+            : 'text-ink/68 hover:text-ink/80'
         }`}
       >
         Map

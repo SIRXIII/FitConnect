@@ -59,13 +59,13 @@ export default function ClientWorkoutSummary({
     <div className="space-y-3">
       {/* Section header */}
       <div className="flex items-center gap-2">
-        <Dumbbell size={14} className="text-ink/40" />
-        <h3 className="text-[10px] uppercase tracking-[0.25em] text-ink/40">{title}</h3>
+        <Dumbbell size={14} className="text-ink/68" />
+        <h3 className="text-[10px] uppercase tracking-[0.25em] text-ink/68">{title}</h3>
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-2 py-4 text-sm text-ink/40">
+        <div className="flex items-center gap-2 py-4 text-sm text-ink/68">
           <div className="w-3 h-3 border border-ink/20 border-t-transparent rounded-full animate-spin" />
           Loading workout history...
         </div>
@@ -73,7 +73,7 @@ export default function ClientWorkoutSummary({
 
       {/* Empty */}
       {!loading && logs.length === 0 && (
-        <p className="text-sm text-ink/30 italic py-2">No workout logs yet.</p>
+        <p className="text-sm text-ink/60 italic py-2">No workout logs yet.</p>
       )}
 
       {/* Log list */}
@@ -102,11 +102,11 @@ export default function ClientWorkoutSummary({
                 >
                   <div className="space-y-0.5">
                     <p className="text-sm font-medium text-ink/80">{formatDate(log.logged_at)}</p>
-                    <p className="text-[11px] text-ink/40">
+                    <p className="text-[11px] text-ink/68">
                       {exerciseCount} {exerciseCount === 1 ? 'exercise' : 'exercises'}
                     </p>
                     {notesPreview && (
-                      <p className="text-[11px] text-ink/30 italic">{notesPreview}</p>
+                      <p className="text-[11px] text-ink/60 italic">{notesPreview}</p>
                     )}
                   </div>
                   <motion.div
@@ -114,7 +114,7 @@ export default function ClientWorkoutSummary({
                     transition={{ duration: 0.2 }}
                     className="shrink-0 ml-3"
                   >
-                    <ChevronDown size={14} className="text-ink/30" />
+                    <ChevronDown size={14} className="text-ink/60" />
                   </motion.div>
                 </button>
 
@@ -145,7 +145,7 @@ export default function ClientWorkoutSummary({
                                     {exercise.exercise_name}
                                   </p>
                                   {exercise.sets?.length > 0 && (
-                                    <p className="text-[11px] text-ink/40 mt-0.5">
+                                    <p className="text-[11px] text-ink/68 mt-0.5">
                                       {exercise.sets.map((s) => formatSet(s)).join(' | ')}
                                     </p>
                                   )}
@@ -157,7 +157,7 @@ export default function ClientWorkoutSummary({
 
                         {/* Full notes */}
                         {log.notes && log.notes.trim().length > 0 && (
-                          <p className="text-sm text-ink/50 italic leading-relaxed border-t border-ink/10 pt-3">
+                          <p className="text-sm text-ink/75 italic leading-relaxed border-t border-ink/10 pt-3">
                             {log.notes.trim()}
                           </p>
                         )}

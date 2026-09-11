@@ -24,7 +24,7 @@ const SessionNotesDisplay: React.FC<SessionNotesDisplayProps> = ({
     <div className="pt-2">
       <button
         onClick={onToggle}
-        className="text-xs text-ink/40 hover:text-ink/70 cursor-pointer flex items-center gap-1 transition-colors"
+        className="text-xs text-ink/68 hover:text-ink/85 cursor-pointer flex items-center gap-1 transition-colors"
       >
         <span>View session notes</span>
         <ChevronDown
@@ -51,7 +51,7 @@ const SessionNotesDisplay: React.FC<SessionNotesDisplayProps> = ({
               {hasExercises && (
                 <div className="space-y-1 mt-2">
                   {exercises.map((entry, idx) => (
-                    <p key={idx} className="text-sm text-ink/70">
+                    <p key={idx} className="text-sm text-ink/85">
                       {entry.name} \u2014 {entry.sets} \u00D7 {entry.reps}
                     </p>
                   ))}

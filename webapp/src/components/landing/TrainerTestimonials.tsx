@@ -38,7 +38,7 @@ const TrainerTestimonials: React.FC = () => {
           className="space-y-4 mb-16"
         >
           <div className="w-12 h-[1px] bg-accent" />
-          <p className="text-[10px] uppercase tracking-[0.3em] text-ink/40 font-medium">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-ink/68 font-medium">
             From the Collective
           </p>
           <h2 className="text-3xl md:text-4xl serif font-light italic text-ink">
@@ -61,7 +61,7 @@ const TrainerTestimonials: React.FC = () => {
               <Quote size={20} className="text-accent/40" strokeWidth={1.5} />
 
               {/* Quote text */}
-              <p className="text-sm serif italic text-ink/70 leading-relaxed">
+              <p className="text-sm serif italic text-ink/85 leading-relaxed">
                 "{t.quote}"
               </p>
 
@@ -80,7 +80,7 @@ const TrainerTestimonials: React.FC = () => {
                 />
                 <div>
                   <p className="text-sm font-medium text-ink">{t.name}</p>
-                  <p className="text-[10px] uppercase tracking-[0.15em] text-ink/40">
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-ink/68">
                     {t.specialty}
                   </p>
                 </div>

@@ -22,7 +22,7 @@ const TrialBanner: React.FC = () => {
 
   return (
     <div className="bg-accent/5 border-b border-accent/10 px-6 py-3 text-center">
-      <p className="text-xs tracking-wide text-ink/70">
+      <p className="text-xs tracking-wide text-ink/85">
         {daysLeft} {dayLabel} left in your {tierName} trial
         {!isNativeiOS() && (
           <>

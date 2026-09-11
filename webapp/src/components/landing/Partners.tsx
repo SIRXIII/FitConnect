@@ -92,7 +92,7 @@ const Partners: React.FC = () => {
               <h2 className="text-4xl sm:text-5xl serif font-light italic text-ink leading-tight">
                 Recognized by the industry's leading certification bodies.
               </h2>
-              <p className="text-sm text-ink/50 leading-relaxed font-light">
+              <p className="text-sm text-ink/75 leading-relaxed font-light">
                 FitRush is proud to be a NASM and AFAA Preferred Partner. Select a seal to learn what this means for you.
               </p>
             </div>
@@ -149,7 +149,7 @@ const Partners: React.FC = () => {
                 type="button"
                 onClick={() => setSelected(null)}
                 aria-label="Close"
-                className="absolute top-6 right-6 text-ink/30 hover:text-ink transition-colors"
+                className="absolute top-6 right-6 text-ink/60 hover:text-ink transition-colors"
               >
                 <X size={18} strokeWidth={1.5} />
               </button>
@@ -165,7 +165,7 @@ const Partners: React.FC = () => {
                   <h3 className="text-2xl serif font-light italic text-ink">
                     {selected.name} {selected.program}
                   </h3>
-                  <p className="text-sm text-ink/50 leading-relaxed font-light">{selected.blurb}</p>
+                  <p className="text-sm text-ink/75 leading-relaxed font-light">{selected.blurb}</p>
                 </div>
               </div>
 
@@ -175,7 +175,7 @@ const Partners: React.FC = () => {
 
               <div className="divide-y divide-ink/5 border-t border-ink/5">
                 {certifications.map((cert) => (
-                  <p key={cert} className="py-2.5 text-sm text-ink/60 font-light">
+                  <p key={cert} className="py-2.5 text-sm text-ink/80 font-light">
                     {cert}
                   </p>
                 ))}
@@ -183,18 +183,18 @@ const Partners: React.FC = () => {
 
               <div className="border-t border-ink/10 pt-6 space-y-3">
                 <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-accent">Get Started Today</p>
-                <p className="text-sm text-ink/70">Kim Aquilo, NASM Partner Representative</p>
+                <p className="text-sm text-ink/85">Kim Aquilo, NASM Partner Representative</p>
                 <div className="-mx-2">
                   <a
                     href="tel:+16027075385"
-                    className="flex items-center gap-3 px-2 py-3 text-sm text-ink/60 hover:text-accent transition-colors"
+                    className="flex items-center gap-3 px-2 py-3 text-sm text-ink/80 hover:text-accent transition-colors"
                   >
                     <Phone size={16} strokeWidth={1.5} />
                     602-707-5385
                   </a>
                   <a
                     href="mailto:Kim.Aquilo@nasm.org"
-                    className="flex items-center gap-3 px-2 py-3 text-sm text-ink/60 hover:text-accent transition-colors"
+                    className="flex items-center gap-3 px-2 py-3 text-sm text-ink/80 hover:text-accent transition-colors"
                   >
                     <Mail size={16} strokeWidth={1.5} />
                     Kim.Aquilo@nasm.org

@@ -42,11 +42,11 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
 
       {/* Session summary */}
       <div className="border border-ink/10 p-6 space-y-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
           Session Summary
         </p>
         <p className="text-sm font-medium text-ink">{trainerName}</p>
-        <p className="text-[10px] text-ink/40">
+        <p className="text-[10px] text-ink/68">
           {startTime.toLocaleDateString('en-US', {
             weekday: 'short',
             month: 'short',
@@ -56,35 +56,35 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
           {endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
         </p>
         {notes && (
-          <p className="text-xs text-ink/40 italic mt-2">Notes: {notes}</p>
+          <p className="text-xs text-ink/68 italic mt-2">Notes: {notes}</p>
         )}
       </div>
 
       {/* Pricing breakdown */}
       <div className="border border-ink/10 p-6 space-y-4">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
           Pricing Breakdown
         </p>
         {discountPct > 0 && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-ink/50">Original Rate</span>
-            <span className="text-sm text-ink/30 line-through">${baseRate}</span>
+            <span className="text-sm text-ink/75">Original Rate</span>
+            <span className="text-sm text-ink/60 line-through">${baseRate}</span>
           </div>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-ink/50">
+          <span className="text-sm text-ink/75">
             {discountPct > 0 ? `Session Price (${discountPct}% off)` : 'Session Price'}
           </span>
           <span className="text-sm text-accent">${rate}</span>
         </div>
         {referralDiscount > 0 && (
           <div className="flex items-center justify-between">
-            <span className="text-sm text-ink/50">Referral Discount</span>
+            <span className="text-sm text-ink/75">Referral Discount</span>
             <span className="text-sm text-green-600">-${referralDiscount.toFixed(2)}</span>
           </div>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-ink/50">
+          <span className="text-sm text-ink/75">
             Platform Fee ({Math.round(feePct * 100)}%)
           </span>
           <span className="text-sm">${platformFee.toFixed(2)}</span>
@@ -128,7 +128,7 @@ export const StepConfirm: React.FC<StepConfirmProps> = ({
         </button>
       </div>
 
-      <p className="text-[10px] text-ink/30 text-center">
+      <p className="text-[10px] text-ink/60 text-center">
         {isIntro
           ? 'This session is complimentary. You can cancel free of charge up to 24 hours before the session.'
           : stripeConfigured

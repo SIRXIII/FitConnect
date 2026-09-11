@@ -32,14 +32,14 @@ export const RecommendedTrainerCard: React.FC<RecommendedTrainerCardProps> = ({ 
           />
         ) : (
           <div className="w-12 h-12 rounded-full flex-shrink-0 bg-ink/5 flex items-center justify-center">
-            <span className="text-sm font-medium text-ink/40">{initials}</span>
+            <span className="text-sm font-medium text-ink/68">{initials}</span>
           </div>
         )}
         <div className="min-w-0">
           <p className="text-sm font-medium text-ink hover:text-accent transition-colors truncate">
             {trainer.profiles.full_name}
           </p>
-          <p className="text-[10px] uppercase tracking-widest text-ink/40 truncate">
+          <p className="text-[10px] uppercase tracking-widest text-ink/68 truncate">
             {trainer.specialty.replace(/_/g, ' ')}
           </p>
         </div>
@@ -53,13 +53,13 @@ export const RecommendedTrainerCard: React.FC<RecommendedTrainerCardProps> = ({ 
       {/* Match score row */}
       <div className="flex items-baseline gap-2">
         <span className="text-[28px] serif italic text-accent leading-none">{score}%</span>
-        <span className="text-[10px] uppercase tracking-widest text-ink/40">&middot;&nbsp;{label}</span>
+        <span className="text-[10px] uppercase tracking-widest text-ink/68">&middot;&nbsp;{label}</span>
       </div>
 
       {/* Explanation bullets */}
       <div className="space-y-1">
         {reasons.map((reason, i) => (
-          <p key={i} className="text-sm text-ink/60">
+          <p key={i} className="text-sm text-ink/80">
             &middot; {reason}
           </p>
         ))}

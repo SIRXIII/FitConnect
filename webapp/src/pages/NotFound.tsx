@@ -19,7 +19,7 @@ const NotFound: React.FC = () => {
           </h1>
         </div>
 
-        <p className="text-lg text-ink/60 font-light leading-relaxed">
+        <p className="text-lg text-ink/80 font-light leading-relaxed">
           The page you're looking for doesn't exist or has been moved.
         </p>
 

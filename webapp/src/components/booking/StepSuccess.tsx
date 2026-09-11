@@ -30,7 +30,7 @@ export const StepSuccess: React.FC<StepSuccessProps> = ({
         <h1 className="text-3xl serif font-light italic text-ink">
           {isIntro ? 'Complimentary session confirmed' : stripeConfigured ? 'Booking Confirmed' : 'Session Requested'}
         </h1>
-        <p className="text-sm text-ink/50">
+        <p className="text-sm text-ink/75">
           {isIntro
             ? `Your complimentary session with ${trainerName} is confirmed.`
             : stripeConfigured
@@ -40,10 +40,10 @@ export const StepSuccess: React.FC<StepSuccessProps> = ({
       </div>
 
       <div className="border border-ink/10 p-6 text-left space-y-3">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
           Booking Details
         </p>
-        <div className="flex items-center gap-2 text-sm text-ink/70">
+        <div className="flex items-center gap-2 text-sm text-ink/85">
           <Calendar size={14} />
           {startTime.toLocaleDateString('en-US', {
             weekday: 'long',
@@ -51,7 +51,7 @@ export const StepSuccess: React.FC<StepSuccessProps> = ({
             day: 'numeric',
           })}
         </div>
-        <div className="flex items-center gap-2 text-sm text-ink/70">
+        <div className="flex items-center gap-2 text-sm text-ink/85">
           <Clock size={14} />
           {startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} -{' '}
           {endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}

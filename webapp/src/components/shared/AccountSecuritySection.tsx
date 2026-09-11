@@ -123,21 +123,21 @@ const AccountSecuritySection: React.FC<AccountSecuritySectionProps> = ({ classNa
       className={`border border-ink/10 p-8 space-y-6 ${className}`.trim()}
     >
       <div className="space-y-1">
-        <h2 id={headingId} className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
+        <h2 id={headingId} className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">
           Account Security
         </h2>
-        <p className="text-sm text-ink/50 font-light">
+        <p className="text-sm text-ink/75 font-light">
           Review your sign-in email and keep your password secure.
         </p>
       </div>
 
       <div className="space-y-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Email Address</p>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Email Address</p>
         <div className="flex items-center gap-3 pb-2 border-b border-ink/10">
-          <Mail size={16} className="text-ink/30 shrink-0" aria-hidden="true" />
-          <span className="text-base font-light text-ink/70">{user?.email ?? 'Unavailable'}</span>
+          <Mail size={16} className="text-ink/60 shrink-0" aria-hidden="true" />
+          <span className="text-base font-light text-ink/85">{user?.email ?? 'Unavailable'}</span>
         </div>
-        <p className="text-[10px] text-ink/30">Email changes require contacting support.</p>
+        <p className="text-[10px] text-ink/60">Email changes require contacting support.</p>
       </div>
 
       <div className="space-y-4">
@@ -154,12 +154,12 @@ const AccountSecuritySection: React.FC<AccountSecuritySectionProps> = ({ classNa
 
         {expanded && (
           <form id={formId} onSubmit={handleSubmit} noValidate className="space-y-5 pt-2" aria-busy={saving}>
-            <p id={instructionsId} className="text-xs text-ink/50 font-light leading-relaxed">
+            <p id={instructionsId} className="text-xs text-ink/75 font-light leading-relaxed">
               {PASSWORD_REQUIREMENTS}
             </p>
 
             <div className="space-y-2">
-              <label htmlFor={newPasswordId} className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+              <label htmlFor={newPasswordId} className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
                 New Password
               </label>
               <div className="flex items-center gap-2 border-b border-ink/20 focus-within:border-ink/60 transition-colors">
@@ -184,7 +184,7 @@ const AccountSecuritySection: React.FC<AccountSecuritySectionProps> = ({ classNa
                   type="button"
                   onClick={() => setShowNewPassword((visible) => !visible)}
                   disabled={saving}
-                  className="min-h-11 min-w-11 inline-flex items-center justify-center text-ink/40 hover:text-ink transition-colors disabled:opacity-40"
+                  className="min-h-11 min-w-11 inline-flex items-center justify-center text-ink/68 hover:text-ink transition-colors disabled:opacity-40"
                   aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
                   aria-pressed={showNewPassword}
                 >
@@ -194,7 +194,7 @@ const AccountSecuritySection: React.FC<AccountSecuritySectionProps> = ({ classNa
             </div>
 
             <div className="space-y-2">
-              <label htmlFor={confirmationId} className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+              <label htmlFor={confirmationId} className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
                 Confirm New Password
               </label>
               <div className="flex items-center gap-2 border-b border-ink/20 focus-within:border-ink/60 transition-colors">
@@ -219,7 +219,7 @@ const AccountSecuritySection: React.FC<AccountSecuritySectionProps> = ({ classNa
                   type="button"
                   onClick={() => setShowConfirmation((visible) => !visible)}
                   disabled={saving}
-                  className="min-h-11 min-w-11 inline-flex items-center justify-center text-ink/40 hover:text-ink transition-colors disabled:opacity-40"
+                  className="min-h-11 min-w-11 inline-flex items-center justify-center text-ink/68 hover:text-ink transition-colors disabled:opacity-40"
                   aria-label={showConfirmation ? 'Hide password confirmation' : 'Show password confirmation'}
                   aria-pressed={showConfirmation}
                 >

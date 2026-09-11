@@ -86,18 +86,18 @@ const RevenueInsightCard: React.FC = () => {
 
   return (
     <div className="border border-ink/10 p-6 space-y-3">
-      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">
+      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">
         Revenue Insights &mdash; Last Week
       </p>
 
       <div className="flex items-baseline gap-3">
         <span className="text-3xl font-light text-ink">{dollars}</span>
-        <span className="text-xs text-ink/70">missed income from unbooked slots</span>
+        <span className="text-xs text-ink/85">missed income from unbooked slots</span>
       </div>
 
-      <p className="text-sm text-ink/60">{insightSentence(insight.top_opportunities?.[0])}</p>
+      <p className="text-sm text-ink/80">{insightSentence(insight.top_opportunities?.[0])}</p>
 
-      <p className="text-[10px] text-ink/60">
+      <p className="text-[10px] text-ink/80">
         {insight.total_slots} slots &middot; {insight.booked_slots} booked &middot; {insight.idle_slots} unbooked
       </p>
     </div>

@@ -29,7 +29,7 @@ const LookingNowToggleInner: React.FC = () => {
         className={`flex items-center gap-2 px-3 py-2 border text-[10px] uppercase tracking-[0.15em] font-medium transition-all duration-200 ${
           isActive
             ? 'border-accent text-accent bg-accent/5 hover:bg-accent/10'
-            : 'border-ink/15 text-ink/50 hover:text-ink hover:border-ink/30'
+            : 'border-ink/15 text-ink/75 hover:text-ink hover:border-ink/30'
         }`}
         title={isActive ? 'Click to stop sharing location' : 'Click to share your location for live trainer alerts'}
       >
@@ -49,7 +49,7 @@ const LookingNowToggleInner: React.FC = () => {
         )}
       </button>
       {isActive && livePosition && (
-        <p className="text-[9px] text-ink/30 tracking-[0.1em]">Using your location</p>
+        <p className="text-[9px] text-ink/60 tracking-[0.1em]">Using your location</p>
       )}
     </div>
   );

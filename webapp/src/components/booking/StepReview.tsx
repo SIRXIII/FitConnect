@@ -36,17 +36,17 @@ export const StepReview: React.FC<StepReviewProps> = ({
             className="w-16 h-16 rounded-full object-cover"
           />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-ink/5 flex items-center justify-center text-2xl serif text-ink/20">
+          <div className="w-16 h-16 rounded-full bg-ink/5 flex items-center justify-center text-2xl serif text-ink/45">
             {trainerName.charAt(0)}
           </div>
         )}
         <div className="space-y-1">
           <h2 className="text-xl serif font-light text-ink">{trainerName}</h2>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
             {formatSpecialty(trainerData.specialty)}
           </p>
           {trainerData.location && (
-            <div className="flex items-center gap-1 text-[10px] text-ink/30">
+            <div className="flex items-center gap-1 text-[10px] text-ink/60">
               <MapPin size={10} />
               {trainerData.location}
             </div>
@@ -82,7 +82,7 @@ export const StepReview: React.FC<StepReviewProps> = ({
 
       {/* Notes */}
       <div className="space-y-3">
-        <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+        <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
           Notes for trainer (optional)
         </label>
         <textarea

@@ -163,17 +163,17 @@ const NotificationPreferencesSectionInner: React.FC = () => {
   const formDisabled = !enabled;
 
   if (loading) {
-    return <p className="text-sm text-ink/40">Loading preferences…</p>;
+    return <p className="text-sm text-ink/68">Loading preferences…</p>;
   }
 
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">
+        <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/68">
           Location Alerts
         </p>
         <h2 className="text-2xl serif font-light italic text-ink">Notification Preferences</h2>
-        <p className="text-sm text-ink/50">
+        <p className="text-sm text-ink/75">
           Get notified when trainers go live near your area
         </p>
       </div>
@@ -185,7 +185,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
             <p className="text-xs uppercase tracking-[0.2em] font-medium text-ink">
               Push Notifications
             </p>
-            <p className="text-[11px] text-ink/40 mt-1">
+            <p className="text-[11px] text-ink/68 mt-1">
               Receive alerts on this device
             </p>
           </div>
@@ -214,7 +214,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
             <p className="text-xs uppercase tracking-[0.2em] font-medium text-ink">
               Location-Based Alerts
             </p>
-            <p className="text-[11px] text-ink/40 mt-1">
+            <p className="text-[11px] text-ink/68 mt-1">
               Receive alerts when trainers go live near your saved area
             </p>
           </div>
@@ -240,7 +240,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
 
         {/* Area selector */}
         <div className="space-y-3">
-          <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/40 font-semibold">
+          <label className="block text-[10px] uppercase tracking-[0.15em] text-ink/68 font-semibold">
             Notification Area
           </label>
           <div className="relative">
@@ -258,7 +258,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleSuggestionSelect(s)}
-                      className="w-full text-left px-3 py-2 text-sm text-ink/70 hover:bg-ink/5 transition-colors"
+                      className="w-full text-left px-3 py-2 text-sm text-ink/85 hover:bg-ink/5 transition-colors"
                     >
                       {s.description}
                     </button>
@@ -281,7 +281,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
                   setAreaLabel('');
                   setAreaCoords(null);
                 }}
-                className="text-[10px] text-ink/30 hover:text-ink/60 transition-colors"
+                className="text-[10px] text-ink/60 hover:text-ink/80 transition-colors"
               >
                 Clear
               </button>
@@ -292,7 +292,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
         {/* Radius slider */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] uppercase tracking-[0.15em] text-ink/40 font-semibold">
+            <label className="text-[10px] uppercase tracking-[0.15em] text-ink/68 font-semibold">
               Alert Radius
             </label>
             <span className="text-sm font-medium text-ink">{radius} {radius === 1 ? 'mile' : 'miles'}</span>
@@ -306,7 +306,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
             onChange={(e) => setRadius(Number(e.target.value))}
             className="w-full accent-accent"
           />
-          <div className="flex justify-between text-[10px] text-ink/30">
+          <div className="flex justify-between text-[10px] text-ink/60">
             <span>1 mi</span>
             <span>5 mi</span>
             <span>10 mi</span>
@@ -324,7 +324,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
         </button>
 
         {!areaCoords && (
-          <p className="text-[11px] text-ink/40 italic">
+          <p className="text-[11px] text-ink/68 italic">
             Set an area above to enable saving
           </p>
         )}

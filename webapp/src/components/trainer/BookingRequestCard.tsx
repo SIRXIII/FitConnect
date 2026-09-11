@@ -102,14 +102,14 @@ const BookingRequestCard: React.FC<BookingRequestCardProps> = ({
             className="w-10 h-10 rounded-full object-cover"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-ink/10 flex items-center justify-center text-xs font-medium text-ink/60">
+          <div className="w-10 h-10 rounded-full bg-ink/10 flex items-center justify-center text-xs font-medium text-ink/80">
             {initials}
           </div>
         )}
         <div className="space-y-0.5">
           <p className="text-base font-normal text-ink">{clientName}</p>
           {slotTime && (
-            <p className="text-[10px] uppercase tracking-[0.15em] text-ink/60">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-ink/80">
               {slotTime}
             </p>
           )}
@@ -139,7 +139,7 @@ const BookingRequestCard: React.FC<BookingRequestCardProps> = ({
         </button>
         <button
           onClick={() => onDecline(request.id)}
-          className="border border-ink/10 text-ink/60 hover:text-ink w-full min-h-[44px] text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300"
+          className="border border-ink/10 text-ink/80 hover:text-ink w-full min-h-[44px] text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300"
         >
           Decline
         </button>

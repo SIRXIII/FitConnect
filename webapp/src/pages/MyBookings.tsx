@@ -40,7 +40,7 @@ interface BookingWithDetails
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   confirmed: 'bg-green-50 text-green-700 border-green-200',
-  completed: 'bg-ink/5 text-ink/50 border-ink/10',
+  completed: 'bg-ink/5 text-ink/75 border-ink/10',
   cancelled: 'bg-red-50 text-red-600 border-red-200',
   no_show: 'bg-red-50 text-red-600 border-red-200',
 };
@@ -101,7 +101,7 @@ const ReviewModal: React.FC<{
       <div className="bg-paper max-w-md w-full p-8 space-y-6 border border-ink/10 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-2">
           <h3 className="text-xl serif font-light italic text-ink">Rate your session</h3>
-          <p className="text-sm text-ink/40">How was your session with {trainerName}?</p>
+          <p className="text-sm text-ink/68">How was your session with {trainerName}?</p>
         </div>
 
         {/* Overall star rating */}
@@ -126,14 +126,14 @@ const ReviewModal: React.FC<{
           ))}
         </div>
         {rating > 0 && (
-          <p className="text-center text-xs text-ink/40">
+          <p className="text-center text-xs text-ink/68">
             {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][rating]}
           </p>
         )}
 
         {/* Sub-ratings */}
         <div className="space-y-3 border border-ink/8 p-4">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">Detailed Ratings (optional)</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">Detailed Ratings (optional)</p>
           {(
             [
               { key: 'punctuality', label: 'Punctuality' },
@@ -142,7 +142,7 @@ const ReviewModal: React.FC<{
             ] as Array<{ key: keyof SubRatings; label: string }>
           ).map(({ key, label }) => (
             <div key={key} className="flex items-center justify-between">
-              <span className="text-xs text-ink/50">{label}</span>
+              <span className="text-xs text-ink/75">{label}</span>
               <StarPicker
                 value={subRatings[key]}
                 onChange={(v) => setSubRatings((prev) => ({ ...prev, [key]: v }))}
@@ -164,7 +164,7 @@ const ReviewModal: React.FC<{
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
           >
             Cancel
           </button>
@@ -240,12 +240,12 @@ const PostWorkoutSurvey: React.FC<{
             <p className="text-[10px] uppercase tracking-[0.2em] font-medium">Quick Check-in</p>
           </div>
           <h3 className="text-xl serif font-light italic text-ink">How was your workout?</h3>
-          <p className="text-sm text-ink/40">Quick feedback after your session with {trainerName}</p>
+          <p className="text-sm text-ink/68">Quick feedback after your session with {trainerName}</p>
         </div>
 
         {SURVEY_QUESTIONS.map((q) => (
           <div key={q.key} className="space-y-2">
-            <p className="text-xs font-medium text-ink/70">{q.label}</p>
+            <p className="text-xs font-medium text-ink/85">{q.label}</p>
             <div className="flex flex-wrap gap-2">
               {q.options.map((opt) => (
                 <button
@@ -254,7 +254,7 @@ const PostWorkoutSurvey: React.FC<{
                   className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.1em] border transition-all ${
                     answers[q.key] === opt
                       ? 'bg-accent text-white border-accent'
-                      : 'border-ink/15 text-ink/50 hover:border-ink/30'
+                      : 'border-ink/15 text-ink/75 hover:border-ink/30'
                   }`}
                 >
                   {opt}
@@ -265,7 +265,7 @@ const PostWorkoutSurvey: React.FC<{
         ))}
 
         <div className="space-y-2">
-          <p className="text-xs font-medium text-ink/70">Any suggestions for your next session?</p>
+          <p className="text-xs font-medium text-ink/85">Any suggestions for your next session?</p>
           <textarea
             value={suggestion}
             onChange={(e) => setSuggestion(e.target.value)}
@@ -278,7 +278,7 @@ const PostWorkoutSurvey: React.FC<{
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
           >
             Skip
           </button>
@@ -476,7 +476,7 @@ const MyBookings: React.FC = () => {
       <div className="max-w-4xl mx-auto space-y-10">
         <div className="space-y-4">
           <h1 className="text-3xl serif font-light italic text-ink">My Bookings</h1>
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/68">
             Manage your training sessions
           </p>
         </div>
@@ -488,7 +488,7 @@ const MyBookings: React.FC = () => {
             className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${
               tab === 'upcoming'
                 ? 'text-ink border-b-2 border-accent'
-                : 'text-ink/30 hover:text-ink/50'
+                : 'text-ink/60 hover:text-ink/75'
             }`}
           >
             Upcoming ({upcomingBookings.length})
@@ -498,7 +498,7 @@ const MyBookings: React.FC = () => {
             className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${
               tab === 'past'
                 ? 'text-ink border-b-2 border-accent'
-                : 'text-ink/30 hover:text-ink/50'
+                : 'text-ink/60 hover:text-ink/75'
             }`}
           >
             Past ({pastBookings.length})
@@ -522,7 +522,7 @@ const MyBookings: React.FC = () => {
             <h3 className="text-2xl serif font-light italic text-ink mb-3">
               {tab === 'upcoming' ? 'No upcoming sessions' : 'No past sessions'}
             </h3>
-            <p className="text-sm text-ink/40 mb-8">
+            <p className="text-sm text-ink/68 mb-8">
               {tab === 'upcoming'
                 ? 'Browse trainers to book your first session'
                 : 'Your completed sessions will appear here'}
@@ -561,7 +561,7 @@ const MyBookings: React.FC = () => {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-ink/5 flex items-center justify-center text-lg serif text-ink/20">
+                        <div className="w-12 h-12 rounded-full bg-ink/5 flex items-center justify-center text-lg serif text-ink/45">
                           {trainerName.charAt(0)}
                         </div>
                       )}
@@ -572,21 +572,21 @@ const MyBookings: React.FC = () => {
                         >
                           {trainerName}
                         </Link>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
                           {trainer?.specialty ? formatSpecialty(trainer.specialty) : ''}
                         </p>
                       </div>
                     </div>
                     <span
                       className={`px-3 py-1 text-[9px] uppercase tracking-[0.15em] font-semibold border ${
-                        STATUS_STYLES[booking.status] || 'bg-ink/5 text-ink/50 border-ink/10'
+                        STATUS_STYLES[booking.status] || 'bg-ink/5 text-ink/75 border-ink/10'
                       }`}
                     >
                       {booking.status.replace('_', ' ')}
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-6 text-sm text-ink/60">
+                  <div className="flex flex-wrap gap-6 text-sm text-ink/80">
                     <div className="flex items-center gap-2">
                       <Calendar size={14} className="text-accent" />
                       {start.toLocaleDateString('en-US', {

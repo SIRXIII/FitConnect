@@ -166,7 +166,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
   return (
     <div className="border border-ink/10 rounded-lg p-6 space-y-6 bg-paper">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm uppercase tracking-[0.2em] text-ink/60 font-medium">
+        <h3 className="text-sm uppercase tracking-[0.2em] text-ink/80 font-medium">
           Log Workout
         </h3>
       </div>
@@ -194,7 +194,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
               <button
                 type="button"
                 onClick={() => removeExercise(ex.tempId)}
-                className="text-ink/30 hover:text-red-400 transition-colors"
+                className="text-ink/60 hover:text-red-400 transition-colors"
                 aria-label="Remove exercise"
               >
                 <X size={14} />
@@ -205,7 +205,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
             <div className="space-y-2">
               {ex.sets.map((set, si) => (
                 <div key={si} className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/30 w-8 shrink-0">
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60 w-8 shrink-0">
                     Set {si + 1}
                   </span>
                   <input
@@ -224,14 +224,14 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
                     onChange={e => updateSet(ex.tempId, si, 'weight', e.target.value)}
                     className="w-24 border border-ink/15 rounded px-2 py-1.5 text-sm text-ink bg-transparent focus:outline-none focus:border-accent/40"
                   />
-                  <span className="text-[10px] uppercase tracking-[0.1em] text-ink/40 w-6 shrink-0">
+                  <span className="text-[10px] uppercase tracking-[0.1em] text-ink/68 w-6 shrink-0">
                     {weightUnit}
                   </span>
                   {ex.sets.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeSet(ex.tempId, si)}
-                      className="text-ink/20 hover:text-red-400 transition-colors ml-1"
+                      className="text-ink/45 hover:text-red-400 transition-colors ml-1"
                       aria-label="Remove set"
                     >
                       <X size={12} />
@@ -259,7 +259,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
         <button
           type="button"
           onClick={() => setShowExercisePicker(true)}
-          className="w-full flex items-center justify-center gap-2 border border-dashed border-ink/20 rounded-lg py-3 text-[11px] uppercase tracking-[0.2em] text-ink/40 hover:border-accent/40 hover:text-accent transition-colors"
+          className="w-full flex items-center justify-center gap-2 border border-dashed border-ink/20 rounded-lg py-3 text-[11px] uppercase tracking-[0.2em] text-ink/68 hover:border-accent/40 hover:text-accent transition-colors"
         >
           <Plus size={14} />
           Add Exercise
@@ -292,7 +292,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
                     setSearchQuery('');
                     setShowCustomInput(false);
                   }}
-                  className="text-ink/30 hover:text-ink/60 transition-colors"
+                  className="text-ink/60 hover:text-ink/80 transition-colors"
                 >
                   <X size={14} />
                 </button>
@@ -315,14 +315,14 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
                     />
                     <div>
                       <p className="text-sm text-ink">{ex.name}</p>
-                      <p className="text-[10px] uppercase tracking-[0.1em] text-ink/30 capitalize">
+                      <p className="text-[10px] uppercase tracking-[0.1em] text-ink/60 capitalize">
                         {ex.muscleGroup}
                       </p>
                     </div>
                   </button>
                 ))}
                 {searchResults.length === 0 && (
-                  <p className="text-sm text-ink/30 px-2 py-3 text-center">No matches found</p>
+                  <p className="text-sm text-ink/60 px-2 py-3 text-center">No matches found</p>
                 )}
               </div>
 
@@ -331,7 +331,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
                 <button
                   type="button"
                   onClick={() => setShowCustomInput(true)}
-                  className="w-full flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-accent transition-colors pt-1"
+                  className="w-full flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-ink/68 hover:text-accent transition-colors pt-1"
                 >
                   <Plus size={12} />
                   Add Custom Exercise
@@ -376,7 +376,7 @@ const WorkoutLogForm: React.FC<WorkoutLogFormProps> = ({ userId, bookingId, onSa
         <button
           type="button"
           onClick={() => setWeightUnit(u => u === 'lbs' ? 'kg' : 'lbs')}
-          className="text-[11px] uppercase tracking-[0.2em] border border-ink/15 px-4 py-2 text-ink/50 hover:border-accent/40 hover:text-accent transition-colors"
+          className="text-[11px] uppercase tracking-[0.2em] border border-ink/15 px-4 py-2 text-ink/75 hover:border-accent/40 hover:text-accent transition-colors"
         >
           {weightUnit}
         </button>

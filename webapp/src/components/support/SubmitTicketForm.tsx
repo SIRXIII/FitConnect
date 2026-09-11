@@ -117,10 +117,10 @@ const SubmitTicketForm: React.FC = () => {
           </div>
           <div>
             <h2 className="text-xl font-medium text-ink mb-2">Ticket Submitted</h2>
-            <p className="text-sm text-ink/50">
+            <p className="text-sm text-ink/75">
               We've received your request. You'll hear back within 24 hours.
             </p>
-            <p className="text-xs text-ink/30 mt-2 font-mono">
+            <p className="text-xs text-ink/60 mt-2 font-mono">
               Ticket #{submittedTicketId.slice(0, 8).toUpperCase()}
             </p>
           </div>
@@ -149,7 +149,7 @@ const SubmitTicketForm: React.FC = () => {
         {/* Back link */}
         <button
           onClick={() => navigate('/help')}
-          className="flex items-center gap-1.5 text-sm text-ink/40 hover:text-ink transition-colors mb-8"
+          className="flex items-center gap-1.5 text-sm text-ink/68 hover:text-ink transition-colors mb-8"
         >
           <ArrowLeft size={14} />
           Help Center
@@ -157,13 +157,13 @@ const SubmitTicketForm: React.FC = () => {
 
         <div className="mb-8">
           <h1 className="text-2xl serif font-light italic text-ink mb-1">Submit a Support Ticket</h1>
-          <p className="text-sm text-ink/50">Our team typically responds within 24 hours.</p>
+          <p className="text-sm text-ink/75">Our team typically responds within 24 hours.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Category */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
               Category
             </label>
             <select
@@ -187,11 +187,11 @@ const SubmitTicketForm: React.FC = () => {
           {/* Related Booking */}
           {showBookingField && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
                 Related Booking <span className="normal-case font-normal">(optional)</span>
               </label>
               {loadingBookings ? (
-                <div className="text-xs text-ink/40 py-2">Loading bookings...</div>
+                <div className="text-xs text-ink/68 py-2">Loading bookings...</div>
               ) : (
                 <select
                   value={relatedBookingId}
@@ -217,7 +217,7 @@ const SubmitTicketForm: React.FC = () => {
           {/* Related User */}
           {showUserField && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
                 Related User <span className="normal-case font-normal">(optional — search by name)</span>
               </label>
               <div className="relative">
@@ -232,7 +232,7 @@ const SubmitTicketForm: React.FC = () => {
                   className="w-full px-4 py-3 bg-white border border-ink/10 text-sm text-ink focus:outline-none focus:border-accent transition-colors"
                 />
                 {searchingUsers && (
-                  <Loader2 size={14} className="absolute right-3 top-3.5 text-ink/30 animate-spin" />
+                  <Loader2 size={14} className="absolute right-3 top-3.5 text-ink/60 animate-spin" />
                 )}
                 {userSearchResults.length > 0 && !relatedUserId && (
                   <div className="absolute top-full left-0 right-0 bg-white border border-ink/10 shadow-md z-10">
@@ -258,7 +258,7 @@ const SubmitTicketForm: React.FC = () => {
 
           {/* Subject */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
               Subject
             </label>
             <input
@@ -274,7 +274,7 @@ const SubmitTicketForm: React.FC = () => {
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
               Description
             </label>
             <textarea

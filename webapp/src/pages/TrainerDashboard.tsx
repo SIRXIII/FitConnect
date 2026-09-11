@@ -285,7 +285,7 @@ const TrainerDashboard: React.FC = () => {
           <h1 className="text-3xl serif font-light italic text-ink">
             {isFirstVisit ? 'Welcome' : 'Welcome back'}{profile?.full_name ? `, ${profile.full_name}` : ''}
           </h1>
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/70">
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/85">
             Every open hour is untapped revenue.
           </p>
         </div>
@@ -300,7 +300,7 @@ const TrainerDashboard: React.FC = () => {
                 className={`px-5 sm:px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === tab
                     ? 'border-b-2 border-ink text-ink -mb-px'
-                    : 'text-ink/60 hover:text-ink'
+                    : 'text-ink/80 hover:text-ink'
                 }`}
               >
                 {tab === 'support' && <LifeBuoy size={12} />}
@@ -315,11 +315,11 @@ const TrainerDashboard: React.FC = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Upcoming Bookings</p>
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Upcoming Bookings</p>
             <p className="text-2xl sm:text-3xl serif font-light text-ink">{upcomingCount}</p>
           </div>
           <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Available Slots</p>
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Available Slots</p>
             <p className="text-2xl sm:text-3xl serif font-light text-accent">{availableSlots}</p>
             {tier === 'free' && availableSlots > 3 && (
               <p className="text-[10px] uppercase tracking-[0.2em] text-amber-600/70 font-medium">
@@ -327,24 +327,24 @@ const TrainerDashboard: React.FC = () => {
               </p>
             )}
             {tier === 'free' && availableSlots <= 3 && availableSlots > 0 && (
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85">
                 All {availableSlots} visible — upgrade to show more
               </p>
             )}
           </div>
           <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Booked Slots</p>
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Booked Slots</p>
             <p className="text-2xl sm:text-3xl serif font-light text-ink">{bookedSlots}</p>
           </div>
           <div className="border border-ink/10 p-4 sm:p-8 space-y-3">
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Rating</p>
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Rating</p>
             <p className="text-2xl sm:text-3xl serif font-light text-ink">
               {trainerProfile?.rating && trainerProfile.rating > 0
                 ? Number(trainerProfile.rating).toFixed(1)
                 : '—'}
             </p>
             {trainerProfile?.review_count ? (
-              <p className="text-[10px] text-ink/60">{trainerProfile.review_count} reviews</p>
+              <p className="text-[10px] text-ink/80">{trainerProfile.review_count} reviews</p>
             ) : null}
           </div>
         </div>
@@ -353,7 +353,7 @@ const TrainerDashboard: React.FC = () => {
         {trainerProfile && (
           <div className="border border-ink/10 p-8 flex flex-wrap gap-12">
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Standard Rate</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Standard Rate</p>
               <p className="text-2xl serif font-light">${trainerProfile.hourly_rate}/hr</p>
             </div>
             <div className="space-y-2">
@@ -362,16 +362,16 @@ const TrainerDashboard: React.FC = () => {
             </div>
             {(trainerProfile.discount_percentage ?? 0) > 0 && (
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Session Rate</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Session Rate</p>
                 <p className="text-2xl serif font-light text-accent">
                   ${computeDiscountedRate(Number(trainerProfile.optimized_rate), trainerProfile.discount_percentage ?? 0)}/hr
-                  <span className="text-[11px] text-ink/60 ml-2">({trainerProfile.discount_percentage}% off)</span>
+                  <span className="text-[11px] text-ink/80 ml-2">({trainerProfile.discount_percentage}% off)</span>
                 </p>
               </div>
             )}
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Specialty</p>
-              <p className="text-sm text-ink/60">
+              <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Specialty</p>
+              <p className="text-sm text-ink/80">
                 {trainerProfile.specialty.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </p>
             </div>
@@ -394,7 +394,7 @@ const TrainerDashboard: React.FC = () => {
           <div className="border border-ink/10 p-8 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Payment Setup</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Payment Setup</p>
                 {stripeState === 'connected' && (
                   <p className="text-sm text-green-700 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
@@ -408,7 +408,7 @@ const TrainerDashboard: React.FC = () => {
                   </p>
                 )}
                 {stripeState === 'none' && (
-                  <p className="text-sm text-ink/70">
+                  <p className="text-sm text-ink/85">
                     Connect your Stripe account to receive payouts from bookings
                   </p>
                 )}
@@ -447,8 +447,8 @@ const TrainerDashboard: React.FC = () => {
           </div>
         ) : (
           <div className="border border-ink/10 p-8">
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Payment Setup</p>
-            <p className="text-sm text-ink/70 mt-2">
+            <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Payment Setup</p>
+            <p className="text-sm text-ink/85 mt-2">
               Payment setup is available on the web at fitrush.io
             </p>
           </div>
@@ -483,7 +483,7 @@ const TrainerDashboard: React.FC = () => {
           <div className="space-y-4">
             <div className="space-y-1">
               <h2 className="text-xl serif font-light text-ink italic">Booking Requests</h2>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70">Pending requests from clients</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85">Pending requests from clients</p>
             </div>
             <BookingRequestQueue />
           </div>
@@ -509,7 +509,7 @@ const TrainerDashboard: React.FC = () => {
           <div className="border border-ink/10 p-8 space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Certifications</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Certifications</p>
                 {certSummary.some(c => c.status === 'approved') ? (
                   <p className="text-sm text-green-700 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />

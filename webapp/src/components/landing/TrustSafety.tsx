@@ -35,7 +35,7 @@ const TrustSafety: React.FC = () => {
               </div>
               <div className="space-y-3">
                 <h3 className="text-xs uppercase tracking-[0.2em] font-semibold text-ink">{feature.title}</h3>
-                <p className="text-sm text-ink/50 leading-relaxed font-light">{feature.description}</p>
+                <p className="text-sm text-ink/75 leading-relaxed font-light">{feature.description}</p>
               </div>
             </div>
           ))}

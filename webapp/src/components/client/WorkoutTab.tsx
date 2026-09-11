@@ -138,7 +138,7 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
       {!loading && allLogs.length === 0 && (
         <div className="text-center py-16 space-y-3">
           <Dumbbell size={32} className="mx-auto text-ink/15" />
-          <p className="text-sm text-ink/40 font-light">
+          <p className="text-sm text-ink/68 font-light">
             No workouts logged yet. Start by tapping &apos;Log Workout&apos;.
           </p>
         </div>
@@ -167,22 +167,22 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
                       <p className="text-sm text-ink font-medium">
                         {formatDate(log.logged_at)}
                       </p>
-                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/30 shrink-0">
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60 shrink-0">
                         {exerciseCount} {exerciseCount === 1 ? 'exercise' : 'exercises'}
                       </span>
                     </div>
-                    <p className="text-[11px] text-ink/40">
+                    <p className="text-[11px] text-ink/68">
                       {'trainer_name' in log
                         ? `Logged by ${log.trainer_name ?? 'your trainer'}`
                         : log.booking_id ? 'Session workout' : 'Standalone workout'}
                     </p>
                     {log.notes && (
-                      <p className="text-xs text-ink/40 font-light truncate max-w-xs">
+                      <p className="text-xs text-ink/68 font-light truncate max-w-xs">
                         {log.notes.length > 80 ? log.notes.slice(0, 80) + '...' : log.notes}
                       </p>
                     )}
                   </div>
-                  <span className="shrink-0 text-ink/30 mt-0.5">
+                  <span className="shrink-0 text-ink/60 mt-0.5">
                     {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </span>
                 </button>
@@ -213,7 +213,7 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
                                   {(ex.sets ?? []).map((set, si) => (
                                     <span
                                       key={si}
-                                      className="text-[11px] text-ink/50 border border-ink/10 rounded px-2 py-0.5"
+                                      className="text-[11px] text-ink/75 border border-ink/10 rounded px-2 py-0.5"
                                     >
                                       {set.weight > 0 ? formatSet(set) : set.reps > 0 ? `${set.reps} reps` : 'timed set'}
                                     </span>
@@ -224,7 +224,7 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
                           ))}
 
                         {log.notes && (
-                          <p className="text-xs text-ink/40 italic border-t border-ink/5 pt-3">
+                          <p className="text-xs text-ink/68 italic border-t border-ink/5 pt-3">
                             {log.notes}
                           </p>
                         )}
@@ -244,7 +244,7 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
           <button
             type="button"
             onClick={loadMore}
-            className="text-[11px] uppercase tracking-[0.2em] border border-ink/15 px-8 py-3 text-ink/40 hover:border-accent/40 hover:text-accent transition-colors"
+            className="text-[11px] uppercase tracking-[0.2em] border border-ink/15 px-8 py-3 text-ink/68 hover:border-accent/40 hover:text-accent transition-colors"
           >
             Load More
           </button>

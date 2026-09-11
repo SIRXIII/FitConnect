@@ -62,7 +62,7 @@ const ProfileProgressRing: React.FC<ProfileProgressRingProps> = ({ completionPct
       </svg>
 
       {missingFields.length > 0 && (
-        <p className="text-center text-[10px] uppercase tracking-[0.15em] text-ink/40 max-w-[100px]">
+        <p className="text-center text-[10px] uppercase tracking-[0.15em] text-ink/68 max-w-[100px]">
           Add {missingFields[0]}
         </p>
       )}

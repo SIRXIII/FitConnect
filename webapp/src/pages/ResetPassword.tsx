@@ -42,17 +42,17 @@ const ResetPassword: React.FC = () => {
           <h1 className="text-3xl serif font-light tracking-[0.1em] uppercase">
             Set New Password
           </h1>
-          <p className="text-xs text-ink/40 leading-relaxed">
+          <p className="text-xs text-ink/68 leading-relaxed">
             Choose a new password for your FitRush account.
           </p>
-          <p id="reset-password-instructions" className="text-xs text-ink/50 leading-relaxed">
+          <p id="reset-password-instructions" className="text-xs text-ink/75 leading-relaxed">
             {PASSWORD_REQUIREMENTS}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           <div className="space-y-1">
-            <label htmlFor="reset-new-password" className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+            <label htmlFor="reset-new-password" className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
               New Password
             </label>
             <input
@@ -69,7 +69,7 @@ const ResetPassword: React.FC = () => {
             />
           </div>
           <div className="space-y-1">
-            <label htmlFor="reset-confirm-password" className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+            <label htmlFor="reset-confirm-password" className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
               Confirm Password
             </label>
             <input

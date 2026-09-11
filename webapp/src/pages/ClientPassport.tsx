@@ -209,7 +209,7 @@ const ClientPassport: React.FC = () => {
         {/* Back to Dashboard */}
         <Link
           to="/client/dashboard"
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors"
+          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 hover:text-ink transition-colors"
         >
           <ArrowLeft size={14} />
           Back to Dashboard
@@ -220,7 +220,7 @@ const ClientPassport: React.FC = () => {
           <ProfileProgressRing completionPct={completionPct} missingFields={missingFields} />
           <div className="space-y-2 pt-2">
             <h1 className="text-3xl serif font-light italic">Your Fitness Passport</h1>
-            <p className="text-xs uppercase tracking-[0.25em] text-ink/40">
+            <p className="text-xs uppercase tracking-[0.25em] text-ink/68">
               Help trainers understand your goals
             </p>
           </div>
@@ -228,7 +228,7 @@ const ClientPassport: React.FC = () => {
 
         {/* Avatar Section */}
         <div className="space-y-3">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
             Profile Photo
           </label>
           <div className="flex items-center gap-5">
@@ -245,7 +245,7 @@ const ClientPassport: React.FC = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-2xl serif text-ink/30 font-light">{initials}</span>
+                <span className="text-2xl serif text-ink/60 font-light">{initials}</span>
               )}
               <div className="absolute inset-0 bg-ink/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                 <Camera size={18} className="text-white" />
@@ -257,10 +257,10 @@ const ClientPassport: React.FC = () => {
               )}
             </button>
             <div className="space-y-1">
-              <p className="text-sm text-ink/60 font-light">
+              <p className="text-sm text-ink/80 font-light">
                 {profile?.avatar_url ? 'Photo uploaded' : 'Click to add a photo'}
               </p>
-              <p className="text-[10px] text-ink/30">Auto-compressed to save space</p>
+              <p className="text-[10px] text-ink/60">Auto-compressed to save space</p>
             </div>
           </div>
           <input
@@ -274,15 +274,15 @@ const ClientPassport: React.FC = () => {
 
         {/* SECTION: Personal Info */}
         <section className="space-y-6">
-          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/30 border-b border-ink/10 pb-2">
+          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/60 border-b border-ink/10 pb-2">
             Personal Info
           </h2>
 
           {/* Bio */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Bio</label>
-              <span className={`text-[10px] tracking-wide ${bio.length > 450 ? 'text-red-500' : 'text-ink/30'}`}>
+              <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Bio</label>
+              <span className={`text-[10px] tracking-wide ${bio.length > 450 ? 'text-red-500' : 'text-ink/60'}`}>
                 {bio.length}/500
               </span>
             </div>
@@ -298,7 +298,7 @@ const ClientPassport: React.FC = () => {
 
           {/* Age */}
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Age</label>
+            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Age</label>
             <input
               type="number"
               value={age}
@@ -313,7 +313,7 @@ const ClientPassport: React.FC = () => {
 
           {/* Weight */}
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Weight (lbs)</label>
+            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Weight (lbs)</label>
             <input
               type="number"
               value={weightLbs}
@@ -328,7 +328,7 @@ const ClientPassport: React.FC = () => {
 
           {/* Height */}
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Height</label>
+            <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Height</label>
             <div className="flex gap-3">
               <div className="flex-1">
                 <input
@@ -359,7 +359,7 @@ const ClientPassport: React.FC = () => {
 
           {/* Fitness Level */}
           <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Fitness Level</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Fitness Level</p>
             <div className="flex gap-2">
               {LEVELS.map(l => (
                 <button
@@ -372,7 +372,7 @@ const ClientPassport: React.FC = () => {
                   className={`flex-1 py-3 border text-[11px] uppercase tracking-[0.15em] font-medium transition-all ${
                     fitnessLevel === l.value
                       ? 'border-accent bg-accent/5 text-accent'
-                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/80'
                   }`}
                 >
                   {l.label}
@@ -384,7 +384,7 @@ const ClientPassport: React.FC = () => {
 
         {/* SECTION: Health */}
         <section className="space-y-6">
-          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/30 border-b border-ink/10 pb-2">
+          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/60 border-b border-ink/10 pb-2">
             Health
           </h2>
           <HealthConditionsChecklist
@@ -404,17 +404,17 @@ const ClientPassport: React.FC = () => {
 
         {/* SECTION: Preferences */}
         <section className="space-y-6">
-          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/30 border-b border-ink/10 pb-2">
+          <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/60 border-b border-ink/10 pb-2">
             Preferences
           </h2>
 
           {/* Budget Preference */}
           <div className="space-y-4">
-            <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">
+            <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/68">
               Max Hourly Budget
             </label>
             <div className="flex items-center gap-3">
-              <span className="text-ink/40 text-lg">$</span>
+              <span className="text-ink/68 text-lg">$</span>
               <input
                 type="number"
                 min={0}
@@ -433,14 +433,14 @@ const ClientPassport: React.FC = () => {
                 placeholder="e.g. 60"
                 className="w-32 py-2 bg-transparent border-b border-ink/10 focus:border-ink/30 focus:ring-0 outline-none text-ink serif text-xl placeholder:text-ink/20"
               />
-              <span className="text-ink/40 text-sm">/hr</span>
+              <span className="text-ink/68 text-sm">/hr</span>
             </div>
-            <p className="text-xs text-ink/30">Used to match you with trainers in your price range</p>
+            <p className="text-xs text-ink/60">Used to match you with trainers in your price range</p>
           </div>
 
           {/* Intensity */}
           <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Workout Intensity</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Workout Intensity</p>
             <IntensitySlider
               value={intensityPreference}
               onChange={(val) => {
@@ -452,7 +452,7 @@ const ClientPassport: React.FC = () => {
 
           {/* Goal Ranking */}
           <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Goal Ranking</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Goal Ranking</p>
             <GoalRankPicker
               ranked={goalsRanked}
               onChange={(ranked) => {
@@ -465,8 +465,8 @@ const ClientPassport: React.FC = () => {
           {/* Workout Types */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Workout Types</p>
-              <span className="text-[10px] text-ink/30 tracking-wide">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Workout Types</p>
+              <span className="text-[10px] text-ink/60 tracking-wide">
                 {workoutTypes.length}/8 selected
               </span>
             </div>
@@ -484,7 +484,7 @@ const ClientPassport: React.FC = () => {
                   className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
                     workoutTypes.includes(w.value)
                       ? 'border-accent bg-accent/5 text-accent'
-                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/80'
                   }`}
                 >
                   {w.label}
@@ -496,7 +496,7 @@ const ClientPassport: React.FC = () => {
 
           {/* Training Frequency */}
           <div className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Training Frequency</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Training Frequency</p>
             <div className="flex gap-2">
               {FREQUENCIES.map(f => (
                 <button
@@ -509,7 +509,7 @@ const ClientPassport: React.FC = () => {
                   className={`flex-1 py-3 border text-[11px] uppercase tracking-[0.15em] font-medium transition-all ${
                     trainingFrequency === f.value
                       ? 'border-accent bg-accent/5 text-accent'
-                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/80'
                   }`}
                 >
                   {f.label}
@@ -521,8 +521,8 @@ const ClientPassport: React.FC = () => {
           {/* Fitness Goals (legacy — keep for backwards compatibility) */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Additional Goals</p>
-              <span className="text-[10px] text-ink/30 tracking-wide">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Additional Goals</p>
+              <span className="text-[10px] text-ink/60 tracking-wide">
                 {fitnessGoals.length}/5 selected
               </span>
             </div>
@@ -540,7 +540,7 @@ const ClientPassport: React.FC = () => {
                   className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
                     fitnessGoals.includes(g.value)
                       ? 'border-accent bg-accent/5 text-accent'
-                      : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                      : 'border-ink/10 hover:border-ink/30 text-ink/80'
                   }`}
                 >
                   {g.label}

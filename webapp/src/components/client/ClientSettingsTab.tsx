@@ -39,8 +39,8 @@ const Section: React.FC<{ title: string; subtitle?: string; children: React.Reac
 }) => (
   <div className="border border-ink/10 p-8 space-y-6">
     <div className="space-y-1">
-      <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">{title}</p>
-      {subtitle && <p className="text-sm text-ink/50 font-light">{subtitle}</p>}
+      <p className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">{title}</p>
+      {subtitle && <p className="text-sm text-ink/75 font-light">{subtitle}</p>}
     </div>
     {children}
   </div>
@@ -53,9 +53,9 @@ const Field: React.FC<{ label: string; children: React.ReactNode; hint?: string 
   hint,
 }) => (
   <div className="space-y-2">
-    <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">{label}</label>
+    <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">{label}</label>
     {children}
-    {hint && <p className="text-[10px] text-ink/30">{hint}</p>}
+    {hint && <p className="text-[10px] text-ink/60">{hint}</p>}
   </div>
 );
 
@@ -119,7 +119,7 @@ const SetupForm: React.FC<SetupFormProps> = ({ onSuccess, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="text-[11px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors"
+          className="text-[11px] uppercase tracking-[0.2em] text-ink/68 hover:text-ink transition-colors"
         >
           Cancel
         </button>
@@ -278,7 +278,7 @@ const ClientSettingsTab: React.FC = () => {
             {avatarPreview ? (
               <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-2xl serif text-ink/30 font-light">{initials}</span>
+              <span className="text-2xl serif text-ink/60 font-light">{initials}</span>
             )}
             <div className="absolute inset-0 bg-ink/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
               <Camera size={18} className="text-white" />
@@ -290,10 +290,10 @@ const ClientSettingsTab: React.FC = () => {
             )}
           </button>
           <div className="space-y-1">
-            <p className="text-sm text-ink/60 font-light">
+            <p className="text-sm text-ink/80 font-light">
               {uploadingAvatar ? 'Uploading...' : avatarPreview ? 'Click to change photo' : 'Click to add a photo'}
             </p>
-            <p className="text-[10px] text-ink/30">Auto-compressed to 400px</p>
+            <p className="text-[10px] text-ink/60">Auto-compressed to 400px</p>
           </div>
           <input
             ref={avatarInputRef}
@@ -381,7 +381,7 @@ const ClientSettingsTab: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {!savedCard && (
-                <p className="text-sm text-ink/50 font-light leading-relaxed">
+                <p className="text-sm text-ink/75 font-light leading-relaxed">
                   No payment method saved. Add a card to speed up the checkout process when booking sessions.
                 </p>
               )}
@@ -406,7 +406,7 @@ const ClientSettingsTab: React.FC = () => {
               ) : (
                 <div className="flex items-center gap-2 py-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">
                     Payments secured by Stripe at checkout
                   </p>
                 </div>
@@ -422,7 +422,7 @@ const ClientSettingsTab: React.FC = () => {
           <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" strokeWidth={1.5} />
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-red-400/80 font-medium">Danger Zone</p>
-            <p className="text-sm font-light text-ink/50">
+            <p className="text-sm font-light text-ink/75">
               Permanently delete your account and all associated data. This cannot be undone.
             </p>
             <button
@@ -431,7 +431,7 @@ const ClientSettingsTab: React.FC = () => {
             >
               Delete My Account
             </button>
-            <p className="text-[10px] text-ink/30">
+            <p className="text-[10px] text-ink/60">
               Or contact support@fitrush.io for assistance
             </p>
           </div>

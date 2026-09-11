@@ -60,13 +60,13 @@ const ClientSummaryCard: React.FC<ClientSummaryCardProps> = ({ data }) => {
       {/* Collapsed summary row */}
       <div className="flex flex-wrap items-center gap-1.5">
         {fitnessLevelLabel && (
-          <span className="text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 border border-ink/10 text-ink/60">
+          <span className="text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 border border-ink/10 text-ink/80">
             {fitnessLevelLabel}
           </span>
         )}
 
         {goalLabel && (
-          <span className="text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 border border-ink/10 text-ink/60">
+          <span className="text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 border border-ink/10 text-ink/80">
             {goalLabel}
           </span>
         )}
@@ -74,7 +74,7 @@ const ClientSummaryCard: React.FC<ClientSummaryCardProps> = ({ data }) => {
         {data.intensity_preference && intensityConfig && (
           <span className="flex items-center gap-1">
             <span className={`w-1.5 h-1.5 rounded-full ${intensityDotColor}`} />
-            <span className="text-[9px] uppercase tracking-[0.1em] text-ink/60">
+            <span className="text-[9px] uppercase tracking-[0.1em] text-ink/80">
               {intensityConfig.label}
             </span>
           </span>
@@ -95,7 +95,7 @@ const ClientSummaryCard: React.FC<ClientSummaryCardProps> = ({ data }) => {
         ))}
 
         {overflowCount > 0 && (
-          <span className="text-[9px] text-ink/40">+{overflowCount}</span>
+          <span className="text-[9px] text-ink/68">+{overflowCount}</span>
         )}
       </div>
 
@@ -103,7 +103,7 @@ const ClientSummaryCard: React.FC<ClientSummaryCardProps> = ({ data }) => {
       <div className="flex justify-end mt-1">
         <button
           onClick={() => setExpanded(prev => !prev)}
-          className="text-[9px] text-ink/40 underline"
+          className="text-[9px] text-ink/68 underline"
         >
           {expanded ? 'Hide' : 'Details'}
         </button>
@@ -123,10 +123,10 @@ const ClientSummaryCard: React.FC<ClientSummaryCardProps> = ({ data }) => {
             <div className="space-y-2 pt-3 border-t border-ink/5 mt-2">
               {goalsRanked.length > 0 && (
                 <div>
-                  <p className="text-[9px] uppercase tracking-[0.1em] text-ink/40 mb-1">Goals</p>
+                  <p className="text-[9px] uppercase tracking-[0.1em] text-ink/68 mb-1">Goals</p>
                   <div className="space-y-0.5">
                     {goalsRanked.map((goal, idx) => (
-                      <p key={goal} className="text-[10px] text-ink/60">
+                      <p key={goal} className="text-[10px] text-ink/80">
                         {idx + 1}. {getGoalLabel(goal)}
                       </p>
                     ))}
@@ -135,7 +135,7 @@ const ClientSummaryCard: React.FC<ClientSummaryCardProps> = ({ data }) => {
               )}
 
               {(data.age != null || data.weight_lbs != null) && (
-                <p className="text-[10px] text-ink/60">
+                <p className="text-[10px] text-ink/80">
                   {data.age != null && `Age: ${data.age}`}
                   {data.age != null && data.weight_lbs != null && ' \u2013 '}
                   {data.weight_lbs != null && `${data.weight_lbs} lbs`}
@@ -144,15 +144,15 @@ const ClientSummaryCard: React.FC<ClientSummaryCardProps> = ({ data }) => {
 
               {data.health_notes && (
                 <div>
-                  <p className="text-[9px] uppercase tracking-[0.1em] text-ink/40 mb-0.5">Health Notes</p>
-                  <p className="text-[10px] text-ink/60">{data.health_notes}</p>
+                  <p className="text-[9px] uppercase tracking-[0.1em] text-ink/68 mb-0.5">Health Notes</p>
+                  <p className="text-[10px] text-ink/80">{data.health_notes}</p>
                 </div>
               )}
 
               {workoutTypes.length > 0 && (
                 <div>
-                  <p className="text-[9px] uppercase tracking-[0.1em] text-ink/40 mb-0.5">Workout Types</p>
-                  <p className="text-[10px] text-ink/60">
+                  <p className="text-[9px] uppercase tracking-[0.1em] text-ink/68 mb-0.5">Workout Types</p>
+                  <p className="text-[10px] text-ink/80">
                     {workoutTypes.map(getWorkoutLabel).join(', ')}
                   </p>
                 </div>

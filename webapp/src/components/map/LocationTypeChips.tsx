@@ -42,7 +42,7 @@ export function LocationTypeChips({ selected, onSelect }: LocationTypeChipsProps
             className={
               isSelected
                 ? baseClass
-                : `${baseClass} bg-paper border border-ink/10 text-ink/60 hover:border-ink/20`
+                : `${baseClass} bg-paper border border-ink/10 text-ink/80 hover:border-ink/20`
             }
             style={
               isSelected
@@ -54,7 +54,7 @@ export function LocationTypeChips({ selected, onSelect }: LocationTypeChipsProps
               <Icon
                 size={14}
                 style={{ color: isSelected ? 'white' : undefined }}
-                className={isSelected ? undefined : 'text-ink/60'}
+                className={isSelected ? undefined : 'text-ink/80'}
               />
             )}
             {label}

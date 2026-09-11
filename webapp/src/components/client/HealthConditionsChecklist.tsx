@@ -29,7 +29,7 @@ const HealthConditionsChecklist: React.FC<HealthConditionsChecklistProps> = ({
               className={`relative text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all flex items-center justify-between ${
                 isSelected
                   ? 'border-accent bg-accent/5 text-accent'
-                  : 'border-ink/10 hover:border-ink/30 text-ink/60'
+                  : 'border-ink/10 hover:border-ink/30 text-ink/80'
               }`}
             >
               {condition.label}
@@ -41,10 +41,10 @@ const HealthConditionsChecklist: React.FC<HealthConditionsChecklistProps> = ({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">
             Other Notes
           </label>
-          <span className={`text-[10px] tracking-wide ${otherNotes.length > 900 ? 'text-red-500' : 'text-ink/30'}`}>
+          <span className={`text-[10px] tracking-wide ${otherNotes.length > 900 ? 'text-red-500' : 'text-ink/60'}`}>
             {otherNotes.length}/1000
           </span>
         </div>
