@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Dumbbell, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { WorkoutLogWithExercises } from '@/types/workout';
+import type { TrainerWorkoutLog, WorkoutLogWithExercises } from '@/types/workout';
 import { formatSet } from '@/lib/workoutUtils';
+import { fetchTrainerSessionLogs, toWorkoutLog } from '@/lib/trainerSessionLogs';
 import ExerciseDiagram from '@/components/shared/ExerciseDiagram';
 import WorkoutLogForm from '@/components/client/WorkoutLogForm';
 
@@ -19,6 +20,7 @@ const PAGE_SIZE = 10;
 
 const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
   const [logs, setLogs] = useState<WorkoutLogWithExercises[]>([]);
+  const [trainerLogs, setTrainerLogs] = useState<TrainerWorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLogForm, setShowLogForm] = useState(false);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
@@ -47,7 +49,8 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
         }
 
         setHasMore(rows.length === PAGE_SIZE);
-      } catch {
+      } catch (err) {
+        console.error(err);
         // Silently fail — empty state will show
       } finally {
         setLoading(false);
@@ -59,6 +62,12 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
   useEffect(() => {
     fetchLogs(0);
   }, [fetchLogs]);
+
+  useEffect(() => {
+    fetchTrainerSessionLogs(userId)
+      .then(rows => setTrainerLogs(rows.map(toWorkoutLog)))
+      .catch(console.error);
+  }, [userId]);
 
   function handleSaved() {
     setShowLogForm(false);
@@ -83,6 +92,8 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
       year: 'numeric',
     });
   }
+
+  const allLogs = [...trainerLogs, ...logs].sort((a, b) => b.logged_at.localeCompare(a.logged_at));
 
   return (
     <div className="space-y-6">
@@ -124,7 +135,7 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
       )}
 
       {/* Empty state */}
-      {!loading && logs.length === 0 && (
+      {!loading && allLogs.length === 0 && (
         <div className="text-center py-16 space-y-3">
           <Dumbbell size={32} className="mx-auto text-ink/15" />
           <p className="text-sm text-ink/40 font-light">
@@ -134,9 +145,9 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
       )}
 
       {/* Log list */}
-      {logs.length > 0 && (
+      {allLogs.length > 0 && (
         <div className="space-y-3">
-          {logs.map(log => {
+          {allLogs.map(log => {
             const isExpanded = expandedLogId === log.id;
             const exerciseCount = log.workout_exercises.length;
 
@@ -161,7 +172,9 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
                       </span>
                     </div>
                     <p className="text-[11px] text-ink/40">
-                      {log.booking_id ? 'Session workout' : 'Standalone workout'}
+                      {'trainer_name' in log
+                        ? `Logged by ${log.trainer_name ?? 'your trainer'}`
+                        : log.booking_id ? 'Session workout' : 'Standalone workout'}
                     </p>
                     {log.notes && (
                       <p className="text-xs text-ink/40 font-light truncate max-w-xs">
@@ -202,7 +215,7 @@ const WorkoutTab: React.FC<WorkoutTabProps> = ({ userId }) => {
                                       key={si}
                                       className="text-[11px] text-ink/50 border border-ink/10 rounded px-2 py-0.5"
                                     >
-                                      {formatSet(set)}
+                                      {set.weight > 0 ? formatSet(set) : set.reps > 0 ? `${set.reps} reps` : 'timed set'}
                                     </span>
                                   ))}
                                 </div>

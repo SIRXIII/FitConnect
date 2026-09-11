@@ -12,19 +12,8 @@ import {
 import { supabase } from '@/lib/supabase';
 import { aggregateByWeek } from '@/lib/sessionAggregation';
 import type { SessionLogForChart } from '@/lib/sessionAggregation';
-
-// ============================================================
-// Types
-// ============================================================
-
-interface SessionEntry {
-  id: string;
-  notes: string | null;
-  exercises: { name: string; sets: number; reps: number }[];
-  slot_start: string | null;
-  slot_end: string | null;
-  trainer_name: string | null;
-}
+import { fetchTrainerSessionLogs, toSessionEntry } from '@/lib/trainerSessionLogs';
+import type { SessionEntry } from '@/types/session';
 
 // ============================================================
 // Props
@@ -41,6 +30,13 @@ interface ProgressTabProps {
 const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionEntry[]>([]);
+  const [trainerSessions, setTrainerSessions] = useState<SessionEntry[]>([]);
+
+  useEffect(() => {
+    fetchTrainerSessionLogs(userId)
+      .then(rows => setTrainerSessions(rows.map(toSessionEntry)))
+      .catch(console.error);
+  }, [userId]);
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -62,6 +58,7 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error(error);
         // Fallback: two-query approach
         const { data: logs } = await (supabase as any)
           .from('session_logs')
@@ -147,8 +144,12 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
     );
   }
 
+  const allSessions = [...trainerSessions, ...sessions].sort((a, b) =>
+    (b.slot_start ?? '').localeCompare(a.slot_start ?? '')
+  );
+
   // ---- Empty state ----
-  if (sessions.length === 0) {
+  if (allSessions.length === 0) {
     return (
       <div className="border border-dashed border-ink/10 p-12 text-center">
         <h2 className="text-xl serif font-light italic text-ink mb-2">No sessions yet</h2>
@@ -166,7 +167,7 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
   }
 
   // ---- Chart data ----
-  const logsForChart: SessionLogForChart[] = sessions
+  const logsForChart: SessionLogForChart[] = allSessions
     .filter((s) => s.slot_start !== null)
     .map((s) => ({
       slot_start: s.slot_start!,
@@ -186,7 +187,7 @@ const ProgressTab: React.FC<ProgressTabProps> = ({ userId }) => {
     <div className="space-y-8">
       {/* ---- Section 1: Session Timeline List ---- */}
       <div>
-        {sessions.map((session) => {
+        {allSessions.map((session) => {
           const dateLabel = session.slot_start
             ? new Date(session.slot_start).toLocaleDateString('en-US', {
                 month: 'short',

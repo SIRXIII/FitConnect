@@ -28,3 +28,7 @@ export interface WorkoutLogRow {
 export interface WorkoutLogWithExercises extends WorkoutLogRow {
   workout_exercises: WorkoutExerciseRow[];
 }
+
+export interface TrainerWorkoutLog extends WorkoutLogWithExercises {
+  trainer_name: string | null;
+}
