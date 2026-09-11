@@ -15,7 +15,7 @@ import WorkoutTab from '@/components/client/WorkoutTab';
 
 // ─── Profile completion calculation (mirrors ClientPassport logic) ─────────────
 function computeCompletion(clientProfile: Record<string, unknown> | null, avatarUrl: string | null | undefined) {
-  if (!clientProfile) return { pct: 0, missing: ['age', 'weight', 'height', 'fitness level', 'intensity preference', 'goals'] };
+  if (!clientProfile) return { pct: 0, missing: ['photo', 'age', 'weight', 'height', 'fitness level', 'health notes', 'intensity preference', 'goals'] };
   const hasGoals = !!((clientProfile.goals_ranked as string[] | null)?.length || (clientProfile.fitness_goals as string[] | null)?.length);
   const hasHealth = !!((clientProfile.health_conditions as string[] | null)?.length || (clientProfile.health_notes as string | null)?.trim());
   const fields = [
@@ -30,10 +30,12 @@ function computeCompletion(clientProfile: Record<string, unknown> | null, avatar
   ];
   const pct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
   const missing: string[] = [];
+  if (!avatarUrl) missing.push('photo');
   if (!clientProfile.age) missing.push('age');
   if (!clientProfile.weight_lbs) missing.push('weight');
   if (!clientProfile.height_ft && !clientProfile.height_in) missing.push('height');
   if (!clientProfile.fitness_level) missing.push('fitness level');
+  if (!hasHealth) missing.push('health notes');
   if (!clientProfile.intensity_preference) missing.push('intensity preference');
   if (!hasGoals) missing.push('goals');
   return { pct, missing };
@@ -421,10 +423,10 @@ const ClientDashboard: React.FC = () => {
               <div className="border border-accent/15 bg-accent/[0.02] p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1">
                   <p className="text-xs uppercase tracking-[0.2em] text-ink/50 font-medium">
-                    {100 - completionPct}% remaining
+                    {completionPct}% complete
                   </p>
                   <p className="text-sm text-ink/40 font-light">
-                    Complete your profile to improve trainer matching accuracy.
+                    Add {missingFields.join(', ')} to reach 100%.
                   </p>
                 </div>
                 <Link

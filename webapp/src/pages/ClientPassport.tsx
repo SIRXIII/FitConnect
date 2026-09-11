@@ -151,10 +151,12 @@ const ClientPassport: React.FC = () => {
     (COMPLETION_FIELDS.filter(Boolean).length / COMPLETION_FIELDS.length) * 100
   );
   const missingFields: string[] = [];
+  if (!avatarPreview) missingFields.push('photo');
   if (!age) missingFields.push('age');
   if (!weightLbs) missingFields.push('weight');
   if (!heightFt && !heightIn) missingFields.push('height');
   if (!fitnessLevel) missingFields.push('fitness level');
+  if (!(healthConditions.length > 0 || (limitations && limitations.trim().length > 0))) missingFields.push('health notes');
   if (!intensityPreference) missingFields.push('intensity preference');
   if (goalsRanked.length === 0) missingFields.push('goal ranking');
 
