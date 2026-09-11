@@ -23,12 +23,12 @@ const STATUS_STYLES: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700 border-amber-200',
   waiting_on_user: 'bg-purple-50 text-purple-700 border-purple-200',
   resolved: 'bg-green-50 text-green-700 border-green-200',
-  closed: 'bg-ink/5 text-ink/40 border-ink/10',
+  closed: 'bg-ink/5 text-ink/68 border-ink/10',
 };
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => (
   <span
-    className={`inline-flex items-center px-2.5 py-0.5 text-xs border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/40 border-ink/10'}`}
+    className={`inline-flex items-center px-2.5 py-0.5 text-xs border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/68 border-ink/10'}`}
   >
     {STATUS_LABELS[status as keyof typeof STATUS_LABELS] ?? status}
   </span>
@@ -70,7 +70,7 @@ const EmbeddedThread: React.FC<{
     <div className="space-y-5">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-xs text-ink/40 hover:text-ink transition-colors"
+        className="flex items-center gap-1.5 text-xs text-ink/68 hover:text-ink transition-colors"
       >
         <ChevronLeft size={13} />
         Back to tickets
@@ -82,7 +82,7 @@ const EmbeddedThread: React.FC<{
           <h3 className="text-sm font-medium text-ink leading-snug">{ticket.subject}</h3>
           <StatusBadge status={ticket.status} />
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-ink/40">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-ink/68">
           <span>{CATEGORY_LABELS[ticket.category]}</span>
           <span>·</span>
           <span>
@@ -96,7 +96,7 @@ const EmbeddedThread: React.FC<{
           <span className="font-mono">{ticket.id.slice(0, 8).toUpperCase()}</span>
         </div>
         {ticket.description && (
-          <p className="text-sm text-ink/60 leading-relaxed pt-2 border-t border-ink/5 mt-2">
+          <p className="text-sm text-ink/80 leading-relaxed pt-2 border-t border-ink/5 mt-2">
             {ticket.description}
           </p>
         )}
@@ -106,10 +106,10 @@ const EmbeddedThread: React.FC<{
       <div className="space-y-3 max-h-[28rem] overflow-y-auto border border-ink/10 p-4 bg-white">
         {messagesLoading ? (
           <div className="flex items-center justify-center py-10">
-            <Loader2 size={18} className="animate-spin text-ink/30" />
+            <Loader2 size={18} className="animate-spin text-ink/60" />
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-xs text-ink/30 text-center py-8">
+          <p className="text-xs text-ink/60 text-center py-8">
             No messages yet. Our team will respond shortly.
           </p>
         ) : (
@@ -137,7 +137,7 @@ const EmbeddedThread: React.FC<{
                     </p>
                   )}
                   <p>{msg.message}</p>
-                  <p className={`text-xs mt-1.5 ${isOwn || msg.is_admin ? 'opacity-50' : 'text-ink/30'}`}>
+                  <p className={`text-xs mt-1.5 ${isOwn || msg.is_admin ? 'opacity-50' : 'text-ink/60'}`}>
                     {new Date(msg.created_at).toLocaleTimeString('en-US', {
                       hour: 'numeric',
                       minute: '2-digit',
@@ -176,7 +176,7 @@ const EmbeddedThread: React.FC<{
           </button>
         </div>
       ) : (
-        <p className="text-xs text-ink/30 text-center py-3 border-t border-ink/5">
+        <p className="text-xs text-ink/60 text-center py-3 border-t border-ink/5">
           This ticket has been {ticket.status}. Need more help? Submit a new ticket.
         </p>
       )}
@@ -259,7 +259,7 @@ const EmbeddedNewTicket: React.FC<{
     <div className="space-y-5">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-xs text-ink/40 hover:text-ink transition-colors"
+        className="flex items-center gap-1.5 text-xs text-ink/68 hover:text-ink transition-colors"
       >
         <ChevronLeft size={13} />
         Back to tickets
@@ -267,12 +267,12 @@ const EmbeddedNewTicket: React.FC<{
 
       <div>
         <h3 className="text-sm font-medium text-ink mb-1">Submit a Support Ticket</h3>
-        <p className="text-xs text-ink/40">Our team typically responds within 24 hours.</p>
+        <p className="text-xs text-ink/68">Our team typically responds within 24 hours.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-ink/40 font-medium mb-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-ink/68 font-medium mb-1.5">
             Category
           </label>
           <select
@@ -291,11 +291,11 @@ const EmbeddedNewTicket: React.FC<{
 
         {showBookingField && (
           <div>
-            <label className="block text-[10px] uppercase tracking-widest text-ink/40 font-medium mb-1.5">
-              Related Booking <span className="normal-case font-normal text-ink/30">(optional)</span>
+            <label className="block text-[10px] uppercase tracking-widest text-ink/68 font-medium mb-1.5">
+              Related Booking <span className="normal-case font-normal text-ink/60">(optional)</span>
             </label>
             {loadingBookings ? (
-              <p className="text-xs text-ink/30 py-2">Loading bookings...</p>
+              <p className="text-xs text-ink/60 py-2">Loading bookings...</p>
             ) : (
               <select
                 value={relatedBookingId}
@@ -319,7 +319,7 @@ const EmbeddedNewTicket: React.FC<{
         )}
 
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-ink/40 font-medium mb-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-ink/68 font-medium mb-1.5">
             Subject
           </label>
           <input
@@ -334,7 +334,7 @@ const EmbeddedNewTicket: React.FC<{
         </div>
 
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-ink/40 font-medium mb-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-ink/68 font-medium mb-1.5">
             Description
           </label>
           <textarea
@@ -398,8 +398,8 @@ const ClientSupportTab: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <LifeBuoy size={16} className="text-ink/30" />
-          <h3 className="text-xs uppercase tracking-[0.2em] font-medium text-ink/40">
+          <LifeBuoy size={16} className="text-ink/60" />
+          <h3 className="text-xs uppercase tracking-[0.2em] font-medium text-ink/68">
             My Support Tickets
           </h3>
         </div>
@@ -415,12 +415,12 @@ const ClientSupportTab: React.FC = () => {
       {/* Ticket list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 size={22} className="animate-spin text-ink/30" />
+          <Loader2 size={22} className="animate-spin text-ink/60" />
         </div>
       ) : tickets.length === 0 ? (
         <div className="text-center py-16 space-y-4">
           <LifeBuoy size={28} className="mx-auto text-ink/15" />
-          <p className="text-sm text-ink/40">No tickets yet.</p>
+          <p className="text-sm text-ink/68">No tickets yet.</p>
           <button
             onClick={() => setView({ kind: 'new' })}
             className="px-5 py-2.5 text-sm bg-accent text-white hover:bg-accent/90 transition-colors"
@@ -438,7 +438,7 @@ const ClientSupportTab: React.FC = () => {
             >
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-ink truncate">{ticket.subject}</p>
-                <div className="flex items-center gap-2 text-xs text-ink/40 mt-1">
+                <div className="flex items-center gap-2 text-xs text-ink/68 mt-1">
                   <span>{CATEGORY_LABELS[ticket.category]}</span>
                   <span>·</span>
                   <span>
@@ -450,7 +450,7 @@ const ClientSupportTab: React.FC = () => {
                 </div>
               </div>
               <StatusBadge status={ticket.status} />
-              <ChevronRight size={14} className="text-ink/20 flex-shrink-0" />
+              <ChevronRight size={14} className="text-ink/45 flex-shrink-0" />
             </button>
           ))}
         </div>

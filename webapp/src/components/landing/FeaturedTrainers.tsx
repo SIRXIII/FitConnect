@@ -47,7 +47,7 @@ const FeaturedTrainers: React.FC = () => {
       <div className="max-w-6xl mx-auto space-y-10">
         <div className="flex items-center gap-3">
           <Crown size={16} className="text-accent" />
-          <h2 className="text-[10px] uppercase tracking-[0.3em] text-ink/40 font-medium">
+          <h2 className="text-[10px] uppercase tracking-[0.3em] text-ink/68 font-medium">
             Featured Trainers
           </h2>
         </div>
@@ -73,7 +73,7 @@ const FeaturedTrainers: React.FC = () => {
                       className="w-12 h-12 object-cover"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-ink/5 flex items-center justify-center text-lg serif text-ink/30">
+                    <div className="w-12 h-12 bg-ink/5 flex items-center justify-center text-lg serif text-ink/60">
                       {name.charAt(0)}
                     </div>
                   )}
@@ -81,7 +81,7 @@ const FeaturedTrainers: React.FC = () => {
                     <p className="text-sm font-medium text-ink group-hover:text-accent transition-colors">
                       {name}
                     </p>
-                    <p className="text-[10px] uppercase tracking-[0.15em] text-ink/40">
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-ink/68">
                       {trainer.specialty.replace(/_/g, ' ')}
                     </p>
                   </div>
@@ -93,10 +93,10 @@ const FeaturedTrainers: React.FC = () => {
                       {Number(trainer.rating).toFixed(1)}
                     </span>
                     {trainer.review_count > 0 && (
-                      <span className="text-ink/30 text-[10px]">({trainer.review_count})</span>
+                      <span className="text-ink/60 text-[10px]">({trainer.review_count})</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-ink/40">
+                  <div className="flex items-center gap-1 text-ink/68">
                     <MapPin size={11} />
                     <span className="text-[10px]">{trainer.location}</span>
                   </div>

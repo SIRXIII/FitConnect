@@ -96,7 +96,7 @@ const AccordionItem: React.FC<{
         transition={{ duration: 0.25 }}
         className="shrink-0"
       >
-        <ChevronDown size={14} className="text-ink/30" />
+        <ChevronDown size={14} className="text-ink/60" />
       </motion.span>
     </button>
     <AnimatePresence>
@@ -108,7 +108,7 @@ const AccordionItem: React.FC<{
           transition={{ duration: 0.25 }}
           className="overflow-hidden"
         >
-          <p className="text-sm text-ink/60 leading-relaxed pb-5">
+          <p className="text-sm text-ink/80 leading-relaxed pb-5">
             {item.answer}
           </p>
         </motion.div>
@@ -131,7 +131,7 @@ const FAQColumn: React.FC<{
       <div className="px-6 sm:px-8 py-8 border-b border-ink/10">
         <div className="flex items-center gap-3 mb-3">
           <span className={accentClass}>{icon}</span>
-          <h2 className="text-[11px] uppercase tracking-[0.2em] font-medium text-ink/40">
+          <h2 className="text-[11px] uppercase tracking-[0.2em] font-medium text-ink/68">
             {subtitle}
           </h2>
         </div>
@@ -158,13 +158,13 @@ const FAQ: React.FC = () => {
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="w-12 h-px bg-accent mx-auto" />
-          <p className="text-[10px] uppercase tracking-[0.3em] text-ink/40 font-medium">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-ink/68 font-medium">
             Everything You Need to Know
           </p>
           <h1 className="text-3xl sm:text-4xl serif font-light italic text-ink">
             Frequently Asked Questions
           </h1>
-          <p className="text-sm text-ink/50 max-w-lg mx-auto">
+          <p className="text-sm text-ink/75 max-w-lg mx-auto">
             Whether you are a trainer looking to fill open hours or a client seeking flexible training, here is how FitRush works.
           </p>
         </div>
@@ -183,14 +183,14 @@ const FAQ: React.FC = () => {
             subtitle="Your Training, Your Terms"
             icon={<User size={16} strokeWidth={1.5} />}
             items={CLIENT_FAQS}
-            accentClass="text-ink/60"
+            accentClass="text-ink/80"
           />
         </div>
 
         {/* Bottom CTA */}
         <div className="text-center space-y-4 pt-8">
           <div className="w-8 h-px bg-ink/10 mx-auto" />
-          <p className="text-sm text-ink/40">Still have questions?</p>
+          <p className="text-sm text-ink/68">Still have questions?</p>
           <a
             href="mailto:ceofitrush@gmail.com?subject=FitRush Support"
             className="inline-block border border-ink/20 px-10 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300"

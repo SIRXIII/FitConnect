@@ -100,9 +100,9 @@ const CalendarExportCard: React.FC<CalendarExportCardProps> = ({
 
       {/* Feed URL */}
       <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Feed URL</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Feed URL</p>
         <div className="flex items-center gap-3">
-          <div className="flex-1 bg-paper border border-ink/10 rounded px-4 py-2.5 text-sm text-ink/60 truncate font-mono">
+          <div className="flex-1 bg-paper border border-ink/10 rounded px-4 py-2.5 text-sm text-ink/80 truncate font-mono">
             {feedUrl}
           </div>
           <button
@@ -113,14 +113,14 @@ const CalendarExportCard: React.FC<CalendarExportCardProps> = ({
             Copy Feed URL
           </button>
         </div>
-        <p className="text-xs text-ink/60">
+        <p className="text-xs text-ink/80">
           Paste this URL into Google Calendar or Apple Calendar to subscribe to your schedule.
         </p>
       </div>
 
       {/* Download */}
       <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Download</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Download</p>
         <button
           onClick={handleDownload}
           disabled={downloading}
@@ -136,7 +136,7 @@ const CalendarExportCard: React.FC<CalendarExportCardProps> = ({
         <button
           onClick={handleReset}
           disabled={resetting}
-          className="flex items-center gap-2 text-ink/60 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:text-ink disabled:opacity-50"
+          className="flex items-center gap-2 text-ink/80 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:text-ink disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
           {resetting ? 'Resetting...' : 'Reset Token'}

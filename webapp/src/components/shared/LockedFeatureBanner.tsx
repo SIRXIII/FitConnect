@@ -47,11 +47,11 @@ export const LockedFeatureBanner: React.FC<LockedFeatureBannerProps> = ({ featur
   const copy = FEATURE_COPY[feature];
   return (
     <div className="border border-ink/10 p-12 text-center space-y-4">
-      <p className="text-xs uppercase tracking-[0.3em] text-ink/30">{copy.label}</p>
+      <p className="text-xs uppercase tracking-[0.3em] text-ink/60">{copy.label}</p>
       <p className="serif text-2xl font-light text-ink">
         {FEATURE_NAMES[feature]}
       </p>
-      <p className="text-sm text-ink/50 max-w-sm mx-auto">{copy.description}</p>
+      <p className="text-sm text-ink/75 max-w-sm mx-auto">{copy.description}</p>
       {!isNativeiOS() && (
         <Link to="/pricing" className="text-accent underline underline-offset-2 text-xs">
           View upgrade options

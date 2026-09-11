@@ -91,7 +91,7 @@ const AutocompleteInput: React.FC<LocationAutocompleteProps> = ({
       <div className="relative">
         <MapPin
           size={14}
-          className="absolute left-0 top-1/2 -translate-y-1/2 text-ink/30 pointer-events-none"
+          className="absolute left-0 top-1/2 -translate-y-1/2 text-ink/60 pointer-events-none"
         />
         <input
           type="text"
@@ -117,7 +117,7 @@ const AutocompleteInput: React.FC<LocationAutocompleteProps> = ({
                   onClick={() => handleSelect(s)}
                   className="w-full text-left px-4 py-3 text-sm text-ink/80 hover:bg-ink/5 transition-colors flex items-center gap-2"
                 >
-                  <MapPin size={12} className="text-ink/30 flex-shrink-0" />
+                  <MapPin size={12} className="text-ink/60 flex-shrink-0" />
                   {text}
                 </button>
               </li>

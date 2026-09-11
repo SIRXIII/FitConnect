@@ -58,14 +58,14 @@ const DeleteAccountModal: React.FC<Props> = ({ open, onClose }) => {
           <AlertTriangle size={20} className="text-red-500 shrink-0 mt-0.5" />
           <div className="space-y-2">
             <h3 className="text-xl serif font-light italic text-ink">Delete Your Account</h3>
-            <p className="text-sm text-ink/50 leading-relaxed">
+            <p className="text-sm text-ink/75 leading-relaxed">
               This will permanently delete your account, profile, bookings, reviews, and all associated data. This action cannot be undone.
             </p>
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+          <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
             Type DELETE to confirm
           </label>
           <input
@@ -82,7 +82,7 @@ const DeleteAccountModal: React.FC<Props> = ({ open, onClose }) => {
           <button
             onClick={onClose}
             disabled={deleting}
-            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+            className="px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
           >
             Cancel
           </button>

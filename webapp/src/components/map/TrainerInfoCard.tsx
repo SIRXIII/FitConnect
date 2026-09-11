@@ -43,7 +43,7 @@ export function TrainerInfoCard({ trainer, onClose }: TrainerInfoCardProps) {
           {/* X close button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-ink/40 hover:text-ink transition-colors"
+            className="absolute top-3 right-3 text-ink/68 hover:text-ink transition-colors"
             aria-label="Close"
           >
             <X size={14} />
@@ -65,7 +65,7 @@ export function TrainerInfoCard({ trainer, onClose }: TrainerInfoCardProps) {
                 {trainer.name ?? 'Trainer'}
               </div>
               {trainer.specialty && (
-                <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40 truncate">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-ink/68 truncate">
                   {trainer.specialty}
                 </div>
               )}
@@ -79,16 +79,16 @@ export function TrainerInfoCard({ trainer, onClose }: TrainerInfoCardProps) {
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl serif italic text-accent">
                     ${trainer.discountedRate}
-                    <span className="text-[10px] text-ink/30 not-italic">/hr</span>
+                    <span className="text-[10px] text-ink/60 not-italic">/hr</span>
                   </span>
-                  <span className="text-[10px] text-ink/30 line-through">
+                  <span className="text-[10px] text-ink/60 line-through">
                     ${trainer.rate}/hr
                   </span>
                 </div>
               ) : (
                 <div className="text-xl serif italic text-accent">
                   ${trainer.rate}
-                  <span className="text-[10px] text-ink/30 not-italic">/hr</span>
+                  <span className="text-[10px] text-ink/60 not-italic">/hr</span>
                 </div>
               )}
             </div>
@@ -102,7 +102,7 @@ export function TrainerInfoCard({ trainer, onClose }: TrainerInfoCardProps) {
                 {Number(trainer.rating).toFixed(1)}
               </span>
               {trainer.reviewCount !== undefined && (
-                <span className="text-[11px] text-ink/40">
+                <span className="text-[11px] text-ink/68">
                   ({trainer.reviewCount})
                 </span>
               )}
@@ -120,7 +120,7 @@ export function TrainerInfoCard({ trainer, onClose }: TrainerInfoCardProps) {
           {/* Location type */}
           <div className="flex items-center gap-1.5 mt-2">
             <LocationIcon size={11} color={pinColor} />
-            <span className="text-[10px] uppercase tracking-[0.15em] text-ink/40">
+            <span className="text-[10px] uppercase tracking-[0.15em] text-ink/68">
               {LOCATION_LABELS[trainer.location_type]}
             </span>
           </div>

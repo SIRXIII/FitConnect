@@ -93,8 +93,8 @@ const GoogleCalendarConnect: React.FC<GoogleCalendarConnectProps> = ({ trainerId
     return (
       <div className="bg-white border border-ink/10 rounded-lg p-6">
         <div className="flex items-center gap-3">
-          <Loader2 className="w-4 h-4 animate-spin text-ink/40" />
-          <span className="text-sm text-ink/60">Loading calendar connection...</span>
+          <Loader2 className="w-4 h-4 animate-spin text-ink/68" />
+          <span className="text-sm text-ink/80">Loading calendar connection...</span>
         </div>
       </div>
     );
@@ -126,11 +126,11 @@ const GoogleCalendarConnect: React.FC<GoogleCalendarConnectProps> = ({ trainerId
         </div>
 
         <div className="space-y-1">
-          <p className="text-xs text-ink/70">
+          <p className="text-xs text-ink/85">
             <span className="uppercase tracking-[0.15em] font-medium">Last synced</span>
             {' '}— {lastSynced}
           </p>
-          <p className="text-xs text-ink/70">
+          <p className="text-xs text-ink/85">
             <span className="uppercase tracking-[0.15em] font-medium">Connected since</span>
             {' '}— {connectedSince}
           </p>
@@ -140,7 +140,7 @@ const GoogleCalendarConnect: React.FC<GoogleCalendarConnectProps> = ({ trainerId
           <button
             onClick={handleDisconnect}
             disabled={disconnecting}
-            className="flex items-center gap-2 text-ink/60 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:text-ink disabled:opacity-50"
+            className="flex items-center gap-2 text-ink/80 text-[10px] uppercase tracking-[0.2em] font-medium transition-all duration-300 hover:text-ink disabled:opacity-50"
           >
             {disconnecting ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -164,7 +164,7 @@ const GoogleCalendarConnect: React.FC<GoogleCalendarConnectProps> = ({ trainerId
           </div>
         </div>
 
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-ink/80">
           Your Google Calendar access was revoked. Please reconnect to resume syncing.
         </p>
 
@@ -189,7 +189,7 @@ const GoogleCalendarConnect: React.FC<GoogleCalendarConnectProps> = ({ trainerId
     <div className="bg-white border border-ink/10 rounded-lg p-6 space-y-4">
       <h3 className="text-xl serif font-light italic text-ink">Google Calendar Sync</h3>
 
-      <p className="text-sm text-ink/60">
+      <p className="text-sm text-ink/80">
         Connect your Google Calendar to automatically sync FitRush bookings and block conflicting time slots.
       </p>
 

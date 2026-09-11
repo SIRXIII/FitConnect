@@ -57,12 +57,12 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ steps, currentInd
             className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${
               i <= currentIndex
                 ? 'bg-accent text-white'
-                : 'border border-ink/20 text-ink/30'
+                : 'border border-ink/20 text-ink/60'
             }`}
           >
             {i + 1}
           </div>
-          <span className="text-[8px] sm:text-[9px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-ink/40 mt-1.5 sm:mt-2">
+          <span className="text-[8px] sm:text-[9px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-ink/68 mt-1.5 sm:mt-2">
             {label}
           </span>
         </div>
@@ -234,7 +234,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
     <div className="space-y-10">
       <div className="space-y-2">
         <h1 className="text-3xl serif font-light italic text-ink">Book Session</h1>
-        <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
+        <p className="text-xs uppercase tracking-[0.3em] text-ink/68">
           {currentStepName === 'Review'
             ? 'Review Details'
             : currentStepName === 'Confirm'

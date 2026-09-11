@@ -1337,7 +1337,7 @@ const AdminDashboard: React.FC = () => {
         {/* Header */}
         <div className="space-y-4">
           <h1 className="text-3xl serif font-light italic text-ink">Admin Dashboard</h1>
-          <p className="text-xs uppercase tracking-[0.3em] text-ink/70">Platform Control</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-ink/85">Platform Control</p>
         </div>
 
         {/* Tabs */}
@@ -1349,7 +1349,7 @@ const AdminDashboard: React.FC = () => {
               className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors ${
                 activeTab === tab
                   ? 'border-b-2 border-ink text-ink -mb-px'
-                  : 'text-ink/70 hover:text-ink'
+                  : 'text-ink/85 hover:text-ink'
               }`}
             >
               {tab}
@@ -1360,7 +1360,7 @@ const AdminDashboard: React.FC = () => {
             className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors relative ${
               activeTab === 'support'
                 ? 'border-b-2 border-ink text-ink -mb-px'
-                : 'text-ink/70 hover:text-ink'
+                : 'text-ink/85 hover:text-ink'
             }`}
           >
             support
@@ -1375,7 +1375,7 @@ const AdminDashboard: React.FC = () => {
             className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors relative ${
               activeTab === 'pending-trainers'
                 ? 'border-b-2 border-ink text-ink -mb-px'
-                : 'text-ink/70 hover:text-ink'
+                : 'text-ink/85 hover:text-ink'
             }`}
           >
             pending trainers
@@ -1390,7 +1390,7 @@ const AdminDashboard: React.FC = () => {
             className={`px-8 py-3 text-[10px] uppercase tracking-[0.25em] font-medium transition-colors ${
               activeTab === 'sessions'
                 ? 'border-b-2 border-ink text-ink -mb-px'
-                : 'text-ink/70 hover:text-ink'
+                : 'text-ink/85 hover:text-ink'
             }`}
           >
             sessions
@@ -1418,7 +1418,7 @@ const AdminDashboard: React.FC = () => {
                           className={`px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-medium transition-colors ${
                             adminRange === r
                               ? 'border-b-2 border-ink text-ink -mb-px'
-                              : 'text-ink/70 hover:text-ink'
+                              : 'text-ink/85 hover:text-ink'
                           }`}
                         >
                           {r}
@@ -1426,16 +1426,16 @@ const AdminDashboard: React.FC = () => {
                       ))}
                     </div>
                     <div className="text-right pb-2 pr-1">
-                      <p className="text-xs tabular-nums text-ink/70">{periodLabel}</p>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60 mt-1">Compared to prior {priorLabel}</p>
+                      <p className="text-xs tabular-nums text-ink/85">{periodLabel}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/80 mt-1">Compared to prior {priorLabel}</p>
                     </div>
                   </div>
                   {attention && (attention.past_due_subs > 0 || attention.payout_backlog_trainers > 0 || attention.comp_no_shows > 0) && (
                     <div className="flex flex-wrap gap-x-7 gap-y-2 items-center border border-amber-700/30 bg-amber-700/[0.04] px-5 py-3.5">
                       <span className="text-[10px] uppercase tracking-[0.2em] text-amber-700 font-semibold">Needs attention</span>
-                      {attention.past_due_subs > 0 && <span className="text-xs text-ink/70"><b className="text-ink tabular-nums font-semibold">{attention.past_due_subs}</b> subscription{attention.past_due_subs === 1 ? '' : 's'} past due</span>}
-                      {attention.payout_backlog_trainers > 0 && <span className="text-xs text-ink/70"><b className="text-ink tabular-nums font-semibold">${attention.payout_backlog_total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</b> payout backlog ({attention.payout_backlog_trainers} trainer{attention.payout_backlog_trainers === 1 ? '' : 's'})</span>}
-                      {attention.comp_no_shows > 0 && <span className="text-xs text-ink/70"><b className="text-ink tabular-nums font-semibold">{attention.comp_no_shows}</b> comp no-show{attention.comp_no_shows === 1 ? '' : 's'} this period</span>}
+                      {attention.past_due_subs > 0 && <span className="text-xs text-ink/85"><b className="text-ink tabular-nums font-semibold">{attention.past_due_subs}</b> subscription{attention.past_due_subs === 1 ? '' : 's'} past due</span>}
+                      {attention.payout_backlog_trainers > 0 && <span className="text-xs text-ink/85"><b className="text-ink tabular-nums font-semibold">${attention.payout_backlog_total.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</b> payout backlog ({attention.payout_backlog_trainers} trainer{attention.payout_backlog_trainers === 1 ? '' : 's'})</span>}
+                      {attention.comp_no_shows > 0 && <span className="text-xs text-ink/85"><b className="text-ink tabular-nums font-semibold">{attention.comp_no_shows}</b> comp no-show{attention.comp_no_shows === 1 ? '' : 's'} this period</span>}
                     </div>
                   )}
                 </>
@@ -1454,7 +1454,7 @@ const AdminDashboard: React.FC = () => {
                   const d = prev && prev > 0 && val != null ? ((val - prev) / prev) * 100 : undefined;
                   return (
                     <div key={label} className="border border-ink/10 p-10 space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60 font-medium">{label}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/80 font-medium">{label}</p>
                       {loadingAdminAnalytics || val == null ? (
                         <div className="h-12 w-28 bg-ink/[0.04] rounded animate-pulse" />
                       ) : (
@@ -1463,7 +1463,7 @@ const AdminDashboard: React.FC = () => {
                         </p>
                       )}
                       {d !== undefined && !loadingAdminAnalytics && (
-                        <p className={`text-xs font-medium tabular-nums ${d > 0 ? 'text-green-600' : d < 0 ? 'text-red-500' : 'text-ink/40'}`}>
+                        <p className={`text-xs font-medium tabular-nums ${d > 0 ? 'text-green-600' : d < 0 ? 'text-red-500' : 'text-ink/68'}`}>
                           {d > 0 ? `↑ ${d.toFixed(1)}%` : d < 0 ? `↓ ${Math.abs(d).toFixed(1)}%` : '—'} vs prev period
                         </p>
                       )}
@@ -1479,9 +1479,9 @@ const AdminDashboard: React.FC = () => {
             {/* Onboarding Funnel */}
             <div className="space-y-3">
               <div className="flex items-baseline justify-between">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Onboarding Funnel</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Onboarding Funnel</p>
                 {!loadingFreeMetrics && freeMetrics && (freeMetrics.new_clients ?? 0) > 0 && (
-                  <p className="text-xs tabular-nums text-ink/50">
+                  <p className="text-xs tabular-nums text-ink/75">
                     End-to-end{' '}
                     <span className="font-medium text-accent">
                       {Math.round(((freeMetrics.converted_paid ?? 0) / (freeMetrics.new_clients ?? 1)) * 100)}%
@@ -1507,13 +1507,13 @@ const AdminDashboard: React.FC = () => {
                   const top = Math.max(newClients, 1);
                   return stages.map((s) => (
                     <div key={s.name} className="flex items-center gap-4">
-                      <span className="w-32 text-right text-[11px] uppercase tracking-[0.12em] text-ink/70">{s.name}</span>
+                      <span className="w-32 text-right text-[11px] uppercase tracking-[0.12em] text-ink/85">{s.name}</span>
                       <div className="flex-1 flex items-center gap-3">
                         <div className={`h-8 flex items-center px-3 ${s.last ? 'bg-accent text-ink' : 'bg-ink text-paper'}`} style={{ width: `${Math.max((s.value / top) * 100, 6)}%` }}>
                           <span className="text-xs tabular-nums font-semibold">{loadingFreeMetrics || !freeMetrics ? '' : s.value}</span>
                         </div>
                       </div>
-                      <span className="w-24 text-[11px] text-ink/60 tabular-nums">{s.conv ?? ''}</span>
+                      <span className="w-24 text-[11px] text-ink/80 tabular-nums">{s.conv ?? ''}</span>
                     </div>
                   ));
                 })()}
@@ -1522,20 +1522,20 @@ const AdminDashboard: React.FC = () => {
 
             {/* Free Sessions Summary */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Free Sessions</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Free Sessions</p>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <StatCard icon={<Wallet size={18} strokeWidth={1.5} />} label="Granted" value={String(freeMetrics?.credits_granted ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
                 <StatCard icon={<Activity size={18} strokeWidth={1.5} />} label="Available" value={String(freeMetrics?.credits_available ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
                 <StatCard icon={<Zap size={18} strokeWidth={1.5} />} label="Redeemed" value={String(freeMetrics?.credits_redeemed ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
                 <StatCard icon={<AlertTriangle size={18} strokeWidth={1.5} />} label="No-shows" value={String(freeMetrics?.comp_no_shows ?? 0)} loading={loadingFreeMetrics || !freeMetrics} />
                 <div className="border border-ink/10 p-8 space-y-4">
-                  <div className="text-ink/30"><DollarSign size={18} strokeWidth={1.5} /></div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Cost</p>
+                  <div className="text-ink/60"><DollarSign size={18} strokeWidth={1.5} /></div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Comp Cost</p>
                   <p className="text-3xl font-semibold tabular-nums tracking-tight text-ink">
                     {loadingFreeMetrics || !freeMetrics ? '—' : `$${freeMetrics.comp_cost_total.toFixed(2)}`}
                   </p>
                   {freeMetrics && (
-                    <p className="text-[10px] text-ink/60">unpaid: ${freeMetrics.comp_cost_unpaid.toFixed(2)}</p>
+                    <p className="text-[10px] text-ink/80">unpaid: ${freeMetrics.comp_cost_unpaid.toFixed(2)}</p>
                   )}
                 </div>
               </div>
@@ -1573,24 +1573,24 @@ const AdminDashboard: React.FC = () => {
 
             {/* Revenue Trend */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Revenue Trend</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Revenue Trend</p>
               <div className="border border-ink/10 p-6">
                 {timeSeries.length === 0 ? (
-                  <p className="text-xs text-ink/30 text-center py-16">No data for this period</p>
+                  <p className="text-xs text-ink/60 text-center py-16">No data for this period</p>
                 ) : (
                   <>
                   <div className="flex items-center gap-6 mb-4">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-px bg-accent" />
-                      <span className="text-[10px] text-ink/50">Revenue</span>
+                      <span className="text-[10px] text-ink/75">Revenue</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-px bg-ink/25" />
-                      <span className="text-[10px] text-ink/50">Platform Fees</span>
+                      <span className="text-[10px] text-ink/75">Platform Fees</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 border-t border-dashed border-ink/30" />
-                      <span className="text-[10px] text-ink/50">Prior period</span>
+                      <span className="text-[10px] text-ink/75">Prior period</span>
                     </div>
                   </div>
                   {(() => {
@@ -1652,7 +1652,7 @@ const AdminDashboard: React.FC = () => {
 
             {/* Subscription Health */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Subscription Health</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Subscription Health</p>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
                   icon={<TrendingUp size={18} strokeWidth={1.5} />}
@@ -1684,13 +1684,13 @@ const AdminDashboard: React.FC = () => {
 
             {/* Top Earners table */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Top Earners</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Top Earners</p>
               <div className="border border-ink/10">
                 <div className="grid grid-cols-[2fr_1fr_1fr_80px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Gross</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Net</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Bookings</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Trainer</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Gross</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Net</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Bookings</p>
                 </div>
                 {loadingAdminAnalytics ? (
                   <div className="px-6 py-8 text-center">
@@ -1698,7 +1698,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 ) : topEarners.length === 0 ? (
                   <div className="px-6 py-8 text-center">
-                    <p className="text-xs text-ink/50">No completed bookings in this period</p>
+                    <p className="text-xs text-ink/75">No completed bookings in this period</p>
                   </div>
                 ) : (
                   topEarners.map((row, i) => (
@@ -1709,7 +1709,7 @@ const AdminDashboard: React.FC = () => {
                       <p className="text-sm text-ink">{row.trainer_name}</p>
                       <p className="text-sm text-ink">${row.gross.toFixed(2)}</p>
                       <p className="text-sm text-ink font-medium">${row.net.toFixed(2)}</p>
-                      <p className="text-sm text-ink/60">{row.bookings_count}</p>
+                      <p className="text-sm text-ink/80">{row.bookings_count}</p>
                     </div>
                   ))
                 )}
@@ -1724,7 +1724,7 @@ const AdminDashboard: React.FC = () => {
             {/* Filters row */}
             <div className="flex flex-wrap items-center gap-6">
               <div className="flex items-center gap-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status:</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Status:</p>
                 {['all', 'succeeded', 'pending', 'processing', 'failed', 'refunded'].map((s) => (
                   <button
                     key={s}
@@ -1732,7 +1732,7 @@ const AdminDashboard: React.FC = () => {
                     className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
                       txStatusFilter === s
                         ? 'border-ink text-ink bg-ink/5'
-                        : 'border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30'
+                        : 'border-ink/10 text-ink/85 hover:text-ink hover:border-ink/30'
                     }`}
                   >
                     {s}
@@ -1740,7 +1740,7 @@ const AdminDashboard: React.FC = () => {
                 ))}
               </div>
               <div className="flex items-center gap-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Type:</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Type:</p>
                 {(['all', 'paid', 'comp'] as const).map((t) => (
                   <button
                     key={t}
@@ -1748,7 +1748,7 @@ const AdminDashboard: React.FC = () => {
                     className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
                       txCompFilter === t
                         ? 'border-ink text-ink bg-ink/5'
-                        : 'border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30'
+                        : 'border-ink/10 text-ink/85 hover:text-ink hover:border-ink/30'
                     }`}
                   >
                     {t}
@@ -1770,11 +1770,11 @@ const AdminDashboard: React.FC = () => {
               const compCount = visible.filter((tx) => tx.is_comp).length;
               return (
                 <div className="flex flex-wrap gap-6 border border-ink/10 bg-ink/[0.02] px-6 py-3">
-                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Showing <b className="text-ink">{visible.length}</b> rows</span>
-                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Charged <b className="text-ink">${totalCharged.toFixed(2)}</b></span>
-                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Fees <b className="text-ink">${totalFees.toFixed(2)}</b></span>
-                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Payouts <b className="text-ink">${totalPayouts.toFixed(2)}</b></span>
-                  <span className="text-[10px] text-ink/60 uppercase tracking-[0.15em]">Comp <b className="text-amber-600">{compCount}</b></span>
+                  <span className="text-[10px] text-ink/80 uppercase tracking-[0.15em]">Showing <b className="text-ink">{visible.length}</b> rows</span>
+                  <span className="text-[10px] text-ink/80 uppercase tracking-[0.15em]">Charged <b className="text-ink">${totalCharged.toFixed(2)}</b></span>
+                  <span className="text-[10px] text-ink/80 uppercase tracking-[0.15em]">Fees <b className="text-ink">${totalFees.toFixed(2)}</b></span>
+                  <span className="text-[10px] text-ink/80 uppercase tracking-[0.15em]">Payouts <b className="text-ink">${totalPayouts.toFixed(2)}</b></span>
+                  <span className="text-[10px] text-ink/80 uppercase tracking-[0.15em]">Comp <b className="text-amber-600">{compCount}</b></span>
                 </div>
               );
             })()}
@@ -1782,14 +1782,14 @@ const AdminDashboard: React.FC = () => {
             {/* Transaction table */}
             <div className="border border-ink/10">
               <div className="grid grid-cols-[1fr_1fr_80px_100px_100px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Client</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Type</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Charged</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Fee</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Payout</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Date</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Client</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Trainer</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Type</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Charged</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Fee</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Payout</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Status</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Date</p>
               </div>
 
               {loadingTransactions ? (
@@ -1798,7 +1798,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
               ) : transactions.length === 0 ? (
                 <div className="px-6 py-12 text-center">
-                  <p className="text-xs text-ink/50">No transactions found</p>
+                  <p className="text-xs text-ink/75">No transactions found</p>
                 </div>
               ) : (
                 transactions
@@ -1815,22 +1815,22 @@ const AdminDashboard: React.FC = () => {
                     <p className="text-sm text-ink truncate">{tx.client_name}</p>
                     <p className="text-sm text-ink truncate">{tx.trainer_name}</p>
                     <span className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium ${
-                      tx.is_comp ? 'bg-amber-50 text-amber-600' : 'bg-ink/5 text-ink/50'
+                      tx.is_comp ? 'bg-amber-50 text-amber-600' : 'bg-ink/5 text-ink/75'
                     }`}>
                       {tx.is_comp ? 'Comp' : 'Paid'}
                     </span>
                     <p className="text-sm text-ink tabular-nums">${tx.amount.toFixed(2)}</p>
-                    <p className="text-sm text-ink/60 tabular-nums">${tx.platform_fee.toFixed(2)}</p>
+                    <p className="text-sm text-ink/80 tabular-nums">${tx.platform_fee.toFixed(2)}</p>
                     <p className="text-sm text-ink tabular-nums">${(tx.trainer_payout > 0 ? tx.trainer_payout : tx.amount - tx.platform_fee).toFixed(2)}</p>
                     <span className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium ${
                       tx.status === 'succeeded' ? 'bg-emerald-50 text-emerald-600' :
                       tx.status === 'failed' ? 'bg-red-50 text-red-600' :
                       tx.status === 'refunded' ? 'bg-amber-50 text-amber-600' :
-                      'bg-ink/5 text-ink/50'
+                      'bg-ink/5 text-ink/75'
                     }`}>
                       {tx.status}
                     </span>
-                    <p className="text-xs text-ink/70">{new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                    <p className="text-xs text-ink/85">{new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                   </div>
                 ))
               )}
@@ -1842,7 +1842,7 @@ const AdminDashboard: React.FC = () => {
                 <button
                   onClick={() => fetchTransactions(txOffset, true)}
                   disabled={loadingTransactions}
-                  className="px-8 py-2 text-[10px] uppercase tracking-[0.2em] font-medium border border-ink/10 text-ink/60 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-50"
+                  className="px-8 py-2 text-[10px] uppercase tracking-[0.2em] font-medium border border-ink/10 text-ink/80 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-50"
                 >
                   Load More
                 </button>
@@ -1861,7 +1861,7 @@ const AdminDashboard: React.FC = () => {
               return (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Balance Summary</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Balance Summary</p>
                     <div className="flex items-center gap-3">
                       {stripeBalance && !stripeBalance.livemode && (
                         <span className="text-[10px] uppercase tracking-wider font-medium text-amber-700 border border-amber-400/40 px-2 py-0.5">
@@ -1871,7 +1871,7 @@ const AdminDashboard: React.FC = () => {
                       <button
                         onClick={fetchStripeBalance}
                         disabled={loadingStripeBalance}
-                        className="text-[10px] uppercase tracking-[0.15em] text-ink/50 hover:text-ink disabled:opacity-40 transition-colors"
+                        className="text-[10px] uppercase tracking-[0.15em] text-ink/75 hover:text-ink disabled:opacity-40 transition-colors"
                       >
                         {loadingStripeBalance ? 'Refreshing...' : 'Refresh'}
                       </button>
@@ -1880,41 +1880,41 @@ const AdminDashboard: React.FC = () => {
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="border border-ink/10 px-6 py-5">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Available Now</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/75 font-medium">Available Now</p>
                       <p className="text-2xl serif font-light text-ink tabular-nums mt-1">
                         {stripeBalance ? formatCents(funding.availableCents) : '—'}
                       </p>
-                      <p className="text-[10px] text-ink/40 mt-1">Transferable from Stripe today</p>
+                      <p className="text-[10px] text-ink/68 mt-1">Transferable from Stripe today</p>
                     </div>
                     <div className="border border-ink/10 px-6 py-5">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Pending Settlement</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/75 font-medium">Pending Settlement</p>
                       <p className="text-2xl serif font-light text-ink tabular-nums mt-1">
                         {stripeBalance ? formatCents(funding.pendingCents) : '—'}
                       </p>
-                      <p className="text-[10px] text-ink/40 mt-1">Paid by clients, clears in ~2 business days</p>
+                      <p className="text-[10px] text-ink/68 mt-1">Paid by clients, clears in ~2 business days</p>
                     </div>
                     <div className="border border-ink/10 px-6 py-5">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Releasable</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/75 font-medium">Releasable</p>
                       <p className="text-2xl serif font-light text-ink tabular-nums mt-1">
                         {formatCents(funding.releasableCents)}
                       </p>
-                      <p className="text-[10px] text-ink/40 mt-1">Owed for completed sessions, excludes holds</p>
+                      <p className="text-[10px] text-ink/68 mt-1">Owed for completed sessions, excludes holds</p>
                     </div>
                     <div className={`border px-6 py-5 ${funding.shortfallCents > 0 ? 'border-red-400/40 bg-red-50/40' : 'border-ink/10'}`}>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">Shortfall</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/75 font-medium">Shortfall</p>
                       <p className={`text-2xl serif font-light tabular-nums mt-1 ${funding.shortfallCents > 0 ? 'text-red-600' : 'text-ink'}`}>
                         {stripeBalance ? formatCents(funding.shortfallCents) : '—'}
                       </p>
-                      <p className="text-[10px] text-ink/40 mt-1">Missing before every release clears</p>
+                      <p className="text-[10px] text-ink/68 mt-1">Missing before every release clears</p>
                     </div>
                   </div>
 
                   {loadingStripeBalance ? (
-                    <p className="text-xs text-ink/50">Reading Stripe balance...</p>
+                    <p className="text-xs text-ink/75">Reading Stripe balance...</p>
                   ) : stripeBalanceError ? (
                     <p className="text-xs text-red-600">Stripe balance unavailable: {stripeBalanceError}</p>
                   ) : funding.releasableCents === 0 ? (
-                    <p className="text-xs text-ink/50">Nothing is awaiting release right now.</p>
+                    <p className="text-xs text-ink/75">Nothing is awaiting release right now.</p>
                   ) : funding.canReleaseAll ? (
                     <p className="text-xs text-emerald-700">
                       Funded. {formatCents(funding.releasableCents)} can be released now.
@@ -1949,13 +1949,13 @@ const AdminDashboard: React.FC = () => {
 
             {/* Comp Sessions Owed */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Sessions — Platform Owes</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Comp Sessions — Platform Owes</p>
               <div className="border border-ink/10">
                 <div className="grid grid-cols-[2fr_100px_120px_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Comp Sessions</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Owed</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Stripe</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Trainer</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Comp Sessions</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Owed</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Stripe</p>
                 </div>
                 {loadingCompOwed ? (
                   <div className="px-6 py-8 text-center">
@@ -1963,7 +1963,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 ) : compOwed.length === 0 ? (
                   <div className="px-6 py-8 text-center">
-                    <p className="text-xs text-ink/50">No comp sessions owed.</p>
+                    <p className="text-xs text-ink/75">No comp sessions owed.</p>
                   </div>
                 ) : (
                   compOwed.map((row) => (
@@ -1985,15 +1985,15 @@ const AdminDashboard: React.FC = () => {
 
             {/* Pending Balances */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer Pending Balances</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Trainer Pending Balances</p>
               <div className="border border-ink/10">
                 <div className="grid grid-cols-[2fr_110px_120px_90px_100px_260px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Trainer</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Releasable</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium" title="Payment received but session not yet marked complete">Awaiting Session</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Bookings</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Stripe</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Actions</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Trainer</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Releasable</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium" title="Payment received but session not yet marked complete">Awaiting Session</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Bookings</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Stripe</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Actions</p>
                 </div>
 
                 {loadingPayouts ? (
@@ -2002,7 +2002,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 ) : payoutBalances.length === 0 ? (
                   <div className="px-6 py-12 text-center">
-                    <p className="text-xs text-ink/50">No pending payout balances</p>
+                    <p className="text-xs text-ink/75">No pending payout balances</p>
                   </div>
                 ) : (
                   payoutBalances.map((b) => (
@@ -2022,17 +2022,17 @@ const AdminDashboard: React.FC = () => {
                         )}
                       </div>
                       <p className="text-sm text-ink font-medium tabular-nums">${Number(b.releasable_balance).toFixed(2)}</p>
-                      <p className="text-xs text-ink/40 tabular-nums" title="Payment received but session not yet marked complete">
+                      <p className="text-xs text-ink/68 tabular-nums" title="Payment received but session not yet marked complete">
                         ${Number(b.not_yet_completed_balance).toFixed(2)}
                       </p>
-                      <p className="text-sm text-ink/60">{b.releasable_booking_count}</p>
+                      <p className="text-sm text-ink/80">{b.releasable_booking_count}</p>
                       <span className={`text-[10px] uppercase tracking-wider font-medium ${b.stripe_account_id ? 'text-emerald-600' : 'text-red-500'}`}>
                         {b.stripe_account_id ? 'Connected' : 'None'}
                       </span>
                       <div className="flex gap-2">
                         <button
                           onClick={() => setSessionsModalTrainer(b)}
-                          className="px-3 py-1 text-[10px] uppercase tracking-wider font-medium bg-ink/5 text-ink/70 hover:bg-ink/10 transition-colors"
+                          className="px-3 py-1 text-[10px] uppercase tracking-wider font-medium bg-ink/5 text-ink/85 hover:bg-ink/10 transition-colors"
                         >
                           View
                         </button>
@@ -2068,14 +2068,14 @@ const AdminDashboard: React.FC = () => {
 
             {/* Payout History */}
             <div className="space-y-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Payout History</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Payout History</p>
               <div className="border border-ink/10">
                 <div className="grid grid-cols-[1fr_120px_100px_100px_140px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">ID</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Amount</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Initiated</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Date</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">ID</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Amount</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Status</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Initiated</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Date</p>
                 </div>
                 {loadingPayoutHistory ? (
                   <div className="px-6 py-8 text-center">
@@ -2083,7 +2083,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 ) : payoutHistory.length === 0 ? (
                   <div className="px-6 py-8 text-center">
-                    <p className="text-xs text-ink/50">No payout history</p>
+                    <p className="text-xs text-ink/75">No payout history</p>
                   </div>
                 ) : (
                   payoutHistory.map((ph) => (
@@ -2091,18 +2091,18 @@ const AdminDashboard: React.FC = () => {
                       key={ph.id}
                       className="grid grid-cols-[1fr_120px_100px_100px_140px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors last:border-0"
                     >
-                      <p className="text-xs text-ink/50 font-mono truncate">{ph.id.slice(0, 8)}...</p>
+                      <p className="text-xs text-ink/75 font-mono truncate">{ph.id.slice(0, 8)}...</p>
                       <p className="text-sm text-ink font-medium tabular-nums">${Number(ph.amount).toFixed(2)}</p>
                       <span className={`inline-block px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium ${
                         ph.status === 'completed' ? 'bg-emerald-50 text-emerald-600' :
                         ph.status === 'failed' ? 'bg-red-50 text-red-600' :
                         ph.status === 'held' ? 'bg-amber-50 text-amber-600' :
-                        'bg-ink/5 text-ink/50'
+                        'bg-ink/5 text-ink/75'
                       }`}>
                         {ph.status}
                       </span>
-                      <p className="text-xs text-ink/70">{ph.initiated_by_admin?.full_name ?? 'system'}</p>
-                      <p className="text-xs text-ink/70">{new Date(ph.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      <p className="text-xs text-ink/85">{ph.initiated_by_admin?.full_name ?? 'system'}</p>
+                      <p className="text-xs text-ink/85">{new Date(ph.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
                   ))
                 )}
@@ -2117,7 +2117,7 @@ const AdminDashboard: React.FC = () => {
             {/* Filters row */}
             <div className="flex flex-wrap items-center gap-4">
               <div className="relative max-w-sm flex-1">
-                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
+                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/60" />
                 <input
                   type="text"
                   placeholder="Search by name or email..."
@@ -2136,7 +2136,7 @@ const AdminDashboard: React.FC = () => {
                     className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border transition-colors ${
                       roleFilter === r
                         ? 'border-ink text-ink bg-ink/5'
-                        : 'border-ink/10 text-ink/70 hover:text-ink'
+                        : 'border-ink/10 text-ink/85 hover:text-ink'
                     }`}
                   >
                     {r}
@@ -2153,7 +2153,7 @@ const AdminDashboard: React.FC = () => {
                     className={`px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border transition-colors ${
                       statusFilter === s
                         ? 'border-ink text-ink bg-ink/5'
-                        : 'border-ink/10 text-ink/70 hover:text-ink'
+                        : 'border-ink/10 text-ink/85 hover:text-ink'
                     }`}
                   >
                     {s}
@@ -2165,7 +2165,7 @@ const AdminDashboard: React.FC = () => {
             {/* Bulk complimentary-intro bar (trainer rows only) */}
             {roleFilter === 'trainer' && (
               <div className="flex flex-wrap items-center gap-4 px-6 py-3 border border-ink/10 bg-ink/[0.02]">
-                <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 cursor-pointer">
+                <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/85 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={selectAllVisibleTrainers}
@@ -2176,14 +2176,14 @@ const AdminDashboard: React.FC = () => {
                 <button
                   onClick={() => handleBulkSetOffersFreeIntro(true)}
                   disabled={!selectAllVisibleTrainers || users.length === 0}
-                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/85 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Enable free intro
                 </button>
                 <button
                   onClick={() => handleBulkSetOffersFreeIntro(false)}
                   disabled={!selectAllVisibleTrainers || users.length === 0}
-                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/85 hover:text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Disable free intro
                 </button>
@@ -2193,17 +2193,17 @@ const AdminDashboard: React.FC = () => {
             <div className="border border-ink/10">
               {/* Table header */}
               <div className="grid grid-cols-[1fr_180px_120px_80px_100px_100px_100px_120px_140px_110px_80px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Name</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Email</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Phone</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Role</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Tier</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Joined</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Last Login</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Override</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Free Intro</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Detail</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Name</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Email</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Phone</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Role</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Tier</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Joined</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Last Login</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Status</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Override</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Free Intro</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Detail</p>
               </div>
 
               {loadingUsers ? (
@@ -2212,7 +2212,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
               ) : users.length === 0 ? (
                 <div className="px-6 py-12 text-center">
-                  <p className="text-xs text-ink/50">No users found</p>
+                  <p className="text-xs text-ink/75">No users found</p>
                 </div>
               ) : (
                 users.map((user) => (
@@ -2233,21 +2233,21 @@ const AdminDashboard: React.FC = () => {
                               if (fallback) fallback.style.display = 'flex';
                             }}
                           />
-                          <div className="hidden w-8 h-8 rounded-full bg-ink/10 items-center justify-center text-[10px] text-ink/50 font-medium shrink-0">
+                          <div className="hidden w-8 h-8 rounded-full bg-ink/10 items-center justify-center text-[10px] text-ink/75 font-medium shrink-0">
                             {(user.full_name?.trim()?.charAt(0) || '?').toUpperCase()}
                           </div>
                         </>
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-ink/10 flex items-center justify-center text-[10px] text-ink/50 font-medium shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-ink/10 flex items-center justify-center text-[10px] text-ink/75 font-medium shrink-0">
                           {(user.full_name?.trim()?.charAt(0) || '?').toUpperCase()}
                         </div>
                       )}
-                      <p className={`text-sm font-medium truncate ${user.is_suspended ? 'text-ink/50 line-through' : 'text-ink'}`}>
+                      <p className={`text-sm font-medium truncate ${user.is_suspended ? 'text-ink/75 line-through' : 'text-ink'}`}>
                         {user.full_name || '—'}
                       </p>
                     </div>
-                    <p className="text-xs text-ink/50 truncate">{user.email ?? '—'}</p>
-                    <p className="text-xs text-ink/50 truncate">
+                    <p className="text-xs text-ink/75 truncate">{user.email ?? '—'}</p>
+                    <p className="text-xs text-ink/75 truncate">
                       {user.phone?.trim() ? (
                         <a href={`tel:${user.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">
                           {user.phone}
@@ -2256,7 +2256,7 @@ const AdminDashboard: React.FC = () => {
                         '—'
                       )}
                     </p>
-                    <p className="text-[10px] uppercase tracking-widest text-ink/50">{user.role}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-ink/75">{user.role}</p>
                     <div>
                       {user.role === 'trainer' && user.subscription_tier ? (
                         <TierBadge
@@ -2265,10 +2265,10 @@ const AdminDashboard: React.FC = () => {
                         />
                       ) : null}
                     </div>
-                    <p className="text-[10px] text-ink/70">
+                    <p className="text-[10px] text-ink/85">
                       {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
-                    <p className="text-xs text-ink/70">
+                    <p className="text-xs text-ink/85">
                       {user.last_sign_in_at
                         ? new Date(user.last_sign_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                         : 'Never'}
@@ -2295,14 +2295,14 @@ const AdminDashboard: React.FC = () => {
                               <button
                                 key={t}
                                 onClick={() => handleOverride(user.id, t)}
-                                className="text-[10px] uppercase tracking-widest font-medium text-ink/50 hover:text-ink transition-colors"
+                                className="text-[10px] uppercase tracking-widest font-medium text-ink/75 hover:text-ink transition-colors"
                               >
                                 {t}
                               </button>
                             ))}
                             <button
                               onClick={() => setOverridingUserId(null)}
-                              className="text-[10px] uppercase tracking-widest font-medium text-ink/20 hover:text-ink/50 transition-colors ml-1"
+                              className="text-[10px] uppercase tracking-widest font-medium text-ink/45 hover:text-ink/75 transition-colors ml-1"
                             >
                               x
                             </button>
@@ -2311,7 +2311,7 @@ const AdminDashboard: React.FC = () => {
                           <div className="space-y-0.5">
                             <button
                               onClick={() => setOverridingUserId(user.id)}
-                              className="text-[10px] uppercase tracking-widest font-medium text-ink/50 hover:text-ink transition-colors"
+                              className="text-[10px] uppercase tracking-widest font-medium text-ink/75 hover:text-ink transition-colors"
                             >
                               Override
                             </button>
@@ -2331,7 +2331,7 @@ const AdminDashboard: React.FC = () => {
                           className={`flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors ${
                             user.offers_free_intro
                               ? 'text-green-600 hover:text-green-700'
-                              : 'text-ink/50 hover:text-ink'
+                              : 'text-ink/75 hover:text-ink'
                           }`}
                         >
                           {user.offers_free_intro ? 'On' : 'Off'}
@@ -2343,7 +2343,7 @@ const AdminDashboard: React.FC = () => {
                         <button
                           data-testid="view-trainer-btn"
                           onClick={() => openTrainerDetail(user.id)}
-                          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/50 hover:text-ink transition-colors"
+                          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/75 hover:text-ink transition-colors"
                         >
                           <Eye size={12} /> View
                         </button>
@@ -2352,7 +2352,7 @@ const AdminDashboard: React.FC = () => {
                         <button
                           data-testid="view-client-btn"
                           onClick={() => openClientDetail(user.id)}
-                          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/50 hover:text-ink transition-colors"
+                          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/75 hover:text-ink transition-colors"
                         >
                           <Eye size={12} /> View
                         </button>
@@ -2369,18 +2369,18 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <Flag size={16} strokeWidth={1.5} className="text-ink/40" />
-              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">
+              <Flag size={16} strokeWidth={1.5} className="text-ink/68" />
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">
                 Flagged Reviews ({flaggedReviews.length})
               </p>
             </div>
 
             {loadingReviews ? (
-              <div className="text-center py-16 text-ink/50 text-xs uppercase tracking-widest">Loading…</div>
+              <div className="text-center py-16 text-ink/75 text-xs uppercase tracking-widest">Loading…</div>
             ) : flaggedReviews.length === 0 ? (
               <div className="text-center py-16 border border-ink/10 space-y-2">
                 <Flag size={24} className="mx-auto text-ink/15" strokeWidth={1} />
-                <p className="text-xs text-ink/50 uppercase tracking-widest">No flagged reviews</p>
+                <p className="text-xs text-ink/75 uppercase tracking-widest">No flagged reviews</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -2392,20 +2392,20 @@ const AdminDashboard: React.FC = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] uppercase tracking-widest text-ink/70">
+                          <span className="text-[10px] uppercase tracking-widest text-ink/85">
                             Client: {review.client?.full_name ?? '—'}
                           </span>
-                          <span className="text-ink/20">·</span>
-                          <span className="text-[10px] uppercase tracking-widest text-ink/70">
+                          <span className="text-ink/45">·</span>
+                          <span className="text-[10px] uppercase tracking-widest text-ink/85">
                             Trainer: {review.trainer?.profiles?.full_name ?? 'Unknown'}
                           </span>
-                          <span className="text-ink/20">·</span>
-                          <span className="text-[10px] text-ink/50">
+                          <span className="text-ink/45">·</span>
+                          <span className="text-[10px] text-ink/75">
                             {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                           </span>
                         </div>
                         {review.comment && (
-                          <p className="text-sm text-ink/60 leading-relaxed">{review.comment}</p>
+                          <p className="text-sm text-ink/80 leading-relaxed">{review.comment}</p>
                         )}
                         <p className="text-[10px] text-ink/25">
                           {new Date(review.created_at).toLocaleDateString('en-US', {
@@ -2436,8 +2436,8 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'audit' && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <ScrollText size={16} strokeWidth={1.5} className="text-ink/40" />
-              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">
+              <ScrollText size={16} strokeWidth={1.5} className="text-ink/68" />
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">
                 Audit Log
               </p>
             </div>
@@ -2445,12 +2445,12 @@ const AdminDashboard: React.FC = () => {
             <div className="border border-ink/10">
               {/* Table header */}
               <div className="grid grid-cols-[140px_1fr_100px_120px_100px_1fr] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Date</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Actor</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Action</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Table</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Record ID</p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Changes</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Date</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Actor</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Action</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Table</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Record ID</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Changes</p>
               </div>
 
               {loadingAudit ? (
@@ -2460,7 +2460,7 @@ const AdminDashboard: React.FC = () => {
               ) : auditLogs.length === 0 ? (
                 <div className="px-6 py-12 text-center space-y-2">
                   <ScrollText size={24} className="mx-auto text-ink/15" strokeWidth={1} />
-                  <p className="text-xs text-ink/50 uppercase tracking-widest">No audit events recorded yet</p>
+                  <p className="text-xs text-ink/75 uppercase tracking-widest">No audit events recorded yet</p>
                 </div>
               ) : (
                 auditLogs.map((entry) => (
@@ -2468,7 +2468,7 @@ const AdminDashboard: React.FC = () => {
                     key={entry.id}
                     className="grid grid-cols-[140px_1fr_100px_120px_100px_1fr] gap-4 px-6 py-4 border-b border-ink/5 items-start hover:bg-ink/[0.02] transition-colors last:border-0"
                   >
-                    <p className="text-[10px] text-ink/70">
+                    <p className="text-[10px] text-ink/85">
                       {new Date(entry.created_at).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric',
                       })}{' '}
@@ -2486,11 +2486,11 @@ const AdminDashboard: React.FC = () => {
                     }`}>
                       {entry.action}
                     </span>
-                    <p className="text-[10px] uppercase tracking-widest text-ink/50">{entry.table_name}</p>
-                    <p className="text-[10px] text-ink/70 font-mono truncate" title={entry.record_id ?? ''}>
+                    <p className="text-[10px] uppercase tracking-widest text-ink/75">{entry.table_name}</p>
+                    <p className="text-[10px] text-ink/85 font-mono truncate" title={entry.record_id ?? ''}>
                       {entry.record_id ? entry.record_id.slice(0, 8) + '...' : '---'}
                     </p>
-                    <div className="text-[10px] text-ink/70 overflow-hidden">
+                    <div className="text-[10px] text-ink/85 overflow-hidden">
                       {entry.action === 'UPDATE' && entry.old_values && entry.new_values ? (
                         <AuditDiff oldValues={entry.old_values} newValues={entry.new_values} />
                       ) : entry.action === 'INSERT' ? (
@@ -2511,7 +2511,7 @@ const AdminDashboard: React.FC = () => {
                 <button
                   onClick={() => fetchAuditLogs(auditOffset, true)}
                   disabled={loadingAudit}
-                  className="border border-ink/10 px-8 py-3 text-[10px] uppercase tracking-[0.2em] font-medium text-ink/70 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-40"
+                  className="border border-ink/10 px-8 py-3 text-[10px] uppercase tracking-[0.2em] font-medium text-ink/85 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-40"
                 >
                   {loadingAudit ? 'Loading...' : 'Load More'}
                 </button>
@@ -2526,11 +2526,11 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <ShieldCheck size={16} strokeWidth={1.5} className="text-accent" />
-                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">
+                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">
                   Pending Certifications
                 </p>
               </div>
-              <p className="text-sm font-light text-ink/50">
+              <p className="text-sm font-light text-ink/75">
                 {loadingCerts ? 'Loading…' : certsError ? 'Error loading queue — see banner below.' : `${pendingCerts.length} certification${pendingCerts.length !== 1 ? 's' : ''} awaiting review`}
               </p>
             </div>
@@ -2538,8 +2538,8 @@ const AdminDashboard: React.FC = () => {
             {/* USREPS universal verification link */}
             <div className="flex items-center gap-4 border border-ink/10 px-6 py-4">
               <div className="flex-1">
-                <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-ink/60">U.S. Registry of Exercise Professionals</p>
-                <p className="text-xs text-ink/70 mt-1">150,000+ active credentials. Verify any NCCA-accredited certification in one search.</p>
+                <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-ink/80">U.S. Registry of Exercise Professionals</p>
+                <p className="text-xs text-ink/85 mt-1">150,000+ active credentials. Verify any NCCA-accredited certification in one search.</p>
               </div>
               <a
                 href="https://usreps.org"
@@ -2558,20 +2558,20 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => setShowCertCatalog(prev => !prev)}
                 className="w-full flex items-center justify-between px-6 py-4 text-left"
               >
-                <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-ink/60">Accepted Certifications</p>
+                <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-ink/80">Accepted Certifications</p>
                 <ChevronDown
                   size={16}
-                  className={`text-ink/40 flex-shrink-0 transition-transform duration-200 ${showCertCatalog ? 'rotate-180' : ''}`}
+                  className={`text-ink/68 flex-shrink-0 transition-transform duration-200 ${showCertCatalog ? 'rotate-180' : ''}`}
                 />
               </button>
               {showCertCatalog && (
                 <div className="border-t border-ink/10 px-6 py-5 space-y-6">
                   {certCatalogLoading && (
-                    <p className="text-xs text-ink/50 font-light">Loading catalog…</p>
+                    <p className="text-xs text-ink/75 font-light">Loading catalog…</p>
                   )}
                   {!certCatalogLoading && certCatalogByTier.map(group => (
                     <div key={group.tier} className="space-y-3">
-                      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/50">
+                      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/75">
                         {CERT_TIER_LABELS[group.tier]}
                       </p>
                       <div className="space-y-2">
@@ -2582,20 +2582,20 @@ const AdminDashboard: React.FC = () => {
                             ? 'text-teal-700 border-teal-300 bg-teal-50'
                             : '';
                           return (
-                            <div key={c.cert_code} className="flex flex-wrap items-center gap-2 text-xs text-ink/70">
+                            <div key={c.cert_code} className="flex flex-wrap items-center gap-2 text-xs text-ink/85">
                               <span className="font-medium text-ink">{c.display_name}</span>
-                              <span className="text-ink/40">·</span>
-                              <span className="text-ink/60">{c.org}</span>
+                              <span className="text-ink/68">·</span>
+                              <span className="text-ink/80">{c.org}</span>
                               {(c.accreditation === 'NCCA' || c.accreditation === 'DEAC') && (
                                 <span className={`text-[10px] uppercase tracking-[0.15em] font-semibold border px-2 py-0.5 ${catAccredClass}`}>
                                   {c.accreditation}
                                 </span>
                               )}
-                              <span className="text-[10px] uppercase tracking-[0.12em] text-ink/60 border border-ink/15 px-2 py-0.5">
+                              <span className="text-[10px] uppercase tracking-[0.12em] text-ink/80 border border-ink/15 px-2 py-0.5">
                                 {c.kind}
                               </span>
                               {c.verify_fields && (
-                                <span className="text-ink/50">Search by: {c.verify_fields}</span>
+                                <span className="text-ink/75">Search by: {c.verify_fields}</span>
                               )}
                               {c.verify_url && (
                                 <a
@@ -2619,7 +2619,7 @@ const AdminDashboard: React.FC = () => {
 
             {/* Status filter chips */}
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status:</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">Status:</p>
               {CERT_STATUS_FILTERS.map(([value, label]) => (
                 <button
                   key={value}
@@ -2627,7 +2627,7 @@ const AdminDashboard: React.FC = () => {
                   className={`px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium transition-colors border ${
                     certStatusFilter === value
                       ? 'border-ink text-ink bg-ink/5'
-                      : 'border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30'
+                      : 'border-ink/10 text-ink/85 hover:text-ink hover:border-ink/30'
                   }`}
                 >
                   {label}
@@ -2661,7 +2661,7 @@ const AdminDashboard: React.FC = () => {
             {!loadingCerts && !certsError && pendingCerts.length === 0 && (
               <div className="border border-ink/10 p-12 text-center">
                 <ShieldCheck size={32} strokeWidth={1} className="text-green-400 mx-auto mb-3" />
-                <p className="text-sm text-ink/70 font-light">No certifications pending review.</p>
+                <p className="text-sm text-ink/85 font-light">No certifications pending review.</p>
               </div>
             )}
 
@@ -2675,7 +2675,7 @@ const AdminDashboard: React.FC = () => {
                 strong: 'text-sky-700 border-sky-300 bg-sky-50',
                 acceptable: 'text-violet-700 border-violet-300 bg-violet-50',
                 safety: 'text-orange-700 border-orange-300 bg-orange-50',
-                other: 'text-ink/60 border-ink/20 bg-ink/[0.03]',
+                other: 'text-ink/80 border-ink/20 bg-ink/[0.03]',
               };
               const tierClass = cert.tier ? (tierStyles[cert.tier] ?? tierStyles.other) : tierStyles.other;
 
@@ -2683,7 +2683,7 @@ const AdminDashboard: React.FC = () => {
                 NCCA: 'text-green-700 border-green-300 bg-green-50',
                 DEAC: 'text-teal-700 border-teal-300 bg-teal-50',
                 safety: 'text-orange-700 border-orange-300 bg-orange-50',
-                none: 'text-ink/40 border-ink/10 bg-transparent',
+                none: 'text-ink/68 border-ink/10 bg-transparent',
               };
               const accredClass = cert.accreditation ? (accreditationStyles[cert.accreditation] ?? accreditationStyles.none) : accreditationStyles.none;
 
@@ -2746,9 +2746,9 @@ const AdminDashboard: React.FC = () => {
                     {/* Cert info */}
                     <div className="flex-1 space-y-1 min-w-0">
                       <p className="text-sm font-semibold text-ink">{trainerDisplayName}</p>
-                      <p className="text-sm font-light text-ink/70">{cert.cert_name}</p>
+                      <p className="text-sm font-light text-ink/85">{cert.cert_name}</p>
                       {cert.org && (
-                        <p className="text-[11px] text-ink/50 font-light">{cert.org}</p>
+                        <p className="text-[11px] text-ink/75 font-light">{cert.org}</p>
                       )}
                       <div className="flex flex-wrap gap-2 mt-2">
                         {/* Tier badge */}
@@ -2764,11 +2764,11 @@ const AdminDashboard: React.FC = () => {
                           </span>
                         )}
                         {cert.kind && (
-                          <span className="text-[10px] uppercase tracking-[0.12em] text-ink/70 border border-ink/15 px-2 py-0.5">
+                          <span className="text-[10px] uppercase tracking-[0.12em] text-ink/85 border border-ink/15 px-2 py-0.5">
                             {cert.kind}
                           </span>
                         )}
-                        <span className="text-[10px] text-ink/70 uppercase tracking-[0.1em]">
+                        <span className="text-[10px] text-ink/85 uppercase tracking-[0.1em]">
                           {cert.cert_code}
                         </span>
                         {cert.status === 'needs_info' && (
@@ -2777,11 +2777,11 @@ const AdminDashboard: React.FC = () => {
                           </span>
                         )}
                         {cert.expiry_date && (
-                          <span className={`text-[10px] uppercase tracking-[0.1em] font-medium ${isExpired ? 'text-red-600' : 'text-ink/70'}`}>
+                          <span className={`text-[10px] uppercase tracking-[0.1em] font-medium ${isExpired ? 'text-red-600' : 'text-ink/85'}`}>
                             {isExpired ? '⚠ Expired' : 'Expires'} {new Date(cert.expiry_date).toLocaleDateString()}
                           </span>
                         )}
-                        <span className="text-[10px] text-ink/50">
+                        <span className="text-[10px] text-ink/75">
                           Submitted {new Date(cert.submitted_at).toLocaleDateString()}
                         </span>
                       </div>
@@ -2842,7 +2842,7 @@ const AdminDashboard: React.FC = () => {
                         <div className="space-y-2 p-4">
                           <img src={signedUrl} alt={cert.cert_name} className="max-w-full max-h-[480px] object-contain mx-auto border border-ink/10" />
                           <div className="text-center">
-                            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.15em] text-ink/50 hover:text-ink transition-colors">
+                            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.15em] text-ink/75 hover:text-ink transition-colors">
                               Open in new tab ↗
                             </a>
                           </div>
@@ -2856,14 +2856,14 @@ const AdminDashboard: React.FC = () => {
                             style={{ height: 520 }}
                           />
                           <div className="text-center">
-                            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.15em] text-ink/50 hover:text-ink transition-colors">
+                            <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.15em] text-ink/75 hover:text-ink transition-colors">
                               Open in new tab ↗
                             </a>
                           </div>
                         </div>
                       ) : (
                         <div className="p-6 text-center space-y-3">
-                          <p className="text-xs text-ink/50">Cannot preview this file type ({fileExt || 'unknown'})</p>
+                          <p className="text-xs text-ink/75">Cannot preview this file type ({fileExt || 'unknown'})</p>
                           <a href={signedUrl} target="_blank" rel="noopener noreferrer" className="inline-block border border-ink/20 px-4 py-2 text-[11px] uppercase tracking-[0.15em] hover:bg-ink hover:text-white transition-all">
                             Open in new tab ↗
                           </a>
@@ -2875,17 +2875,17 @@ const AdminDashboard: React.FC = () => {
                   {/* Registry lookup hints */}
                   {(cert.verify_url || cert.verify_fields || cert.cert_number || cert.trainer_last_name) && (
                     <div className="border border-ink/10 bg-ink/[0.01] px-5 py-4 space-y-1">
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/40 font-medium">Registry Lookup Hints</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/68 font-medium">Registry Lookup Hints</p>
                       {cert.verify_fields && (
-                        <p className="text-xs text-ink/60 font-light">
+                        <p className="text-xs text-ink/80 font-light">
                           Search by: <span className="text-ink/80">{cert.verify_fields}</span>
                           {cert.trainer_last_name && <> — name: <span className="font-medium text-ink">{cert.trainer_last_name}</span></>}
                           {cert.cert_number && <>, cert #: <span className="font-medium text-ink font-mono">{cert.cert_number}</span></>}
-                          {!cert.cert_number && <>, cert #: <span className="text-ink/30">—</span></>}
+                          {!cert.cert_number && <>, cert #: <span className="text-ink/60">—</span></>}
                         </p>
                       )}
                       {!cert.verify_fields && (cert.trainer_last_name || cert.cert_number) && (
-                        <p className="text-xs text-ink/60 font-light">
+                        <p className="text-xs text-ink/80 font-light">
                           {cert.trainer_last_name && <>Last name: <span className="font-medium text-ink">{cert.trainer_last_name}</span></>}
                           {cert.trainer_last_name && cert.cert_number && ' · '}
                           {cert.cert_number && <>Cert #: <span className="font-medium text-ink font-mono">{cert.cert_number}</span></>}
@@ -2921,19 +2921,19 @@ const AdminDashboard: React.FC = () => {
                               ? 'text-red-700'
                               : cert.verification_status === 'not_found' || cert.verification_status === 'blocked'
                               ? 'text-amber-700'
-                              : 'text-ink/60'
+                              : 'text-ink/80'
                           }`}
                         >
                           Registry check: {cert.verification_status.replace(/_/g, ' ')}
                         </span>
                         {cert.verification_checked_at && (
-                          <span className="text-[10px] text-ink/40">
+                          <span className="text-[10px] text-ink/68">
                             {new Date(cert.verification_checked_at).toLocaleDateString()}
                           </span>
                         )}
                       </div>
                       {cert.verification_notes && (
-                        <p className="text-xs text-ink/60 font-light">{cert.verification_notes}</p>
+                        <p className="text-xs text-ink/80 font-light">{cert.verification_notes}</p>
                       )}
                     </div>
                   )}
@@ -2942,7 +2942,7 @@ const AdminDashboard: React.FC = () => {
                   {isReviewable ? (
                   <>
                   <div className="space-y-2 border-t border-ink/5 pt-5">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium mb-3">Review Checklist</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium mb-3">Review Checklist</p>
                     {checkItems.map(item => (
                       <label key={item.key} className="flex items-center gap-3 cursor-pointer group">
                         <div
@@ -2957,7 +2957,7 @@ const AdminDashboard: React.FC = () => {
                             </svg>
                           )}
                         </div>
-                        <span className={`text-sm font-light transition-colors ${checklist[item.key] ? 'text-ink' : 'text-ink/50'}`}>
+                        <span className={`text-sm font-light transition-colors ${checklist[item.key] ? 'text-ink' : 'text-ink/75'}`}>
                           {item.label}
                         </span>
                       </label>
@@ -3032,7 +3032,7 @@ const AdminDashboard: React.FC = () => {
                     )}
 
                     {!allChecked && (
-                      <p className="text-[10px] text-ink/50 italic">
+                      <p className="text-[10px] text-ink/75 italic">
                         Complete all checklist items before approving.
                       </p>
                     )}
@@ -3045,12 +3045,12 @@ const AdminDashboard: React.FC = () => {
                   </>
                   ) : (
                     <div className="border-t border-ink/5 pt-5 space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">
                         {decisionLabel}
                         {cert.reviewed_at && ` · ${new Date(cert.reviewed_at).toLocaleDateString()}`}
                       </p>
                       {cert.admin_notes && (
-                        <p className="text-xs text-ink/60 font-light">{cert.admin_notes}</p>
+                        <p className="text-xs text-ink/80 font-light">{cert.admin_notes}</p>
                       )}
                     </div>
                   )}
@@ -3064,16 +3064,16 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'pending-trainers' && (
           <div className="space-y-6">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Pending Trainer Approvals</p>
-              <p className="text-[10px] text-ink/60">Approve sets is_verified=true and approval_status='approved' via the approve_trainer RPC. Decline sets approval_status='rejected'.</p>
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">Pending Trainer Approvals</p>
+              <p className="text-[10px] text-ink/80">Approve sets is_verified=true and approval_status='approved' via the approve_trainer RPC. Decline sets approval_status='rejected'.</p>
             </div>
 
             {loadingPendingTrainers && (
-              <p className="text-[10px] text-ink/30 uppercase tracking-widest">Loading…</p>
+              <p className="text-[10px] text-ink/60 uppercase tracking-widest">Loading…</p>
             )}
 
             {!loadingPendingTrainers && pendingTrainers.length === 0 && (
-              <p className="text-sm font-light text-ink/40">No trainers pending approval.</p>
+              <p className="text-sm font-light text-ink/68">No trainers pending approval.</p>
             )}
 
             {!loadingPendingTrainers && pendingTrainers.length > 0 && (
@@ -3099,8 +3099,8 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'sessions' && (
           <div className="space-y-8">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/40">Free Session Mission Control</p>
-              <p className="text-[10px] text-ink/30">Grant make-good comps or arrange comp bookings for clients with available credits.</p>
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/68">Free Session Mission Control</p>
+              <p className="text-[10px] text-ink/60">Grant make-good comps or arrange comp bookings for clients with available credits.</p>
             </div>
 
             {loadingSessionCredits && (
@@ -3111,7 +3111,7 @@ const AdminDashboard: React.FC = () => {
 
             {!loadingSessionCredits && sessionCredits.length === 0 && (
               <div className="border border-ink/10 p-12 text-center">
-                <p className="text-xs text-ink/50 uppercase tracking-widest">No clients yet.</p>
+                <p className="text-xs text-ink/75 uppercase tracking-widest">No clients yet.</p>
               </div>
             )}
 
@@ -3123,12 +3123,12 @@ const AdminDashboard: React.FC = () => {
                     <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-ink/5 bg-ink/[0.02]">
                       <div className="space-y-0.5 min-w-0">
                         <p className="text-sm font-light text-ink truncate">{client.full_name}</p>
-                        <p className="text-[11px] text-ink/50 truncate">{client.email}</p>
+                        <p className="text-[11px] text-ink/75 truncate">{client.email}</p>
                         <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          <span className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/60">
+                          <span className="text-[10px] uppercase tracking-[0.15em] font-medium text-ink/80">
                             Free sessions used <b className="text-ink">{client.redeemed_count}</b> / 2
                           </span>
-                          <span className="text-[10px] text-ink/40">
+                          <span className="text-[10px] text-ink/68">
                             {client.available_count} available
                           </span>
                           {client.no_show_count > 0 && (
@@ -3141,7 +3141,7 @@ const AdminDashboard: React.FC = () => {
                       <button
                         onClick={() => handleGrantComp(client.client_id)}
                         disabled={grantingCompClientId === client.client_id}
-                        className="shrink-0 px-4 py-2 border border-ink/20 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/70 hover:text-ink hover:border-ink/40 transition-colors disabled:opacity-40"
+                        className="shrink-0 px-4 py-2 border border-ink/20 text-[10px] uppercase tracking-[0.15em] font-medium text-ink/85 hover:text-ink hover:border-ink/40 transition-colors disabled:opacity-40"
                       >
                         {grantingCompClientId === client.client_id ? 'Granting…' : 'Grant comp session'}
                       </button>
@@ -3155,24 +3155,24 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex items-center gap-3 flex-wrap">
                                 <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium ${
-                                  credit.reason === 'onboarding' ? 'bg-ink/5 text-ink/60' : 'bg-amber-50 text-amber-700'
+                                  credit.reason === 'onboarding' ? 'bg-ink/5 text-ink/80' : 'bg-amber-50 text-amber-700'
                                 }`}>
                                   {credit.reason}
                                 </span>
                                 <span className={`text-[10px] uppercase tracking-wider font-medium ${
                                   credit.status === 'available' ? 'text-emerald-600' :
-                                  credit.status === 'redeemed' ? 'text-ink/50' :
+                                  credit.status === 'redeemed' ? 'text-ink/75' :
                                   'text-red-500'
                                 }`}>
                                   {credit.status}
                                 </span>
                                 {credit.outcome && (
-                                  <span className="text-[10px] text-ink/40 uppercase tracking-wider">{credit.outcome}</span>
+                                  <span className="text-[10px] text-ink/68 uppercase tracking-wider">{credit.outcome}</span>
                                 )}
                                 {credit.trainer_name && (
-                                  <span className="text-[10px] text-ink/50">with {credit.trainer_name}</span>
+                                  <span className="text-[10px] text-ink/75">with {credit.trainer_name}</span>
                                 )}
-                                <span className="text-[10px] text-ink/30">
+                                <span className="text-[10px] text-ink/60">
                                   {new Date(credit.granted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                               </div>
@@ -3191,9 +3191,9 @@ const AdminDashboard: React.FC = () => {
                             {credit.status === 'available' && arrangingCreditId === credit.id && (
                               <div className="border border-ink/10 bg-ink/[0.02] p-4 space-y-3">
                                 {loadingOpenSlots ? (
-                                  <p className="text-[10px] text-ink/40">Loading slots…</p>
+                                  <p className="text-[10px] text-ink/68">Loading slots…</p>
                                 ) : openSlots.length === 0 ? (
-                                  <p className="text-[10px] text-ink/40">No open trainer slots — ask a trainer to publish availability.</p>
+                                  <p className="text-[10px] text-ink/68">No open trainer slots — ask a trainer to publish availability.</p>
                                 ) : (
                                   <>
                                     <select
@@ -3218,7 +3218,7 @@ const AdminDashboard: React.FC = () => {
                                       </button>
                                       <button
                                         onClick={() => setArrangingCreditId(null)}
-                                        className="px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border border-ink/10 text-ink/50 hover:text-ink transition-colors"
+                                        className="px-4 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border border-ink/10 text-ink/75 hover:text-ink transition-colors"
                                       >
                                         Cancel
                                       </button>
@@ -3245,12 +3245,12 @@ const AdminDashboard: React.FC = () => {
 
             <div className="border border-ink/10 p-8 max-w-lg space-y-6">
               <div className="flex items-center gap-3">
-                <Settings size={16} strokeWidth={1.5} className="text-ink/40" />
-                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Platform Fee</p>
+                <Settings size={16} strokeWidth={1.5} className="text-ink/68" />
+                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">Platform Fee</p>
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] uppercase tracking-widest text-ink/50">
+                <p className="text-[10px] uppercase tracking-widest text-ink/75">
                   Current: {Math.round(parseFloat(savedFee) * 100)}%
                 </p>
                 <div className="flex items-center gap-4">
@@ -3265,7 +3265,7 @@ const AdminDashboard: React.FC = () => {
                       className="w-full border border-ink/10 px-4 py-3 text-sm text-ink bg-transparent focus:outline-none focus:border-ink/30"
                       placeholder="0.13"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-ink/50 uppercase tracking-widest">
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-ink/75 uppercase tracking-widest">
                       {isNaN(parseFloat(platformFee)) ? '' : `${Math.round(parseFloat(platformFee) * 100)}%`}
                     </span>
                   </div>
@@ -3278,42 +3278,42 @@ const AdminDashboard: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-[10px] text-ink/25">Enter as decimal (e.g. 0.13 = 13%). Max 0.5 (50%).</p>
-                <p className="text-[10px] text-ink/40 mt-1">Platform fee is the platform's commission — it does not make a session free. To give complimentary sessions, use the Sessions tab.</p>
+                <p className="text-[10px] text-ink/68 mt-1">Platform fee is the platform's commission — it does not make a session free. To give complimentary sessions, use the Sessions tab.</p>
               </div>
             </div>
 
             <div className="border border-ink/10 p-8 max-w-lg space-y-6">
               <div className="flex items-center gap-3">
-                <Settings size={16} strokeWidth={1.5} className="text-ink/40" />
-                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Founding Trainer Cutoff</p>
+                <Settings size={16} strokeWidth={1.5} className="text-ink/68" />
+                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">Founding Trainer Cutoff</p>
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] uppercase tracking-widest text-ink/50">
+                <p className="text-[10px] uppercase tracking-widest text-ink/75">
                   Current: {savedCutoff}
                 </p>
                 <DateSlider value={foundingCutoff} saving={savingCutoff} onSave={handleSaveCutoff} />
-                <p className="text-[10px] text-ink/40 mt-1">Trainers who joined before this date are Founding Trainers: 0% platform fee for their first 12 months, then the standard fee. Move the date to extend or end the promo.</p>
+                <p className="text-[10px] text-ink/68 mt-1">Trainers who joined before this date are Founding Trainers: 0% platform fee for their first 12 months, then the standard fee. Move the date to extend or end the promo.</p>
               </div>
             </div>
 
             <div className="border border-ink/10 p-8 max-w-lg space-y-6">
               <div className="flex items-center gap-3">
-                <Settings size={16} strokeWidth={1.5} className="text-ink/40" />
-                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Complimentary Intro Window</p>
+                <Settings size={16} strokeWidth={1.5} className="text-ink/68" />
+                <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">Complimentary Intro Window</p>
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] uppercase tracking-widest text-ink/50">
+                <p className="text-[10px] uppercase tracking-widest text-ink/75">
                   Current: {savedFreeIntroUntil}
                 </p>
                 <DateSlider value={freeIntroUntil} saving={savingFreeIntroUntil} onSave={handleSaveFreeIntroUntil} />
-                <p className="text-[10px] text-ink/40 mt-1">Trainers who opt in can offer a free 30-minute intro session to new clients until this date.</p>
+                <p className="text-[10px] text-ink/68 mt-1">Trainers who opt in can offer a free 30-minute intro session to new clients until this date.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-ink/10">
                 <div className="space-y-2">
-                  <p className="text-[10px] uppercase tracking-widest text-ink/50">Intro length (minutes)</p>
+                  <p className="text-[10px] uppercase tracking-widest text-ink/75">Intro length (minutes)</p>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -3332,7 +3332,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-[10px] uppercase tracking-widest text-ink/50">Max per client</p>
+                  <p className="text-[10px] uppercase tracking-widest text-ink/75">Max per client</p>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -3355,7 +3355,7 @@ const AdminDashboard: React.FC = () => {
 
             {/* System health */}
             <div className="border border-ink/10 p-8 max-w-lg space-y-4">
-              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">System Health</p>
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">System Health</p>
               <div className="space-y-3">
                 {Object.entries(healthChecks).map(([label, status]) => (
                   <HealthRow key={label} label={label} status={status} />
@@ -3388,18 +3388,18 @@ const AdminDashboard: React.FC = () => {
             <h3 className="text-xl serif font-light italic text-ink">Trainer Detail</h3>
             <button
               onClick={closeTrainerDetail}
-              className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+              className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
             >
               Close
             </button>
           </div>
 
           {loadingTrainerDetail && (
-            <p className="px-6 py-12 text-[10px] text-ink/30 uppercase tracking-widest text-center">Loading…</p>
+            <p className="px-6 py-12 text-[10px] text-ink/60 uppercase tracking-widest text-center">Loading…</p>
           )}
 
           {!loadingTrainerDetail && !viewingTrainer && (
-            <p className="px-6 py-12 text-sm font-light text-ink/40 text-center">Trainer profile not found.</p>
+            <p className="px-6 py-12 text-sm font-light text-ink/68 text-center">Trainer profile not found.</p>
           )}
 
           {!loadingTrainerDetail && viewingTrainer && (
@@ -3424,18 +3424,18 @@ const AdminDashboard: React.FC = () => {
             <h3 className="text-xl serif font-light italic text-ink">Client Detail</h3>
             <button
               onClick={closeClientDetail}
-              className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+              className="px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
             >
               Close
             </button>
           </div>
 
           {loadingClientDetail && (
-            <p className="px-6 py-12 text-[10px] text-ink/30 uppercase tracking-widest text-center">Loading…</p>
+            <p className="px-6 py-12 text-[10px] text-ink/60 uppercase tracking-widest text-center">Loading…</p>
           )}
 
           {!loadingClientDetail && !viewingClient && (
-            <p className="px-6 py-12 text-sm font-light text-ink/40 text-center">Client profile not found.</p>
+            <p className="px-6 py-12 text-sm font-light text-ink/68 text-center">Client profile not found.</p>
           )}
 
           {!loadingClientDetail && viewingClient && (
@@ -3475,18 +3475,18 @@ const StatCard: React.FC<{
   loading?: boolean;
 }> = ({ icon, label, value, accent, delta, subtitle, loading }) => (
   <div className="border border-ink/10 p-8 space-y-4">
-    <div className={`${accent ? 'text-accent' : 'text-ink/30'}`}>{icon}</div>
-    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 font-medium">{label}</p>
+    <div className={`${accent ? 'text-accent' : 'text-ink/60'}`}>{icon}</div>
+    <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 font-medium">{label}</p>
     {loading ? (
       <div className="h-9 w-20 bg-ink/[0.04] rounded animate-pulse" />
     ) : (
       <p className={`text-3xl font-semibold tabular-nums tracking-tight ${accent ? 'text-accent' : 'text-ink'}`}>{value}</p>
     )}
     {!loading && subtitle && (
-      <p className="text-[10px] text-ink/60 tabular-nums">{subtitle}</p>
+      <p className="text-[10px] text-ink/80 tabular-nums">{subtitle}</p>
     )}
     {!loading && delta !== undefined && (
-      <p className={`text-[10px] font-medium tabular-nums ${delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-500' : 'text-ink/40'}`}>
+      <p className={`text-[10px] font-medium tabular-nums ${delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-500' : 'text-ink/68'}`}>
         {delta > 0 ? `↑ ${delta.toFixed(1)}%` : delta < 0 ? `↓ ${Math.abs(delta).toFixed(1)}%` : null}
       </p>
     )}
@@ -3508,13 +3508,13 @@ const TierBadge: React.FC<{
     colorClass = 'text-amber-600';
   } else if (tier === 'free') {
     label = 'Free';
-    colorClass = 'text-ink/70';
+    colorClass = 'text-ink/85';
   } else if (tier === 'pro') {
     label = isTrialing ? 'Pro — Trialing' : 'Pro';
     colorClass = isTrialing ? 'text-accent/70' : 'text-accent';
   } else {
     label = isTrialing ? 'Elite — Trialing' : 'Elite';
-    colorClass = isTrialing ? 'text-ink/70' : 'text-ink';
+    colorClass = isTrialing ? 'text-ink/85' : 'text-ink';
   }
 
   return (
@@ -3535,7 +3535,7 @@ const AuditDiff: React.FC<{
     }
   }
 
-  if (changes.length === 0) return <span className="text-ink/20">No changes</span>;
+  if (changes.length === 0) return <span className="text-ink/45">No changes</span>;
 
   // Show at most 3 changed fields to keep rows compact
   const shown = changes.slice(0, 3);
@@ -3545,7 +3545,7 @@ const AuditDiff: React.FC<{
     <div className="space-y-0.5">
       {shown.map((c) => (
         <p key={c.key} className="truncate">
-          <span className="font-medium text-ink/50">{c.key}:</span>{' '}
+          <span className="font-medium text-ink/75">{c.key}:</span>{' '}
           <span className="text-red-400 line-through">{String(c.from ?? 'null')}</span>{' '}
           <span className="text-green-600">{String(c.to ?? 'null')}</span>
         </p>
@@ -3559,7 +3559,7 @@ const AuditDiff: React.FC<{
 
 const HealthRow: React.FC<{ label: string; status: 'operational' | 'degraded' | 'down' }> = ({ label, status }) => (
   <div className="flex items-center justify-between">
-    <p className="text-xs text-ink/60">{label}</p>
+    <p className="text-xs text-ink/80">{label}</p>
     <div className="flex items-center gap-2">
       <span className={`w-2 h-2 rounded-full ${
         status === 'operational' ? 'bg-green-500' :

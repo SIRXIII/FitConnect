@@ -7,7 +7,7 @@ const HowItWorks: React.FC = () => {
           <div className="space-y-16">
             <div className="space-y-6">
               <h2 className="text-4xl md:text-5xl serif font-light text-ink leading-tight italic">The Philosophy</h2>
-              <p className="text-sm uppercase tracking-[0.3em] text-ink/40">Optimized excellence</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-ink/68">Optimized excellence</p>
             </div>
 
             <div className="space-y-12">
@@ -15,7 +15,7 @@ const HowItWorks: React.FC = () => {
                 <div className="text-2xl serif font-light italic text-accent">01</div>
                 <div className="space-y-3">
                   <h3 className="text-xs uppercase tracking-[0.2em] font-semibold text-ink">Curation</h3>
-                  <p className="text-sm text-ink/60 leading-relaxed font-light">Browse our collective of certified master trainers. Discover exclusive downtime slots—our "Signature Hours"—available at optimized rates.</p>
+                  <p className="text-sm text-ink/80 leading-relaxed font-light">Browse our collective of certified master trainers. Discover exclusive downtime slots—our "Signature Hours"—available at optimized rates.</p>
                 </div>
               </div>
 
@@ -23,7 +23,7 @@ const HowItWorks: React.FC = () => {
                 <div className="text-2xl serif font-light italic text-accent">02</div>
                 <div className="space-y-3">
                   <h3 className="text-xs uppercase tracking-[0.2em] font-semibold text-ink">Engagement</h3>
-                  <p className="text-sm text-ink/60 leading-relaxed font-light">Secure your session through our seamless booking interface. We handle the logistics, ensuring a focused and professional experience from the start.</p>
+                  <p className="text-sm text-ink/80 leading-relaxed font-light">Secure your session through our seamless booking interface. We handle the logistics, ensuring a focused and professional experience from the start.</p>
                 </div>
               </div>
 
@@ -31,7 +31,7 @@ const HowItWorks: React.FC = () => {
                 <div className="text-2xl serif font-light italic text-accent">03</div>
                 <div className="space-y-3">
                   <h3 className="text-xs uppercase tracking-[0.2em] font-semibold text-ink">Transformation</h3>
-                  <p className="text-sm text-ink/60 leading-relaxed font-light">Experience world-class coaching tailored to your unique objectives. Refine your strength and elevate your standard of fitness.</p>
+                  <p className="text-sm text-ink/80 leading-relaxed font-light">Experience world-class coaching tailored to your unique objectives. Refine your strength and elevate your standard of fitness.</p>
                 </div>
               </div>
             </div>

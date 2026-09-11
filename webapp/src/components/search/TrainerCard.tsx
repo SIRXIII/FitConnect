@@ -47,7 +47,7 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
                 {trainer.name}
               </h3>
             </Link>
-            <div className="flex items-center text-ink/40 text-[10px] uppercase tracking-widest">
+            <div className="flex items-center text-ink/68 text-[10px] uppercase tracking-widest">
               <MapPin size={10} className="mr-1.5" />
               {trainer.location}
             </div>
@@ -69,16 +69,16 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
                 </div>
                 <div className="text-accent text-xl serif italic">
                   ${trainer.discountedRate}
-                  <span className="text-[10px] text-ink/30 not-italic">/hr</span>
+                  <span className="text-[10px] text-ink/60 not-italic">/hr</span>
                 </div>
                 <div className="text-[10px] text-ink/25 line-through">${trainer.optimizedRate}/hr</div>
               </>
             ) : (
               <>
-                <div className="text-[9px] uppercase tracking-widest text-ink/30">Optimized Rate</div>
+                <div className="text-[9px] uppercase tracking-widest text-ink/60">Optimized Rate</div>
                 <div className="text-accent text-xl serif italic">
                   ${trainer.optimizedRate}
-                  <span className="text-[10px] text-ink/30 not-italic">/hr</span>
+                  <span className="text-[10px] text-ink/60 not-italic">/hr</span>
                 </div>
               </>
             )}
@@ -86,7 +86,7 @@ const TrainerCard: React.FC<TrainerCardProps> = ({ trainer, isMock }) => {
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-ink/5">
-          <div className="flex items-center text-ink/60 text-[10px] uppercase tracking-[0.15em] font-medium">
+          <div className="flex items-center text-ink/80 text-[10px] uppercase tracking-[0.15em] font-medium">
             <Award size={12} className="mr-2 text-accent" />
             {trainer.specialty}
           </div>

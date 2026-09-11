@@ -42,9 +42,9 @@ const GoalRankPicker: React.FC<GoalRankPickerProps> = ({ ranked, onChange }) => 
     <div className="space-y-4">
       {/* Ranked list */}
       <div className="space-y-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Your Top 3</p>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Your Top 3</p>
         {ranked.length === 0 && (
-          <p className="text-xs text-ink/30 font-light py-3">
+          <p className="text-xs text-ink/60 font-light py-3">
             Select goals below to rank them
           </p>
         )}
@@ -100,7 +100,7 @@ const GoalRankPicker: React.FC<GoalRankPickerProps> = ({ ranked, onChange }) => 
 
       {/* Available pool */}
       <div className="space-y-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Available Goals</p>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Available Goals</p>
         <div className="grid grid-cols-2 gap-2">
           {pool.map((goal) => (
             <button
@@ -110,8 +110,8 @@ const GoalRankPicker: React.FC<GoalRankPickerProps> = ({ ranked, onChange }) => 
               disabled={isFull}
               className={`text-left py-3 px-4 border text-[11px] uppercase tracking-[0.1em] font-medium transition-all ${
                 isFull
-                  ? 'border-ink/10 text-ink/30 opacity-40 cursor-not-allowed'
-                  : 'border-ink/10 text-ink/60 hover:border-ink/30'
+                  ? 'border-ink/10 text-ink/60 opacity-40 cursor-not-allowed'
+                  : 'border-ink/10 text-ink/80 hover:border-ink/30'
               }`}
             >
               {goal.label}

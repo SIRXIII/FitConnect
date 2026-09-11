@@ -18,7 +18,7 @@ const STATUS_STYLES: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700 border-amber-200',
   waiting_on_user: 'bg-purple-50 text-purple-700 border-purple-200',
   resolved: 'bg-green-50 text-green-700 border-green-200',
-  closed: 'bg-ink/5 text-ink/70 border-ink/10',
+  closed: 'bg-ink/5 text-ink/85 border-ink/10',
 };
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -40,7 +40,7 @@ const StatusBadge: React.FC<{ status: string; size?: 'sm' | 'xs' }> = ({
   size = 'sm',
 }) => (
   <span
-    className={`inline-flex items-center border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/70 border-ink/10'} ${
+    className={`inline-flex items-center border ${STATUS_STYLES[status] ?? 'bg-ink/5 text-ink/85 border-ink/10'} ${
       size === 'xs' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-xs'
     }`}
   >
@@ -129,7 +129,7 @@ const TicketDetail: React.FC<{
       {/* Back */}
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-xs text-ink/70 hover:text-ink transition-colors"
+        className="flex items-center gap-1.5 text-xs text-ink/85 hover:text-ink transition-colors"
       >
         <ChevronLeft size={13} />
         Back to queue
@@ -140,7 +140,7 @@ const TicketDetail: React.FC<{
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-sm font-medium text-ink">{ticket.subject}</h3>
-            <p className="text-xs text-ink/70 mt-1">
+            <p className="text-xs text-ink/85 mt-1">
               {ticket.user?.full_name ?? 'Unknown'} ·{' '}
               {new Date(ticket.created_at).toLocaleDateString('en-US', {
                 month: 'short',
@@ -153,7 +153,7 @@ const TicketDetail: React.FC<{
           <StatusBadge status={currentStatus} />
         </div>
         {ticket.description && (
-          <p className="text-sm text-ink/60 leading-relaxed pt-3 border-t border-ink/5">
+          <p className="text-sm text-ink/80 leading-relaxed pt-3 border-t border-ink/5">
             {ticket.description}
           </p>
         )}
@@ -162,7 +162,7 @@ const TicketDetail: React.FC<{
       {/* Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-ink/70 mb-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-ink/85 mb-1.5">
             Status
           </label>
           <select
@@ -178,7 +178,7 @@ const TicketDetail: React.FC<{
           </select>
         </div>
         <div>
-          <label className="block text-[10px] uppercase tracking-widest text-ink/70 mb-1.5">
+          <label className="block text-[10px] uppercase tracking-widest text-ink/85 mb-1.5">
             Priority
           </label>
           <select
@@ -197,7 +197,7 @@ const TicketDetail: React.FC<{
 
       {/* Admin Notes */}
       <div>
-        <label className="block text-[10px] uppercase tracking-widest text-ink/70 mb-1.5">
+        <label className="block text-[10px] uppercase tracking-widest text-ink/85 mb-1.5">
           Internal Admin Notes
         </label>
         <textarea
@@ -218,14 +218,14 @@ const TicketDetail: React.FC<{
 
       {/* Message thread */}
       <div>
-        <p className="text-[10px] uppercase tracking-widest text-ink/70 mb-3">Conversation</p>
+        <p className="text-[10px] uppercase tracking-widest text-ink/85 mb-3">Conversation</p>
         <div className="space-y-3 max-h-96 overflow-y-auto border border-ink/10 p-4 bg-white">
           {messagesLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 size={18} className="animate-spin text-ink/30" />
+              <Loader2 size={18} className="animate-spin text-ink/60" />
             </div>
           ) : messages.length === 0 ? (
-            <p className="text-xs text-ink/30 text-center py-6">No messages yet.</p>
+            <p className="text-xs text-ink/60 text-center py-6">No messages yet.</p>
           ) : (
             messages.map((msg) => {
               const isAdmin = msg.is_admin;
@@ -364,7 +364,7 @@ const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">
+          <h3 className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">
             Support Queue
           </h3>
           {openCount > 0 && (
@@ -375,7 +375,7 @@ const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, 
         </div>
         <button
           onClick={refetch}
-          className="text-xs text-ink/70 hover:text-ink transition-colors"
+          className="text-xs text-ink/85 hover:text-ink transition-colors"
         >
           Refresh
         </button>
@@ -418,34 +418,34 @@ const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, 
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={24} className="animate-spin text-ink/30" />
+          <Loader2 size={24} className="animate-spin text-ink/60" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <CheckCircle size={28} className="mx-auto text-green-400 mb-3" />
-          <p className="text-sm text-ink/70">No tickets match the current filters.</p>
+          <p className="text-sm text-ink/85">No tickets match the current filters.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-ink/10">
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/85 font-medium pb-3 pr-4">
                   Priority
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/85 font-medium pb-3 pr-4">
                   Subject
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/85 font-medium pb-3 pr-4">
                   User
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/85 font-medium pb-3 pr-4">
                   Category
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3 pr-4">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/85 font-medium pb-3 pr-4">
                   Status
                 </th>
-                <th className="text-left text-[10px] uppercase tracking-widest text-ink/70 font-medium pb-3">
+                <th className="text-left text-[10px] uppercase tracking-widest text-ink/85 font-medium pb-3">
                   Created
                 </th>
               </tr>
@@ -462,7 +462,7 @@ const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, 
                       <span
                         className={`w-2 h-2 rounded-full flex-shrink-0 ${PRIORITY_DOT[ticket.priority]}`}
                       />
-                      <span className="text-xs text-ink/50">
+                      <span className="text-xs text-ink/75">
                         {PRIORITY_LABELS[ticket.priority]}
                       </span>
                     </div>
@@ -471,20 +471,20 @@ const AdminSupportQueue: React.FC<AdminSupportQueueProps> = ({ initialTicketId, 
                     <p className="text-sm text-ink font-medium truncate max-w-[200px]">
                       {ticket.subject}
                     </p>
-                    <p className="text-[10px] text-ink/30 font-mono">
+                    <p className="text-[10px] text-ink/60 font-mono">
                       {ticket.id.slice(0, 8).toUpperCase()}
                     </p>
                   </td>
-                  <td className="py-3 pr-4 text-sm text-ink/60">
+                  <td className="py-3 pr-4 text-sm text-ink/80">
                     {ticket.user?.full_name ?? '—'}
                   </td>
-                  <td className="py-3 pr-4 text-xs text-ink/50">
+                  <td className="py-3 pr-4 text-xs text-ink/75">
                     {CATEGORY_LABELS[ticket.category]}
                   </td>
                   <td className="py-3 pr-4">
                     <StatusBadge status={ticket.status} size="xs" />
                   </td>
-                  <td className="py-3 text-xs text-ink/70">
+                  <td className="py-3 text-xs text-ink/85">
                     {new Date(ticket.created_at).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',

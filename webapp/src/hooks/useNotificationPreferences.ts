@@ -27,7 +27,7 @@ export function useNotificationPreferences() {
   const savePreferences = useCallback(
     async (data: Partial<ClientNotificationPreferences>) => {
       if (!user) return;
-      await (supabase as any)
+      const { error } = await (supabase as any)
         .from('client_notification_preferences')
         .upsert(
           {
@@ -36,6 +36,7 @@ export function useNotificationPreferences() {
           },
           { onConflict: 'user_id' }
         );
+      if (error) throw error;
       await fetchPreferences();
     },
     [user, fetchPreferences]
@@ -44,10 +45,13 @@ export function useNotificationPreferences() {
   const toggleEnabled = useCallback(
     async (enabled: boolean) => {
       if (!user) return;
-      await (supabase as any)
+      const { error } = await (supabase as any)
         .from('client_notification_preferences')
-        .update({ notif_enabled: enabled })
-        .eq('user_id', user.id);
+        .upsert(
+          { user_id: user.id, notif_enabled: enabled },
+          { onConflict: 'user_id' }
+        );
+      if (error) throw error;
       await fetchPreferences();
     },
     [user, fetchPreferences]

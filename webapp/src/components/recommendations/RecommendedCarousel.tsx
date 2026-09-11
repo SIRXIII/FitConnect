@@ -57,7 +57,7 @@ const CarouselInner: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles size={14} className="text-accent" />
-          <span className="text-[10px] uppercase tracking-[0.3em] text-ink/40">Matched for You</span>
+          <span className="text-[10px] uppercase tracking-[0.3em] text-ink/68">Matched for You</span>
         </div>
         <h3 className="text-[28px] serif italic font-medium">Recommended for You</h3>
       </div>

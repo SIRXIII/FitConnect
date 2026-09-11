@@ -270,8 +270,8 @@ const Messages: React.FC = () => {
             ) : conversations.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center px-8 text-center space-y-4">
                 <MessageSquare size={32} strokeWidth={1} className="text-ink/15" />
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/30">No conversations yet</p>
-                <p className="text-[10px] text-ink/20">Message a trainer from their profile page</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/60">No conversations yet</p>
+                <p className="text-[10px] text-ink/45">Message a trainer from their profile page</p>
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto">
@@ -298,7 +298,7 @@ const Messages: React.FC = () => {
                           className="w-10 h-10 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-ink/8 border border-ink/10 flex items-center justify-center text-xs font-medium text-ink/50 shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-ink/8 border border-ink/10 flex items-center justify-center text-xs font-medium text-ink/75 shrink-0">
                           {initials}
                         </div>
                       )}
@@ -308,10 +308,10 @@ const Messages: React.FC = () => {
                           <p className={`text-sm truncate ${(conv.unread_count ?? 0) > 0 ? 'font-semibold text-ink' : 'font-medium text-ink/80'}`}>
                             {other.full_name || 'Unknown'}
                           </p>
-                          <span className="text-[9px] text-ink/30 shrink-0">{formatTime(conv.updated_at)}</span>
+                          <span className="text-[9px] text-ink/60 shrink-0">{formatTime(conv.updated_at)}</span>
                         </div>
                         <div className="flex items-center justify-between gap-2 mt-0.5">
-                          <p className="text-[11px] text-ink/40 truncate">{conv.last_message || 'No messages yet'}</p>
+                          <p className="text-[11px] text-ink/68 truncate">{conv.last_message || 'No messages yet'}</p>
                           {(conv.unread_count ?? 0) > 0 && (
                             <span className="w-4 h-4 rounded-full bg-accent text-white text-[8px] font-bold flex items-center justify-center shrink-0">
                               {conv.unread_count! > 9 ? '9+' : conv.unread_count}
@@ -341,7 +341,7 @@ const Messages: React.FC = () => {
                 <div className="px-6 py-4 border-b border-ink/10 flex items-center gap-4 shrink-0">
                   <button
                     onClick={() => { setShowThread(false); setSearchParams({}); }}
-                    className="md:hidden p-1.5 text-ink/40 hover:text-ink transition-colors"
+                    className="md:hidden p-1.5 text-ink/68 hover:text-ink transition-colors"
                   >
                     <ChevronLeft size={18} />
                   </button>
@@ -355,13 +355,13 @@ const Messages: React.FC = () => {
                       className="w-9 h-9 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-ink/8 border border-ink/10 flex items-center justify-center text-xs font-medium text-ink/50">
+                    <div className="w-9 h-9 rounded-full bg-ink/8 border border-ink/10 flex items-center justify-center text-xs font-medium text-ink/75">
                       {otherParticipant?.full_name?.charAt(0) || '?'}
                     </div>
                   )}
                   <div>
                     <p className="text-sm font-medium text-ink">{otherParticipant?.full_name || 'Unknown'}</p>
-                    <p className="text-[9px] uppercase tracking-widest text-ink/30">
+                    <p className="text-[9px] uppercase tracking-widest text-ink/60">
                       {selectedConv?.trainer_id === user?.id ? 'Client' : 'Trainer'}
                     </p>
                   </div>
@@ -390,7 +390,7 @@ const Messages: React.FC = () => {
                       return (
                         <div key={msg.id}>
                           {showTime && (
-                            <p className="text-center text-[9px] uppercase tracking-widest text-ink/20 my-4">
+                            <p className="text-center text-[9px] uppercase tracking-widest text-ink/45 my-4">
                               {new Date(msg.created_at).toLocaleString('en-US', {
                                 month: 'short', day: 'numeric',
                                 hour: 'numeric', minute: '2-digit', hour12: true,

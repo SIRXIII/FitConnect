@@ -22,7 +22,7 @@ const formatDate = (iso: string) =>
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const normalized = status.toLowerCase();
-  let color = 'text-ink/70';
+  let color = 'text-ink/85';
   let dot = 'bg-ink/20';
   let label = status;
 
@@ -290,10 +290,10 @@ const PayoutsTab: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Available Balance — hero */}
         <div className="border border-ink/10 p-8 space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Available Balance</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Available Balance</p>
           <p className="text-5xl serif font-light text-ink">{formatUSD(availableBalance)}</p>
           {awaitingCompletion > 0 && (
-            <p className="text-[10px] text-ink/60">
+            <p className="text-[10px] text-ink/80">
               {formatUSD(awaitingCompletion)} pending until session complete
             </p>
           )}
@@ -301,14 +301,14 @@ const PayoutsTab: React.FC = () => {
 
         {/* Pending Balance */}
         <div className="border border-ink/10 p-8 space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-ink/70 font-medium">Pending</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-ink/85 font-medium">Pending</p>
           <p
-            className="text-lg serif font-light text-ink/60"
+            className="text-lg serif font-light text-ink/80"
             title="Completed sessions not yet paid out"
           >
             {formatUSD(pendingBalance)}
           </p>
-          <p className="text-[10px] text-ink/60">Completed sessions not yet paid out</p>
+          <p className="text-[10px] text-ink/80">Completed sessions not yet paid out</p>
         </div>
       </div>
 
@@ -321,32 +321,32 @@ const PayoutsTab: React.FC = () => {
           className={`border px-10 py-3 text-[11px] uppercase tracking-[0.2em] font-medium transition-all duration-300 ${
             canRequestPayout
               ? 'border-accent text-accent hover:bg-accent hover:text-white'
-              : 'border-ink/20 text-ink/30 opacity-50 cursor-not-allowed'
+              : 'border-ink/20 text-ink/60 opacity-50 cursor-not-allowed'
           }`}
         >
           Request Payout
         </button>
         {!canRequestPayout && (
-          <p className="text-[10px] text-ink/60 mt-2">Minimum $50.00 balance required to request a payout.</p>
+          <p className="text-[10px] text-ink/80 mt-2">Minimum $50.00 balance required to request a payout.</p>
         )}
       </div>
 
       {/* Transaction History Table */}
       <div className="space-y-4">
-        <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Transaction History</p>
+        <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">Transaction History</p>
 
         <div className="border border-ink/10">
           {/* Table header */}
           <div className="grid grid-cols-[1fr_1fr_120px_120px] gap-4 px-6 py-3 border-b border-ink/10 bg-ink/[0.02]">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Date</p>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Client</p>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Amount</p>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Status</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Date</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Client</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Amount</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Status</p>
           </div>
 
           {transactions.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-xs text-ink/60 uppercase tracking-widest">No transactions yet.</p>
+              <p className="text-xs text-ink/80 uppercase tracking-widest">No transactions yet.</p>
             </div>
           ) : (
             transactions.map((tx) => (
@@ -354,11 +354,11 @@ const PayoutsTab: React.FC = () => {
                 key={tx.id}
                 className="grid grid-cols-[1fr_1fr_120px_120px] gap-4 px-6 py-4 border-b border-ink/5 items-center hover:bg-ink/[0.02] transition-colors"
               >
-                <p className="text-[11px] text-ink/60">{formatDate(tx.date)}</p>
-                <p className={`text-sm ${tx.type === 'payout' ? 'text-ink/60 italic' : 'text-ink'}`}>
+                <p className="text-[11px] text-ink/80">{formatDate(tx.date)}</p>
+                <p className={`text-sm ${tx.type === 'payout' ? 'text-ink/80 italic' : 'text-ink'}`}>
                   {tx.client}
                 </p>
-                <p className={`text-sm serif font-light ${tx.type === 'payout' ? 'text-ink/70' : 'text-ink'}`}>
+                <p className={`text-sm serif font-light ${tx.type === 'payout' ? 'text-ink/85' : 'text-ink'}`}>
                   {tx.type === 'payout' ? `−${formatUSD(tx.amount)}` : formatUSD(tx.amount)}
                 </p>
                 <StatusBadge status={tx.status} />
@@ -376,11 +376,11 @@ const PayoutsTab: React.FC = () => {
         >
           <div className="bg-paper border border-ink/10 p-10 max-w-sm w-full mx-4 space-y-6">
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/70">Confirm Payout</p>
+              <p className="text-xs uppercase tracking-[0.25em] font-medium text-ink/85">Confirm Payout</p>
               <p className="text-lg serif font-light text-ink">
                 Request payout of {formatUSD(availableBalance)}?
               </p>
-              <p className="text-sm text-ink/70">Funds arrive within 2 business days.</p>
+              <p className="text-sm text-ink/85">Funds arrive within 2 business days.</p>
             </div>
 
             <div className="flex gap-3">

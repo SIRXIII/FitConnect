@@ -83,12 +83,12 @@ const NominateTrainer: React.FC = () => {
           </div>
           <div>
             <h2 className="text-xl font-medium text-ink mb-2">Nomination Received</h2>
-            <p className="text-sm text-ink/50">
+            <p className="text-sm text-ink/75">
               {cityCount !== null
                 ? <>You're vote #{cityCount} for <span className="capitalize">{votedCity}</span>.</>
                 : <>Thanks for putting <span className="capitalize">{votedCity}</span> on the map.</>}
             </p>
-            <p className="text-xs text-ink/30 mt-3">
+            <p className="text-xs text-ink/60 mt-3">
               We use nomination counts to decide where to recruit trainers next.
             </p>
           </div>
@@ -104,14 +104,14 @@ const NominateTrainer: React.FC = () => {
           <h1 className="text-2xl serif font-light italic text-ink mb-1">
             Want FitRush trainers in your city?
           </h1>
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-ink/75">
             Every nomination raises your city's demand count and helps us recruit there.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
               First Name
             </label>
             <input
@@ -128,7 +128,7 @@ const NominateTrainer: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
               State
             </label>
             <select
@@ -149,7 +149,7 @@ const NominateTrainer: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
               City
             </label>
             <input
@@ -169,7 +169,7 @@ const NominateTrainer: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowNominee((v) => !v)}
-              className="flex items-center gap-2 text-xs uppercase tracking-widest text-ink/50 hover:text-ink transition-colors"
+              className="flex items-center gap-2 text-xs uppercase tracking-widest text-ink/75 hover:text-ink transition-colors"
             >
               {showNominee ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               Know a great trainer? Tell us who (optional)
@@ -178,7 +178,7 @@ const NominateTrainer: React.FC = () => {
             {showNominee && (
               <div className="space-y-5 mt-5">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
                     Trainer Name
                   </label>
                   <input
@@ -195,7 +195,7 @@ const NominateTrainer: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
                     Trainer Email
                   </label>
                   <input
@@ -212,7 +212,7 @@ const NominateTrainer: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-widest text-ink/40 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-ink/68 mb-2">
                     Trainer Phone
                   </label>
                   <input

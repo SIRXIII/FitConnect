@@ -408,8 +408,8 @@ const TrainerProfile: React.FC = () => {
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
             <div className="min-w-0">
               <p className="text-sm font-medium text-ink truncate">{name}</p>
-              <p className="text-[10px] text-ink/50 tabular-nums">
-                From <span className="text-ink/70">${cheapestRate}/hr</span>
+              <p className="text-[10px] text-ink/75 tabular-nums">
+                From <span className="text-ink/85">${cheapestRate}/hr</span>
               </p>
             </div>
             <button
@@ -426,7 +426,7 @@ const TrainerProfile: React.FC = () => {
         {/* Back link */}
         <Link
           to="/trainers"
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors mb-12"
+          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 hover:text-ink transition-colors mb-12"
         >
           <ChevronLeft size={14} />
           Back to Trainers
@@ -440,34 +440,34 @@ const TrainerProfile: React.FC = () => {
 
             {/* Overview — rating, location, verified, experience, sessions, certifications */}
             <div className="space-y-6 rounded-[2rem] border border-ink/10 p-6">
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+              <h3 className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
                 Overview
               </h3>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Rating</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Rating</span>
                   <div className="flex items-center gap-1 text-accent">
                     <Star size={12} fill="currentColor" />
                     <span className="text-sm font-medium">
                       {rating > 0 ? rating.toFixed(1) : 'New'}
                     </span>
                     {trainer.review_count > 0 && (
-                      <span className="text-ink/30 text-[10px]">({trainer.review_count})</span>
+                      <span className="text-ink/60 text-[10px]">({trainer.review_count})</span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Location</span>
-                  <div className="flex items-center gap-1 text-sm text-ink/60">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Location</span>
+                  <div className="flex items-center gap-1 text-sm text-ink/80">
                     <MapPin size={12} />
                     {trainer.location || 'Not specified'}
                   </div>
                 </div>
                 {joinedLabel && (
                   <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Joined</span>
-                    <div className="flex items-center gap-1 text-sm text-ink/60">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Joined</span>
+                    <div className="flex items-center gap-1 text-sm text-ink/80">
                       <Calendar size={12} />
                       {joinedLabel}
                     </div>
@@ -475,7 +475,7 @@ const TrainerProfile: React.FC = () => {
                 )}
                 {trainer.verified && (
                   <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Verified</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Verified</span>
                     <div className="flex items-center gap-1 text-sm text-accent">
                       <Shield size={12} />
                       Certified
@@ -485,8 +485,8 @@ const TrainerProfile: React.FC = () => {
                 {/* Years of experience */}
                 {trainer.years_experience != null && trainer.years_experience > 0 && (
                   <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Experience</span>
-                    <span className="text-sm text-ink/70 tabular-nums">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Experience</span>
+                    <span className="text-sm text-ink/85 tabular-nums">
                       {trainer.years_experience} years
                     </span>
                   </div>
@@ -494,8 +494,8 @@ const TrainerProfile: React.FC = () => {
                 {/* Sessions delivered stat */}
                 {trainer.booking_count != null && (trainer.booking_count ?? 0) > 0 && (
                   <div className="flex items-center justify-between border-t border-ink/5 pt-4">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Sessions</span>
-                    <span className="text-sm text-ink/70 tabular-nums">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-ink/68">Sessions</span>
+                    <span className="text-sm text-ink/85 tabular-nums">
                       {trainer.booking_count} delivered
                     </span>
                   </div>
@@ -505,14 +505,14 @@ const TrainerProfile: React.FC = () => {
               {/* Certifications */}
               {certs.length > 0 && (
                 <div className="space-y-3 border-t border-ink/5 pt-4">
-                  <h4 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                  <h4 className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
                     Certifications
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {certs.map((cert, i) => (
                       <span
                         key={i}
-                        className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/60"
+                        className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/80"
                       >
                         {cert}
                       </span>
@@ -525,14 +525,14 @@ const TrainerProfile: React.FC = () => {
             {/* Gym memberships */}
             {hasGyms && (
               <div className="space-y-3">
-                <h3 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                <h3 className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
                   Trains At
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {(gymMemberships as string[]).map((gym, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/60"
+                      className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/80"
                     >
                       {gym}
                     </span>
@@ -549,7 +549,7 @@ const TrainerProfile: React.FC = () => {
               <h1 className="text-4xl md:text-5xl serif font-light italic text-ink">{name}</h1>
               <div className="flex items-center gap-3">
                 <Award size={14} className="text-accent" />
-                <span className="text-sm uppercase tracking-[0.2em] text-ink/50">
+                <span className="text-sm uppercase tracking-[0.2em] text-ink/75">
                   {(trainer.specialties?.length ? trainer.specialties : [trainer.specialty])
                     .map(formatSpecialty)
                     .join(' · ')}
@@ -562,7 +562,7 @@ const TrainerProfile: React.FC = () => {
                   <>
                     <div className="flex items-center gap-1.5 pr-4">
                       <Shield size={11} className="text-accent flex-shrink-0" />
-                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Verified</span>
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/80">Verified</span>
                     </div>
                     <div className="h-3 border-r border-ink/15 mr-4" />
                   </>
@@ -571,7 +571,7 @@ const TrainerProfile: React.FC = () => {
                   <>
                     <div className="flex items-center gap-1.5 pr-4">
                       <Award size={11} className="text-accent flex-shrink-0" />
-                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/80">
                         Founding Trainer{joinedLabel ? ` · Since ${joinedLabel}` : ''}
                       </span>
                     </div>
@@ -582,7 +582,7 @@ const TrainerProfile: React.FC = () => {
                   <>
                     <div className="flex items-center gap-1.5 pr-4">
                       <Sparkles size={11} className="text-accent flex-shrink-0" />
-                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink/80">
                         Complimentary 30-min intro
                       </span>
                     </div>
@@ -594,12 +594,12 @@ const TrainerProfile: React.FC = () => {
                 <SuperFitBadge trainerId={trainer.id} />
                 <div className="flex items-center gap-1.5 pr-4">
                   <Lock size={11} className="text-accent flex-shrink-0" />
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Secure Stripe Checkout</span>
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/80">Secure Stripe Checkout</span>
                 </div>
                 <div className="h-3 border-r border-ink/15 mr-4" />
                 <div className="flex items-center gap-1.5">
                   <MessageSquare size={11} className="text-accent flex-shrink-0" />
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/60">Message First</span>
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink/80">Message First</span>
                 </div>
               </div>
             </div>
@@ -607,14 +607,14 @@ const TrainerProfile: React.FC = () => {
             {/* Rates */}
             <div className="border border-ink/10 p-8 flex flex-wrap gap-12">
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">Standard Rate</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">Standard Rate</p>
                 <p className="text-2xl serif font-light">${trainer.hourly_rate}/hr</p>
               </div>
               {(trainer.discount_percentage ?? 0) > 0 ? (
                 <>
                   <div className="space-y-2">
-                    <p className="text-xs uppercase tracking-[0.2em] text-ink/30 font-medium line-through">Optimized Rate</p>
-                    <p className="text-2xl serif font-light text-ink/30 line-through">${trainer.optimized_rate}/hr</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-ink/60 font-medium line-through">Optimized Rate</p>
+                    <p className="text-2xl serif font-light text-ink/60 line-through">${trainer.optimized_rate}/hr</p>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -639,22 +639,22 @@ const TrainerProfile: React.FC = () => {
             {/* Bio */}
             {trainer.bio && (
               <div className="space-y-4">
-                <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">About</h2>
-                <p className="text-ink/70 leading-relaxed">{trainer.bio}</p>
+                <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">About</h2>
+                <p className="text-ink/85 leading-relaxed">{trainer.bio}</p>
               </div>
             )}
 
             {/* Areas of Expertise */}
             {Array.isArray(trainer.expertise_tags) && trainer.expertise_tags.length > 0 && (
               <div className="space-y-3">
-                <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+                <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
                   Areas of Expertise
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {trainer.expertise_tags.map((tag, i) => (
                     <span
                       key={i}
-                      className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/60"
+                      className="px-3 py-1.5 border border-ink/10 text-[10px] uppercase tracking-[0.15em] text-ink/80"
                     >
                       {tag}
                     </span>
@@ -667,7 +667,7 @@ const TrainerProfile: React.FC = () => {
             {trainer.success_story && (
               <div className="space-y-4">
                 <h2 className="text-2xl serif font-light italic text-ink">Success Story</h2>
-                <blockquote className="border-l-2 border-accent/30 pl-5 py-1 text-ink/70 leading-relaxed italic">
+                <blockquote className="border-l-2 border-accent/30 pl-5 py-1 text-ink/85 leading-relaxed italic">
                   {trainer.success_story}
                 </blockquote>
               </div>
@@ -758,8 +758,8 @@ const TrainerProfile: React.FC = () => {
                 </div>
               ) : availableSlots.length === 0 ? (
                 <div className="border border-dashed border-ink/10 p-8 text-center">
-                  <p className="text-sm text-ink/40">No available sessions at this time</p>
-                  <p className="text-[10px] text-ink/30 mt-2 uppercase tracking-widest">
+                  <p className="text-sm text-ink/68">No available sessions at this time</p>
+                  <p className="text-[10px] text-ink/60 mt-2 uppercase tracking-widest">
                     Check back soon for new openings
                   </p>
                 </div>
@@ -768,7 +768,7 @@ const TrainerProfile: React.FC = () => {
                   {Object.entries(slotsByDate).map(([date, slots]) => (
                     <div key={date} className="border border-ink/10">
                       <div className="bg-ink/3 px-6 py-3">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/50 font-medium">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/75 font-medium">
                           {date}
                         </p>
                       </div>
@@ -802,12 +802,12 @@ const TrainerProfile: React.FC = () => {
                               onClick={isMockTrainer || isFull ? (e) => { e.preventDefault(); } : undefined}
                               className={`inline-flex flex-col items-start gap-1 px-4 py-2.5 text-[11px] uppercase tracking-[0.15em] transition-all duration-300 ${
                                 isFull
-                                  ? 'border border-ink/10 text-ink/30 cursor-not-allowed'
+                                  ? 'border border-ink/10 text-ink/60 cursor-not-allowed'
                                   : isBuffer
                                   ? 'border border-amber-400/40 text-amber-700/70 hover:bg-accent hover:text-white'
                                   : isGroup
-                                  ? 'border border-blue-400/30 text-ink/70 hover:bg-blue-500 hover:text-white'
-                                  : 'border border-accent/20 text-ink/70 hover:bg-accent hover:text-white'
+                                  ? 'border border-blue-400/30 text-ink/85 hover:bg-blue-500 hover:text-white'
+                                  : 'border border-accent/20 text-ink/85 hover:bg-accent hover:text-white'
                               }`}
                             >
                               <div className="flex items-center gap-2">
@@ -857,10 +857,10 @@ const TrainerProfile: React.FC = () => {
                           <span className="text-sm font-medium text-ink/80">{faq.q}</span>
                           <ChevronDown
                             size={14}
-                            className="text-ink/40 flex-shrink-0 transition-transform duration-200 group-open:rotate-180"
+                            className="text-ink/68 flex-shrink-0 transition-transform duration-200 group-open:rotate-180"
                           />
                         </summary>
-                        <p className="text-sm text-ink/60 leading-relaxed pt-2 pb-4">{faq.a}</p>
+                        <p className="text-sm text-ink/80 leading-relaxed pt-2 pb-4">{faq.a}</p>
                       </details>
                     );
                   })}
@@ -894,11 +894,11 @@ const TrainerProfile: React.FC = () => {
                                 className="w-8 h-8 rounded-full object-cover"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-xs font-medium text-ink/40">
+                              <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-xs font-medium text-ink/68">
                                 {review.profiles?.full_name?.charAt(0) || '?'}
                               </div>
                             )}
-                            <span className="text-sm font-medium text-ink/70">
+                            <span className="text-sm font-medium text-ink/85">
                               {review.profiles?.full_name || 'Anonymous'}
                             </span>
                           </div>
@@ -924,7 +924,7 @@ const TrainerProfile: React.FC = () => {
                             ].map(({ label, val }) =>
                               val ? (
                                 <div key={label} className="flex items-center gap-1.5">
-                                  <span className="text-[10px] text-ink/40 uppercase tracking-wide">{label}</span>
+                                  <span className="text-[10px] text-ink/68 uppercase tracking-wide">{label}</span>
                                   <div className="flex items-center gap-0.5">
                                     {Array.from({ length: 5 }).map((_, i) => (
                                       <Star
@@ -943,12 +943,12 @@ const TrainerProfile: React.FC = () => {
 
                         {/* Comment */}
                         {review.comment && (
-                          <p className="text-sm text-ink/60 leading-relaxed">{review.comment}</p>
+                          <p className="text-sm text-ink/80 leading-relaxed">{review.comment}</p>
                         )}
 
                         {/* Date + flag */}
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] text-ink/20">
+                          <p className="text-[10px] text-ink/45">
                             {new Date(review.created_at).toLocaleDateString('en-US', {
                               month: 'long',
                               day: 'numeric',
@@ -958,7 +958,7 @@ const TrainerProfile: React.FC = () => {
                           {user && !isOwnReview && !isThisTrainer && !review.is_flagged && (
                             <button
                               onClick={() => handleFlagReview(review.id)}
-                              className="flex items-center gap-1 text-[10px] text-ink/30 hover:text-red-400 transition-colors"
+                              className="flex items-center gap-1 text-[10px] text-ink/60 hover:text-red-400 transition-colors"
                             >
                               <Flag size={10} />
                               Flag
@@ -975,10 +975,10 @@ const TrainerProfile: React.FC = () => {
                         {/* Trainer response */}
                         {review.trainer_response && (
                           <div className="bg-ink/3 border-l-2 border-accent/30 pl-4 py-3 space-y-1">
-                            <p className="text-[10px] text-ink/40 uppercase tracking-wide">Trainer response</p>
-                            <p className="text-sm text-ink/60 leading-relaxed">{review.trainer_response}</p>
+                            <p className="text-[10px] text-ink/68 uppercase tracking-wide">Trainer response</p>
+                            <p className="text-sm text-ink/80 leading-relaxed">{review.trainer_response}</p>
                             {review.trainer_response_at && (
-                              <p className="text-[10px] text-ink/20">
+                              <p className="text-[10px] text-ink/45">
                                 {new Date(review.trainer_response_at).toLocaleDateString('en-US', {
                                   month: 'long',
                                   day: 'numeric',
@@ -993,7 +993,7 @@ const TrainerProfile: React.FC = () => {
                         {isThisTrainer && !review.trainer_response && respondingTo !== review.id && (
                           <button
                             onClick={() => { setRespondingTo(review.id); setResponseText(''); }}
-                            className="flex items-center gap-1.5 text-xs text-ink/40 hover:text-accent transition-colors"
+                            className="flex items-center gap-1.5 text-xs text-ink/68 hover:text-accent transition-colors"
                           >
                             <Reply size={12} />
                             Respond to review
@@ -1021,7 +1021,7 @@ const TrainerProfile: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => setRespondingTo(null)}
-                                className="text-xs text-ink/40 hover:text-ink/70 transition-colors"
+                                className="text-xs text-ink/68 hover:text-ink/85 transition-colors"
                               >
                                 Cancel
                               </button>

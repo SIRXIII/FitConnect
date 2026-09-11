@@ -36,14 +36,14 @@ const DowngradeModal: React.FC<DowngradeModalProps> = ({
         <h2 className="text-xl serif font-light italic text-ink">
           Downgrade to Free?
         </h2>
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-ink/80">
           You will lose access to these features:
         </p>
         <ul className="space-y-3">
           {lostFeatures.map((feature) => (
             <li key={feature} className="flex items-center gap-3">
               <X className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <span className="text-sm text-ink/70">
+              <span className="text-sm text-ink/85">
                 {FEATURE_NAMES[feature]}
               </span>
             </li>

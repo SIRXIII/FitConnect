@@ -74,7 +74,7 @@ const PaymentForm: React.FC<{
       <div className="border border-ink/10 p-6 space-y-4">
         <div className="flex items-center gap-2">
           <CreditCard size={14} className="text-accent" />
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
             Payment Details
           </p>
         </div>
@@ -110,7 +110,7 @@ const PaymentForm: React.FC<{
         </button>
       </div>
 
-      <p className="text-[10px] text-ink/30 text-center">
+      <p className="text-[10px] text-ink/60 text-center">
         Your payment is secured by Stripe. You can cancel free of charge up to 24 hours before the session.
       </p>
     </form>
@@ -278,7 +278,8 @@ const BookSession: React.FC = () => {
     });
 
     if (error) {
-      toast.error('Connection lost. Check your signal and try again.');
+      const friendly = error.code === 'P0001' && error.message.startsWith('This trainer');
+      toast.error(friendly ? error.message : 'Connection lost. Check your signal and try again.');
       return null;
     }
 
@@ -410,7 +411,7 @@ const BookSession: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-paper pt-32">
         <div className="text-center space-y-6">
           <h2 className="text-3xl serif font-light italic text-ink">Session unavailable</h2>
-          <p className="text-sm text-ink/40">This session has already been booked or is no longer available.</p>
+          <p className="text-sm text-ink/68">This session has already been booked or is no longer available.</p>
           <Link
             to="/trainers"
             className="inline-block border border-ink/20 px-10 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-ink hover:text-white transition-all duration-300"
@@ -427,7 +428,7 @@ const BookSession: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-paper pt-32">
         <div className="text-center space-y-6">
           <h2 className="text-3xl serif font-light italic text-ink">Sign in to book</h2>
-          <p className="text-sm text-ink/40">Create an account to book sessions with trainers.</p>
+          <p className="text-sm text-ink/68">Create an account to book sessions with trainers.</p>
           <Link
             to="/login"
             className="inline-block bg-ink text-white px-10 py-3 text-[11px] uppercase tracking-[0.2em] font-medium hover:bg-accent transition-all duration-300"
@@ -446,7 +447,7 @@ const BookSession: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors mb-12"
+          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 hover:text-ink transition-colors mb-12"
         >
           <ArrowLeft size={14} />
           Back

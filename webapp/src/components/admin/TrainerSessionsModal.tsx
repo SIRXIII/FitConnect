@@ -35,9 +35,9 @@ const ptDayLabel = (iso: string) =>
   new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: TZ });
 
 function paymentChip(s: TrainerSession): { label: string; cls: string } {
-  if (s.is_comp) return { label: 'Comp', cls: 'bg-ink/5 text-ink/50' };
+  if (s.is_comp) return { label: 'Comp', cls: 'bg-ink/5 text-ink/75' };
   if (!s.payment_id) return { label: 'No payment', cls: 'bg-red-50 text-red-600' };
-  if (s.payout_transaction_id) return { label: 'Paid out', cls: 'bg-ink/5 text-ink/40' };
+  if (s.payout_transaction_id) return { label: 'Paid out', cls: 'bg-ink/5 text-ink/68' };
   if (isReleasableSession(s)) return { label: 'Ready', cls: 'bg-emerald-50 text-emerald-700' };
   return { label: s.payment_status ?? 'unpaid', cls: 'bg-amber-50 text-amber-700' };
 }
@@ -142,19 +142,19 @@ const TrainerSessionsModal: React.FC<Props> = ({ open, trainer, availableCents, 
         <div className="flex items-center justify-between px-6 py-5 border-b border-ink/10">
           <div>
             <h2 className="text-xl serif font-light italic text-ink">{trainer.trainer_name}</h2>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium mt-1">Sessions · Weekly</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium mt-1">Sessions · Weekly</p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setAnchor((a) => shiftWeek(a, -1))}
-              className="px-2 py-1 text-[11px] uppercase tracking-wider text-ink/50 hover:text-ink transition-colors"
+              className="px-2 py-1 text-[11px] uppercase tracking-wider text-ink/75 hover:text-ink transition-colors"
             >
               ‹ Prev
             </button>
-            <span className="text-xs text-ink/70 tabular-nums min-w-[110px] text-center">{week.label}</span>
+            <span className="text-xs text-ink/85 tabular-nums min-w-[110px] text-center">{week.label}</span>
             <button
               onClick={() => setAnchor((a) => shiftWeek(a, 1))}
-              className="px-2 py-1 text-[11px] uppercase tracking-wider text-ink/50 hover:text-ink transition-colors"
+              className="px-2 py-1 text-[11px] uppercase tracking-wider text-ink/75 hover:text-ink transition-colors"
             >
               Next ›
             </button>
@@ -170,12 +170,12 @@ const TrainerSessionsModal: React.FC<Props> = ({ open, trainer, availableCents, 
           ) : error ? (
             <p className="py-12 text-center text-xs text-red-600">{error}</p>
           ) : days.length === 0 ? (
-            <p className="py-12 text-center text-xs text-ink/50">No sessions this week.</p>
+            <p className="py-12 text-center text-xs text-ink/75">No sessions this week.</p>
           ) : (
             <div className="space-y-5">
               {days.map((day) => (
                 <div key={day.label}>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium mb-2">{day.label}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium mb-2">{day.label}</p>
                   <div className="border border-ink/10">
                     {day.rows.map((s) => {
                       const chip = paymentChip(s);
@@ -213,7 +213,7 @@ const TrainerSessionsModal: React.FC<Props> = ({ open, trainer, availableCents, 
                             tabIndex={-1}
                             className="accent-emerald-600 disabled:opacity-30 pointer-events-none"
                           />
-                          <span className="text-xs text-ink/70 tabular-nums">
+                          <span className="text-xs text-ink/85 tabular-nums">
                             {ptTime(s.start_time)}–{ptTime(s.end_time)}
                           </span>
                           <span className="text-sm text-ink truncate">{s.client_name}</span>
@@ -245,7 +245,7 @@ const TrainerSessionsModal: React.FC<Props> = ({ open, trainer, availableCents, 
             <p className="text-[11px] text-amber-700">Payouts are on hold for this trainer.</p>
           )}
           <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-ink/70">
+            <p className="text-sm text-ink/85">
               Selected: <span className="tabular-nums">{selected.size}</span> session{selected.size === 1 ? '' : 's'} ·{' '}
               <span className="font-medium text-ink tabular-nums">{formatCents(totalCents)}</span>
             </p>

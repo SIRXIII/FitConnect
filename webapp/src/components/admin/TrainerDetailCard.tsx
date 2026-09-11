@@ -162,7 +162,7 @@ const TrainerDetailCard: React.FC<Props> = ({
       ? 'Synced — payouts enabled'
       : 'Connected — payouts pending';
   const payoutTone = !trainer.stripe_account_id
-    ? 'text-ink/60'
+    ? 'text-ink/80'
     : trainer.payouts_enabled
       ? 'text-green-700'
       : 'text-amber-700';
@@ -192,7 +192,7 @@ const TrainerDetailCard: React.FC<Props> = ({
               className="w-16 h-16 rounded-full object-cover border border-ink/10 shrink-0"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-lg text-ink/40 shrink-0">
+            <div className="w-16 h-16 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-lg text-ink/68 shrink-0">
               {(trainer.full_name?.trim() || trainer.email || 'U').charAt(0).toUpperCase()}
             </div>
           )}
@@ -205,7 +205,7 @@ const TrainerDetailCard: React.FC<Props> = ({
                 </span>
               )}
             </div>
-            <p className="text-sm text-ink/60 truncate">
+            <p className="text-sm text-ink/80 truncate">
               <a href={`mailto:${trainer.email}`} className="hover:underline">{trainer.email}</a>
               {' · '}
               {trainer.phone?.trim() ? (
@@ -213,10 +213,10 @@ const TrainerDetailCard: React.FC<Props> = ({
                   {trainer.phone}
                 </a>
               ) : (
-                <span className="text-ink/40 italic">No phone on file</span>
+                <span className="text-ink/68 italic">No phone on file</span>
               )}
             </p>
-            <p className="text-xs text-ink/50 mt-0.5">
+            <p className="text-xs text-ink/75 mt-0.5">
               Signed up {new Date(trainer.created_at).toLocaleDateString()}
               {trainer.last_sign_in_at && ` · Last sign-in ${new Date(trainer.last_sign_in_at).toLocaleDateString()}`}
             </p>
@@ -245,7 +245,7 @@ const TrainerDetailCard: React.FC<Props> = ({
             {onMessageTrainer && (
               <button
                 onClick={onMessageTrainer}
-                className="w-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+                className="w-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
               >
                 Message Trainer
               </button>
@@ -262,31 +262,31 @@ const TrainerDetailCard: React.FC<Props> = ({
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Specialty</p>
             {trainer.specialty
               ? <p className="text-sm text-ink">{trainer.specialty}</p>
-              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+              : <p className="text-sm text-ink/68 italic">Not provided</p>}
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Hourly Rate</p>
             {trainer.hourly_rate != null
               ? <p className="text-sm text-ink tabular-nums">${Number(trainer.hourly_rate).toFixed(0)}/hr</p>
-              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+              : <p className="text-sm text-ink/68 italic">Not provided</p>}
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Optimized Rate</p>
             {trainer.optimized_rate != null
               ? <p className="text-sm text-ink tabular-nums">${Number(trainer.optimized_rate).toFixed(0)}/hr</p>
-              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+              : <p className="text-sm text-ink/68 italic">Not provided</p>}
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Discount</p>
             {trainer.discount_percentage != null
               ? <p className="text-sm text-ink tabular-nums">{Number(trainer.discount_percentage).toFixed(0)}%</p>
-              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+              : <p className="text-sm text-ink/68 italic">Not provided</p>}
           </div>
           <div className="col-span-2 md:col-span-4">
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Location</p>
             {location
               ? <p className="text-sm text-ink">{location}</p>
-              : <p className="text-sm text-ink/40 italic">Not provided</p>}
+              : <p className="text-sm text-ink/68 italic">Not provided</p>}
           </div>
           {(trainer.years_experience != null || (trainer.expertise_tags?.length ?? 0) > 0) && (
             <div className="col-span-2 md:col-span-4">
@@ -298,7 +298,7 @@ const TrainerDetailCard: React.FC<Props> = ({
                   </span>
                 )}
                 {(trainer.expertise_tags?.length ?? 0) > 0 && trainer.expertise_tags!.map((tag, idx) => (
-                  <span key={`expertise-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/70">
+                  <span key={`expertise-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/85">
                     {tag}
                   </span>
                 ))}
@@ -313,7 +313,7 @@ const TrainerDetailCard: React.FC<Props> = ({
         <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-3">Bio</p>
         {trainer.bio?.trim()
           ? <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-wrap">{trainer.bio.trim()}</p>
-          : <p className="text-sm text-ink/40 italic">No bio provided yet.</p>}
+          : <p className="text-sm text-ink/68 italic">No bio provided yet.</p>}
       </div>
 
       {/* ── SECTION 4: Intro Video ── */}
@@ -350,7 +350,7 @@ const TrainerDetailCard: React.FC<Props> = ({
             </a>
           )
         ) : (
-          <p className="text-sm text-ink/40 italic">No intro video uploaded.</p>
+          <p className="text-sm text-ink/68 italic">No intro video uploaded.</p>
         )}
       </div>
 
@@ -360,13 +360,13 @@ const TrainerDetailCard: React.FC<Props> = ({
         {(trainer.gym_memberships?.length ?? 0) > 0 ? (
           <div className="flex flex-wrap gap-2">
             {trainer.gym_memberships!.map((gym, idx) => (
-              <span key={`gym-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/70">
+              <span key={`gym-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/85">
                 {gym}
               </span>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-ink/40 italic">None listed.</p>
+          <p className="text-sm text-ink/68 italic">None listed.</p>
         )}
       </div>
 
@@ -377,13 +377,13 @@ const TrainerDetailCard: React.FC<Props> = ({
         {(trainer.certifications?.length ?? 0) > 0 ? (
           <div className="flex flex-wrap gap-2">
             {trainer.certifications!.map((cert, idx) => (
-              <span key={`cert-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/70">
+              <span key={`cert-${idx}`} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/85">
                 {cert}
               </span>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-ink/40 italic">None listed.</p>
+          <p className="text-sm text-ink/68 italic">None listed.</p>
         )}
         {/* Cert number + file link from trainer_profile level */}
         {trainer.certification_number && (
@@ -428,7 +428,7 @@ const TrainerDetailCard: React.FC<Props> = ({
                         View file
                       </button>
                     ) : (
-                      <span className="text-sm text-ink/40 italic">No document uploaded</span>
+                      <span className="text-sm text-ink/68 italic">No document uploaded</span>
                     )}
                   </div>
 
@@ -460,7 +460,7 @@ const TrainerDetailCard: React.FC<Props> = ({
                         reviewCert(doc, 'needs_info');
                       }}
                       disabled={busy}
-                      className="px-3 py-1.5 border border-ink/20 text-ink/70 text-[10px] uppercase tracking-[0.2em] font-medium hover:border-ink/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="px-3 py-1.5 border border-ink/20 text-ink/85 text-[10px] uppercase tracking-[0.2em] font-medium hover:border-ink/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       {hasFile ? 'Request info' : 'Request document'}
                     </button>

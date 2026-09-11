@@ -43,10 +43,10 @@ const FitnessPassportCard: React.FC<FitnessPassportCardProps> = ({
   return (
     <details className="border border-ink/10 group">
       <summary className="flex items-center justify-between px-4 py-3 cursor-pointer select-none hover:bg-ink/3 transition-colors">
-        <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/50">
+        <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/75">
           Fitness Passport
         </span>
-        <span className="text-ink/30 text-xs transition-transform group-open:rotate-90">
+        <span className="text-ink/60 text-xs transition-transform group-open:rotate-90">
           &#9654;
         </span>
       </summary>
@@ -55,7 +55,7 @@ const FitnessPassportCard: React.FC<FitnessPassportCardProps> = ({
         {bio && (
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/35 mb-1">Bio</p>
-            <p className="text-sm font-light text-ink/60 italic line-clamp-2">{bio}</p>
+            <p className="text-sm font-light text-ink/80 italic line-clamp-2">{bio}</p>
           </div>
         )}
 
@@ -84,7 +84,7 @@ const FitnessPassportCard: React.FC<FitnessPassportCardProps> = ({
               {workoutTypes.map((type) => (
                 <span
                   key={type}
-                  className="bg-ink/5 text-ink/60 text-[10px] uppercase tracking-[0.2em] px-2 py-0.5"
+                  className="bg-ink/5 text-ink/80 text-[10px] uppercase tracking-[0.2em] px-2 py-0.5"
                 >
                   {formatEnumLabel(type)}
                 </span>
@@ -96,7 +96,7 @@ const FitnessPassportCard: React.FC<FitnessPassportCardProps> = ({
         {trainingFrequency && (
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/35 mb-1">Frequency</p>
-            <p className="text-sm font-light text-ink/60">
+            <p className="text-sm font-light text-ink/80">
               Trains {trainingFrequency}x / week
             </p>
           </div>
@@ -107,7 +107,7 @@ const FitnessPassportCard: React.FC<FitnessPassportCardProps> = ({
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/35 mb-1">Level</p>
             <span
               className={`inline-block text-[10px] uppercase tracking-[0.15em] font-semibold px-2.5 py-0.5 border ${
-                LEVEL_STYLES[fitnessLevel] || 'bg-ink/5 text-ink/60 border-ink/10'
+                LEVEL_STYLES[fitnessLevel] || 'bg-ink/5 text-ink/80 border-ink/10'
               }`}
             >
               {formatEnumLabel(fitnessLevel)}

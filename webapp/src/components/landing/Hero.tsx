@@ -64,15 +64,15 @@ const Hero: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-12 pt-16 border-t border-ink/5">
                 <div className="space-y-1">
                   <div className="text-2xl serif font-light italic">Vetted</div>
-                  <div className="text-[9px] uppercase tracking-widest text-ink/40">Certified Trainers</div>
+                  <div className="text-[9px] uppercase tracking-widest text-ink/68">Certified Trainers</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-2xl serif font-light italic">Up to 40%</div>
-                  <div className="text-[9px] uppercase tracking-widest text-ink/40">Off-Peak Rates</div>
+                  <div className="text-[9px] uppercase tracking-widest text-ink/68">Off-Peak Rates</div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-2xl serif font-light italic">Verified</div>
-                  <div className="text-[9px] uppercase tracking-widest text-ink/40">Client Reviews</div>
+                  <div className="text-[9px] uppercase tracking-widest text-ink/68">Client Reviews</div>
                 </div>
               </div>
             </motion.div>
@@ -104,7 +104,7 @@ const Hero: React.FC = () => {
                 <p className="text-sm italic serif text-[#222222] max-w-[200px] leading-relaxed">
                   "The most seamless way to access world-class coaching without the premium overhead."
                 </p>
-                <p className="text-[10px] uppercase tracking-widest text-ink/50 font-bold">— Architectural Fitness</p>
+                <p className="text-[10px] uppercase tracking-widest text-ink/75 font-bold">— Architectural Fitness</p>
               </div>
             </motion.div>
           </div>

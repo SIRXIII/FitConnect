@@ -106,11 +106,11 @@ const Navbar: React.FC = () => {
                   {showNotifs && (
                     <div className="absolute right-0 top-full mt-3 w-80 bg-paper border border-ink/10 shadow-lg max-h-96 overflow-hidden flex flex-col">
                       <div className="px-4 py-3 border-b border-ink/5 flex items-center justify-between">
-                        <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/40">Notifications</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] font-medium text-ink/68">Notifications</p>
                         <div className="flex items-center gap-3">
                           <button
                             onClick={(e) => { e.stopPropagation(); refetchNotifications(); }}
-                            className="text-ink/30 hover:text-accent transition-colors"
+                            className="text-ink/60 hover:text-accent transition-colors"
                             title="Refresh notifications"
                           >
                             <RefreshCw size={11} strokeWidth={1.5} />
@@ -128,7 +128,7 @@ const Navbar: React.FC = () => {
                       <div className="overflow-y-auto flex-1">
                         {notifications.length === 0 ? (
                           <div className="px-4 py-8 text-center">
-                            <p className="text-xs text-ink/30">No notifications yet</p>
+                            <p className="text-xs text-ink/60">No notifications yet</p>
                           </div>
                         ) : (
                           notifications.map((notif) => (
@@ -155,8 +155,8 @@ const Navbar: React.FC = () => {
                                     )}
                                     <p className="text-xs font-medium text-ink">{notif.title}</p>
                                   </div>
-                                  <p className="text-[10px] text-ink/40 mt-0.5">{notif.message}</p>
-                                  <p className="text-[9px] text-ink/20 mt-1">
+                                  <p className="text-[10px] text-ink/68 mt-0.5">{notif.message}</p>
+                                  <p className="text-[9px] text-ink/45 mt-1">
                                     {new Date(notif.created_at).toLocaleDateString('en-US', {
                                       month: 'short',
                                       day: 'numeric',
@@ -192,7 +192,7 @@ const Navbar: React.FC = () => {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-[10px] font-medium text-ink/60">
+                      <div className="w-8 h-8 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-[10px] font-medium text-ink/80">
                         {initials}
                       </div>
                     )}
@@ -202,13 +202,13 @@ const Navbar: React.FC = () => {
                     <div className="absolute right-0 top-full mt-3 w-52 bg-paper border border-ink/10 shadow-lg py-2">
                       <div className="px-4 py-3 border-b border-ink/5">
                         <p className="text-xs font-medium text-ink truncate">{profile?.full_name}</p>
-                        <p className="text-[10px] text-ink/40 uppercase tracking-wider mt-1">
+                        <p className="text-[10px] text-ink/68 uppercase tracking-wider mt-1">
                           {profile?.role || 'Member'}
                         </p>
                       </div>
                       <button
                         onClick={() => navigate(dashboardPath)}
-                        className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/60 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
+                        className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/80 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
                       >
                         <LayoutDashboard size={14} strokeWidth={1.5} />
                         Dashboard
@@ -216,7 +216,7 @@ const Navbar: React.FC = () => {
                       {profile?.role === 'trainer' && (
                         <button
                           onClick={() => navigate('/trainer/bookings')}
-                          className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/60 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
+                          className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/80 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
                         >
                           <LayoutDashboard size={14} strokeWidth={1.5} />
                           Bookings
@@ -224,7 +224,7 @@ const Navbar: React.FC = () => {
                       )}
                       <button
                         onClick={handleSignOut}
-                        className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/60 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
+                        className="w-full px-4 py-3 text-left text-[11px] uppercase tracking-[0.15em] text-ink/80 hover:text-ink hover:bg-ink/3 flex items-center gap-3 transition-colors"
                       >
                         <LogOut size={14} strokeWidth={1.5} />
                         Sign Out

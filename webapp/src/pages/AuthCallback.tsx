@@ -73,7 +73,7 @@ const AuthCallback: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-paper gap-6">
       <div className="w-6 h-6 border border-accent border-t-transparent rounded-full animate-spin" />
-      <p className="text-xs uppercase tracking-[0.3em] text-ink/40">
+      <p className="text-xs uppercase tracking-[0.3em] text-ink/68">
         Authenticating
       </p>
     </div>

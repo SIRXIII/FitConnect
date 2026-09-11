@@ -22,13 +22,13 @@ const IntensitySlider: React.FC<IntensitySliderProps> = ({ value, onChange }) =>
               className={`flex-1 min-h-[60px] py-3 px-2 border text-left transition-all duration-300 ${
                 isSelected
                   ? level.color
-                  : 'border-ink/10 text-ink/60 hover:border-ink/30'
+                  : 'border-ink/10 text-ink/80 hover:border-ink/30'
               }`}
             >
               <span className="block text-[11px] uppercase tracking-[0.1em] font-medium">
                 {level.label}
               </span>
-              <span className="block text-[9px] text-ink/40 normal-case tracking-normal mt-0.5">
+              <span className="block text-[9px] text-ink/68 normal-case tracking-normal mt-0.5">
                 {level.desc}
               </span>
             </button>

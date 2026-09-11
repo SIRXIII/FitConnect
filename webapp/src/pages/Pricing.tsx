@@ -57,7 +57,7 @@ const Pricing: React.FC = () => {
           <h1 className="text-3xl serif font-light italic text-ink text-center">
             Choose Your Plan
           </h1>
-          <p className="text-sm text-ink/50 text-center">
+          <p className="text-sm text-ink/75 text-center">
             Start with a 30-day free trial. No credit card required.
           </p>
         </div>
@@ -76,7 +76,7 @@ const Pricing: React.FC = () => {
         />
 
         {isTrialing && (
-          <p className="text-xs text-ink/40 text-center">
+          <p className="text-xs text-ink/68 text-center">
             You're currently trialing {tierName}. Manage your subscription from the dashboard.
           </p>
         )}

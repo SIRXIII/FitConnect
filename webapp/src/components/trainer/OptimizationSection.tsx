@@ -118,10 +118,10 @@ const OptimizationSection: React.FC<OptimizationSectionProps> = ({ trainerId }) 
   if (totalCount < 10) {
     return (
       <div className="border border-ink/10 p-6 space-y-3">
-        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Optimization</p>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Optimization</p>
         <div className="py-8 text-center space-y-2">
-          <p className="text-sm text-ink/60">Not enough data</p>
-          <p className="text-[10px] text-ink/60">
+          <p className="text-sm text-ink/80">Not enough data</p>
+          <p className="text-[10px] text-ink/80">
             Complete at least 10 scheduled slots to see idle patterns and discount recommendations.
           </p>
         </div>
@@ -149,7 +149,7 @@ const OptimizationSection: React.FC<OptimizationSectionProps> = ({ trainerId }) 
 
   return (
     <div className="border border-ink/10 p-6 space-y-6">
-      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Optimization</p>
+      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Optimization</p>
 
       {/* ---- Sub-section F1: Score Gauge ---- */}
       <div className="flex flex-col items-center gap-2">
@@ -196,13 +196,13 @@ const OptimizationSection: React.FC<OptimizationSectionProps> = ({ trainerId }) 
               {score}
             </text>
           </svg>
-          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70">Slot Utilization</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85">Slot Utilization</p>
         </motion.div>
       </div>
 
       {/* ---- Sub-section F2: Idle Slot Heatmap ---- */}
       <div className="space-y-3">
-        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Idle Slot Patterns</p>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Idle Slot Patterns</p>
 
         <div className="overflow-x-auto">
           <div className="flex gap-2" style={{ minWidth: 500 }}>
@@ -211,7 +211,7 @@ const OptimizationSection: React.FC<OptimizationSectionProps> = ({ trainerId }) 
               {DAYS.map((day) => (
                 <span
                   key={day}
-                  className="text-[8px] text-ink/60 text-right pr-1 leading-none"
+                  className="text-[8px] text-ink/80 text-right pr-1 leading-none"
                   style={{ height: 16, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
                 >
                   {day}
@@ -272,7 +272,7 @@ const OptimizationSection: React.FC<OptimizationSectionProps> = ({ trainerId }) 
                 {VISIBLE_HOURS.map((hour, idx) => (
                   <span
                     key={hour}
-                    className="text-[7px] text-ink/60 text-center"
+                    className="text-[7px] text-ink/80 text-center"
                     style={{ minWidth: 0 }}
                   >
                     {idx % 2 === 0 ? hour : ''}
@@ -286,17 +286,17 @@ const OptimizationSection: React.FC<OptimizationSectionProps> = ({ trainerId }) 
 
       {/* ---- Sub-section F3: Discount Recommendation Cards ---- */}
       <div className="space-y-3">
-        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/70 font-medium">Discount Recommendations</p>
+        <p className="text-[9px] uppercase tracking-[0.2em] text-ink/85 font-medium">Discount Recommendations</p>
 
         {recommendations.length === 0 ? (
-          <p className="text-sm text-ink/60 py-2">All slots are well-utilized.</p>
+          <p className="text-sm text-ink/80 py-2">All slots are well-utilized.</p>
         ) : (
           <div className="space-y-3">
             {recommendations.map((rec, idx) => (
               <div key={idx} className="border border-ink/10 p-4 space-y-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <TrendingDown size={14} strokeWidth={1.5} className="text-ink/40 shrink-0 mt-0.5" />
+                    <TrendingDown size={14} strokeWidth={1.5} className="text-ink/68 shrink-0 mt-0.5" />
                     <p className="text-sm text-ink">
                       {rec.idle_count} idle {DAYS[rec.day_of_week]} {rec.hour}:00 slots in 4 weeks
                     </p>
@@ -309,13 +309,13 @@ const OptimizationSection: React.FC<OptimizationSectionProps> = ({ trainerId }) 
                   </span>
                 </div>
 
-                <p className="text-xs text-ink/60">
+                <p className="text-xs text-ink/80">
                   Try {rec.suggested_discount_min}–{rec.suggested_discount_max}% off
                 </p>
 
                 <button
                   onClick={() => setSearchParams({ tab: 'overview' })}
-                  className="text-[10px] uppercase tracking-[0.15em] border border-ink/20 px-3 py-1 hover:border-ink/40 transition-colors text-ink/60 hover:text-ink"
+                  className="text-[10px] uppercase tracking-[0.15em] border border-ink/20 px-3 py-1 hover:border-ink/40 transition-colors text-ink/80 hover:text-ink"
                 >
                   Set Discount
                 </button>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Camera, AlertTriangle, CreditCard, Check } from 'lucide-react';
 import AccountSecuritySection from '@/components/shared/AccountSecuritySection';
 import DeleteAccountModal from '@/components/shared/DeleteAccountModal';
@@ -39,8 +39,8 @@ const Section: React.FC<{ title: string; subtitle?: string; children: React.Reac
 }) => (
   <div className="border border-ink/10 p-8 space-y-6">
     <div className="space-y-1">
-      <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">{title}</p>
-      {subtitle && <p className="text-sm text-ink/50 font-light">{subtitle}</p>}
+      <p className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">{title}</p>
+      {subtitle && <p className="text-sm text-ink/75 font-light">{subtitle}</p>}
     </div>
     {children}
   </div>
@@ -53,9 +53,9 @@ const Field: React.FC<{ label: string; children: React.ReactNode; hint?: string 
   hint,
 }) => (
   <div className="space-y-2">
-    <label className="text-[10px] uppercase tracking-[0.2em] text-ink/40">{label}</label>
+    <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">{label}</label>
     {children}
-    {hint && <p className="text-[10px] text-ink/30">{hint}</p>}
+    {hint && <p className="text-[10px] text-ink/60">{hint}</p>}
   </div>
 );
 
@@ -92,8 +92,8 @@ const SetupForm: React.FC<SetupFormProps> = ({ onSuccess, onCancel }) => {
       ? setupIntent.payment_method
       : setupIntent.payment_method?.id ?? '';
 
-    // Stripe.js has no retrievePaymentMethod; card details are read from the
-    // stored client_profiles.stripe_payment_last4 / stripe_payment_brand.
+    // Stripe.js has no retrievePaymentMethod; card details are read back
+    // from Stripe via manage-payment-methods.
     onSuccess(pmId);
   };
 
@@ -119,7 +119,7 @@ const SetupForm: React.FC<SetupFormProps> = ({ onSuccess, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="text-[11px] uppercase tracking-[0.2em] text-ink/40 hover:text-ink transition-colors"
+          className="text-[11px] uppercase tracking-[0.2em] text-ink/68 hover:text-ink transition-colors"
         >
           Cancel
         </button>
@@ -150,6 +150,26 @@ const ClientSettingsTab: React.FC = () => {
   const initials = fullName.trim()
     ? fullName.trim().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : (profile?.full_name ?? '?')[0].toUpperCase();
+
+  // This function is owned by the FitRush-Flutter repo (supabase/functions/manage-payment-methods);
+  // the web only calls its read-only 'list' action.
+  const loadSavedCard = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-payment-methods', {
+        body: { action: 'list' },
+      });
+      if (error) throw error;
+      const pm = data?.paymentMethods?.[0];
+      setSavedCard(pm ? { brand: pm.card.brand, last4: pm.card.last4 } : null);
+    } catch (err) {
+      console.error('[ClientSettingsTab] load saved card error:', err);
+      setSavedCard(null);
+    }
+  };
+
+  useEffect(() => {
+    if (user) loadSavedCard();
+  }, [user]);
 
   // ---- Avatar upload ----
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,28 +248,15 @@ const ClientSettingsTab: React.FC = () => {
     }
   };
 
-  const handlePaymentSuccess = async (pmId: string) => {
+  const handlePaymentSuccess = async (_pmId: string) => {
     if (!user) return;
     try {
-      const { error } = await supabase.from('client_profiles').upsert(
-        { user_id: user.id, stripe_payment_method_id: pmId },
-        { onConflict: 'user_id' },
-      );
-      if (error) throw error;
-      const { data: stored } = await supabase
-        .from('client_profiles')
-        .select('stripe_payment_last4, stripe_payment_brand')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      setSavedCard({
-        last4: stored?.stripe_payment_last4 ?? '••••',
-        brand: stored?.stripe_payment_brand ?? 'card',
-      });
+      await loadSavedCard();
       setSetupClientSecret(null);
       toast.success('Payment method saved.');
     } catch (err) {
       console.error('[ClientSettingsTab] save payment method error:', err);
-      toast.error('Card saved with Stripe but failed to store details — please refresh.');
+      toast.error('Card saved with Stripe but the list did not refresh. Please reload.');
     }
   };
 
@@ -271,7 +278,7 @@ const ClientSettingsTab: React.FC = () => {
             {avatarPreview ? (
               <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-2xl serif text-ink/30 font-light">{initials}</span>
+              <span className="text-2xl serif text-ink/60 font-light">{initials}</span>
             )}
             <div className="absolute inset-0 bg-ink/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
               <Camera size={18} className="text-white" />
@@ -283,10 +290,10 @@ const ClientSettingsTab: React.FC = () => {
             )}
           </button>
           <div className="space-y-1">
-            <p className="text-sm text-ink/60 font-light">
+            <p className="text-sm text-ink/80 font-light">
               {uploadingAvatar ? 'Uploading...' : avatarPreview ? 'Click to change photo' : 'Click to add a photo'}
             </p>
-            <p className="text-[10px] text-ink/30">Auto-compressed to 400px</p>
+            <p className="text-[10px] text-ink/60">Auto-compressed to 400px</p>
           </div>
           <input
             ref={avatarInputRef}
@@ -345,7 +352,7 @@ const ClientSettingsTab: React.FC = () => {
       {!isNativeiOS() && (
         <Section
           title="Payment Method"
-          subtitle="Your saved card is used at checkout when booking sessions."
+          subtitle="Cards saved here also appear in the FitRush iOS app."
         >
           {savedCard && (
             <div className="flex items-center gap-3 py-3 px-4 border border-green-200 bg-green-50/50">
@@ -374,7 +381,7 @@ const ClientSettingsTab: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {!savedCard && (
-                <p className="text-sm text-ink/50 font-light leading-relaxed">
+                <p className="text-sm text-ink/75 font-light leading-relaxed">
                   No payment method saved. Add a card to speed up the checkout process when booking sessions.
                 </p>
               )}
@@ -399,7 +406,7 @@ const ClientSettingsTab: React.FC = () => {
               ) : (
                 <div className="flex items-center gap-2 py-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">
                     Payments secured by Stripe at checkout
                   </p>
                 </div>
@@ -415,7 +422,7 @@ const ClientSettingsTab: React.FC = () => {
           <AlertTriangle size={16} className="text-red-400 shrink-0 mt-0.5" strokeWidth={1.5} />
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-red-400/80 font-medium">Danger Zone</p>
-            <p className="text-sm font-light text-ink/50">
+            <p className="text-sm font-light text-ink/75">
               Permanently delete your account and all associated data. This cannot be undone.
             </p>
             <button
@@ -424,7 +431,7 @@ const ClientSettingsTab: React.FC = () => {
             >
               Delete My Account
             </button>
-            <p className="text-[10px] text-ink/30">
+            <p className="text-[10px] text-ink/60">
               Or contact support@fitrush.io for assistance
             </p>
           </div>

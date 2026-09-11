@@ -163,7 +163,7 @@ const FAQAccordion: React.FC<{ item: FAQItem; isOpen: boolean; onToggle: () => v
       </span>
       <ChevronDown
         size={16}
-        className={`text-ink/40 flex-shrink-0 transition-transform duration-200 ${
+        className={`text-ink/68 flex-shrink-0 transition-transform duration-200 ${
           isOpen ? 'rotate-180' : ''
         }`}
       />
@@ -177,7 +177,7 @@ const FAQAccordion: React.FC<{ item: FAQItem; isOpen: boolean; onToggle: () => v
           transition={{ duration: 0.2, ease: 'easeInOut' }}
           className="overflow-hidden"
         >
-          <p className="pb-4 text-sm text-ink/60 leading-relaxed">{item.answer}</p>
+          <p className="pb-4 text-sm text-ink/80 leading-relaxed">{item.answer}</p>
         </motion.div>
       )}
     </AnimatePresence>
@@ -215,14 +215,14 @@ const HelpCenter: React.FC = () => {
             <LifeBuoy size={24} className="text-accent" />
           </div>
           <h1 className="text-3xl serif font-light italic text-ink">Help Center</h1>
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-ink/75">
             Find answers to common questions or get in touch with our team.
           </p>
         </div>
 
         {/* Search */}
         <div className="relative mb-10">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/30" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/60" />
           <input
             type="text"
             placeholder="Search for answers..."
@@ -235,13 +235,13 @@ const HelpCenter: React.FC = () => {
         {/* FAQ Sections */}
         <div className="space-y-10">
           {filtered.length === 0 && (
-            <div className="text-center py-12 text-sm text-ink/40">
+            <div className="text-center py-12 text-sm text-ink/68">
               No results for "{search}". Try a different search or submit a support ticket.
             </div>
           )}
           {filtered.map((section) => (
             <div key={section.category}>
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-ink/40 mb-4 flex items-center gap-2">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-ink/68 mb-4 flex items-center gap-2">
                 <span>{section.icon}</span>
                 {section.category}
               </h2>
@@ -264,9 +264,9 @@ const HelpCenter: React.FC = () => {
 
         {/* CTA */}
         <div className="mt-16 border border-ink/10 bg-white p-8 text-center space-y-4">
-          <MessageSquare size={28} className="mx-auto text-ink/30" />
+          <MessageSquare size={28} className="mx-auto text-ink/60" />
           <h3 className="text-base font-medium text-ink">Still need help?</h3>
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-ink/75">
             Our support team typically responds within 24 hours.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">

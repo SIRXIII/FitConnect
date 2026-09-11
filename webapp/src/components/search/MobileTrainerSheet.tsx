@@ -104,7 +104,7 @@ export function MobileTrainerSheet({ trainers, onTrainerSelect }: MobileTrainerS
       <div className="overflow-y-auto h-full pb-8 px-4">
         {trainers.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-[11px] uppercase tracking-[0.15em] text-ink/40">
+            <p className="text-[11px] uppercase tracking-[0.15em] text-ink/68">
               No trainers in this area
             </p>
           </div>
@@ -137,7 +137,7 @@ export function MobileTrainerSheet({ trainers, onTrainerSelect }: MobileTrainerS
                       {trainer.name ?? 'Trainer'}
                     </div>
                     {trainer.specialty && (
-                      <div className="text-[10px] uppercase tracking-[0.15em] text-ink/40 truncate">
+                      <div className="text-[10px] uppercase tracking-[0.15em] text-ink/68 truncate">
                         {trainer.specialty}
                       </div>
                     )}
@@ -152,7 +152,7 @@ export function MobileTrainerSheet({ trainers, onTrainerSelect }: MobileTrainerS
                     )}
                     <div className="flex items-center gap-1 justify-end mt-0.5">
                       <LocationIcon size={10} style={{ color: pinColor }} />
-                      <span className="text-[9px] uppercase tracking-[0.1em] text-ink/40">
+                      <span className="text-[9px] uppercase tracking-[0.1em] text-ink/68">
                         {LOCATION_LABELS[trainer.location_type]}
                       </span>
                     </div>

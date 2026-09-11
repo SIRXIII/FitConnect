@@ -47,7 +47,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
               className="w-16 h-16 rounded-full object-cover border border-ink/10 shrink-0"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-lg text-ink/40 shrink-0">
+            <div className="w-16 h-16 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center text-lg text-ink/68 shrink-0">
               {(client.full_name?.trim() || client.email || 'U').charAt(0).toUpperCase()}
             </div>
           )}
@@ -60,7 +60,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
                 </span>
               )}
             </div>
-            <p className="text-sm text-ink/60 truncate">
+            <p className="text-sm text-ink/80 truncate">
               <a href={`mailto:${client.email}`} className="hover:underline">{client.email}</a>
               {' · '}
               {client.phone?.trim() ? (
@@ -68,10 +68,10 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
                   {client.phone}
                 </a>
               ) : (
-                <span className="text-ink/40 italic">No phone on file</span>
+                <span className="text-ink/68 italic">No phone on file</span>
               )}
             </p>
-            <p className="text-xs text-ink/50 mt-0.5">
+            <p className="text-xs text-ink/75 mt-0.5">
               Joined {new Date(client.created_at).toLocaleDateString()}
               {client.last_sign_in_at && ` · Last sign-in ${new Date(client.last_sign_in_at).toLocaleDateString()}`}
             </p>
@@ -81,7 +81,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
           <div className="flex flex-col gap-2 shrink-0 w-[220px]">
             <button
               onClick={onMessageClient}
-              className="w-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/40 border border-ink/10 hover:border-ink/20 transition-colors"
+              className="w-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
             >
               Message Client
             </button>
@@ -123,19 +123,19 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
           <div className="space-y-2">
             {client.recent_bookings.map((booking) => (
               <div key={booking.id} className="flex items-center gap-3 flex-wrap text-sm">
-                <span className="text-ink/70 tabular-nums">
+                <span className="text-ink/85 tabular-nums">
                   {new Date(booking.start_time).toLocaleDateString()}
                 </span>
                 <span className="text-ink">{booking.trainer_name ?? 'Unknown trainer'}</span>
-                <span className="text-[10px] uppercase tracking-wider font-medium text-ink/50">
+                <span className="text-[10px] uppercase tracking-wider font-medium text-ink/75">
                   {booking.status}
                 </span>
-                <span className="text-ink/70 tabular-nums">${Number(booking.rate_charged).toFixed(2)}</span>
+                <span className="text-ink/85 tabular-nums">${Number(booking.rate_charged).toFixed(2)}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-ink/40 italic">No bookings yet.</p>
+          <p className="text-sm text-ink/68 italic">No bookings yet.</p>
         )}
       </div>
 
@@ -148,8 +148,8 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
               <div key={review.id} className="border border-ink/10 px-4 py-3 space-y-1.5">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-sm text-ink">{'★'.repeat(review.rating)}{'☆'.repeat(Math.max(0, 5 - review.rating))}</span>
-                  <span className="text-sm text-ink/70">{review.trainer_name ?? 'Unknown trainer'}</span>
-                  <span className="text-xs text-ink/50">{new Date(review.created_at).toLocaleDateString()}</span>
+                  <span className="text-sm text-ink/85">{review.trainer_name ?? 'Unknown trainer'}</span>
+                  <span className="text-xs text-ink/75">{new Date(review.created_at).toLocaleDateString()}</span>
                 </div>
                 {review.comment?.trim() && (
                   <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-wrap">{review.comment.trim()}</p>
@@ -158,7 +158,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-ink/40 italic">No reviews yet.</p>
+          <p className="text-sm text-ink/68 italic">No reviews yet.</p>
         )}
       </div>
 

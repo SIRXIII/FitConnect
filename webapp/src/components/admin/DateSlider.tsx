@@ -95,7 +95,7 @@ const DateSlider: React.FC<DateSliderProps> = ({ value, onSave, saving }) => {
             type="button"
             onClick={() => pickQuick(qp.month, qp.day)}
             disabled={saving}
-            className="px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border border-ink/10 text-ink/70 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] font-medium border border-ink/10 text-ink/85 hover:text-ink hover:border-ink/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {qp.label}
           </button>

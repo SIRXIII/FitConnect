@@ -4,10 +4,10 @@ const Terms: React.FC = () => {
       <div className="max-w-3xl mx-auto space-y-10">
         <div className="space-y-3">
           <h1 className="text-3xl serif font-light italic text-ink">Terms of Service</h1>
-          <p className="text-xs text-ink/40 uppercase tracking-[0.2em]">Last updated: March 19, 2026</p>
+          <p className="text-xs text-ink/68 uppercase tracking-[0.2em]">Last updated: March 19, 2026</p>
         </div>
 
-        <div className="space-y-8 text-sm text-ink/70 leading-relaxed">
+        <div className="space-y-8 text-sm text-ink/85 leading-relaxed">
           <section className="space-y-3">
             <h2 className="text-lg serif font-light text-ink">1. Acceptance of Terms</h2>
             <p>

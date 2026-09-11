@@ -68,7 +68,7 @@ interface TrainerBooking {
 const STATUS_STYLES: Record<BookingStatus, string> = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   confirmed: 'bg-green-50 text-green-700 border-green-200',
-  completed: 'bg-ink/5 text-ink/60 border-ink/10',
+  completed: 'bg-ink/5 text-ink/80 border-ink/10',
   cancelled: 'bg-red-50 text-red-600 border-red-200',
   no_show: 'bg-red-50 text-red-600 border-red-200',
 };
@@ -352,7 +352,7 @@ const TrainerBookings: React.FC = () => {
         <div className="flex items-start justify-between gap-6">
           <div className="space-y-4">
             <h1 className="text-3xl serif font-light italic text-ink">Trainer Bookings</h1>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/70">
+            <p className="text-xs uppercase tracking-[0.3em] text-ink/85">
               Confirm and complete your session requests
             </p>
           </div>
@@ -368,7 +368,7 @@ const TrainerBookings: React.FC = () => {
           <button
             onClick={() => setActiveTab('action')}
             className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${
-              activeTab === 'action' ? 'text-ink border-b-2 border-accent' : 'text-ink/60 hover:text-ink/50'
+              activeTab === 'action' ? 'text-ink border-b-2 border-accent' : 'text-ink/80 hover:text-ink/75'
             }`}
           >
             Action Required ({actionRequired.length})
@@ -376,7 +376,7 @@ const TrainerBookings: React.FC = () => {
           <button
             onClick={() => setActiveTab('history')}
             className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors ${
-              activeTab === 'history' ? 'text-ink border-b-2 border-accent' : 'text-ink/60 hover:text-ink/50'
+              activeTab === 'history' ? 'text-ink border-b-2 border-accent' : 'text-ink/80 hover:text-ink/75'
             }`}
           >
             History ({history.length})
@@ -397,7 +397,7 @@ const TrainerBookings: React.FC = () => {
         ) : (activeTab === 'action' ? actionRequired : history).length === 0 ? (
           <div className="text-center py-20 border border-dashed border-ink/10">
             <h3 className="text-2xl serif font-light italic text-ink mb-3">No bookings in this view</h3>
-            <p className="text-sm text-ink/60">New requests will appear here in real time</p>
+            <p className="text-sm text-ink/80">New requests will appear here in real time</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -426,13 +426,13 @@ const TrainerBookings: React.FC = () => {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-ink/5 flex items-center justify-center text-sm text-ink/40">
+                        <div className="w-12 h-12 rounded-full bg-ink/5 flex items-center justify-center text-sm text-ink/68">
                           <UserRound size={16} />
                         </div>
                       )}
                       <div className="space-y-1">
                         <p className="text-lg serif font-light text-ink">{clientName}</p>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70">Booking #{booking.id.slice(0, 8)}</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85">Booking #{booking.id.slice(0, 8)}</p>
                       </div>
                     </div>
                     <span
@@ -444,7 +444,7 @@ const TrainerBookings: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-6 text-sm text-ink/60">
+                  <div className="flex flex-wrap gap-6 text-sm text-ink/80">
                     <div className="flex items-center gap-2">
                       <Calendar size={14} className="text-accent" />
                       {start
@@ -469,8 +469,8 @@ const TrainerBookings: React.FC = () => {
 
                   {booking.notes ? (
                     <div className="border border-ink/10 bg-ink/3 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/70 mb-1">Client Notes</p>
-                      <p className="text-sm text-ink/60">{booking.notes}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ink/85 mb-1">Client Notes</p>
+                      <p className="text-sm text-ink/80">{booking.notes}</p>
                     </div>
                   ) : null}
 
@@ -539,14 +539,14 @@ const TrainerBookings: React.FC = () => {
                                   className="w-8 h-8 rounded-full object-cover"
                                 />
                               ) : (
-                                <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-xs text-ink/40">
+                                <div className="w-8 h-8 rounded-full bg-ink/5 flex items-center justify-center text-xs text-ink/68">
                                   {p.profiles?.full_name?.charAt(0) || '?'}
                                 </div>
                               )}
                               <div>
                                 <p className="text-sm text-ink/80">{p.profiles?.full_name || 'Client'}</p>
                                 {p.client_profiles?.fitness_goals?.length ? (
-                                  <p className="text-[10px] text-ink/60">
+                                  <p className="text-[10px] text-ink/80">
                                     {p.client_profiles.fitness_goals.slice(0, 2).join(', ')}
                                   </p>
                                 ) : null}
@@ -554,7 +554,7 @@ const TrainerBookings: React.FC = () => {
                             </div>
                           ))}
                           {groupParticipants[booking.slot_id].length === 0 && (
-                            <p className="text-xs text-ink/60 italic">No participants yet</p>
+                            <p className="text-xs text-ink/80 italic">No participants yet</p>
                           )}
                         </div>
                       )}

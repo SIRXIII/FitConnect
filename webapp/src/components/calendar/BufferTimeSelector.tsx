@@ -58,7 +58,7 @@ const BufferTimeSelector: React.FC<BufferTimeSelectorProps> = ({
         <h3 className="text-xl serif font-light italic text-ink">
           Buffer Time Between Sessions
         </h3>
-        <p className="text-sm text-ink/50">
+        <p className="text-sm text-ink/75">
           Set the minimum time needed between your sessions for travel or preparation.
         </p>
       </div>
@@ -72,7 +72,7 @@ const BufferTimeSelector: React.FC<BufferTimeSelectorProps> = ({
             className={`px-5 py-2.5 text-[10px] uppercase tracking-[0.2em] font-medium border transition-all duration-300 rounded-full ${
               selected === option
                 ? 'bg-ink text-paper border-ink'
-                : 'border-ink/20 text-ink/60 hover:border-ink hover:text-ink'
+                : 'border-ink/20 text-ink/80 hover:border-ink hover:text-ink'
             }`}
           >
             {LABELS[option]}

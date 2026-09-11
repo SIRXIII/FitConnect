@@ -38,7 +38,7 @@ const IntroOfferCard: React.FC<IntroOfferCardProps> = ({ enabled, onChange }) =>
         Offer a complimentary 30-minute intro session
       </h3>
 
-      <ul className="space-y-2.5 text-sm font-light text-ink/70">
+      <ul className="space-y-2.5 text-sm font-light text-ink/85">
         <li>You already give new clients a free first 30 minutes. Now FitRush markets it for you.</li>
         <li>Featured placement on the browse page and a Complimentary Intro badge while the offer runs.</li>
         <li>Every intro is a chance at a review and a repeat client. The client is yours to keep.</li>
@@ -63,7 +63,7 @@ const IntroOfferCard: React.FC<IntroOfferCardProps> = ({ enabled, onChange }) =>
         >
           {enabled && <Check size={10} className="text-white" strokeWidth={3} />}
         </div>
-        <p className="text-sm font-light text-ink/70 leading-relaxed">
+        <p className="text-sm font-light text-ink/85 leading-relaxed">
           Offer a complimentary 30-minute intro session to new clients.
         </p>
       </button>

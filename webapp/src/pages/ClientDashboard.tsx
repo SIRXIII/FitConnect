@@ -15,7 +15,7 @@ import WorkoutTab from '@/components/client/WorkoutTab';
 
 // ─── Profile completion calculation (mirrors ClientPassport logic) ─────────────
 function computeCompletion(clientProfile: Record<string, unknown> | null, avatarUrl: string | null | undefined) {
-  if (!clientProfile) return { pct: 0, missing: ['age', 'weight', 'height', 'fitness level', 'intensity preference', 'goals'] };
+  if (!clientProfile) return { pct: 0, missing: ['photo', 'age', 'weight', 'height', 'fitness level', 'health notes', 'intensity preference', 'goals'] };
   const hasGoals = !!((clientProfile.goals_ranked as string[] | null)?.length || (clientProfile.fitness_goals as string[] | null)?.length);
   const hasHealth = !!((clientProfile.health_conditions as string[] | null)?.length || (clientProfile.health_notes as string | null)?.trim());
   const fields = [
@@ -30,10 +30,12 @@ function computeCompletion(clientProfile: Record<string, unknown> | null, avatar
   ];
   const pct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
   const missing: string[] = [];
+  if (!avatarUrl) missing.push('photo');
   if (!clientProfile.age) missing.push('age');
   if (!clientProfile.weight_lbs) missing.push('weight');
   if (!clientProfile.height_ft && !clientProfile.height_in) missing.push('height');
   if (!clientProfile.fitness_level) missing.push('fitness level');
+  if (!hasHealth) missing.push('health notes');
   if (!clientProfile.intensity_preference) missing.push('intensity preference');
   if (!hasGoals) missing.push('goals');
   return { pct, missing };
@@ -53,12 +55,12 @@ const QuickActionCard: React.FC<QuickActionProps> = ({ to, icon, title, descript
     className="border border-ink/10 p-8 space-y-4 hover:border-accent/40 hover:bg-accent/[0.02] transition-all group"
   >
     <div className="flex items-center gap-3">
-      <span className="text-ink/30 group-hover:text-accent transition-colors">{icon}</span>
-      <p className="text-xs uppercase tracking-[0.2em] text-ink/50 font-medium group-hover:text-accent transition-colors">
+      <span className="text-ink/60 group-hover:text-accent transition-colors">{icon}</span>
+      <p className="text-xs uppercase tracking-[0.2em] text-ink/75 font-medium group-hover:text-accent transition-colors">
         {title}
       </p>
     </div>
-    <p className="text-sm text-ink/40 font-light leading-relaxed">
+    <p className="text-sm text-ink/68 font-light leading-relaxed">
       {description}
     </p>
   </Link>
@@ -159,7 +161,7 @@ const ClientDashboard: React.FC = () => {
                 />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-ink/5 border border-ink/10 flex items-center justify-center">
-                  <span className="text-2xl serif font-light text-ink/30">{initials}</span>
+                  <span className="text-2xl serif font-light text-ink/60">{initials}</span>
                 </div>
               )}
               <Link
@@ -167,7 +169,7 @@ const ClientDashboard: React.FC = () => {
                 className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-paper border border-ink/15 flex items-center justify-center hover:border-accent/50 hover:text-accent transition-colors"
                 title="Edit profile photo"
               >
-                <Camera size={12} className="text-ink/40" />
+                <Camera size={12} className="text-ink/68" />
               </Link>
             </div>
 
@@ -177,10 +179,10 @@ const ClientDashboard: React.FC = () => {
                 {profile?.full_name || 'Welcome'}
               </h1>
               {user?.email && (
-                <p className="text-xs text-ink/40 font-light">{user.email}</p>
+                <p className="text-xs text-ink/68 font-light">{user.email}</p>
               )}
               {profile?.created_at && (
-                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">
                   Member since{' '}
                   {new Date(profile.created_at).toLocaleDateString('en-US', {
                     month: 'long',
@@ -199,7 +201,7 @@ const ClientDashboard: React.FC = () => {
             {/* Progress ring */}
             <div className="shrink-0">
               <ProfileProgressRing completionPct={completionPct} missingFields={missingFields} />
-              <p className="text-center text-[9px] uppercase tracking-[0.15em] text-ink/30 mt-1">
+              <p className="text-center text-[9px] uppercase tracking-[0.15em] text-ink/60 mt-1">
                 Profile complete
               </p>
             </div>
@@ -216,7 +218,7 @@ const ClientDashboard: React.FC = () => {
                 className={`pb-4 text-[11px] uppercase tracking-[0.2em] font-medium transition-colors flex items-center gap-1.5 ${
                   activeTab === tab.id
                     ? 'text-ink border-b-2 border-accent'
-                    : 'text-ink/30 hover:text-ink/50'
+                    : 'text-ink/60 hover:text-ink/75'
                 }`}
               >
                 {tab.icon}
@@ -235,7 +237,7 @@ const ClientDashboard: React.FC = () => {
               <div className="border border-ink/10 p-8 space-y-3">
                 <div className="flex items-center gap-2">
                   <Calendar size={14} className="text-accent" />
-                  <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
+                  <p className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">
                     Upcoming Sessions
                   </p>
                 </div>
@@ -244,7 +246,7 @@ const ClientDashboard: React.FC = () => {
               <div className="border border-ink/10 p-8 space-y-3">
                 <div className="flex items-center gap-2">
                   <Clock size={14} className="text-accent" />
-                  <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
+                  <p className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">
                     Sessions Completed
                   </p>
                 </div>
@@ -253,7 +255,7 @@ const ClientDashboard: React.FC = () => {
               <div className="border border-ink/10 p-8 space-y-3">
                 <div className="flex items-center gap-2">
                   <Heart size={14} className="text-accent" />
-                  <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
+                  <p className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">
                     Profile Complete
                   </p>
                 </div>
@@ -263,7 +265,7 @@ const ClientDashboard: React.FC = () => {
 
             {/* Quick Actions — 4-card grid */}
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-ink/30 mb-5">Quick Actions</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-ink/60 mb-5">Quick Actions</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <QuickActionCard
                   to="/trainers"
@@ -297,17 +299,17 @@ const ClientDashboard: React.FC = () => {
               <div className="border border-ink/10 p-8 space-y-4">
                 <div className="flex items-center gap-3">
                   <Shield size={14} className="text-accent" />
-                  <p className="text-xs uppercase tracking-[0.2em] text-ink/40 font-medium">
+                  <p className="text-xs uppercase tracking-[0.2em] text-ink/68 font-medium">
                     Payment Methods
                   </p>
                 </div>
-                <p className="text-sm text-ink/50 font-light leading-relaxed max-w-xl">
+                <p className="text-sm text-ink/75 font-light leading-relaxed max-w-xl">
                   Payment is handled securely through Stripe at the time of booking. No card storage
                   required — your details are processed directly by Stripe's encrypted checkout.
                 </p>
                 <div className="flex items-center gap-2 pt-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">
                     Secured by Stripe
                   </p>
                 </div>
@@ -328,7 +330,7 @@ const ClientDashboard: React.FC = () => {
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <h2 className="text-xl serif font-light italic text-ink">Fitness Passport</h2>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/30">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-ink/60">
                     How trainers see you
                   </p>
                 </div>
@@ -344,24 +346,24 @@ const ClientDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
                   {fitnessLevel && (
                     <div className="space-y-1">
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/30">Fitness Level</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/60">Fitness Level</p>
                       <p className="text-sm text-ink font-light capitalize">{fitnessLevel}</p>
                     </div>
                   )}
                   {intensityPreference && (
                     <div className="space-y-1">
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/30">Intensity</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/60">Intensity</p>
                       <p className="text-sm text-ink font-light capitalize">{intensityPreference}</p>
                     </div>
                   )}
                   {goalsRanked.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/30">Top Goals</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/60">Top Goals</p>
                       <div className="flex flex-wrap gap-2">
                         {goalsRanked.slice(0, 3).map((g, i) => (
                           <span
                             key={g}
-                            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] border border-ink/10 px-3 py-1 text-ink/60"
+                            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] border border-ink/10 px-3 py-1 text-ink/80"
                           >
                             <span className="text-accent/60 font-medium">{i + 1}.</span>
                             {g.replace(/_/g, ' ')}
@@ -372,18 +374,18 @@ const ClientDashboard: React.FC = () => {
                   )}
                   {workoutTypes.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/30">Workout Types</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-ink/60">Workout Types</p>
                       <div className="flex flex-wrap gap-2">
                         {workoutTypes.slice(0, 4).map(w => (
                           <span
                             key={w}
-                            className="text-[10px] uppercase tracking-[0.1em] border border-ink/10 px-3 py-1 text-ink/50"
+                            className="text-[10px] uppercase tracking-[0.1em] border border-ink/10 px-3 py-1 text-ink/75"
                           >
                             {w.replace(/_/g, ' ')}
                           </span>
                         ))}
                         {workoutTypes.length > 4 && (
-                          <span className="text-[10px] text-ink/30 py-1">
+                          <span className="text-[10px] text-ink/60 py-1">
                             +{workoutTypes.length - 4} more
                           </span>
                         )}
@@ -398,10 +400,10 @@ const ClientDashboard: React.FC = () => {
                     <Heart size={18} className="text-accent/40" />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm text-ink/50 font-light">
+                    <p className="text-sm text-ink/75 font-light">
                       Your Fitness Passport is empty
                     </p>
-                    <p className="text-xs text-ink/30 max-w-sm mx-auto">
+                    <p className="text-xs text-ink/60 max-w-sm mx-auto">
                       Add your goals, fitness level, and preferences to help trainers find and match
                       with you more accurately.
                     </p>
@@ -420,11 +422,11 @@ const ClientDashboard: React.FC = () => {
             {hasPassportData && completionPct < 100 && (
               <div className="border border-accent/15 bg-accent/[0.02] p-6 flex items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-[0.2em] text-ink/50 font-medium">
-                    {100 - completionPct}% remaining
+                  <p className="text-xs uppercase tracking-[0.2em] text-ink/75 font-medium">
+                    {completionPct}% complete
                   </p>
-                  <p className="text-sm text-ink/40 font-light">
-                    Complete your profile to improve trainer matching accuracy.
+                  <p className="text-sm text-ink/68 font-light">
+                    Add {missingFields.join(', ')} to reach 100%.
                   </p>
                 </div>
                 <Link

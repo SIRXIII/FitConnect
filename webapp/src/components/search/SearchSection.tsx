@@ -90,7 +90,7 @@ const SearchSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         <div className="text-center mb-10 md:mb-20">
           <h2 className="text-4xl md:text-5xl serif font-light text-ink mb-6 italic">The Collective</h2>
-          <p className="text-sm uppercase tracking-[0.3em] text-ink/40">Curated certified professionals</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-ink/68">Curated certified professionals</p>
           {introActive && freeIntroUntilLabel && (
             <p className="mt-6 text-xs uppercase tracking-[0.2em] text-accent">
               Try a trainer free until {freeIntroUntilLabel}.
@@ -102,7 +102,7 @@ const SearchSection: React.FC = () => {
         <div className="mb-10 md:mb-24">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 border-b border-ink/10 pb-12">
             <div className="space-y-4">
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">Location</label>
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/68">Location</label>
               <div className="relative">
                 <input
                   type="text"
@@ -115,7 +115,7 @@ const SearchSection: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">Specialty</label>
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/68">Specialty</label>
               <div className="relative">
                 <select
                   value={specialty}
@@ -131,7 +131,7 @@ const SearchSection: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/40">Investment</label>
+              <label className="block text-[10px] uppercase tracking-[0.2em] font-semibold text-ink/68">Investment</label>
               <div className="relative">
                 <select
                   value={priceRange}
@@ -198,7 +198,7 @@ const SearchSection: React.FC = () => {
                   {hasSearched ? (
                     <>
                       <h3 className="text-3xl serif font-light text-ink mb-4 italic">No matches found</h3>
-                      <p className="text-sm uppercase tracking-widest text-ink/40 mb-8">Adjust your criteria for the collective</p>
+                      <p className="text-sm uppercase tracking-widest text-ink/68 mb-8">Adjust your criteria for the collective</p>
                       <button
                         onClick={() => {
                           setLocation('');
@@ -213,11 +213,11 @@ const SearchSection: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <svg className="w-10 h-10 mx-auto mb-6 text-ink/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="w-10 h-10 mx-auto mb-6 text-ink/45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
                       </svg>
                       <h3 className="text-3xl serif font-light text-ink mb-4 italic">No trainers available yet</h3>
-                      <p className="text-sm tracking-wide text-ink/40">Be the first to join the collective</p>
+                      <p className="text-sm tracking-wide text-ink/68">Be the first to join the collective</p>
                     </>
                   )}
                 </div>

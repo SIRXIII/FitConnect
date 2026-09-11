@@ -27,7 +27,7 @@ export const StepPayment: React.FC<StepPaymentProps> = ({
       {/* Compact session summary */}
       <div className="border border-ink/10 p-6 flex items-center justify-between">
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/40 font-medium">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-ink/68 font-medium">
             Payment Amount
           </p>
         </div>
