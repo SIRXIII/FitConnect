@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
@@ -20,8 +20,25 @@ const NotificationPreferencesSectionInner: React.FC = () => {
   );
   const [radius, setRadius] = useState<number>(preferences?.notif_radius_miles ?? 5);
   const [enabled, setEnabled] = useState<boolean>(preferences?.notif_enabled ?? false);
-  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompleteSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const [saving, setSaving] = useState(false);
+
+  // Seed local state from saved preferences once they load. preferences starts
+  // null and refetches after every toggle/save, so this must only run once or
+  // it would wipe out a just-picked area.
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current || !preferences) return;
+    seeded.current = true;
+    setEnabled(preferences.notif_enabled ?? false);
+    setAreaLabel(preferences.area_label ?? '');
+    setAreaCoords(
+      preferences.area_lat != null && preferences.area_lng != null
+        ? { lat: preferences.area_lat, lng: preferences.area_lng }
+        : null
+    );
+    setRadius(preferences.notif_radius_miles ?? 5);
+  }, [preferences]);
 
   // ── Push toggle state ─────────────────────────────────────────────────────
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -63,11 +80,22 @@ const NotificationPreferencesSectionInner: React.FC = () => {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const placesLib = useMapsLibrary('places');
+  const geocodingLib = useMapsLibrary('geocoding');
+  const autocomplete = useMemo(
+    () => (placesLib ? new placesLib.AutocompleteService() : null),
+    [placesLib]
+  );
 
   const handleToggleEnabled = useCallback(
     async (value: boolean) => {
       setEnabled(value);
-      await toggleEnabled(value);
+      try {
+        await toggleEnabled(value);
+      } catch (err) {
+        console.error(err);
+        setEnabled(!value);
+        toast.error('Could not update alerts');
+      }
     },
     [toggleEnabled]
   );
@@ -78,42 +106,39 @@ const NotificationPreferencesSectionInner: React.FC = () => {
       setSuggestions([]);
       setAreaCoords(null);
 
-      if (!placesLib || value.length < 3) return;
+      if (!autocomplete || value.length < 3) return;
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(async () => {
         try {
-          const { suggestions: results } =
-            await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
-              input: value,
-            });
-          setSuggestions(results ?? []);
-        } catch {
-          // Autocomplete errors are non-critical
+          const res = await autocomplete.getPlacePredictions({ input: value });
+          setSuggestions(res.predictions ?? []);
+        } catch (err) {
+          console.error(err);
+          toast.error('Location search is unavailable right now');
         }
       }, 300);
     },
-    [placesLib]
+    [autocomplete]
   );
 
   const handleSuggestionSelect = useCallback(
-    async (suggestion: google.maps.places.AutocompleteSuggestion) => {
+    async (prediction: google.maps.places.AutocompletePrediction) => {
       setSuggestions([]);
+      if (!geocodingLib) return;
       try {
-        const place = suggestion.placePrediction?.toPlace();
-        if (!place) return;
-        await place.fetchFields({ fields: ['location', 'formattedAddress'] });
-        const loc = place.location;
-        const addr = place.formattedAddress;
-        if (loc && addr) {
-          setAreaCoords({ lat: loc.lat(), lng: loc.lng() });
-          setAreaLabel(addr);
+        const geocoder = new geocodingLib.Geocoder();
+        const { results } = await geocoder.geocode({ placeId: prediction.place_id });
+        const r = results[0];
+        if (r) {
+          setAreaCoords({ lat: r.geometry.location.lat(), lng: r.geometry.location.lng() });
+          setAreaLabel(r.formatted_address);
         }
       } catch {
         toast.error('Could not fetch location details. Please try again.');
       }
     },
-    []
+    [geocodingLib]
   );
 
   const handleSave = async () => {
@@ -195,7 +220,7 @@ const NotificationPreferencesSectionInner: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={() => handleToggleEnabled(!enabled)}
+            onClick={() => { void handleToggleEnabled(!enabled); }}
             className={`relative w-12 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${
               enabled ? 'bg-accent' : 'bg-ink/20'
             }`}
@@ -228,14 +253,14 @@ const NotificationPreferencesSectionInner: React.FC = () => {
             />
             {suggestions.length > 0 && (
               <ul className="absolute z-10 top-full left-0 right-0 bg-white border border-ink/10 shadow-md max-h-48 overflow-y-auto">
-                {suggestions.map((s, i) => (
-                  <li key={i}>
+                {suggestions.map((s) => (
+                  <li key={s.place_id}>
                     <button
                       type="button"
                       onClick={() => handleSuggestionSelect(s)}
                       className="w-full text-left px-3 py-2 text-sm text-ink/70 hover:bg-ink/5 transition-colors"
                     >
-                      {s.placePrediction?.text?.toString() ?? ''}
+                      {s.description}
                     </button>
                   </li>
                 ))}

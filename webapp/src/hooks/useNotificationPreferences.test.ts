@@ -83,9 +83,9 @@ describe('useNotificationPreferences', () => {
     );
   });
 
-  it('Test 3: toggleEnabled flips notif_enabled boolean via supabase update', async () => {
-    const updateFn = vi.fn(() => makeChain()); // update returns chain with .eq
-    mockFromFn.mockReturnValue(makeChain({ updateFn }));
+  it('Test 3: toggleEnabled upserts notif_enabled boolean via supabase upsert', async () => {
+    const upsertFn = vi.fn(() => Promise.resolve({ data: null, error: null }));
+    mockFromFn.mockReturnValue(makeChain({ upsertFn }));
 
     const { result } = renderHook(() => useNotificationPreferences());
 
@@ -93,7 +93,10 @@ describe('useNotificationPreferences', () => {
 
     await result.current.toggleEnabled(true);
 
-    expect(updateFn).toHaveBeenCalledWith({ notif_enabled: true });
+    expect(upsertFn).toHaveBeenCalledWith(
+      expect.objectContaining({ user_id: 'user-123', notif_enabled: true }),
+      expect.objectContaining({ onConflict: 'user_id' })
+    );
   });
 
   it('Test 4: isConfigured returns false when area_lat or area_lng is null', async () => {
