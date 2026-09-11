@@ -5,6 +5,17 @@ import { supabase } from '@/lib/supabase';
 export const DEFAULT_PLATFORM_FEE_PCT = 0.13;
 export const DEFAULT_FOUNDING_CUTOFF = '2026-10-01';
 export const FOUNDING_FREE_MONTHS = 12;
+export const DEFAULT_FREE_INTRO_UNTIL = '2026-12-01';
+
+/**
+ * platform_settings dates are plain 'YYYY-MM-DD'. new Date('2026-12-01') parses
+ * as UTC midnight, which renders as Nov 30 west of Greenwich, so parse local.
+ */
+export function parseSettingDate(value?: string | null): Date | null {
+  if (!value) return null;
+  const d = new Date(`${value}T00:00:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
 
 /** Founding Personal Trainers: joined before the cutoff date. */
 export function isFoundingTrainer(
@@ -52,6 +63,7 @@ export interface FeeTrainer {
 export function usePlatformFee() {
   const [feePct, setFeePct] = useState(DEFAULT_PLATFORM_FEE_PCT);
   const [foundingCutoff, setFoundingCutoff] = useState(DEFAULT_FOUNDING_CUTOFF);
+  const [freeIntroUntil, setFreeIntroUntil] = useState(DEFAULT_FREE_INTRO_UNTIL);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,7 +71,7 @@ export function usePlatformFee() {
       const { data } = await supabase
         .from('platform_settings')
         .select('key, value')
-        .in('key', ['platform_fee_pct', 'founding_cutoff']);
+        .in('key', ['platform_fee_pct', 'founding_cutoff', 'free_intro_until']);
       if (cancelled || !data) return;
       for (const row of data) {
         if (row.key === 'platform_fee_pct') {
@@ -67,6 +79,8 @@ export function usePlatformFee() {
           if (!isNaN(parsed)) setFeePct(parsed);
         } else if (row.key === 'founding_cutoff' && row.value) {
           setFoundingCutoff(row.value);
+        } else if (row.key === 'free_intro_until' && row.value) {
+          setFreeIntroUntil(row.value);
         }
       }
     })();
@@ -90,5 +104,8 @@ export function usePlatformFee() {
     [feePct, foundingCutoff]
   );
 
-  return { feePct, foundingCutoff, feeFor, isFounding };
+  const introEndsAt = parseSettingDate(freeIntroUntil);
+  const introActive = introEndsAt !== null && new Date() < introEndsAt;
+
+  return { feePct, foundingCutoff, feeFor, isFounding, freeIntroUntil, introEndsAt, introActive };
 }

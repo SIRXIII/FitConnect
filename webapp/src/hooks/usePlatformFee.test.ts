@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { effectivePlatformFee, isFoundingTrainer } from './usePlatformFee';
+import { effectivePlatformFee, isFoundingTrainer, parseSettingDate } from './usePlatformFee';
 
 // The hook module imports the Supabase client; the pure helpers under test don't need it.
 vi.mock('@/lib/supabase', () => ({ supabase: {} }));
@@ -49,5 +49,30 @@ describe('effectivePlatformFee', () => {
 
   it('defaults to non-founding when the flag is omitted', () => {
     expect(effectivePlatformFee(FEE)).toBe(FEE);
+  });
+});
+
+describe('parseSettingDate (promo ticker window)', () => {
+  it('reads a YYYY-MM-DD setting as that local calendar day', () => {
+    // new Date('2026-12-01') would be UTC midnight, which is Nov 30 in the US
+    // and would make the ticker advertise the wrong end date.
+    const d = parseSettingDate('2026-12-01');
+    expect(d).not.toBeNull();
+    expect(d!.getFullYear()).toBe(2026);
+    expect(d!.getMonth()).toBe(11);
+    expect(d!.getDate()).toBe(1);
+    expect(d!.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })).toBe('December 1');
+  });
+
+  it('returns null for missing or unparseable values so the ticker stays hidden', () => {
+    expect(parseSettingDate(null)).toBeNull();
+    expect(parseSettingDate(undefined)).toBeNull();
+    expect(parseSettingDate('')).toBeNull();
+    expect(parseSettingDate('not-a-date')).toBeNull();
+  });
+
+  it('supports the active/expired comparison the ticker gates on', () => {
+    expect(new Date('2026-09-10') < parseSettingDate('2026-12-01')!).toBe(true);
+    expect(new Date('2027-01-05') < parseSettingDate('2026-12-01')!).toBe(false);
   });
 });

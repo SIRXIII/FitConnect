@@ -16,6 +16,15 @@
     0% { opacity: 0; transform: translateY(10px); }
     100% { opacity: 1; transform: translateY(0); }
   }
+
+  /* Promo ticker. The track holds the message twice, so shifting it exactly
+     half its width loops seamlessly with no gap. */
+  --animate-marquee: marquee 45s linear infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
 }
 
 /* Base styles */

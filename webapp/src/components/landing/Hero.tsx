@@ -1,7 +1,12 @@
 import { motion } from 'framer-motion';
 import AppStoreBadge from '@/components/shared/AppStoreBadge';
+import PromoTicker from '@/components/landing/PromoTicker';
+import { usePlatformFee } from '@/hooks/usePlatformFee';
 
 const Hero: React.FC = () => {
+  const { introActive, introEndsAt } = usePlatformFee();
+  const showPromo = introActive && introEndsAt !== null;
+
   const scrollToSearch = () => {
     const element = document.getElementById('search');
     element?.scrollIntoView({ behavior: 'smooth' });
@@ -9,7 +14,14 @@ const Hero: React.FC = () => {
 
   return (
     <section className="relative min-h-screen flex items-center bg-paper pt-20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 w-full">
+      {showPromo && (
+        <PromoTicker
+          endsOn={introEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+        />
+      )}
+      {/* Reserve the ticker's height so the absolutely positioned bar never
+          overlaps the headline. Collapses to nothing once the promo ends. */}
+      <div className={`max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 w-full ${showPromo ? 'pt-16 sm:pt-12' : ''}`}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
           <div className="lg:col-span-7 z-10">
