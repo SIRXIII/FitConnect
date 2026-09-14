@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
       adminClient
         .from('payments')
         .select(`
-          id, amount, platform_fee, currency, payment_method, status, created_at,
+          id, amount, platform_fee, status, created_at,
           bookings!inner (client_id)
         `)
         .eq('bookings.client_id', user.id),
