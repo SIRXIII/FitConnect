@@ -310,7 +310,10 @@ const BookSession: React.FC = () => {
     // Track our own reservation so the realtime listener above doesn't grey it out.
     ownBookedSlotIdRef.current = slot.id;
 
-    notifyTrainer(slot, profile?.full_name || 'A client', finalRate, 'instant');
+    // No trainer notification here: the booking is still 'pending' and unpaid.
+    // notify_on_booking_update fires it once stripe-webhook flips it to
+    // 'confirmed'. Notifying at creation spammed trainers on every abandoned
+    // or failed checkout (2026-09-14 incident).
 
     if (hadReferralDiscount) {
       await supabase

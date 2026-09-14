@@ -106,12 +106,8 @@ Deno.serve(async (req) => {
           trainer_payout,
           trainer_profiles!bookings_trainer_id_fkey (
             id,
-            user_id,
             stripe_account_id,
             payouts_enabled
-          ),
-          profiles!bookings_client_id_fkey (
-            full_name
           )
         `
       )
@@ -277,8 +273,6 @@ Deno.serve(async (req) => {
           amount: amountCents / 100,
           platform_fee: Number(booking.platform_fee),
           trainer_payout: Number(booking.trainer_payout),
-          currency: 'usd',
-          payment_method: 'card',
           status: paymentStatus,
         },
         { onConflict: 'booking_id' }
@@ -291,31 +285,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fire-and-forget push notification to trainer on new booking
-    const trainerUserIdForPush = Array.isArray(booking.trainer_profiles)
-      ? booking.trainer_profiles[0]?.user_id
-      : (booking.trainer_profiles as { user_id?: string } | null)?.user_id;
-    const clientNameForPush = Array.isArray(booking.profiles)
-      ? booking.profiles[0]?.full_name
-      : (booking.profiles as { full_name?: string } | null)?.full_name;
-
-    if (trainerUserIdForPush) {
-      fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseServiceRoleKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_ids: [trainerUserIdForPush],
-          title: 'New Booking',
-          body: clientNameForPush
-            ? `${clientNameForPush} booked a session with you`
-            : 'A client booked a session with you',
-          data: { type: 'new_booking', booking_id: bookingId },
-        }),
-      }).catch(() => {});
-    }
+    // No trainer push here. This fires while the booking is still 'pending'
+    // and unpaid, so it announced bookings that were cancelled seconds later
+    // whenever payment failed. The trainer is notified by
+    // notify_on_booking_update when stripe-webhook flips the booking to
+    // 'confirmed' (migration 20260914190000).
 
     return new Response(
       JSON.stringify({
