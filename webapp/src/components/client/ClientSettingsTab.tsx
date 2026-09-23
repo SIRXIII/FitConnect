@@ -8,6 +8,9 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth';
 import { stripePromise, STRIPE_CONFIGURED } from '@/lib/stripe';
 import { isNativeiOS } from '@/lib/platform';
+import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
+
+const LOCATION_MAX_LENGTH = 100;
 
 // ---- Image compression (mirrors SettingsTab pattern) ----
 async function compressImage(file: File, maxSize = 400, quality = 0.7): Promise<Blob> {
@@ -136,6 +139,7 @@ const ClientSettingsTab: React.FC = () => {
   // Profile form state
   const [fullName, setFullName] = useState(profile?.full_name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
+  const [location, setLocation] = useState(profile?.location ?? '');
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url ?? '');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -171,6 +175,10 @@ const ClientSettingsTab: React.FC = () => {
     if (user) loadSavedCard();
   }, [user]);
 
+  useEffect(() => {
+    setLocation(profile?.location ?? '');
+  }, [profile?.location]);
+
   // ---- Avatar upload ----
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -204,14 +212,29 @@ const ClientSettingsTab: React.FC = () => {
     if (!user) return;
 
     const trimmedName = fullName.trim();
+    const trimmedLocation = location.trim();
+    const savedLocation = profile?.location?.trim() ?? '';
     if (!trimmedName) {
       toast.error('Full name is required.');
+      return;
+    }
+    if (savedLocation && !trimmedLocation) {
+      setLocation(savedLocation);
+      toast.error('City / service area cannot be cleared.');
+      return;
+    }
+    if (trimmedLocation.length > LOCATION_MAX_LENGTH) {
+      toast.error('City / service area must be 100 characters or fewer.');
       return;
     }
 
     setSavingProfile(true);
     try {
+      if (trimmedLocation) {
+        await updateProfile({ location: trimmedLocation });
+      }
       await updateProfile({ full_name: trimmedName, phone: phone.trim() || null });
+      setLocation(trimmedLocation || savedLocation);
       await fetchProfile(user.id);
       toast.success('Profile saved.');
     } catch (err) {
@@ -312,6 +335,19 @@ const ClientSettingsTab: React.FC = () => {
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Your name"
             className="w-full border-b border-ink/20 bg-transparent pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+          />
+        </Field>
+
+        {/* City / service area */}
+        <Field
+          label="City / service area"
+          hint={profile?.location?.trim() ? undefined : 'Missing city / service area'}
+        >
+          <LocationAutocomplete
+            value={location}
+            onChange={setLocation}
+            placeholder="City or service area"
+            className="w-full border-b border-ink/20 bg-transparent pl-5 pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
           />
         </Field>
 

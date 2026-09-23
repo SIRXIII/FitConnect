@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth';
 import { clientProfileSchema } from '@/lib/schemas';
 import { isNativeiOS } from '@/lib/platform';
 import type { TablesInsert } from '@/types/supabase';
+import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
 
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
 const stripePromise = stripeKey && !isNativeiOS() ? loadStripe(stripeKey) : null;
@@ -16,6 +17,7 @@ const stripePromise = stripeKey && !isNativeiOS() ? loadStripe(stripeKey) : null
 // ─── types ────────────────────────────────────────────────
 interface FormData {
   full_name: string;
+  location: string;
   age: string;
   weight_lbs: string;
   height_ft: string;
@@ -48,6 +50,7 @@ const FITNESS_LEVELS = [
   { value: 'intermediate', label: 'Intermediate', desc: '1–3 years of consistent training' },
   { value: 'advanced', label: 'Advanced', desc: '3+ years, sport or performance focus' },
 ];
+const LOCATION_MAX_LENGTH = 100;
 
 // ─── Payment step (inner Stripe component) ────────────────
 const PaymentStep: React.FC<{ clientSecret: string; onSuccess: (pmId: string) => void; onSkip: () => void }> = ({ clientSecret, onSuccess, onSkip }) => {
@@ -109,6 +112,7 @@ const ClientOnboarding: React.FC = () => {
 
   const [form, setForm] = useState<FormData>({
     full_name: profile?.full_name ?? '',
+    location: profile?.location ?? '',
     age: '',
     weight_lbs: '',
     height_ft: '',
@@ -155,6 +159,16 @@ const ClientOnboarding: React.FC = () => {
     if (!user) return;
     setSaving(true);
     try {
+      const trimmedLocation = form.location.trim();
+      if (!trimmedLocation) {
+        toast.error('City / service area is required.');
+        return;
+      }
+      if (trimmedLocation.length > LOCATION_MAX_LENGTH) {
+        toast.error('City / service area must be 100 characters or fewer.');
+        return;
+      }
+
       // Validate with Zod before saving
       const validation = clientProfileSchema.safeParse({
         full_name: form.full_name.trim(),
@@ -192,6 +206,8 @@ const ClientOnboarding: React.FC = () => {
 
       // Details row first; only then flag onboarding as complete so a failed
       // save leaves the user in onboarding with the form state intact.
+      await updateProfile({ location: trimmedLocation });
+
       const profileUpdate: Record<string, unknown> = { onboarding_complete: true };
       if (form.full_name.trim()) profileUpdate.full_name = form.full_name.trim();
       await updateProfile(profileUpdate as Parameters<typeof updateProfile>[0]);
@@ -207,7 +223,10 @@ const ClientOnboarding: React.FC = () => {
   };
 
   const canProceed = () => {
-    if (step === 1) return form.full_name.trim().length > 0;
+    if (step === 1) {
+      const locationLength = form.location.trim().length;
+      return form.full_name.trim().length > 0 && locationLength > 0 && locationLength <= LOCATION_MAX_LENGTH;
+    }
     if (step === 3) return !!form.body_type && !!form.fitness_level;
     if (step === 4) return form.fitness_goals.length > 0;
     if (step === 5) return form.workout_types.length > 0;
@@ -255,6 +274,15 @@ const ClientOnboarding: React.FC = () => {
               autoFocus
               className="w-full border-b border-ink/20 bg-transparent pb-3 text-xl font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
             />
+            <div className="space-y-2 pt-4">
+              <label className="text-xs uppercase tracking-[0.2em] text-ink/80">City / service area</label>
+              <LocationAutocomplete
+                value={form.location}
+                onChange={location => setForm(f => ({ ...f, location }))}
+                placeholder="City or service area"
+                className="w-full border-b border-ink/20 bg-transparent pl-5 pb-2 text-base font-light outline-none focus:border-ink/60 transition-colors placeholder:text-ink/20"
+              />
+            </div>
           </div>
         )}
 

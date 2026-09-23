@@ -12,6 +12,9 @@ import IntensitySlider from '@/components/client/IntensitySlider';
 import GoalRankPicker from '@/components/client/GoalRankPicker';
 import { clearMatchCache } from '@/lib/matchScoring';
 import ClientWorkoutSummary from '@/components/shared/ClientWorkoutSummary';
+import LocationAutocomplete from '@/components/shared/LocationAutocomplete';
+
+const LOCATION_MAX_LENGTH = 100;
 
 // --- Image compression ---
 
@@ -73,6 +76,8 @@ const ClientPassport: React.FC = () => {
   const [heightFt, setHeightFt] = useState<number | ''>('');
   const [heightIn, setHeightIn] = useState<number | ''>('');
   const [fitnessLevel, setFitnessLevel] = useState<string>('');
+  const [location, setLocation] = useState(profile?.location ?? '');
+  const [savingLocation, setSavingLocation] = useState(false);
 
   // Load existing data on mount
   useEffect(() => {
@@ -115,6 +120,10 @@ const ClientPassport: React.FC = () => {
     if (profile?.avatar_url) setAvatarPreview(profile.avatar_url);
   }, [profile?.avatar_url]);
 
+  useEffect(() => {
+    setLocation(profile?.location ?? '');
+  }, [profile?.location]);
+
   const toggle = (arr: string[], val: string): string[] =>
     arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val];
 
@@ -136,8 +145,37 @@ const ClientPassport: React.FC = () => {
     else toast.error('Save failed');
   };
 
+  const saveLocation = async () => {
+    if (!user || savingLocation) return;
+
+    const trimmedLocation = location.trim();
+    const savedLocation = profile?.location?.trim() ?? '';
+    if (!trimmedLocation) {
+      setLocation(savedLocation);
+      toast.error(savedLocation ? 'City / service area cannot be cleared.' : 'City / service area is required.');
+      return;
+    }
+    if (trimmedLocation.length > LOCATION_MAX_LENGTH) {
+      toast.error('City / service area must be 100 characters or fewer.');
+      return;
+    }
+
+    setSavingLocation(true);
+    try {
+      await updateProfile({ location: trimmedLocation });
+      setLocation(trimmedLocation);
+      toast.success('City / service area saved.', { duration: 1200, id: 'profile-location-save' });
+    } catch (err) {
+      console.error('[ClientPassport] save location error:', err);
+      toast.error('Could not save city / service area. Please try again.');
+    } finally {
+      setSavingLocation(false);
+    }
+  };
+
   // --- Progress ring computation ---
   const COMPLETION_FIELDS = [
+    !!profile?.location?.trim(),
     !!avatarPreview,
     !!(age),
     !!(weightLbs),
@@ -151,6 +189,7 @@ const ClientPassport: React.FC = () => {
     (COMPLETION_FIELDS.filter(Boolean).length / COMPLETION_FIELDS.length) * 100
   );
   const missingFields: string[] = [];
+  if (!profile?.location?.trim()) missingFields.push('city / service area');
   if (!avatarPreview) missingFields.push('photo');
   if (!age) missingFields.push('age');
   if (!weightLbs) missingFields.push('weight');
@@ -277,6 +316,30 @@ const ClientPassport: React.FC = () => {
           <h2 className="text-[10px] uppercase tracking-[0.25em] text-ink/60 border-b border-ink/10 pb-2">
             Personal Info
           </h2>
+
+          {/* City / service area */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-ink/68">City / service area</label>
+              {!profile?.location?.trim() && (
+                <span className="text-[10px] uppercase tracking-[0.15em] text-red-500">Missing</span>
+              )}
+            </div>
+            <LocationAutocomplete
+              value={location}
+              onChange={setLocation}
+              placeholder="City or service area"
+              className="w-full border border-ink/15 bg-transparent p-3 pl-8 text-sm font-light outline-none focus:border-ink/40 transition-colors placeholder:text-ink/20"
+            />
+            <button
+              type="button"
+              onClick={() => void saveLocation()}
+              disabled={savingLocation}
+              className="border border-accent text-accent px-6 py-2.5 text-[10px] uppercase tracking-[0.2em] font-medium hover:bg-accent hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {savingLocation ? 'Saving...' : 'Save Location'}
+            </button>
+          </div>
 
           {/* Bio */}
           <div className="space-y-2">

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { BookingWizard } from './BookingWizard';
@@ -11,18 +11,22 @@ vi.mock('framer-motion', () => ({
   },
 }));
 
-// BookingWizard fires a best-effort GCal sync via supabase.functions.invoke on booking.
+const { bookingRead, syncCalendar } = vi.hoisted(() => ({ bookingRead: vi.fn(), syncCalendar: vi.fn() }));
 vi.mock('@/lib/supabase', () => ({
-  supabase: { functions: { invoke: vi.fn().mockResolvedValue({ data: null, error: null }) } },
+  supabase: {
+    functions: { invoke: syncCalendar },
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: bookingRead }) }) }),
+  },
 }));
 
 // StepPayment renders through Stripe's <Elements>, which needs a real publishable
 // key to mount in tests. Stand in a minimal fake so we can drive the Back button.
 vi.mock('./StepPayment', () => ({
-  StepPayment: ({ amount, onBack }: { amount: number; onBack: () => void }) => (
+  StepPayment: ({ amount, onBack, onSuccess }: { amount: number; onBack: () => void; onSuccess: () => void }) => (
     <div>
       <span>Payment Amount: {amount}</span>
       <button onClick={onBack}>Payment Back</button>
+      <button onClick={onSuccess}>Accept Payment</button>
     </div>
   ),
 }));
@@ -69,6 +73,10 @@ const renderWizard = (props = {}) =>
   );
 
 describe('BookingWizard', () => {
+  beforeEach(() => {
+    bookingRead.mockReset().mockResolvedValue({ data: null });
+    syncCalendar.mockReset().mockResolvedValue({ data: null, error: null });
+  });
   it('renders ProgressIndicator with step labels', () => {
     renderWizard();
     expect(screen.getByText('Review')).toBeTruthy();
@@ -134,5 +142,40 @@ describe('BookingWizard', () => {
 
     // handleBooking is NOT called a second time -- the existing booking is reused.
     expect(handleBooking).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not confirm or sync the calendar until the saved booking is confirmed', async () => {
+    renderWizard();
+    fireEvent.click(screen.getByText('Continue to Confirm'));
+    fireEvent.click(screen.getByText('Continue to Payment'));
+    await waitFor(() => expect(screen.getByText('Accept Payment')).toBeTruthy());
+    expect(syncCalendar).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText('Accept Payment'));
+    await waitFor(() => expect(bookingRead).toHaveBeenCalledOnce());
+    expect(screen.getByText('Confirming your booking')).toBeTruthy();
+    expect(syncCalendar).not.toHaveBeenCalled();
+  });
+
+  it('syncs only after persisted confirmation', async () => {
+    bookingRead.mockResolvedValue({ data: { id: 'booking-1', status: 'confirmed' } });
+    renderWizard();
+    fireEvent.click(screen.getByText('Continue to Confirm'));
+    fireEvent.click(screen.getByText('Continue to Payment'));
+    await waitFor(() => expect(screen.getByText('Accept Payment')).toBeTruthy());
+    fireEvent.click(screen.getByText('Accept Payment'));
+    await waitFor(() => expect(syncCalendar).toHaveBeenCalledWith('sync-booking-to-gcal', { body: { booking_id: 'booking-1' } }));
+    expect(screen.queryByText('Confirming your booking')).toBeNull();
+  });
+
+  it('recreates a reservation after payment setup released it', async () => {
+    const handleBooking = vi.fn().mockResolvedValue({ bookingId: 'booking-1', quote: mockServerQuote });
+    const createPaymentIntent = vi.fn().mockResolvedValueOnce(null).mockResolvedValue('secret');
+    renderWizard({ handleBooking, createPaymentIntent });
+    fireEvent.click(screen.getByText('Continue to Confirm'));
+    fireEvent.click(screen.getByText('Continue to Payment'));
+    await waitFor(() => expect(screen.getByText(/Payment setup failed/)).toBeTruthy());
+    fireEvent.click(screen.getByText('Continue to Payment'));
+    await waitFor(() => expect(screen.getByText('Accept Payment')).toBeTruthy());
+    expect(handleBooking).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy, UserPlus, CreditCard, Activity, Wallet, Zap, ChevronDown } from 'lucide-react';
+import { Search, UserX, UserCheck, Settings, Users, DollarSign, BarChart2, TrendingUp, Flag, Eye, EyeOff, ScrollText, ShieldCheck, AlertTriangle, LifeBuoy, UserPlus, CreditCard, Activity, Wallet, Zap, ChevronDown, MapPin, RefreshCw } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
@@ -42,6 +42,7 @@ interface UserRow {
   created_at: string;
   avatar_url: string | null;
   phone: string | null;
+  location?: string | null;
   email?: string;
   last_sign_in_at?: string | null;
   subscription_tier?: 'free' | 'pro' | 'elite' | null;
@@ -315,9 +316,11 @@ const AdminDashboard: React.FC = () => {
   const [viewingTrainerId, setViewingTrainerId] = useState<string | null>(null);
   const [viewingTrainer, setViewingTrainer] = useState<PendingTrainer | null>(null);
   const [loadingTrainerDetail, setLoadingTrainerDetail] = useState(false);
+  const [trainerDetailError, setTrainerDetailError] = useState<string | null>(null);
   const [viewingClientId, setViewingClientId] = useState<string | null>(null);
   const [viewingClient, setViewingClient] = useState<AdminClientDetail | null>(null);
   const [loadingClientDetail, setLoadingClientDetail] = useState(false);
+  const [clientDetailError, setClientDetailError] = useState<string | null>(null);
   const [supportInitialTicketId, setSupportInitialTicketId] = useState<string | null>(null);
   const [supportInitialDraftMessage, setSupportInitialDraftMessage] = useState<string | null>(null);
   const messageThreadInFlight = useRef(false);
@@ -444,7 +447,8 @@ const AdminDashboard: React.FC = () => {
         const q = search.trim().toLowerCase();
         rows = rows.filter(u =>
           u.full_name?.toLowerCase().includes(q) ||
-          u.email?.toLowerCase().includes(q)
+          u.email?.toLowerCase().includes(q) ||
+          u.location?.toLowerCase().includes(q)
         );
       }
 
@@ -799,13 +803,16 @@ const AdminDashboard: React.FC = () => {
   const openTrainerDetail = async (userId: string) => {
     setViewingTrainerId(userId);
     setViewingTrainer(null);
+    setTrainerDetailError(null);
     setLoadingTrainerDetail(true);
     try {
       const { data, error } = await (supabase as any).rpc('get_admin_trainer_detail', { p_user_id: userId });
       if (error) throw error;
       setViewingTrainer((data ?? null) as PendingTrainer | null);
     } catch {
-      toast.error('Failed to load trainer detail.');
+      setViewingTrainer(null);
+      setTrainerDetailError("Could not load trainer details. Check your connection and try again.");
+      toast.error('Could not load trainer details. Use Retry to try again.');
     } finally {
       setLoadingTrainerDetail(false);
     }
@@ -814,18 +821,22 @@ const AdminDashboard: React.FC = () => {
   const closeTrainerDetail = () => {
     setViewingTrainerId(null);
     setViewingTrainer(null);
+    setTrainerDetailError(null);
   };
 
   const openClientDetail = async (userId: string) => {
     setViewingClientId(userId);
     setViewingClient(null);
+    setClientDetailError(null);
     setLoadingClientDetail(true);
     try {
       const { data, error } = await (supabase as any).rpc('get_admin_client_detail', { p_user_id: userId });
       if (error) throw error;
       setViewingClient((data ?? null) as AdminClientDetail | null);
     } catch {
-      toast.error('Failed to load client detail.');
+      setViewingClient(null);
+      setClientDetailError("Could not load client details. Check your connection and try again.");
+      toast.error('Could not load client details. Use Retry to try again.');
     } finally {
       setLoadingClientDetail(false);
     }
@@ -834,6 +845,7 @@ const AdminDashboard: React.FC = () => {
   const closeClientDetail = () => {
     setViewingClientId(null);
     setViewingClient(null);
+    setClientDetailError(null);
   };
 
   const handleMessageTrainer = async (trainerUserId: string, trainerName: string) => {
@@ -2120,7 +2132,7 @@ const AdminDashboard: React.FC = () => {
                 <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink/60" />
                 <input
                   type="text"
-                  placeholder="Search by name or email..."
+                  placeholder="Search by name, email, or location..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-ink/10 bg-transparent text-sm text-ink placeholder-ink/25 focus:outline-none focus:border-ink/30"
@@ -2242,9 +2254,15 @@ const AdminDashboard: React.FC = () => {
                           {(user.full_name?.trim()?.charAt(0) || '?').toUpperCase()}
                         </div>
                       )}
-                      <p className={`text-sm font-medium truncate ${user.is_suspended ? 'text-ink/75 line-through' : 'text-ink'}`}>
-                        {user.full_name || '—'}
-                      </p>
+                      <div className="min-w-0">
+                        <p className={`text-sm font-medium truncate ${user.is_suspended ? 'text-ink/75 line-through' : 'text-ink'}`}>
+                          {user.full_name || '—'}
+                        </p>
+                        <p data-testid="user-location" className="flex items-center gap-1 text-[10px] text-ink/55 truncate">
+                          <MapPin size={10} strokeWidth={1.7} aria-hidden="true" />
+                          {user.location?.trim() || 'Area not provided'}
+                        </p>
+                      </div>
                     </div>
                     <p className="text-xs text-ink/75 truncate">{user.email ?? '—'}</p>
                     <p className="text-xs text-ink/75 truncate">
@@ -3398,7 +3416,22 @@ const AdminDashboard: React.FC = () => {
             <p className="px-6 py-12 text-[10px] text-ink/60 uppercase tracking-widest text-center">Loading…</p>
           )}
 
-          {!loadingTrainerDetail && !viewingTrainer && (
+          {!loadingTrainerDetail && trainerDetailError && (
+            <div data-testid="trainer-detail-error" role="alert" className="px-6 py-12 text-center space-y-4">
+              <p className="text-sm font-light text-red-700">{trainerDetailError}</p>
+              <button
+                type="button"
+                data-testid="retry-trainer-detail"
+                onClick={() => { if (viewingTrainerId) void openTrainerDetail(viewingTrainerId); }}
+                className="inline-flex items-center gap-2 border border-ink/20 px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-medium text-ink/80 hover:bg-ink hover:text-white transition-colors"
+              >
+                <RefreshCw size={13} aria-hidden="true" />
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!loadingTrainerDetail && !trainerDetailError && !viewingTrainer && (
             <p className="px-6 py-12 text-sm font-light text-ink/68 text-center">Trainer profile not found.</p>
           )}
 
@@ -3434,7 +3467,22 @@ const AdminDashboard: React.FC = () => {
             <p className="px-6 py-12 text-[10px] text-ink/60 uppercase tracking-widest text-center">Loading…</p>
           )}
 
-          {!loadingClientDetail && !viewingClient && (
+          {!loadingClientDetail && clientDetailError && (
+            <div data-testid="client-detail-error" role="alert" className="px-6 py-12 text-center space-y-4">
+              <p className="text-sm font-light text-red-700">{clientDetailError}</p>
+              <button
+                type="button"
+                data-testid="retry-client-detail"
+                onClick={() => { if (viewingClientId) void openClientDetail(viewingClientId); }}
+                className="inline-flex items-center gap-2 border border-ink/20 px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-medium text-ink/80 hover:bg-ink hover:text-white transition-colors"
+              >
+                <RefreshCw size={13} aria-hidden="true" />
+                Retry
+              </button>
+            </div>
+          )}
+
+          {!loadingClientDetail && !clientDetailError && !viewingClient && (
             <p className="px-6 py-12 text-sm font-light text-ink/68 text-center">Client profile not found.</p>
           )}
 

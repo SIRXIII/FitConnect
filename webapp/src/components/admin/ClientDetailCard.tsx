@@ -1,3 +1,6 @@
+import { MapPin } from 'lucide-react';
+import { FITNESS_GOALS, FREQUENCIES, WORKOUT_TYPES } from '@/lib/profileConstants';
+
 export interface AdminClientDetail {
   user_id: string;
   full_name: string | null;
@@ -12,6 +15,13 @@ export interface AdminClientDetail {
   cancelled_count: number;
   no_show_count: number;
   total_spend: number;
+  location?: string | null;
+  onboarding_complete?: boolean;
+  bio?: string | null;
+  fitness_level?: string | null;
+  training_frequency?: string | null;
+  fitness_goals?: string[] | null;
+  workout_types?: string[] | null;
   recent_bookings: Array<{
     id: string;
     status: string;
@@ -33,7 +43,30 @@ interface Props {
   onMessageClient?: () => void;
 }
 
+type ProfileOption = { value: string; label: string };
+
+const optionLabel = (value: string, options: readonly ProfileOption[]) =>
+  options.find((option) => option.value === value)?.label ?? value;
+
+const titleLabel = (value: string | null | undefined) => {
+  const trimmed = value?.trim();
+  return trimmed ? `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1)}` : 'Not provided';
+};
+
 const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
+  const fitnessGoals = client.fitness_goals ?? [];
+  const workoutTypes = client.workout_types ?? [];
+  const onboardingLabel = client.onboarding_complete === true
+    ? 'Onboarding complete'
+    : client.onboarding_complete === false
+      ? 'Onboarding incomplete'
+      : 'Onboarding status unavailable';
+  const onboardingTone = client.onboarding_complete === true
+    ? 'text-green-700'
+    : client.onboarding_complete === false
+      ? 'text-amber-700'
+      : 'text-ink/68';
+
   return (
     <div className="border border-ink/10">
 
@@ -59,6 +92,18 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
                   Suspended
                 </span>
               )}
+            </div>
+            <div className="flex items-center gap-3 flex-wrap mt-1">
+              <p data-testid="client-location" className="inline-flex items-center gap-1 text-sm text-ink font-medium">
+                <MapPin size={13} strokeWidth={1.7} aria-hidden="true" />
+                {client.location?.trim() || 'Service area not provided'}
+              </p>
+              <span
+                data-testid="client-onboarding-status"
+                className={`text-[10px] uppercase tracking-[0.15em] font-medium ${onboardingTone}`}
+              >
+                {onboardingLabel}
+              </span>
             </div>
             <p className="text-sm text-ink/80 truncate">
               <a href={`mailto:${client.email}`} className="hover:underline">{client.email}</a>
@@ -89,7 +134,60 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
         )}
       </div>
 
-      {/* ── SECTION 2: Booking Summary ── */}
+      {/* ── SECTION 2: Profile & training preferences ── */}
+      <div className="border-t border-ink/10 px-6 py-5">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-4">Profile &amp; Training Preferences</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-5">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Fitness Level</p>
+            <p className="text-sm text-ink">{titleLabel(client.fitness_level)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Training Frequency</p>
+            <p className="text-sm text-ink">
+              {client.training_frequency
+                ? optionLabel(client.training_frequency, FREQUENCIES)
+                : 'Not provided'}
+            </p>
+          </div>
+          <div className="col-span-2">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Fitness Goals</p>
+            {fitnessGoals.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {fitnessGoals.map((goal) => (
+                  <span key={goal} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/85">
+                    {optionLabel(goal, FITNESS_GOALS)}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-ink/68 italic">Not provided</p>
+            )}
+          </div>
+          <div className="col-span-2 md:col-span-4">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Workout Types</p>
+            {workoutTypes.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {workoutTypes.map((workoutType) => (
+                  <span key={workoutType} className="px-2.5 py-1 border border-ink/10 text-[11px] text-ink/85">
+                    {optionLabel(workoutType, WORKOUT_TYPES)}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-ink/68 italic">Not provided</p>
+            )}
+          </div>
+          <div className="col-span-2 md:col-span-4">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Bio</p>
+            {client.bio?.trim()
+              ? <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-wrap">{client.bio.trim()}</p>
+              : <p className="text-sm text-ink/68 italic">Not provided</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SECTION 3: Booking Summary ── */}
       <div className="border-t border-ink/10 px-6 py-5">
         <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-4">Booking Summary</p>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-5">
@@ -116,7 +214,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
         </div>
       </div>
 
-      {/* ── SECTION 3: Recent Bookings ── */}
+      {/* ── SECTION 4: Recent Bookings ── */}
       <div className="border-t border-ink/10 px-6 py-5">
         <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-3">Recent Bookings</p>
         {client.recent_bookings.length > 0 ? (
@@ -139,7 +237,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
         )}
       </div>
 
-      {/* ── SECTION 4: Reviews Written ── */}
+      {/* ── SECTION 5: Reviews Written ── */}
       <div className="border-t border-ink/10 px-6 py-5">
         <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-3">Reviews Written</p>
         {client.reviews.length > 0 ? (

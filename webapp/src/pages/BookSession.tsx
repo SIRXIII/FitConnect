@@ -50,22 +50,32 @@ const PaymentForm: React.FC<{
     setProcessing(true);
     setError(null);
 
-    const { error: submitError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/client/bookings`,
-      },
-      redirect: 'if_required',
-    });
+    try {
+      const { error: submitError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/client/bookings`,
+        },
+        redirect: 'if_required',
+      });
 
-    if (submitError) {
-      setError(submitError.message || 'Payment failed. Please try again.');
-      setProcessing(false);
-      return;
+      if (submitError) {
+        setError(submitError.message || 'Payment failed. Please try again.');
+        setProcessing(false);
+        return;
+      }
+
+      if (!paymentIntent || !['succeeded', 'processing'].includes(paymentIntent.status)) {
+        setError('Payment is not complete. Check your payment details and try again.');
+        setProcessing(false);
+        return;
+      }
+
+      // Stripe acceptance is followed by a persisted booking-status check.
+      onSuccess();
+    } catch {
+      setError('Unable to verify payment. Check My Bookings before trying again.');
     }
-
-    // Payment succeeded without redirect
-    onSuccess();
     setProcessing(false);
   };
 

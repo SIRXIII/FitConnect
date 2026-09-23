@@ -169,6 +169,32 @@ describe('AdminDashboard message client (admin welcome + push)', () => {
   });
 });
 
+describe('AdminDashboard client profile details and detail-load states', () => {
+  it('keeps location on the user row without adding a table column', () => {
+    expect(SOURCE).toContain('location?: string | null');
+    expect(SOURCE).toContain('data-testid="user-location"');
+    expect(SOURCE).toContain('Search by name, email, or location...');
+  });
+
+  it('includes location in existing user search matching', () => {
+    expect(SOURCE).toContain('u.location?.toLowerCase().includes(q)');
+  });
+
+  it('tracks trainer and client detail failures separately from empty results', () => {
+    expect(SOURCE).toContain('trainerDetailError');
+    expect(SOURCE).toContain('clientDetailError');
+    expect(SOURCE).toContain('!trainerDetailError && !viewingTrainer');
+    expect(SOURCE).toContain('!clientDetailError && !viewingClient');
+  });
+
+  it('provides retry actions for trainer and client detail load failures', () => {
+    expect(SOURCE).toContain('data-testid="retry-trainer-detail"');
+    expect(SOURCE).toContain('data-testid="retry-client-detail"');
+    expect(SOURCE).toContain('Could not load trainer details. Check your connection and try again.');
+    expect(SOURCE).toContain('Could not load client details. Check your connection and try again.');
+  });
+});
+
 describe('AdminDashboard current tab structure', () => {
   const tabs = [
     'analytics',

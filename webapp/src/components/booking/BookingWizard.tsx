@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { StepReview } from './StepReview';
 import { StepConfirm } from './StepConfirm';
 import { StepPayment } from './StepPayment';
 import { StepSuccess } from './StepSuccess';
+import { BookingConfirmation } from './BookingConfirmation';
 import type { AvailabilitySlot } from '@/hooks/useAvailability';
 import type { TrainerProfile } from '@/stores/auth';
 import { isNativeiOS } from '@/lib/platform';
@@ -101,6 +102,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const goNext = () => setCurrentStepIndex((i) => Math.min(i + 1, steps.length - 1));
   const goBack = () => setCurrentStepIndex((i) => Math.max(i - 1, 0));
@@ -145,15 +147,13 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       setBookingId(currentBookingId);
       setServerQuote(applyServerQuote(displayQuote, result.quote));
 
-      // Fire-and-forget: push booking to trainer's Google Calendar (if connected)
-      supabase.functions.invoke('sync-booking-to-gcal', {
-        body: { booking_id: currentBookingId },
-      }).catch(() => { /* GCal sync is best-effort — never block booking */ });
     }
 
     if (showPayment) {
       const secret = await createPaymentIntent(currentBookingId);
       if (!secret) {
+        // Payment setup releases the pending booking. A retry needs a new reservation.
+        setBookingId(null);
         setLoading(false);
         setPaymentError('Payment setup failed. The session is still available -- please try again.');
         return;
@@ -161,15 +161,23 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       setClientSecret(secret);
       goNext(); // -> Payment step
     } else {
-      goNext(); // -> Complete step (skipping Payment)
+      setConfirming(true);
     }
 
     setLoading(false);
   };
 
   const handlePaymentSuccess = () => {
-    goNext(); // -> Complete step
+    setConfirming(true);
   };
+
+  const handleConfirmed = useCallback(() => {
+    setConfirming(false);
+    setCurrentStepIndex(steps.length - 1);
+    supabase.functions.invoke('sync-booking-to-gcal', {
+      body: { booking_id: bookingId },
+    }).catch(() => { /* Calendar sync is best-effort after persisted confirmation. */ });
+  }, [bookingId, steps.length]);
 
   const handlePaymentBack = () => {
     // Go back to confirm step
@@ -179,6 +187,9 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
   const currentStepName = steps[currentStepIndex];
 
   const renderStep = () => {
+    if (confirming && bookingId) {
+      return <BookingConfirmation bookingId={bookingId} onConfirmed={handleConfirmed} />;
+    }
     switch (currentStepName) {
       case 'Review':
         return (
