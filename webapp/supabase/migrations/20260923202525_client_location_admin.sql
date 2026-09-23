@@ -1,4 +1,4 @@
--- Client location validation and admin profile visibility.
+-- Client location validation and admin profile visibility (2026-09-23).
 -- Location remains nullable so existing incomplete and historic rows are not
 -- rewritten. New completed client writes must provide a trimmed city/service
 -- area, while historic completed rows with no location remain editable.

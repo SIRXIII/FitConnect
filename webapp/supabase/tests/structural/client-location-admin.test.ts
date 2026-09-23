@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const SQL = readFileSync(
-  resolve(__dirname, '../../migrations/20260923190000_client_location_admin.sql'),
+  resolve(__dirname, '../../migrations/20260923202525_client_location_admin.sql'),
   'utf8',
 );
 
