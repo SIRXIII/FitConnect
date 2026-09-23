@@ -71,8 +71,8 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
     <div className="border border-ink/10">
 
       {/* ── SECTION 1: Header — identity ── */}
-      <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-ink/10 bg-ink/[0.02]">
-        <div className="flex items-start gap-4 min-w-0">
+      <div className="flex flex-col md:flex-row items-start justify-between gap-4 px-6 py-5 border-b border-ink/10 bg-ink/[0.02]">
+        <div className="flex flex-col sm:flex-row items-start gap-4 min-w-0 w-full flex-1">
           {client.avatar_url ? (
             <img
               src={client.avatar_url}
@@ -84,9 +84,9 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
               {(client.full_name?.trim() || client.email || 'U').charAt(0).toUpperCase()}
             </div>
           )}
-          <div className="min-w-0 pt-1">
+          <div className="min-w-0 w-full pt-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-lg text-ink font-medium truncate">{client.full_name?.trim() || 'No name provided'}</p>
+              <p className="text-lg text-ink font-medium break-words">{client.full_name?.trim() || 'No name provided'}</p>
               {client.is_suspended && (
                 <span className="text-[10px] uppercase tracking-[0.15em] text-red-700 font-medium whitespace-nowrap">
                   Suspended
@@ -94,9 +94,9 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
               )}
             </div>
             <div className="flex items-center gap-3 flex-wrap mt-1">
-              <p data-testid="client-location" className="inline-flex items-center gap-1 text-sm text-ink font-medium">
-                <MapPin size={13} strokeWidth={1.7} aria-hidden="true" />
-                {client.location?.trim() || 'Service area not provided'}
+              <p data-testid="client-location" className="inline-flex items-start gap-1 min-w-0 max-w-full text-sm text-ink font-medium">
+                <MapPin size={13} strokeWidth={1.7} className="shrink-0 mt-0.5" aria-hidden="true" />
+                <span className="min-w-0 break-words">{client.location?.trim() || 'Service area not provided'}</span>
               </p>
               <span
                 data-testid="client-onboarding-status"
@@ -105,7 +105,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
                 {onboardingLabel}
               </span>
             </div>
-            <p className="text-sm text-ink/80 truncate">
+            <p className="text-sm text-ink/80 break-words">
               <a href={`mailto:${client.email}`} className="hover:underline">{client.email}</a>
               {' · '}
               {client.phone?.trim() ? (
@@ -123,7 +123,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
           </div>
         </div>
         {onMessageClient && (
-          <div className="flex flex-col gap-2 shrink-0 w-[220px]">
+          <div className="flex flex-col gap-2 shrink-0 w-full md:w-[220px]">
             <button
               onClick={onMessageClient}
               className="w-full px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/68 border border-ink/10 hover:border-ink/20 transition-colors"
@@ -181,7 +181,7 @@ const ClientDetailCard: React.FC<Props> = ({ client, onMessageClient }) => {
           <div className="col-span-2 md:col-span-4">
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink/55 font-medium mb-1.5">Bio</p>
             {client.bio?.trim()
-              ? <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-wrap">{client.bio.trim()}</p>
+              ? <p className="text-sm text-ink/80 leading-relaxed whitespace-pre-wrap break-words">{client.bio.trim()}</p>
               : <p className="text-sm text-ink/68 italic">Not provided</p>}
           </div>
         </div>
